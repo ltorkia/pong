@@ -4,11 +4,12 @@
 !.env.example
 
 # Dependencies
-/node_modules
+node_modules/
 /src/backend/vendor
 
 # Build
-/dist
+dist/
+build/
 *.log
 
 # Base de données SQLite
