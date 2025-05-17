@@ -1,11 +1,11 @@
 #!/bin/bash
 
 # Sass compiler location
-SASS_EXEC="./assets/styles/scss/dart-sass/sass"
+SASS_EXEC="./assets/scss/dart-sass/sass"
 
 # Source and destination files
-SRC="./assets/styles/scss/index.scss"
-DEST="./assets/styles/css/main.css"
+SRC="./assets/scss/index.scss"
+DEST="./assets/styles/main.css"
 
 # Check if compiler is found
 if [ ! -f "$SASS_EXEC" ]; then

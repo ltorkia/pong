@@ -1,11 +1,8 @@
-# Fichiers d'environnement
+# Fichier d'environnement
 .env
-.env.*
-!.env.example
 
-# Dependencies
+# Dependances
 node_modules/
-/src/backend/vendor
 
 # Build
 dist/
@@ -13,13 +10,19 @@ build/
 *.log
 
 # Base de données SQLite
-/src/database/data.sqlite
-/src/database/*.db
-/src/database/*.sqlite3
+# Fichiers à rajouter !
+
+# CSS généré par SCSS + fichiers relatifs
+*.css
+*.css.map
+/frontend/assets/styles
+!/frontend/**/*.scss
+**/watch-sass.sh
+**/dart-sass/
 
 # Uploads
-/src/uploads/*
-!/src/uploads/.gitkeep
+/frontend/uploads/*
+!/frontend/uploads/.gitkeep
 
 # Fichiers système
 .DS_Store
@@ -30,3 +33,6 @@ Thumbs.db
 /.vscode
 *.swp
 *.swo
+
+# Perso Lee
+project-readme.md
