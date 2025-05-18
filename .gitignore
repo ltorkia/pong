@@ -1,38 +1,33 @@
-# Fichier d'environnement
-.env
-
-# Dependances
+# Node modules
 node_modules/
 
-# Build
+# Build output
 dist/
 build/
+
+# Environment variables
+.env
+
+# Database files
+backend/db/database.sqlite
+
+# Log files
 *.log
 
-# Base de données SQLite
-# Fichiers à rajouter !
-
-# CSS généré par SCSS + fichiers relatifs
-*.css
-*.css.map
-/frontend/assets/styles
-!/frontend/**/*.scss
-**/watch-sass.sh
-**/dart-sass/
-
-# Uploads
-/frontend/uploads/*
-!/frontend/uploads/.gitkeep
-
-# Fichiers système
-.DS_Store
-Thumbs.db
-
-# Fichiers d'éditeurs
-/.idea
-/.vscode
+# Editor directories and files
+.idea/
+.vscode/
 *.swp
 *.swo
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
 
 # Perso Lee
 project-readme.md
