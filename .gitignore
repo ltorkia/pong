@@ -9,7 +9,7 @@ build/
 .env
 
 # Database files
-backend/db/database.sqlite
+# backend/db/database.sqlite
 
 # Log files
 *.log
