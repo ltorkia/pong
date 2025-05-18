@@ -1,0 +1,29 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom styles */
+body {
+  font-family: 'Arial', sans-serif;
+  background-color: #000;
+  color: #fff;
+}
+
+.pong-canvas {
+  border: 2px solid #fff;
+  background-color: #000;
+}
+
+.pong-paddle {
+  background-color: #fff;
+}
+
+.pong-ball {
+  background-color: #fff;
+  border-radius: 50%;
+}
+
+.tournament-bracket {
+  display: flex;
+  flex-direction: column;
+}
