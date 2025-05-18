@@ -8,8 +8,6 @@ GREEN = \033[0;32m
 YELLOW = \033[0;33m
 NC = \033[0m
 
-.PHONY: all up down build build-cache build-up logs clean fclean restart shell test lint format help
-
 all: up
 
 # Build neuf + up détaché (rend la main dans le terminal avec conteneur toujours actif)
@@ -85,3 +83,5 @@ lint:
 format:
 	@echo "${GREEN}Formatting code...${NC}"
 	@$(DOCKER_EXEC) $(APP_CONTAINER) npm run format
+
+.PHONY: all up build-cache build-up down logs clean fclean restart re shell test lint format

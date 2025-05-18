@@ -6,6 +6,7 @@ services:
       - "8080:8080"  # Backend API
       - "3000:3000"  # Frontend dev server
     volumes:
+      - .env:/app/.env
       - ./backend:/app/backend
       - ./frontend:/app/frontend
       - /app/backend/node_modules
