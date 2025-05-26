@@ -2,7 +2,8 @@
   "name": "frontend",
   "version": "1.0.0",
   "scripts": {
-    "dev": "vite --host --port 8080"
+    "dev": "vite --host --port 5173",
+    "build": "vite build"
   },
   "dependencies": {
     "react": "^18.2.0",

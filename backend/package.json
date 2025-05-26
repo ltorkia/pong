@@ -9,7 +9,8 @@
   "dependencies": {
     "fastify": "^4.0.0",
     "sqlite": "^4.0.23",
-    "sqlite3": "^5.1.6"
+    "sqlite3": "^5.1.6",
+    "@fastify/static": "^6.10.1"
   },
   "devDependencies": {
     "ts-node": "^10.x",

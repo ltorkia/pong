@@ -1,9 +1,21 @@
 import Fastify from 'fastify';
+import fastifyStatic from '@fastify/static';
+import path from 'path';
 import { open } from 'sqlite';
 import sqlite3 from 'sqlite3';
-import path from 'path';
 
 const fastify = Fastify({ logger: true });
+
+// Servir les fichiers statiques depuis /app/public (monté depuis frontend/dist)
+fastify.register(fastifyStatic, {
+  root: path.join(__dirname, 'public'),
+  prefix: '/',
+});
+
+// Pour les routes SPA (React), renvoyer index.html par défaut
+fastify.setNotFoundHandler((req, reply) => {
+  reply.sendFile('index.html');
+});
 
 const dbPath = path.resolve('./data/database.db');
 
