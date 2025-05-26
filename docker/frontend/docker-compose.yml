@@ -1,0 +1,36 @@
+version: "3.8"
+
+services:
+  backend:
+    build: ./backend
+    container_name: backend
+    volumes:
+      - ./backend:/app
+      - /app/node_modules  
+      - sqlite_data:/app/data
+    ports:
+      # - "3000"
+      - "8080:8080"
+    networks:
+      - app_net
+    restart: on-failure
+
+  frontend:
+    build: ./frontend
+    container_name: frontend
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules  
+    ports:
+      # - "5173:5173"
+      - "3000"
+    networks:
+      - app_net
+    restart: on-failure
+
+networks:
+  app_net:
+    driver: bridge
+
+volumes:
+  sqlite_data:
