@@ -1,17 +1,21 @@
 import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
+import path from 'path';
 
 export default defineConfig({
-  plugins: [react()],
+  root: '.',
+  base: './',
+  build: {
+    outDir: 'dist',
+    emptyOutDir: true,
+  },
   server: {
-    host: true,
-    port: 3000,
-    proxy: {
-      '/api': {
-        target: 'http://backend:8080', // ⚠️ utilise le nom du service docker
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, '/api'),
-      },
+    host: '0.0.0.0',
+    port: 8080,
+    strictPort: true,
+  },
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, 'src'),
     },
   },
 });
