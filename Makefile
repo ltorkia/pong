@@ -25,23 +25,24 @@ down: # Arrête les services
 logs: # Affiche les logs des services
 	docker compose -f $(COMPOSE_FILE) logs -f
 
-clean:  # Nettoie conteneurs et images sans toucher aux volumes
-	@echo "${GREEN}Nettoyage des répertoires temporaires...${NC}"
-	@rm -rf frontend/node_modules backend/node_modules
+clean: # Nettoie les conteneurs sans toucher aux volumes
 	@echo "${YELLOW}Arrêt et suppression des conteneurs (sans volumes)...${NC}"
 	docker compose -f $(COMPOSE_FILE) down --remove-orphans
-	@echo "${YELLOW}Suppression des images non utilisées...${NC}"
-	docker image prune -f
 
-fclean: clean  # Nettoyage complet, y compris volumes et base de données
-	@echo "${RED}Nettoyage complet (volumes, base de données, images)...${NC}"
-	@rm -rf backend/data
+fclean: # Nettoyage complet, y compris volumes, dépendances et données
+	@echo "${RED}Nettoyage complet (volumes, base de données, dépendances)...${NC}"
 	docker compose -f $(COMPOSE_FILE) down -v --remove-orphans
+	@rm -rf frontend/node_modules backend/node_modules
+	@rm -rf backend/data
+
+prune: fclean # Nettoyage extrême de tout ce qui n’est pas utilisé par Docker
+	@echo "$(YELLOW)⚠️ Suppression complète de tous les éléments Docker non utilisés...${NC}"
 	docker system prune -a --volumes -f
+	@echo "$(GREEN)Système Docker nettoyé avec succès!${NC}"
 
 re: fclean build up
 
 status: # Affiche le statut des services
 	docker compose -f $(COMPOSE_FILE) ps
 
-.PHONY: build up down logs clean fclean re status
+.PHONY: build up down logs clean fclean prune re status
