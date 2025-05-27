@@ -1,5 +1,5 @@
 COMPOSE_FILE = docker-compose.yml
-PROJECT_NAME = transcendance
+PROJECT_NAME = transcendence
 
 GREEN = \033[32m
 YELLOW = \033[33m
@@ -45,4 +45,4 @@ re: fclean build up
 status: # Affiche le statut des services
 	docker compose -f $(COMPOSE_FILE) ps
 
-.PHONY: help build up down logs clean fclean re status
+.PHONY: build up down logs clean fclean re status

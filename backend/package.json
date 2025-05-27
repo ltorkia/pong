@@ -1,7 +1,7 @@
 {
-	"name": "transcendance-backend",
+	"name": "transcendence-backend",
 	"version": "1.0.0",
-	"description": "Backend for Transcendance Pong game",
+	"description": "Backend for Transcendence Pong game",
 	"main": "src/index.ts",
 	"scripts": {
 	  "start": "node dist/index.js",

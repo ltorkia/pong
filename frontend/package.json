@@ -1,7 +1,7 @@
 {
-	"name": "transcendance-frontend",
+	"name": "transcendence-frontend",
 	"version": "1.0.0",
-	"description": "Frontend for Transcendance Pong game",
+	"description": "Frontend for Transcendence Pong game",
 	"type": "module",
 	"scripts": {
 	  "dev": "vite --host 0.0.0.0 --port 3000",

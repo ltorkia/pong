@@ -4,7 +4,7 @@ export async function apiRoutes(app: FastifyInstance) {
 	app.get('/api', async () => {
 		return {
 			status: 'OK',
-			message: 'Transcendance Backend is running!',
+			message: 'ici on est sur le back',
 			timestamp: new Date().toISOString()
 		};
 	});
