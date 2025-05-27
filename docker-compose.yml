@@ -1,36 +1,37 @@
-version: "3.8"
-
 services:
+  nginx:
+    build: ./nginx
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+      - frontend
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    networks:
+      - transcendance
+
   backend:
     build: ./backend
-    container_name: backend
     volumes:
       - ./backend:/app
-      - /app/node_modules  
+      - /app/node_modules
       - sqlite_data:/app/data
-      - ./frontend/dist:/app/public
-    ports:
-      # - "3000"
-      - "8080:8080"
     networks:
-      - app_net
-    restart: on-failure
+      - transcendance
+    restart: unless-stopped
 
   frontend:
     build: ./frontend
-    container_name: frontend
     volumes:
       - ./frontend:/app
-      - /app/node_modules  
-    ports:
-      # - "5173:5173"
-      - "3000"
+      - /app/node_modules
     networks:
-      - app_net
-    restart: on-failure
+      - transcendance
+    restart: unless-stopped
 
 networks:
-  app_net:
+  transcendance:
     driver: bridge
 
 volumes:

@@ -1,19 +1,18 @@
-FROM node:20
+FROM node:18-alpine
 
-# Crée le dossier de travail
 WORKDIR /app
 
-# Copier package.json pour installer les dépendances
+# Copier les fichiers de dépendances
 COPY package*.json ./
 
-# Installer les dependances
+# Installer les dépendances
 RUN npm install
 
-# Copier le reste du code
+# Copier le code source
 COPY . .
 
-# Ouvre le port utilisé par le backend
-EXPOSE 8080
+# Exposer le port
+EXPOSE 3001
 
-# Lance le serveur en développement avec le script "dev" dans package.json
+# Commande de développement avec nodemon pour le hot reload
 CMD ["npm", "run", "dev"]

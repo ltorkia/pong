@@ -1,3 +1,1 @@
-# ft_transcendence
-
-in progress...
+# 🏓 Transcendance - Pong Game

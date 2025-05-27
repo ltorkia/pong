@@ -1,21 +1,16 @@
-import { defineConfig } from 'vite';
-import path from 'path';
+import { defineConfig } from 'vite'
 
 export default defineConfig({
-  root: '.',
-  base: './',
-  build: {
-    outDir: 'dist',
-    emptyOutDir: true,
-  },
-  server: {
-    host: '0.0.0.0',
-    port: 8080,
-    strictPort: true,
-  },
-  resolve: {
-    alias: {
-      '@': path.resolve(__dirname, 'src'),
-    },
-  },
-});
+	server: {
+		host: '0.0.0.0',
+		port: 3000,
+		hmr: true
+	},
+	css: {
+		postcss: './postcss.config.js'
+	},
+	build: {
+		outDir: 'dist',
+		sourcemap: true
+	}
+})

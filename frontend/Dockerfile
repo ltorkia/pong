@@ -1,15 +1,18 @@
-FROM node:20
+FROM node:18-alpine
 
 WORKDIR /app
 
+# Copier les fichiers de dépendances
 COPY package*.json ./
-# RUN npm install
-RUN npm install --include=dev
-# RUN npm install -D ts-node typescript
-# RUN npm install -D vite
 
+# Installer les dépendances
+RUN npm install
 
+# Copier le code source
 COPY . .
 
+# Exposer le port
 EXPOSE 3000
+
+# Commande de développement avec Vite
 CMD ["npm", "run", "dev"]

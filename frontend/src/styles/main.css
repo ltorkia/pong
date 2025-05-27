@@ -1,0 +1,23 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-dark-bg text-white font-sans;
+  }
+}
+
+@layer components {
+  .btn-neon {
+    @apply px-6 py-3 bg-transparent border-2 border-neon-blue text-neon-blue font-bold rounded-lg transition-all duration-300 hover:bg-neon-blue hover:text-black hover:shadow-lg hover:shadow-neon-blue/50;
+  }
+  
+  .card-neon {
+    @apply bg-gray-900/50 border border-neon-blue/30 rounded-lg p-6 backdrop-blur-sm;
+  }
+  
+  .text-glow {
+    text-shadow: 0 0 10px currentColor;
+  }
+}
