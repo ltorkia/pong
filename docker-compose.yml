@@ -16,7 +16,7 @@ services:
     volumes:
       - ./backend:/app
       - /app/node_modules
-      - sqlite_data:/app/data
+      - ./backend/data:/app/data 
     networks:
       - transcendence
     restart: unless-stopped
@@ -29,9 +29,6 @@ services:
     networks:
       - transcendence
     restart: unless-stopped
-
-volumes:
-  sqlite_data:
 
 networks:
   transcendence:
