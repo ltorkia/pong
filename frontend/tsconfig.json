@@ -1,19 +1,17 @@
 {
 	"compilerOptions": {
-	  "target": "ES2020",
-	  "module": "ESNext",
-	  "moduleResolution": "Node",
-	  "strict": true,
-	  "esModuleInterop": true,
-	  "skipLibCheck": true,
-	  "forceConsistentCasingInFileNames": true,
-	  "jsx": "preserve", 
-	  "types": ["vite/client"],
-	  "allowSyntheticDefaultImports": true,
-	  "baseUrl": "./",
-	  "outDir": "dist"
+	  "target": "ES2020",                        // Version JavaScript ciblée (pour async/await...)
+	  "module": "ESNext",                        // Utilise les modules ECMAScript (import/export modernes)
+	  "moduleResolution": "Node",                // Manière dont TypeScript résout les imports (comme Node.js)
+	  "strict": true,                            // Active toutes les vérifications strictes (bon pour la qualité du code)
+	  "esModuleInterop": true,                   // Permet d'importer des modules CommonJS avec `import`
+	  "forceConsistentCasingInFileNames": true,  // Évite les bugs liés à la casse des noms de fichiers (Windows vs Linux)
+	  "jsx": "preserve",                         // Ne transforme pas le JSX (utile parce qu'on n'utilise pas React ici)
+	  "types": ["vite/client"],                  // Ajoute les types spéciaux de Vite (ex: import.meta.env)
+	  "allowSyntheticDefaultImports": true,      // Autorise l'import par défaut même si le module ne l'exporte pas
+	  "baseUrl": "./",                           // Base pour les chemins relatifs dans les imports = dossier frontend en cours
+	  "outDir": "dist"                           // Dossier de sortie des fichiers compilés
 	},
-	"include": ["src"],
-	"exclude": ["node_modules", "dist"]
-  }
-  
+	"include": ["src"],                          // Dossiers à inclure dans la compilation
+	"exclude": ["node_modules", "dist"]          // Dossiers à exclure de la compilation
+}

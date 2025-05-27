@@ -6,7 +6,6 @@ YELLOW = \033[33m
 RED = \033[31m
 NC = \033[0m
 
-
 all: build up
 
 build: # Construit les images Docker

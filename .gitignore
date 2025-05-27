@@ -61,3 +61,6 @@ pids/
 *.pid
 *.seed
 *.pid.lock
+
+# Ne pas ignorer package-lock.json
+!package-lock.json
