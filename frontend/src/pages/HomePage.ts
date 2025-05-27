@@ -7,27 +7,18 @@ export class HomePage {
 		this.container = container;
 	}
 
-	public render(): void {
-		this.container.innerHTML = `
-			<div class="flex flex-col items-center justify-center min-h-[80vh]">
-				<h1 class="text-4xl font-bold mb-8">lksdfjsdlkfj</h1>
-				<div class="bg-gray-800 p-6 rounded-lg shadow-lg max-w-md w-full">
-					<h2 class="text-2xl font-semibold mb-4">Turlututu chapeau pointu</h2>
-					<div class="mb-6">
-						<p class="mb-4">Ta mère elle mange des crêpes</p>
-						<div class="flex justify-center space-x-4">
-							<button id="register-button" class="bg-pong-blue hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-								Register
-							</button>
-							<button id="login-button" class="bg-pong-red hover:bg-red-700 text-white font-bold py-2 px-4 rounded">
-								Login
-							</button>
-						</div>
-					</div>
-				</div>
-			</div>
-		`;
-
-		attachHomePageListeners();
+	public async render(): Promise<void> {
+		try {
+			const response = await fetch('/templates/home.html');
+			if (!response.ok) {
+				throw new Error(`Erreur lors du chargement du template: ${response.statusText}`);
+			}
+			const html = await response.text();
+			this.container.innerHTML = html;
+			attachHomePageListeners();
+		} catch (error) {
+			console.error('Erreur lors du rendu de la page:', error);
+			this.container.innerHTML = '<p>Erreur de chargement de la page.</p>';
+		}
 	}
 }

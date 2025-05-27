@@ -1,4 +1,3 @@
-// HomePageController.ts
 import { router } from '../router/router';
 
 export function attachHomePageListeners() {
