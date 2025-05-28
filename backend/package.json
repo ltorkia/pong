@@ -1,5 +1,4 @@
 {
-<<<<<<< HEAD
 	"name": "transcendence-backend",
 	"version": "1.0.0",
 	"description": "Backend for Transcendence Pong game",
@@ -27,22 +26,3 @@
 	}
   }
   
-=======
-  "name": "fastify-backend",
-  "version": "1.0.0",
-  "type": "commonjs",
-  "main": "src/index.ts",
-  "scripts": {
-    "dev": "ts-node src/index.ts"
-  },
-  "dependencies": {
-    "fastify": "^4.0.0",
-    "sqlite": "^4.0.23",
-    "sqlite3": "^5.1.6"
-  },
-  "devDependencies": {
-    "ts-node": "^10.x",
-    "typescript": "^5.x"
-  }
-}
->>>>>>> ea02d3285ab3c4f4406851940a619b38e3e33aa8

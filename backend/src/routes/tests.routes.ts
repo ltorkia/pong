@@ -33,6 +33,16 @@ export async function testsRoutes(app: FastifyInstance) {
                 'no'
             ]
         );
+        const result = await db.run(`
+        INSERT INTO Game (winner, n_participants, date, duration, tournoi)
+        VALUES (?, ?, datetime('now'), ?, ?)
+        `, ['user1', 2, '00:15:00', 'Tournoi A']);
+
+        const gameId = result.lastID;
+        await db.run(`INSERT INTO Users_Game (Game_id, Users_id) VALUES (?, ?)`, [gameId, 1]);
+        await db.run(`INSERT INTO Users_Game (Game_id, Users_id) VALUES (?, ?)`, [gameId, 2]);
+
+
         // const users = await db.all(`SELECT * FROM users`);
         // return users;
     })
