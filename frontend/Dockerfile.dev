@@ -11,8 +11,5 @@ RUN npm install
 # Copier le code source
 COPY . .
 
-# Exposer le port
-EXPOSE 3000
-
 # Commande de développement avec Vite
 CMD ["npm", "run", "dev"]

@@ -1,0 +1,26 @@
+services:
+
+  nginx:
+    build:
+      context: .
+      dockerfile: ./nginx/Dockerfile.prod
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+    networks:
+      - transcendence
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.prod
+    volumes:
+      - ./backend/data:/app/data
+    networks:
+      - transcendence
+    restart: unless-stopped
+
+networks:
+  transcendence:
+    driver: bridge

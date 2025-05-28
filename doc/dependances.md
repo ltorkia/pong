@@ -1,12 +1,4 @@
-# Documentation des dépendances et scripts du projet *Transcendence*
-
-## Structure
-
-Ce projet est divisé en deux parties :
-- **Backend** (serveur Node.js avec Fastify)
-- **Frontend** (application web avec Vite)
-
-Chaque partie possède un fichier `package.json` décrivant ses dépendances et scripts.
+Liste non exhaustive
 
 ---
 
