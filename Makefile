@@ -29,7 +29,13 @@ dev: # Lance le projet en mode dev (hot reload sur le front et redémarrage du s
 prod: # Lance le projet en mode prod (compile les fichiers statiques, pas de hot reload)
 	@echo "$(YELLOW)[MODE PROD]$(NC)"
 	@sh -c 'echo "prod" > .mode'
-	@$(MAKE) build up
+	@$(MAKE) prebuild-local build up
+
+prebuild-local: # Compilation locale des fichiers statiques en mode prod pour avoir un visuel sans bind mount dans docker-compose.yml
+	@echo "$(YELLOW)Compilation locale du frontend...$(NC)"
+	cd frontend && npm install && npm run build
+	@echo "$(YELLOW)Compilation locale du backend $(NC)"
+	cd backend && npm install && npm run build
 
 build: # Construit les images Docker
 	@echo "$(GREEN)Construction des images Docker...$(NC)"
@@ -67,7 +73,7 @@ fclean: clean # Nettoyage complet, y compris les données persistantes et systè
 	@echo "${RED}Nettoyage des données persistantes...${NC}"
 	@sudo chown -R $(shell id -u):$(shell id -g) backend/data || true
 	@rm -rf frontend/node_modules backend/node_modules
-	@rm -rf backend/data frontend/dist .mode
+	@rm -rf backend/data backend/dist frontend/dist .mode
 	@echo "$(YELLOW)⚠️ Suppression complète de tous les éléments Docker non utilisés...${NC}"
 	docker system prune -a --volumes -f
 	@echo "$(GREEN)Système Docker nettoyé avec succès!${NC}"
@@ -77,4 +83,4 @@ re: fclean build up
 status: # Affiche le statut des services
 	docker compose -f $(COMPOSE_FILE) ps
 
-.PHONY: dev prod build build-frontend up down logs exec-frontend exec-backend exec-nginx clean fclean prune re status
+.PHONY: dev prod fix-audit prebuild-local build build-frontend up down logs exec-frontend exec-backend exec-nginx clean fclean prune re status

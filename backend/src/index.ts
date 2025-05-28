@@ -1,5 +1,4 @@
 import Fastify from 'fastify';
-import fastifyCors from '@fastify/cors';
 import fastifyHelmet from '@fastify/helmet';
 
 // Database
@@ -16,9 +15,8 @@ const PORT = 3001;
 async function start() {
   const fastify = Fastify({ logger: true });
 
-  // Sécurise et configure CORS
+  // Sécurise
   await fastify.register(fastifyHelmet);
-  await fastify.register(fastifyCors, { origin: '*', methods: ['GET', 'POST'] });
 
   // Initialisation de la base de données
   try {
