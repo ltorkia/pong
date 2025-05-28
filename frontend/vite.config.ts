@@ -16,7 +16,19 @@ export default defineConfig(({ command }) => {
       outDir: 'dist',
       sourcemap: true,
       base: isProduction ? './' : '/',
-      minify: isProduction ? 'esbuild' : false
+      minify: isProduction ? 'esbuild' : false,
+      rollupOptions: {
+        output: {
+          entryFileNames: 'assets/js/[name].js',
+          chunkFileNames: 'assets/js/[name].js',
+          assetFileNames: (assetInfo) => {
+            if (assetInfo.type === 'asset' && assetInfo.name?.endsWith('.css')) {
+             return 'assets/css/[name][extname]'
+            }
+            return 'assets/[name][extname]'
+          }
+        }
+      }
     }
   }
 })
