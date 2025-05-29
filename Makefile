@@ -29,13 +29,14 @@ dev: # Lance le projet en mode dev (hot reload sur le front et redémarrage du s
 prod: # Lance le projet en mode prod (compile les fichiers statiques, pas de hot reload)
 	@echo "$(YELLOW)[MODE PROD]$(NC)"
 	@sh -c 'echo "prod" > .mode'
-	@$(MAKE) prebuild-local build up
+	@$(MAKE) build up copy-local
 
-prebuild-local: # Compilation locale des fichiers statiques en mode prod pour avoir un visuel sans bind mount dans docker-compose.yml
-	@echo "$(YELLOW)Compilation locale du frontend...$(NC)"
-	cd frontend && npm install && npm run build
-	@echo "$(YELLOW)Compilation locale du backend $(NC)"
-	cd backend && npm install && npm run build
+copy-local: # Copie locale des fichiers statiques pour avoir un visuel en mode prod sans bind mount les volumes dans docker-compose.yml
+	@echo "$(GREEN)Copie des fichiers statiques du dossier /dist du docker frontend vers nginx local...$(NC)"
+	docker cp $$(docker compose -f $(COMPOSE_FILE) ps -q nginx):/usr/share/nginx/html ./nginx/dist || echo "Frontend dist absent"
+	
+	@echo "$(GREEN)Copie des fichiers statiques du dossier /dist du docker backend vers backend local...$(NC)"
+	docker cp $$(docker compose -f $(COMPOSE_FILE) ps -q backend):/app/dist ./backend/dist || echo "Backend dist absent"
 
 build: # Construit les images Docker
 	@echo "$(GREEN)Construction des images Docker...$(NC)"
@@ -73,7 +74,7 @@ fclean: clean # Nettoyage complet, y compris les données persistantes et systè
 	@echo "${RED}Nettoyage des données persistantes...${NC}"
 	@sudo chown -R $(shell id -u):$(shell id -g) backend/data || true
 	@rm -rf frontend/node_modules backend/node_modules
-	@rm -rf backend/data backend/dist frontend/dist .mode
+	@rm -rf backend/data backend/dist nginx/dist .mode
 	@echo "$(YELLOW)⚠️ Suppression complète de tous les éléments Docker non utilisés...${NC}"
 	docker system prune -a --volumes -f
 	@echo "$(GREEN)Système Docker nettoyé avec succès!${NC}"
@@ -83,4 +84,4 @@ re: fclean build up
 status: # Affiche le statut des services
 	docker compose -f $(COMPOSE_FILE) ps
 
-.PHONY: dev prod prebuild-local build build-frontend up down logs exec-frontend exec-backend exec-nginx clean fclean re status
+.PHONY: dev prod copy-local build build-frontend up down logs exec-frontend exec-backend exec-nginx clean fclean re status

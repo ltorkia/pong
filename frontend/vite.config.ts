@@ -1,4 +1,5 @@
 import { defineConfig } from 'vite'
+import { __dirname, resolve } from 'path';
 
 export default defineConfig(({ command }) => {
   const isProduction = command === 'build'
@@ -16,7 +17,8 @@ export default defineConfig(({ command }) => {
       outDir: 'dist',
       sourcemap: true,
       base: isProduction ? './' : '/',
-      minify: isProduction ? 'esbuild' : false,
+      // minify: isProduction ? 'esbuild' : false,
+      minify: false,
       rollupOptions: {
         output: {
           entryFileNames: 'assets/js/[name].js',
