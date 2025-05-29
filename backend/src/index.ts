@@ -9,6 +9,7 @@ import { apiRoutes } from './routes/api.routes';
 import { healthRoutes } from './routes/health.routes';
 import { authRoutes } from './routes/auth.routes';
 import { usersRoutes } from './routes/users.routes';
+import { testsRoutes } from './routes/tests.routes';
 
 const PORT = 3001;
 
@@ -33,6 +34,7 @@ async function start() {
   await fastify.register(healthRoutes);
   await fastify.register(authRoutes);
   await fastify.register(usersRoutes);
+  await fastify.register(testsRoutes);
 
   // Lancement du serveur
   fastify.listen({ port: PORT, host: '0.0.0.0' }, (err, address) => {
