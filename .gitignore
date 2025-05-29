@@ -33,10 +33,7 @@ uploads/
 
 # Logs
 logs/
-*.log
-
-# Docker
-.dockerignore
+*.logs
 
 # IDE
 .vscode/

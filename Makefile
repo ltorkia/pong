@@ -11,7 +11,7 @@ NC = \033[0m
 
 # Définit la variable MODE en lisant le contenu du fichier .mode s'il existe (sinon MODE=dev par défaut)
 # Ce fichier est créé dès lors que l'on fait make dev ou make prod, et en fonction aura comme contenu "dev" ou "prod".
-# Ca va nous permettre de définir la variable COMPOSE_FILE avec DEV_COMPOSE_FILE ou PROD_COMPOSE_FILE pour les autres règles comme fclean.
+# Ca va nous permettre de définir la variable COMPOSE_FILE avec DEV_COMPOSE_FILE ou PROD_COMPOSE_FILE pour les autres règles comme build.
 MODE ?= $(shell cat .mode 2>/dev/null || echo "dev")
 ifeq ($(MODE),prod)
 	COMPOSE_FILE := $(PROD_COMPOSE_FILE)
@@ -83,4 +83,4 @@ re: fclean build up
 status: # Affiche le statut des services
 	docker compose -f $(COMPOSE_FILE) ps
 
-.PHONY: dev prod prebuild-local build build-frontend up down logs exec-frontend exec-backend exec-nginx clean fclean prune re status
+.PHONY: dev prod prebuild-local build build-frontend up down logs exec-frontend exec-backend exec-nginx clean fclean re status
