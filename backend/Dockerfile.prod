@@ -15,9 +15,6 @@ COPY . .
 # Compiler le TypeScript selon le script build du package.json
 RUN npm run build
 
-# Vérifier que la compilation a fonctionné
-RUN ls -la dist/
-
 # Étape 2: builder l'image finale
 FROM node:20-alpine
 

@@ -83,4 +83,4 @@ re: fclean build up
 status: # Affiche le statut des services
 	docker compose -f $(COMPOSE_FILE) ps
 
-.PHONY: dev prod fix-audit prebuild-local build build-frontend up down logs exec-frontend exec-backend exec-nginx clean fclean prune re status
+.PHONY: dev prod prebuild-local build build-frontend up down logs exec-frontend exec-backend exec-nginx clean fclean prune re status
