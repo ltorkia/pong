@@ -72,9 +72,8 @@ clean: # Nettoie les images, conteneurs et volumes
 
 fclean: clean # Nettoyage complet, y compris les données persistantes et système Docker global
 	@echo "${RED}Nettoyage des données persistantes...${NC}"
-	@sudo chown -R $(shell id -u):$(shell id -g) backend/data || true
-	@rm -rf frontend/node_modules backend/node_modules
-	@rm -rf backend/data backend/dist nginx/dist .mode
+	rm -rf frontend/node_modules backend/node_modules
+	rm -rf backend/data backend/dist nginx/dist .mode
 	@echo "$(YELLOW)⚠️ Suppression complète de tous les éléments Docker non utilisés...${NC}"
 	docker system prune -a --volumes -f
 	@echo "$(GREEN)Système Docker nettoyé avec succès!${NC}"
