@@ -24,12 +24,12 @@ build/
 database/
 
 # Uploads
-uploads/
-*.jpg
-*.jpeg
-*.png
-*.gif
-*.pdf
+# uploads/
+# *.jpg
+# *.jpeg
+# *.png
+# *.gif
+# *.pdf
 
 # Logs
 logs/
