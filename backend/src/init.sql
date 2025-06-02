@@ -1,8 +1,8 @@
                                                     -- Users : comprend les infos persos du user + stats pour le dashboard + situation en cours
     CREATE TABLE IF NOT EXISTS Users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        pseudo TEXT,
-        email TEXT,
+        pseudo TEXT UNIQUE,
+        email TEXT UNIQUE,
         inscription DATETIME,                                                   -- 1ere inscription
         lastlog DATETIME,                                                       -- derniere connection
         password TEXT,                                                          -- a hascher + tard
@@ -12,7 +12,7 @@
         game_played INTEGER,                                                    -- total des parties jouees -> permet d eviter de recalculer a chaque fois dans la db
         game_win INTEGER,                                                       -- total parties gagnees -> pareil
         game_loose INTEGER,                                                     -- total parties perdues ->pareil
-        time_played DATETIME,                                                   -- total temps joue -> a remettre a jour a chaque fin de jeu
+        time_played INTEGER,                                                   -- total temps joue -> a remettre a jour a chaque fin de jeu
         n_friends INTEGER                                                       -- nbre d amis total
       );
 
@@ -23,7 +23,7 @@
         date DATETIME,
         begin DATETIME,
         tournament BOOL,
-        status BOOL,                                                             -- jeu en cours, termine, ou pas encore commence si tournoi ? 
+        status TEXT,                                                           -- pour preciser si en cours, annule ou termine                                                             -- jeu en cours, termine, ou pas encore commence si tournoi ? 
         temporary_result INT                                                   -- au cas ou serveur plante, possibilite de recuperer le score en cours
       );
   
@@ -38,15 +38,25 @@
         PRIMARY KEY (Game_id, Users_id)                                          --un element pour chaque user qui a participe au meme jeu
       );
 
-                                                        -- Chat -> pour gerer les messages echanges
-    CREATE TABLE IF NOT EXISTS Chat (
+    CREATE TABLE IF NOT EXISTS Chat (               -- Chat -> pour gerer les messages echanges
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        Users_id INTEGER,                                                        -- user qui a envoye le message - pertinent ? 
+        Sender_id INTEGER NOT NULL,
+        Receiver_id INTEGER NOT NULL,                                                   
+        time_send DATETIME,
+        message TEXT,
+        friend BOOL,
+        lock BOOL,
+        FOREIGN KEY (Sender_id) REFERENCES Users(id),
+        FOREIGN KEY (Receiver_id) REFERENCES Users(id)
+        );
+ /*                                                       -- Chat -> pour gerer les messages echanges
+    CREATE TABLE IF NOT EXISTS Chat (                                             -- Si on decide de rendre le chat a plus de 1 VS 1 / ou si on veut stocker dans un endroit precis les discussion en solo
+        id INTEGER PRIMARY KEY AUTOINCREMENT,                                     -- sur un seul user_chat puis message, a remettre en place
+        Users_id INTEGER,                                                         -- user qui a envoye le message - pertinent ? 
         time_send DATETIME,
         message TEXT,
         FOREIGN KEY (Users_id) REFERENCES Users(id)
       );
-
     CREATE TABLE IF NOT EXISTS Users_Chat (
       Chat_id INTEGER NOT NULL,                                                 
       Sender_id INTEGER NOT NULL,
@@ -58,6 +68,7 @@
       FOREIGN KEY (Receiver_id) REFERENCES Users(id),
       PRIMARY KEY (Sender_id, Receiver_id)
       );
+*/
 
     CREATE TABLE IF NOT EXISTS Tournament ( 
       id INTEGER PRIMARY KEY AUTOINCREMENT,
