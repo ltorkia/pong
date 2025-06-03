@@ -44,8 +44,8 @@ export const particleColors = {
 export type ParticleColor = keyof typeof particleColors;
 
 export const images = {
-  forestWallpaper: "url('/img/forest-bg.jpg')",
-  avatarDefault: "url('/img/forest-bg.jpg')",
+  forestWallpaper: "url('/img/design/forest-bg.jpg')",
+  avatarDefault: "url('/img/avatars/elisa.jpg')",
 } as const;
 
 export default { fonts, colorsTheme1, particleColors, images };
