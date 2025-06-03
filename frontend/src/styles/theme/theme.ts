@@ -29,8 +29,6 @@ export const colorsTheme1 = {
   black: '#000000'
 } as const;
 
-export type ThemeColor = keyof typeof colorsTheme1;
-
 export const particleColors = {
   forestGold: '#FFD700',
   forestLight: '#FFF8DC',
@@ -41,11 +39,24 @@ export const particleColors = {
   forestFirefly: '#FFFF00'
 } as const;
 
-export type ParticleColor = keyof typeof particleColors;
-
 export const images = {
   forestWallpaper: "url('/img/design/forest-bg.jpg')",
   avatarDefault: "url('/img/avatars/elisa.jpg')",
 } as const;
+
+/**
+ * Types pour les clés des objets à utiliser dans le code pour typage TS et autocomplétion vscode
+ */
+// 'arial' | 'cinzel' | 'garamond'
+export type FontName = keyof typeof fonts;
+
+// 'vdarkBlue' | 'darkBlue' | ... | 'black'
+export type ThemeColor = keyof typeof colorsTheme1;
+
+// 'forestGold' | 'forestLight' | ...
+export type ParticleColor = keyof typeof particleColors;
+
+// 'forestWallpaper' | 'avatarDefault'
+export type ImageName = keyof typeof images;
 
 export default { fonts, colorsTheme1, particleColors, images };
