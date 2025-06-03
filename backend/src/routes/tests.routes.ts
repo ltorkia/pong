@@ -5,7 +5,7 @@ import sqlite3 from 'sqlite3';
 
 const dbPath = path.resolve('./data/database.db');
 
-// import { getDb } from './db';  // adapte le chemin selon ton projet
+// import { initDb } from './db';  // adapte le chemin selon ton projet
 
 
 export async function testsRoutes(app: FastifyInstance) {
@@ -59,6 +59,13 @@ if (!user_mail && !user_name) {
       VALUES (?, ?, datetime('now'), ?, ?, ?)`,
       [1, 2, 'Salut Bob !', 1, 0]
     );
+
+        await db.run(`
+      INSERT INTO Chat (sender_id, receiver_id, time_send, message, friend, lock)
+      VALUES (?, ?, datetime('now'), ?, ?, ?)`,
+      [2, 1, 'Salut Alice !', 1, 0]
+    );
+
 
     // Insérer Tournament
     await db.run(`

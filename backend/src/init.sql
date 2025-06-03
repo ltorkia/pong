@@ -6,7 +6,7 @@
         inscription DATETIME,                                                   -- 1ere inscription
         lastlog DATETIME,                                                       -- derniere connection
         password TEXT,                                                          -- a hascher + tard
-        ingame BOOL,                                                            -- si actuellement en jeu
+--        ingame BOOL,                                                            -- si actuellement en jeu
         tournament BOOL,                                                        -- a voir si utile ici, aussi s'il peut participer a plsieurs tournois
         avatar BLOB,                                                            -- BLOB = type pour inserer une img
         game_played INTEGER,                                                    -- total des parties jouees -> permet d eviter de recalculer a chaque fois dans la db
@@ -45,7 +45,7 @@
         time_send DATETIME,
         message TEXT,
         friend BOOL,
-        lock BOOL,
+        lock BOOL,                                        -- si on a bloque la personne
         FOREIGN KEY (Sender_id) REFERENCES Users(id),
         FOREIGN KEY (Receiver_id) REFERENCES Users(id)
         );
