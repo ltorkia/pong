@@ -8,7 +8,9 @@
 		"build": "tsc && vite build"
 	},
 	"dependencies": {
-		"socket.io-client": "^4.8.1"
+		"socket.io-client": "^4.8.1",
+		"tsparticles": "^3.0.2",
+		"@tsparticles/engine": "^3.0.2"
 	},
 	"devDependencies": {
 		"@types/node": "^22.15.24",
@@ -16,6 +18,7 @@
 		"postcss": "^8.5.3",
 		"tailwindcss": "^3.4.17",
 		"typescript": "^5.8.3",
-		"vite": "^6.3.5"
+		"vite": "^6.3.5",
+		"rollup": "^3.29.4"
 	}
 }

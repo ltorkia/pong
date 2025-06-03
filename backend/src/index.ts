@@ -14,36 +14,40 @@ import { testsRoutes } from './routes/tests.routes';
 const PORT = 3001;
 
 async function start() {
-  const fastify = Fastify({ logger: true });
+const fastify = Fastify({ 
+	logger: true,
+	// Configuration pour ignorer les slashes finaux
+	ignoreTrailingSlash: true
+});
 
-  // Sécurise
-  await fastify.register(fastifyHelmet);
+// Sécurise
+await fastify.register(fastifyHelmet);
 
-  // Initialisation de la base de données
-  try {
-    const db = await getDb();
-    console.log('Database initialized');
-    await db.close();
-  } catch (err) {
-    console.error('Erreur lors de l\'initialisation de la base de données:', err);
-    process.exit(1);
-  }
+// Initialisation de la base de données
+try {
+	const db = await getDb();
+	console.log('Database initialized');
+	await db.close();
+} catch (err) {
+	console.error('Erreur lors de l\'initialisation de la base de données:', err);
+	process.exit(1);
+}
 
-  // Enregistrement des routes
-  await fastify.register(apiRoutes);
-  await fastify.register(healthRoutes);
-  await fastify.register(authRoutes);
-  await fastify.register(usersRoutes);
-  await fastify.register(testsRoutes);
+// Enregistrement des routes
+await fastify.register(apiRoutes);
+await fastify.register(healthRoutes);
+await fastify.register(authRoutes);
+await fastify.register(usersRoutes);
+await fastify.register(testsRoutes);
 
-  // Lancement du serveur
-  fastify.listen({ port: PORT, host: '0.0.0.0' }, (err, address) => {
-    if (err) {
-      fastify.log.error(err);
-      process.exit(1);
-    }
-    fastify.log.info(`Serveur démarré sur ${address}`);
-  });
+// Lancement du serveur
+fastify.listen({ port: PORT, host: '0.0.0.0' }, (err, address) => {
+	if (err) {
+	fastify.log.error(err);
+	process.exit(1);
+	}
+	fastify.log.info(`Serveur démarré sur ${address}`);
+});
 }
 
 start();

@@ -1,23 +1,34 @@
+@import './theme/common.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
-  body {
-    @apply bg-dark-bg text-white font-sans;
-  }
-}
+	html, body {
+		@apply h-screen;
+	}
 
-@layer components {
-  .btn-neon {
-    @apply px-6 py-3 bg-transparent border-2 border-neon-blue text-neon-blue font-bold rounded-lg transition-all duration-300 hover:bg-neon-blue hover:text-black hover:shadow-lg hover:shadow-neon-blue/50;
-  }
-  
-  .card-neon {
-    @apply bg-gray-900/50 border border-neon-blue/30 rounded-lg p-6 backdrop-blur-sm;
-  }
-  
-  .text-glow {
-    text-shadow: 0 0 10px currentColor;
-  }
+	body {
+		@apply
+			flex flex-col
+			bg-body-bg-color bg-body-bg-img bg-cover bg-center bg-no-repeat
+			font-home-font text-main-font-color;
+	}
+
+	header {
+		@apply
+			w-full px-10 py-3
+			bg-gradient-to-r from-gradient-nav-bg-color-1 to-gradient-nav-bg-color-2;
+		box-shadow: 0 0 20px rgba(0,0,0,1);
+	}
+
+	main {
+		@apply w-full max-w-7xl mx-auto px-4 py-8 flex-grow
+		flex flex-col items-center justify-center;
+	}
+
+	footer {
+		@apply text-center italic text-footer-font-color bg-footer-bg-color;
+	}
 }

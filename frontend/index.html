@@ -1,39 +1,32 @@
 <!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Transcendence - Pong Game</title>
-</head>
-<body class="bg-dark-bg text-white">
-    <!-- Header -->
-    <header class="bg-gradient-to-r from-neon-blue to-neon-pink p-4">
-        <div class="container mx-auto flex justify-between items-center">
-            <h1 class="text-3xl font-bold">TRANSCENDENCE</h1>
-            <nav class="space-x-4">
-                <a href="/" data-link><span class="hover:text-neon-blue transition-colors">Home</span></a>
-                <a href="/game" data-link><span class="hover:text-neon-blue transition-colors">Game</span></a>
-            </nav>
-        </div>
-    </header>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>Transcendence - Pong Game</title>
+	</head>
+	<body>
+		<div id="tsparticles"></div>
+		<header>
+			<div class="navbar">
+				<h1>
+					<a href="/" title="Home" data-link>
+						<span class="site-title">PONG</span>
+					</a>
+				</h1>
+				<nav class="navbar-links">
+					<a href="/login" data-link><span>Login</span></a>
+					<a href="/register" data-link><span>Register</span></a>
+				</nav>
+			</div>
+		</header>
 
-    <!-- Main Content -->
-    <main class="container mx-auto px-4 py-8">
-        <section class="text-center mb-12">
-            <h2 class="text-6xl font-bold mb-4 bg-gradient-to-r from-neon-blue to-neon-pink bg-clip-text text-transparent">
-                PONG
-            </h2>
-            <p class="text-xl text-gray-300 mb-8">
-                Bla bli blou of the bla bli blou
-            </p>
-        </section>
+		<main>
+			<div id="app"></div>
+		</main>
+		
+		<footer>© 2025 Transcendence</footer>
 
-        <!-- Container pour injecter le html -->
-        <div id="app"></div>
-    </main>
-    
-    <footer>FOOTER</footer>
-
-    <script type="module" src="/src/app.ts"></script>
-</body>
+		<script type="module" src="/src/app.ts"></script>
+	</body>
 </html>

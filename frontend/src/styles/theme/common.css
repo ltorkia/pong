@@ -1,0 +1,48 @@
+@import './fonts.css';
+
+@layer components {
+	#tsparticles {
+		@apply fixed top-0 left-0 w-screen h-screen -z-10 pointer-events-none transition-opacity duration-300 ease-in-out;
+	}
+
+	.site-title {
+		@apply font-title-font text-site-title-color text-3xl;
+	}
+	.navbar {
+		@apply flex justify-between items-center;
+	}
+	.navbar-links {
+		@apply text-2xl space-x-10;
+	}
+	.navbar-links a {
+		@apply text-nav-link-color
+		hover:text-nav-hover-link-color active:text-nav-hover-link-color focus:text-nav-focus-link-color
+		transition-colors duration-200 ease-linear;
+	}
+	.navbar-links a.active {
+		@apply text-nav-hover-link-color;
+	}
+
+	#app {
+		@apply w-full max-w-7xl mx-auto px-4 py-8 flex flex-col items-center justify-center;
+	}
+	.page-title {
+		@apply text-5xl mb-8;
+	}
+	.section-box {
+		@apply flex flex-col items-center justify-center
+		p-5 bg-box-bg-color border border-box-border-color rounded-3xl bg-opacity-60;
+	}
+
+	.btn-container {
+		@apply flex items-center justify-center space-x-4;
+	}
+
+	.btn, .btn-gradient {
+		@apply block min-w-48 px-2 py-4 rounded-full text-btn-font-color bg-btn-bg-color border border-btn-border-color
+		text-center text-xl font-cinzel transition-colors duration-200 ease-in-out;
+	}
+	.btn-gradient {
+		@apply bg-gradient-to-r from-gradient-btn-color-1 to-gradient-btn-color-2;
+	}
+}
