@@ -12,14 +12,8 @@ export async function getDb() {
     driver: sqlite3.Database
   });
 
-    // Exemple d'init : créer les tables si elles n’existent pas
-    
-
-
     const initSql = await readFile(sqlPath, 'utf-8');
     await db.exec(initSql);
-    console.log('Base de données initialisée avec succès');
 
-    
   return db;
 }
