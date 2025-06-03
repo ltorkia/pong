@@ -11,13 +11,11 @@ export default {
 	theme: {
 		extend: {
 			fontFamily: {
-				...fonts,
 				'title-font': fonts['cinzel'],
 				'home-font': fonts['garamond'],
 				'classic-font': fonts['arial'],
 			},
 			colors: {
-				...colorsTheme1,
 				'site-title-color': colorsTheme1['greyishGreen'],
 				'main-font-color': colorsTheme1['white'],
 				'gradient-nav-bg-color-1': colorsTheme1['vdarkBlue'],
@@ -39,7 +37,6 @@ export default {
 				'section-title-color': colorsTheme1['fireflyYellow']
 			},
 			backgroundImage: {
-				...images,
 				'body-bg-img': images['forestWallpaper'],
 				'avatar-default-img': images['avatarDefault'],
 			},

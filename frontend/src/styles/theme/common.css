@@ -40,7 +40,7 @@
 
 	.btn, .btn-gradient {
 		@apply block min-w-48 px-2 py-4 rounded-full text-btn-font-color bg-btn-bg-color border border-btn-border-color
-		text-center text-xl font-cinzel tracking-widest transition-colors duration-200 ease-in-out;
+		text-center text-xl font-title-font tracking-widest transition-colors duration-200 ease-in-out;
 	}
 	.btn-gradient {
 		@apply bg-gradient-to-r from-gradient-btn-color-1 to-gradient-btn-color-2;
