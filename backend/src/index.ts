@@ -16,8 +16,7 @@ const PORT = 3001;
 async function start() {
 const fastify = Fastify({ 
 	logger: true,
-	// Configuration pour ignorer les slashes finaux
-	ignoreTrailingSlash: true
+	ignoreTrailingSlash: true // ignore les / à la fin des urls
 });
 
 // Sécurise
