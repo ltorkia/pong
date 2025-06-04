@@ -10,16 +10,14 @@
 	}
 
 	body {
-		@apply
-			flex flex-col
-			bg-body-bg-color bg-body-bg-img bg-cover bg-center bg-no-repeat
-			font-home-font text-main-font-color;
+		@apply flex flex-col
+		bg-body-bg-color bg-body-bg-img bg-cover bg-center bg-no-repeat
+		font-home-font text-main-font-color;
 	}
 
 	header {
-		@apply
-			w-full px-10 py-3
-			bg-gradient-to-r from-gradient-nav-bg-color-1 to-gradient-nav-bg-color-2;
+		@apply w-full px-10 py-3
+		bg-gradient-to-r from-gradient-nav-bg-color-1 to-gradient-nav-bg-color-2;
 		box-shadow: 0 0 20px rgba(0,0,0,1);
 	}
 

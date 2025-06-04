@@ -9,7 +9,7 @@
 - **Application mono-page (SPA)** : Navigation fluide avec support des boutons Précédent/Suivant du navigateur
 - **Compatibilité navigateur** : Compatible avec la dernière version stable de Mozilla Firefox (autres navigateurs acceptés)
 - **Qualité code** : Aucune erreur ou avertissement non géré lors de la navigation
-- **Containerisation Docker** : Tout doit être lancé avec une seule ligne de commande pour un conteneur autonome: `docker-compose -f docker-compose.prod.yml up --build -d`
+- **Containerisation Docker** : Tout doit être lancé avec une seule ligne de commande pour un conteneur autonome: `docker compose -f docker-compose.prod.yml up --build -d`
 - **Contraintes campus** : 
   - Runtime obligatoirement situé dans `/goinfre` ou `/sgoinfre`
   - Impossibilité d'utiliser "bind-mount volumes" avec des UIDs non-root
