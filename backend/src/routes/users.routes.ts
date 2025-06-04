@@ -18,7 +18,7 @@ export async function usersRoutes(app: FastifyInstance) {
 	})
 
 	// pour afficher les potos de klk1 -> id = la personne concernee
-	app.get('/api/usersfriend:id', async(request, reply) => {
+	app.get('/api/users:id/friends', async(request, reply) => {
 		const { id } = request.params as { id: number };
 		const friends = await getUserFriends(id);
 		if (!friends)

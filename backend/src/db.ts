@@ -32,7 +32,7 @@ export async function getUser(userId : number) {
   const db = await getDb();
   const user = await db.get(
     `SELECT pseudo, avatar, email, inscription, 
-      lastlog, ingame, tournament, game_played, game_win, 
+      lastlog, tournament, game_played, game_win, 
       game_loose, time_played, n_friends 
     FROM Users 
     WHERE id = ?`,
@@ -57,11 +57,16 @@ export async function getAllUsers() {
 export async function getUserFriends(userId: number) {
   const db = await getDb();
   const friends = await db.all(`
-    SELECT User.id, User.pseudo, User.avatar, User.lastlog 
-    FROM Users User
-    JOIN Chat C ON (C.Receiver_id = User.id)
-    WHERE (C.Sender_id = ?)
-    AND C.friend = TRUE 
-    `, [userId]);
+    SELECT u.id, u.pseudo, u.avatar, u.lastlog
+    FROM Friends f
+    JOIN Users u ON (
+      (f.User1_id = ? AND f.User2_id = u.id)
+      OR
+      (f.User2_id = ? AND f.User1_id = u.id)
+    )
+    WHERE f.status = 'accepted'
+    `, [userId, userId]);
     return friends;
 }
+
+// pour insert : const [u1, u2] = [userIdA, userIdB].sort((a, b) => a - b);
