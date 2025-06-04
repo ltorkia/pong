@@ -3,6 +3,7 @@ import { HomePage } from '../pages/HomePage';
 import { RegisterPage } from '../pages/RegisterPage';
 import { LoginPage } from '../pages/LoginPage';
 import { GamePage } from '../pages/GamePage';
+import { UsersPage } from '../pages/UsersPage';
 import { PageManager } from './PageManager';
 import { ParticlesManager } from './ParticlesManager';
 
@@ -53,6 +54,7 @@ export class RouteManager {
 	 *     - Appelle loadPage() pour gérer les particules
 	 *       et demande au pageManager de rendre la nouvelle page via renderPage()
 	 *     - Met à jour le lien actif dans la barre de navigation avec setActiveLink()
+	 *     - Mount la page si nécessaire (ex: UsersPage)
 	 */
 	private setupRoutes() {
 
@@ -114,6 +116,22 @@ export class RouteManager {
 			await this.loadPage(gamePage, false);
 			this.setActiveLink('/game');
 			console.log('GamePage rendue');
+		});
+
+		// Route Users
+		router.register('/users', async () => {
+			console.log('Exec route: navigation vers Users');
+			const appDiv = document.getElementById('app') as HTMLElement | null;
+			if (!appDiv) {
+				console.error("div #app introuvable");
+				return;
+			}
+			console.log('div #app trouvée, création UsersPage');
+			const usersPage = new UsersPage(appDiv) as UsersPage;
+			await this.loadPage(usersPage, true);
+			this.setActiveLink('/users');
+			usersPage.mount();
+			console.log('UsersPage rendue');
 		});
 	}
 
