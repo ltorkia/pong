@@ -5,7 +5,7 @@ import sqlite3 from 'sqlite3';
 
 const dbPath = path.resolve('./data/database.db');
 
-// import { getDb } from './db';  // adapte le chemin selon ton projet
+// import { initDb } from './db';  // adapte le chemin selon ton projet
 
 
 export async function testsRoutes(app: FastifyInstance) {
@@ -18,8 +18,8 @@ export async function testsRoutes(app: FastifyInstance) {
     let user_name = await db.get('SELECT id FROM Users WHERE pseudo = ?', 'Alice');
 if (!user_mail && !user_name) {
     await db.run(`
-      INSERT INTO Users (pseudo, email, inscription, lastlog, password, ingame, tournament, avatar, game_played, game_win, game_loose, time_played, n_friends)
-      VALUES (?, ?, datetime('now'), datetime('now'), ?, 0, 0, NULL, ?, ?, ?, ?, ?)`,
+      INSERT INTO Users (pseudo, email, inscription, lastlog, password, tournament, avatar, game_played, game_win, game_loose, time_played, n_friends)
+      VALUES (?, ?, datetime('now'), datetime('now'), ?, 0, NULL, ?, ?, ?, ?, ?)`,
       ['Alice', 'alice@example.com', 'hashed_pass', 10, 5, 5, 3600, 2]
     );
 }
@@ -28,11 +28,66 @@ if (!user_mail && !user_name) {
 if (!user_mail && !user_name) {
 
     await db.run(`
-      INSERT INTO Users (pseudo, email, inscription, lastlog, password, ingame, tournament, avatar, game_played, game_win, game_loose, time_played, n_friends)
-      VALUES (?, ?, datetime('now'), datetime('now'), ?, 0, 0, NULL, ?, ?, ?, ?, ?)`,
+      INSERT INTO Users (pseudo, email, inscription, lastlog, password, tournament, avatar, game_played, game_win, game_loose, time_played, n_friends)
+      VALUES (?, ?, datetime('now'), datetime('now'), ?, 0, NULL, ?, ?, ?, ?, ?)`,
       ['Bob', 'bob@example.com', 'hashed_pass2', 8, 4, 4, 3000, 1]
     );
 }
+const usersToAdd = [
+  { pseudo: 'Charlie', email: 'charlie@example.com', password: 'hashed_pass3', game_played: 15, game_win: 9, game_loose: 6, time_played: 4200, n_friends: 2 },
+  { pseudo: 'Dana', email: 'dana@example.com', password: 'hashed_pass4', game_played: 12, game_win: 6, game_loose: 6, time_played: 3900, n_friends: 2 },
+  { pseudo: 'Eve', email: 'eve@example.com', password: 'hashed_pass5', game_played: 20, game_win: 12, game_loose: 8, time_played: 5000, n_friends: 1 },
+  { pseudo: 'Frank', email: 'frank@example.com', password: 'hashed_pass6', game_played: 5, game_win: 1, game_loose: 4, time_played: 2000, n_friends: 1 }
+];
+
+for (const user of usersToAdd) {
+  const userExists = await db.get(
+    `SELECT id FROM Users WHERE email = ? OR pseudo = ?`,
+    [user.email, user.pseudo]
+  );
+
+  if (!userExists) {
+    await db.run(`
+      INSERT INTO Users (pseudo, email, inscription, lastlog, password, tournament, avatar, game_played, game_win, game_loose, time_played, n_friends)
+      VALUES (?, ?, datetime('now'), datetime('now'), ?, 0, NULL, ?, ?, ?, ?, ?)`,
+      [user.pseudo, user.email, user.password, user.game_played, user.game_win, user.game_loose, user.time_played, user.n_friends]
+    );
+  }
+}
+
+// Exemple : Friends table with User1_id, User2_id, status
+const friendships = [
+  ['Alice', 'Bob'],
+  ['Alice', 'Charlie'],
+  ['Bob', 'Dana'],
+  ['Charlie', 'Dana'],
+  ['Charlie', 'Eve'],
+  ['Frank', 'Eve'],
+];
+
+for (const [name1, name2] of friendships) {
+  const user1 = await db.get(`SELECT id FROM Users WHERE pseudo = ?`, [name1]);
+  const user2 = await db.get(`SELECT id FROM Users WHERE pseudo = ?`, [name2]);
+
+  // enforce User1_id < User2_id convention
+  const [User1_id, User2_id] = user1.id < user2.id
+    ? [user1.id, user2.id]
+    : [user2.id, user1.id];
+
+  const exists = await db.get(
+    `SELECT 1 FROM Friends WHERE User1_id = ? AND User2_id = ?`,
+    [User1_id, User2_id]
+  );
+
+  if (!exists) {
+    await db.run(`
+      INSERT INTO Friends (User1_id, User2_id, status)
+      VALUES (?, ?, ?)`,
+      [User1_id, User2_id, 'accepted']
+    );
+  }
+}
+
     // Insérer Game
     await db.run(`
       INSERT INTO Game (n_participants, date, begin, tournament, status, temporary_result)
@@ -55,10 +110,17 @@ if (!user_mail && !user_name) {
 
     // Insérer Chat (fusionné)
     await db.run(`
-      INSERT INTO Chat (sender_id, receiver_id, time_send, message, friend, lock)
-      VALUES (?, ?, datetime('now'), ?, ?, ?)`,
+      INSERT INTO Chat (sender_id, receiver_id, time_send, message)
+      VALUES (?, ?, datetime('now'), ?)`,
       [1, 2, 'Salut Bob !', 1, 0]
     );
+
+        await db.run(`
+      INSERT INTO Chat (sender_id, receiver_id, time_send, message)
+      VALUES (?, ?, datetime('now'), ?)`,
+      [2, 1, 'Salut Alice !', 1, 0]
+    );
+
 
     // Insérer Tournament
     await db.run(`

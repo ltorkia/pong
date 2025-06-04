@@ -6,7 +6,7 @@
         inscription DATETIME,                                                   -- 1ere inscription
         lastlog DATETIME,                                                       -- derniere connection
         password TEXT,                                                          -- a hascher + tard
-        ingame BOOL,                                                            -- si actuellement en jeu
+--        ingame BOOL,                                                            -- si actuellement en jeu
         tournament BOOL,                                                        -- a voir si utile ici, aussi s'il peut participer a plsieurs tournois
         avatar BLOB,                                                            -- BLOB = type pour inserer une img
         game_played INTEGER,                                                    -- total des parties jouees -> permet d eviter de recalculer a chaque fois dans la db
@@ -43,12 +43,22 @@
         Sender_id INTEGER NOT NULL,
         Receiver_id INTEGER NOT NULL,                                                   
         time_send DATETIME,
-        message TEXT,
-        friend BOOL,
-        lock BOOL,
+        message TEXT,                                                             -- si on a bloque la personne
         FOREIGN KEY (Sender_id) REFERENCES Users(id),
         FOREIGN KEY (Receiver_id) REFERENCES Users(id)
         );
+
+    CREATE TABLE IF NOT EXISTS Friends (           -- liste d amis et status
+      user1_id INTEGER NOT NULL,
+      user2_id INTEGER NOT NULL,
+      status TEXT,                                                                 -- pour checker le status, oui, non, en attente
+      lock BOOL,
+      date DATETIME,
+      FOREIGN KEY (user1_id) REFERENCES Users(id),
+      FOREIGN KEY (user2_id) REFERENCES Users(id),
+      CHECK (user1_id < user2_id), 
+      PRIMARY KEY (user1_id, user2_id)
+      );
  /*                                                       -- Chat -> pour gerer les messages echanges
     CREATE TABLE IF NOT EXISTS Chat (                                             -- Si on decide de rendre le chat a plus de 1 VS 1 / ou si on veut stocker dans un endroit precis les discussion en solo
         id INTEGER PRIMARY KEY AUTOINCREMENT,                                     -- sur un seul user_chat puis message, a remettre en place

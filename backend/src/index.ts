@@ -2,7 +2,7 @@ import Fastify from 'fastify';
 import fastifyHelmet from '@fastify/helmet';
 
 // Database
-import {getDb} from './db';
+import {initDb} from './db';
 
 // Routes importées
 import { apiRoutes } from './routes/api.routes';
@@ -22,15 +22,15 @@ const fastify = Fastify({
 // Sécurise
 await fastify.register(fastifyHelmet);
 
-// Initialisation de la base de données
-try {
-	const db = await getDb();
-	console.log('Database initialized');
-	await db.close();
-} catch (err) {
-	console.error('Erreur lors de l\'initialisation de la base de données:', err);
-	process.exit(1);
-}
+  // Initialisation de la base de données
+  try {
+    const db = await initDb();
+    console.log('Database initialized');
+    await db.close();
+  } catch (err) {
+    console.error('Erreur lors de l\'initialisation de la base de données:', err);
+    process.exit(1);
+  }
 
 // Enregistrement des routes
 await fastify.register(apiRoutes);
