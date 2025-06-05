@@ -67,11 +67,11 @@ export class ParticlesManager {
 						},
 						color: { 
 							value: [				
-								particleColors['forestGold'], 
-								particleColors['forestLight'], 
-								particleColors['forestLavender'],
-								particleColors['forestSky'],
-								particleColors['forestGreen']
+								particleColors.forestGold, 
+								particleColors.forestLight, 
+								particleColors.forestLavender,
+								particleColors.forestSky,
+								particleColors.forestGreen
 							]
 						},
 						shape: { 
@@ -112,14 +112,14 @@ export class ParticlesManager {
 								frequency: 0.05,
 								opacity: 1,
 								color: {
-									value: [particleColors['forestGold'], colorsTheme1['white'], particleColors['forestLight']]
+									value: [particleColors.forestGold, colorsTheme1.white, particleColors.forestLight]
 								}
 							}
 						},
 						shadow: {
 							blur: 5,
 							color: {
-								value: colorsTheme1['white']
+								value: colorsTheme1.white
 							},
 							enable: true,
 							offset: {
@@ -183,7 +183,7 @@ export class ParticlesManager {
 							},
 							particles: {
 								color: {
-									value: particleColors['forestFirefly']
+									value: particleColors.forestFirefly
 								},
 								shape: {
 									type: "circle"

@@ -1,5 +1,6 @@
 import { BasePage } from './BasePage';
 import { getUsers } from '../api/users';
+import { getUserFriends } from '../api/users';
 
 export class UsersPage extends BasePage {
 
@@ -12,14 +13,35 @@ export class UsersPage extends BasePage {
 	async mount() {
 		try {
 			const users = await getUsers();
-			const userList = document.getElementById('user-list');
-			if (!userList) return;
+			const userList = document.getElementById('user-list') as HTMLUListElement;
+			const template = document.getElementById('user-template') as HTMLTemplateElement;
+			if (!userList || !template) return;
 
-			users.forEach((user: any) => {
-				const li = document.createElement('li');
-				li.textContent = `${user.id}: ${user.pseudo} - ${user.email}`;
-				userList.appendChild(li);
-			});
+			for (const user of users) {
+				const template = document.getElementById('user-template') as HTMLTemplateElement;
+				const clone = template.content.cloneNode(true) as HTMLElement;
+
+				const userInfos = clone.querySelector('.user-infos') as HTMLElement;
+				userInfos.textContent = `${user.id}: ${user.pseudo} - ${user.email}`;
+
+				const friendList = clone.querySelector('.friend-list') as HTMLElement;
+				const userFriends = await getUserFriends(user.id);
+				if (userFriends.length > 0) {
+					for (const friend of userFriends) {
+						const friendLi = document.createElement('li');
+						friendLi.textContent = `${friend.pseudo}`;
+						friendList.appendChild(friendLi);
+					}
+					const br = document.createElement('br');
+					friendList.appendChild(br);
+				} else {
+					const noFriends = document.createElement('span');
+					noFriends.classList.add('friend-list');
+					noFriends.textContent = 'Aucun ami.';
+					friendList.appendChild(noFriends);
+				}
+				userList.appendChild(clone);
+			}
 		} catch (err) {
 			console.error('Erreur lors de la récupération des utilisateurs', err);
 		}

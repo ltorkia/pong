@@ -31,7 +31,8 @@
 	}
 	.section-box {
 		@apply flex flex-col items-center justify-center
-		p-5 bg-box-bg-color border border-box-border-color rounded-3xl bg-opacity-60;
+		p-5 bg-box-bg-color border border-box-border-color rounded-3xl bg-opacity-60
+		overflow-auto;
 	}
 
 	.btn-container {
