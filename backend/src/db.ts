@@ -2,6 +2,9 @@ import { open } from 'sqlite';
 import sqlite3 from 'sqlite3';
 import path from 'path';
 import { readFile } from 'fs/promises';
+import {ChatMessage,
+  UserBasic, UserForDashboard, UserToRegister, UserWithAvatar,
+  Game, Friends} from './types';
 
 const dbPath = path.resolve('./data/database.db');
 const sqlPath = path.resolve('./src/init.sql');
@@ -38,7 +41,7 @@ export async function getUser(userId : number) {
     WHERE id = ?`,
     [userId]
   );
-  return user;
+  return user as UserForDashboard;
 }
 
 //retourne les infos de tous les users pour l authentification 
@@ -48,7 +51,7 @@ export async function getAllUsers() {
     SELECT id, pseudo, email 
     FROM Users 
     `);
-  return users;
+  return users as UserBasic[];
 }
 
 //pour choper les friends, mais implique qu un element chat soit forcement cree des qu on devient ami
@@ -66,7 +69,7 @@ export async function getUserFriends(userId: number) {
     )
     WHERE f.status = 'accepted'
     `, [userId, userId]);
-    return friends;
+    return friends as Friends[];
 }
 // pour insert : const [u1, u2] = [userIdA, userIdB].sort((a, b) => a - b);
 
@@ -89,9 +92,9 @@ export async function getUserGames(userId: number) {
          AND u.id != ?`,
       [game.Game_id, userId]
     );
-    game.other_players = players;
+    game.other_players = players as UserWithAvatar[];
   }
-  return games;
+  return games as Game[];
 }
 
 export async function getUserChat(userId1: number, userId2: number) {
@@ -115,6 +118,7 @@ export async function getUserChat(userId1: number, userId2: number) {
       [userId2]
     );
   return {
-    messages : chat,
-    other_user: other_user };
+    messages : chat as ChatMessage[],
+    other_user: other_user as UserWithAvatar 
+  };
 }

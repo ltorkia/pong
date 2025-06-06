@@ -18,5 +18,8 @@ accessible sur '/api/users'
 retourne les potes de l'userID -> pour le moment juste le nom, avatar et lastlog. 
 accessible sur '/api/users:id/friends'
 
+---------------------- getUserGames(id) ----------------
+'/api/users:id/games'
 
-
+--------------------  getUserChat(id1, id2) --------------
+'/api/users:id1/:id2/chat'
