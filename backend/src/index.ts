@@ -2,7 +2,7 @@ import Fastify from 'fastify';
 import fastifyHelmet from '@fastify/helmet';
 
 // Database
-import {initDb} from './db';
+import { initDb } from './db';
 
 // Routes importées
 import { apiRoutes } from './routes/api.routes';
@@ -18,29 +18,29 @@ async function start() {
 	// Sécurise
 	await fastify.register(fastifyHelmet);
 
-	// Initialisation de la base de données
+	// Initialisation de la db
 	try {
 		const db = await initDb();
 		console.log('Database initialized');
 		await db.close();
 	} catch (err) {
-		console.error('Erreur lors de l\'initialisation de la base de données:', err);
+		console.error('Database init error:', err);
 		process.exit(1);
 	}
 
-	// Enregistrement des routes avec gestion d'erreur
+	// Enregistrement des routes
 	try {
 		await fastify.register(apiRoutes, { prefix: '/api' });
-		console.log('Routes enregistrées avec succès');
+		console.log('Routes registered');
 	} catch (err) {
-		console.error('Erreur lors de l\'enregistrement des routes:', err);
+		console.error('Register routes error:', err);
 		process.exit(1);
 	}
 
 	// Lancement du serveur
 	try {
 		await fastify.listen({ port: PORT, host: '0.0.0.0' });
-		fastify.log.info(`Serveur démarré sur http://0.0.0.0:${PORT}`);
+		fastify.log.info(`Server started on http://0.0.0.0:${PORT}`);
 	} catch (err) {
 		fastify.log.error(err);
 		process.exit(1);
@@ -48,6 +48,6 @@ async function start() {
 }
 
 start().catch((err) => {
-	console.error('Erreur lors du démarrage:', err);
+	console.error('Start error:', err);
 	process.exit(1);
 });

@@ -26,7 +26,7 @@ export async function usersRoutes(app: FastifyInstance) {
 		return friends;
 	})
 
-	app.get('/api/users:id/games', async(request, reply) => {
+	app.get('/:id/games', async(request, reply) => {
 		const { id } = request.params as { id: number };
 		const games = await getUserGames(id);
 		console.log("id = ", id);
@@ -35,7 +35,7 @@ export async function usersRoutes(app: FastifyInstance) {
 		return games;
 	})
 
-	app.get('/api/users:id1/:id2/chat', async(request, reply) => {
+	app.get('/:id1/:id2/chat', async(request, reply) => {
 		const { id1 } = request.params as { id1: number };
 		const { id2 } = request.params as { id2: number };
 		console.log("id1 = ", id1);

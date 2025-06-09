@@ -1,25 +1,7 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { request as httpRequest } from 'undici';
 import jwt from 'jsonwebtoken';
-
-// Types pour les queries et réponses
-interface GoogleCallbackQuery {
-	code?: string;
-	error?: string;
-}
-
-interface GoogleTokenResponse {
-	access_token?: string;
-	error?: string;
-	error_description?: string;
-}
-
-interface GoogleUserInfo {
-	id: string;
-	email: string;
-	name: string;
-	picture: string;
-}
+import { GoogleCallbackQuery, GoogleTokenResponse, GoogleUserInfo } from '../types/auth.types';
 
 export async function authRoutes(app: FastifyInstance) {
 	// Route pour démarrer le flow Google OAuth2
@@ -88,7 +70,7 @@ export async function authRoutes(app: FastifyInstance) {
 				return reply.status(400).send({ error: 'Données utilisateur incomplètes' });
 			}
 
-			// TODO: Ici enregistrer ou lire l'utilisateur dans la DB
+			// TODO: ici enregistrer ou lire l'utilisateur dans la DB
 
 			// Génère un JWT
 			const token = jwt.sign(
@@ -98,7 +80,7 @@ export async function authRoutes(app: FastifyInstance) {
 					name: userData.name,
 					avatar: userData.picture,
 				},
-				process.env.JWT_SECRET || 'qwertyuiop0123456789',
+				process.env.JWT_SECRET!,
 				{ expiresIn: '1h' }
 			);
 
@@ -110,7 +92,7 @@ export async function authRoutes(app: FastifyInstance) {
 		}
 	});
 
-	// Routes login/register pour plus tard
+	// Routes login/register pour plus tard ?
 	app.post('/login', async (request: FastifyRequest, reply: FastifyReply) => {
 		return { message: 'Login à implémenter' };
 	});
