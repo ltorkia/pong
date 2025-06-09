@@ -112,13 +112,13 @@ for (const [name1, name2] of friendships) {
     await db.run(`
       INSERT INTO Chat (sender_id, receiver_id, time_send, message)
       VALUES (?, ?, datetime('now'), ?)`,
-      [1, 2, 'Salut Bob !', 1, 0]
+      [1, 2, 'Salut Bob !']
     );
 
         await db.run(`
       INSERT INTO Chat (sender_id, receiver_id, time_send, message)
       VALUES (?, ?, datetime('now'), ?)`,
-      [2, 1, 'Salut Alice !', 1, 0]
+      [2, 1, 'Salut Alice !']
     );
 
 

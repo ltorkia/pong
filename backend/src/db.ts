@@ -2,6 +2,9 @@ import { open } from 'sqlite';
 import sqlite3 from 'sqlite3';
 import path from 'path';
 import { readFile } from 'fs/promises';
+import {ChatMessage,
+  UserBasic, UserForDashboard, UserToRegister, UserWithAvatar,
+  Game, Friends} from './types';
 
 const dbPath = path.resolve('./data/database.db');
 const sqlPath = path.resolve('./src/init.sql');
@@ -38,7 +41,7 @@ export async function getUser(userId : number) {
     WHERE id = ?`,
     [userId]
   );
-  return user;
+  return user as UserForDashboard;
 }
 
 //retourne les infos de tous les users pour l authentification 
@@ -48,7 +51,7 @@ export async function getAllUsers() {
     SELECT id, pseudo, email 
     FROM Users 
     `);
-  return users;
+  return users as UserBasic[];
 }
 
 //pour choper les friends, mais implique qu un element chat soit forcement cree des qu on devient ami
@@ -66,7 +69,56 @@ export async function getUserFriends(userId: number) {
     )
     WHERE f.status = 'accepted'
     `, [userId, userId]);
-    return friends;
+    return friends as Friends[];
+}
+// pour insert : const [u1, u2] = [userIdA, userIdB].sort((a, b) => a - b);
+
+export async function getUserGames(userId: number) {
+  const db = await getDb();
+
+  const games = await db.all(
+    `SELECT ug.Game_id, ug.status_win, ug.duration
+     FROM Users_Game ug
+     WHERE ug.Users_id = ?`,
+    [userId]
+  );
+
+  for (const game of games) {
+    const players = await db.all(
+      `SELECT u.id, u.pseudo, u.avatar
+       FROM Users_Game ug
+       JOIN Users u ON u.id = ug.Users_id
+       WHERE ug.Game_id = ?
+         AND u.id != ?`,
+      [game.Game_id, userId]
+    );
+    game.other_players = players as UserWithAvatar[];
+  }
+  return games as Game[];
 }
 
-// pour insert : const [u1, u2] = [userIdA, userIdB].sort((a, b) => a - b);
+export async function getUserChat(userId1: number, userId2: number) {
+  const db = await getDb();
+
+  const chat = await db.all(
+    `
+      SELECT c.message, c.time_send, c.id, c.Sender_id, c.Receiver_id
+      FROM Chat c
+      WHERE (Sender_id = ? AND Receiver_id = ?)
+      OR (Sender_id = ? AND Receiver_id = ?)
+      ORDER BY c.time_send ASC
+      `,
+    [userId1, userId2, userId2, userId1]
+  );
+
+    const other_user = await db.get(
+      `SELECT u.id, u.pseudo, u.avatar
+       FROM Users u
+       WHERE u.id != ?`,
+      [userId2]
+    );
+  return {
+    messages : chat as ChatMessage[],
+    other_user: other_user as UserWithAvatar 
+  };
+}
