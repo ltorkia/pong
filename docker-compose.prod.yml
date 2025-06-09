@@ -17,6 +17,8 @@ services:
       dockerfile: Dockerfile.prod
     volumes:
       - ./backend/data:/app/data
+    env_file:
+      - ./backend/.env
     networks:
       - transcendence
     restart: unless-stopped

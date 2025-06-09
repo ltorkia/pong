@@ -4,6 +4,10 @@ APP_URL = http://localhost:8080
 DEV_COMPOSE_FILE = docker-compose.dev.yml
 PROD_COMPOSE_FILE = docker-compose.prod.yml
 
+BACKEND_DIR = ./backend
+ENV_SOURCE = $(HOME)/ft_transcendence_env
+ENV_DEST = $(BACKEND_DIR)/.env
+
 GREEN = \033[32m
 YELLOW = \033[33m
 RED = \033[31m
@@ -31,6 +35,17 @@ prod: # Lance le projet en mode prod (compile les fichiers statiques, pas de hot
 	@sh -c 'echo "prod" > .mode'
 	@$(MAKE) build up copy-local
 
+check_env: # Vérifie l'existence du fichier .env et le copie dans le répertoire backend
+	@echo "$(COLOR_BLUE)Vérification du fichier .env...$(COLOR_RESET)"
+	@if [ ! -f "$(ENV_SOURCE)" ]; then \
+		echo "$(COLOR_RED)Erreur: Fichier $(ENV_SOURCE) introuvable!$(COLOR_RESET)"; \
+		exit 1; \
+	fi
+	@echo "$(COLOR_BLUE)Copie du fichier .env...$(COLOR_RESET)"
+	@cp $(ENV_SOURCE) $(ENV_DEST)
+	@chmod 600 $(ENV_DEST)
+	@echo "$(COLOR_GREEN)Fichier .env copié avec succès!$(COLOR_RESET)"
+
 copy-local: # Copie locale des fichiers statiques pour avoir un visuel en mode prod sans bind mount les volumes dans docker-compose.yml
 	@echo "$(GREEN)Copie des fichiers statiques du dossier /dist du docker frontend vers nginx local...$(NC)"
 	docker cp $$(docker compose -f $(COMPOSE_FILE) ps -q nginx):/usr/share/nginx/html ./nginx/dist || echo "Frontend dist absent"
@@ -42,7 +57,7 @@ build: # Construit les images Docker
 	@echo "$(GREEN)Construction des images Docker...$(NC)"
 	docker compose -f $(COMPOSE_FILE) build --no-cache
 
-up: # Lance les services
+up: check_env # Lance les services
 	@echo "$(GREEN)Lancement des services...$(NC)"
 	docker compose -f $(COMPOSE_FILE) up -d
 	@echo "$(GREEN)App: $(APP_URL)$(NC)"
@@ -66,9 +81,11 @@ exec-nginx: # Rentre dans le Docker nginx
 
 clean: # Nettoie les images, conteneurs et volumes
 	@echo "${YELLOW}Arrêt et suppression des conteneurs + volumes...${NC}"
-	docker compose -f $(COMPOSE_FILE) down -v --remove-orphans
+	docker compose -f $(COMPOSE_FILE) down -v --remove-orphans || true
 	@echo "${YELLOW}Suppression des images...${NC}"
 	docker rmi -f $$(docker images -q) 2>/dev/null || true
+	@echo "$(COLOR_BLUE)Suppression du fichier .env...$(COLOR_RESET)"
+	rm -f $(ENV_DEST)
 
 fclean: clean # Nettoyage complet, y compris les données persistantes et système Docker global
 	@echo "${RED}Nettoyage des données persistantes...${NC}"
@@ -83,4 +100,4 @@ re: fclean build up
 status: # Affiche le statut des services
 	docker compose -f $(COMPOSE_FILE) ps
 
-.PHONY: dev prod copy-local build build-frontend up down logs exec-frontend exec-backend exec-nginx clean fclean re status
+.PHONY: dev prod check_env copy-local build build-frontend up down logs exec-frontend exec-backend exec-nginx clean fclean re status
