@@ -24,15 +24,21 @@
 	}
 
 	#app {
-		@apply w-full max-w-7xl mx-auto px-4 py-8 flex flex-col items-center justify-center;
+		@apply w-full max-w-7xl mx-auto px-4 flex flex-col items-center justify-center;
+		padding-top: var(--app-padding);
+		padding-bottom: var(--app-padding);
 	}
 	.page-title {
 		@apply text-5xl mb-8;
 	}
 	.section-box {
-		@apply flex flex-col items-center justify-center
-		p-5 bg-box-bg-color border border-box-border-color rounded-3xl bg-opacity-60
+		@apply flex flex-col items-center p-5
+		 bg-box-bg-color border border-box-border-color rounded-3xl bg-opacity-60;
+	}
+	.large-box {
+		@apply w-full mx-10 bg-opacity-80
 		overflow-auto;
+  		max-height: calc(100vh - var(--navbar-height) - var(--footer-height) - var(--main-padding-double) - var(--app-padding-double));
 	}
 
 	.btn-container {

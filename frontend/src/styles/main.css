@@ -5,12 +5,25 @@
 @tailwind utilities;
 
 @layer base {
+	:root {
+		--navbar-height: 60px;
+		--footer-height: 24px;
+		--main-padding: 2rem;
+		--app-padding: 2rem;
+		--main-padding-double: calc(var(--main-padding) * 2);
+		--app-padding-double: calc(var(--app-padding) * 2);
+	}
+	
+	*, ::before, ::after {
+		@apply box-border;
+	}
+
 	html, body {
 		@apply h-screen;
 	}
 
 	body {
-		@apply flex flex-col
+		@apply flex flex-col overflow-x-hidden
 		bg-body-bg-color bg-body-bg-img bg-cover bg-center bg-no-repeat
 		font-home-font text-main-font-color;
 	}
@@ -19,14 +32,18 @@
 		@apply w-full px-10 py-3
 		bg-gradient-to-r from-gradient-nav-bg-color-1 to-gradient-nav-bg-color-2;
 		box-shadow: 0 0 20px rgba(0,0,0,1);
+		height: var(--navbar-height);
 	}
 
 	main {
-		@apply w-full max-w-7xl mx-auto px-4 py-8 flex-grow
+		@apply w-full max-w-7xl mx-auto px-4 flex-grow
 		flex flex-col items-center justify-center;
+		padding-top: var(--main-padding);
+		padding-bottom: var(--main-padding);
 	}
 
 	footer {
 		@apply text-center italic text-footer-font-color bg-footer-bg-color;
+		height: var(--footer-height);
 	}
 }
