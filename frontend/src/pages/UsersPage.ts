@@ -1,6 +1,5 @@
 import { BasePage } from './BasePage';
-import { getUsers } from '../api/users';
-import { getUserFriends } from '../api/users';
+import { getUsers, getUserFriends } from '../api/users';
 
 export class UsersPage extends BasePage {
 

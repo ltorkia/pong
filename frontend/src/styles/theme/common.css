@@ -46,4 +46,11 @@
 	.btn-gradient {
 		@apply bg-gradient-to-r from-gradient-btn-color-1 to-gradient-btn-color-2;
 	}
+
+	.btn-google {
+		@apply flex items-center justify-center m-5 px-4 py-2 rounded-full text-btn-font-color bg-btn-bg-color border border-btn-border-color;
+	}
+	.google-logo {
+		@apply w-4 h-4 mr-2;
+	}
 }
