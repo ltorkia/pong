@@ -28,17 +28,44 @@
 		padding-top: var(--app-padding);
 		padding-bottom: var(--app-padding);
 	}
-	.page-title {
-		@apply text-5xl mb-8;
+
+	.bloc-title {
+		@apply flex flex-col items-center mb-10;
 	}
+	.page-title {
+		@apply text-5xl mb-4 border-b pb-5 px-10;
+	}
+	.under-title {
+		@apply text-2xl mb-4 text-center;
+	}
+
 	.section-box {
-		@apply flex flex-col items-center p-5
+		@apply flex flex-col items-center py-5 text-xl
 		 bg-box-bg-color border border-box-border-color rounded-3xl bg-opacity-60;
 	}
 	.large-box {
-		@apply w-full mx-10 bg-opacity-80
+		@apply w-full bg-opacity-90 rounded-none p-5
 		overflow-auto;
   		max-height: calc(100vh - var(--navbar-height) - var(--footer-height) - var(--main-padding-double) - var(--app-padding-double));
+	}
+
+	#login-form {
+		@apply mb-4 pb-8 border-b-8 border-b-black/30;
+	}
+	.form-box {
+		@apply max-w-sm mx-auto p-4 space-y-8;
+	}
+	.fields-container {
+		@apply space-y-4;
+	}
+	.field-box {
+		@apply flex items-center space-x-2;
+	}
+	.field-box label {
+		@apply w-24 text-right text-lg;
+	}
+	.field-box input, .field-box select {
+		@apply flex-1 border border-gray-300 rounded px-3 py-1 focus:outline-none focus:ring focus:ring-blue-300;
 	}
 
 	.btn-container {
@@ -46,11 +73,14 @@
 	}
 
 	.btn, .btn-gradient {
-		@apply block min-w-48 px-2 py-4 rounded-full text-btn-font-color bg-btn-bg-color border border-btn-border-color
+		@apply block min-w-40 px-2 py-2 rounded-full text-btn-font-color bg-btn-bg-color border border-btn-border-color
 		text-center text-xl font-title-font tracking-widest transition-colors duration-200 ease-in-out;
 	}
 	.btn-gradient {
 		@apply bg-gradient-to-r from-gradient-btn-color-1 to-gradient-btn-color-2;
+	}
+	#register-button {
+		@apply min-w-24 text-xs px-0 py-2 mt-4;
 	}
 
 	.btn-google {

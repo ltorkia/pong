@@ -1,16 +1,44 @@
-			<h1 class="page-title">Login</h1>
+			<div class="bloc-title">
+				<h1 class="page-title">Welcome traveler !</h1>
+				<span class="under-title">Tell us your magical name</span>
+			</div>
 			<div class="section-box">
-				<h2 class="text-2xl mb-4">Ceci est juste un test</h2>
+				<form class="form-box" id="login-form">
+					<div class="fields-container">
+						<!-- Email -->
+						<div class="field-box">
+							<label for="email">Email :</label>
+							<input type="email" id="email" name="email" required>
+						</div>
+
+						<!-- Password -->
+						<div class="field-box">
+							<label for="password">Password :</label>
+							<input type="password" id="password" name="password" required>
+						</div>
+					</div>
+
+					<!-- Submit -->
+					<div class="btn-container">
+						<button type="submit" id="login-button" class="btn-gradient">
+							Login
+						</button>
+					</div>
+				</form>
+
+				<div>
+					<span>Not registered yet ?</span>
+					<div class="btn-container">
+						<a href="/register" id="register-button" class="btn" data-link>
+							Sign up
+						</a>
+					</div>
+				</div>
+
 				<div class="btn-container">
-					<a href="/register" id="register-button" class="btn" data-link>
-						Register
-					</a>
-					<a href="/login" id="login-button" class="btn-gradient" data-link>
-						Login
+					<a href="/api/auth/google" class="btn-google " aria-label="Sign in with Google">
+						<img src="public/img/design/google-icon.svg" alt="Google logo" class="google-logo w-4 h-4 mr-2" />
+						<span>Sign in with Google</span>
 					</a>
 				</div>
-				<a href="/api/auth/google" class="btn-google " aria-label="Sign in with Google">
-					<img src="public/img/design/google-icon.svg" alt="Google logo" class="google-logo w-4 h-4 mr-2" />
-					<span>Sign in with Google</span>
-				</a>
 			</div>

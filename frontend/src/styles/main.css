@@ -36,7 +36,7 @@
 	}
 
 	main {
-		@apply w-full max-w-7xl mx-auto px-4 flex-grow
+		@apply w-full max-w-7xl mx-auto flex-grow
 		flex flex-col items-center justify-center;
 		padding-top: var(--main-padding);
 		padding-bottom: var(--main-padding);
