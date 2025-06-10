@@ -96,17 +96,31 @@ for (const [name1, name2] of friendships) {
     );
 
     // Insérer Users_Game
+    const exist1 = await db.get(
+    `SELECT 1 FROM Users_Game WHERE Game_id = 1 AND Users_id = 1`,
+  );
+
+  if (!exist1)
+  {
     await db.run(`
       INSERT INTO Users_Game (Game_id, Users_id, status_win, duration)
       VALUES (?, ?, ?, ?)`,
       [1, 1, 1, 900]
     );
+  }
 
+
+    const exist2 = await db.get(
+    `SELECT 1 FROM Users_Game WHERE Game_id = 1 AND Users_id = 2`,
+  );
+  if (!exist2)
+  {
     await db.run(`
       INSERT INTO Users_Game (Game_id, Users_id, status_win, duration)
       VALUES (?, ?, ?, ?)`,
       [1, 2, 0, 900]
     );
+  }
 
     // Insérer Chat (fusionné)
     await db.run(`
@@ -143,6 +157,7 @@ for (const [name1, name2] of friendships) {
     );
 
     console.log('✅ Base de données remplie avec des données de test !');
+    return ("✅ Base de données remplie avec des données de test !");
 //   } catch (err) {
     // console.error('❌ Erreur lors de l’insertion des données de test :', err);
 //   }

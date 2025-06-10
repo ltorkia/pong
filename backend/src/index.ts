@@ -1,6 +1,5 @@
 import Fastify from 'fastify';
 import fastifyHelmet from '@fastify/helmet';
-
 // Database
 import {initDb} from './db';
 
@@ -21,6 +20,9 @@ const fastify = Fastify({
 
 // Sécurise
 await fastify.register(fastifyHelmet);
+// await fastify.register(fastifyBcrypt, {
+//   saltWorkFactor: 12,  // par exemple ??????????????????
+// });
 
   // Initialisation de la base de données
   try {

@@ -27,6 +27,11 @@ export interface UserToRegister extends UserBasic, UserForDashboard {
     password : string;
 }
 
+export interface GetUserForRegistration {
+    pseudo : string;
+    email: string;
+    password : string;
+}
 
 export interface ChatMessage {
   id: number;
@@ -48,3 +53,4 @@ export interface Friends {
     avatar?: string | null;
     lastlog: number;
 }
+
