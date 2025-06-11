@@ -3,15 +3,7 @@ import {z } from 'zod';
 import bcrypt from 'bcrypt';
 import { insertUser } from '../db';
 import { UserToRegister, GetUserForRegistration } from '../types';
-
-
-// const userSchema = z.object({
-//   pseudo: z.string(),
-//   email: z.string().email(),
-//   password: z.string(),
-// });
-
-// type User = z.infer<typeof userSchema>;
+import { safeRegister } from '../ztypes';
 
 export async function authRoutes(app: FastifyInstance) {
 	app.post('/api/auth/login', async (request, reply) => {
@@ -19,28 +11,21 @@ export async function authRoutes(app: FastifyInstance) {
 	});
 
 	app.post('/api/auth/register', async (request, reply) => {
-		console.log("test\n");
 		console.log(request.body);
-		const safeRegister: z.ZodType<GetUserForRegistration> = z.object({
-		// const safeRegister = z.object({
-			pseudo : z.string(),
-			email: z.string().email(),
-			password: z.string(),
-		});
 		const result = safeRegister.safeParse(request.body);
-		console.log("test 2 :");
-		if (!result)
+		// console.log("Résultat de safeParse :", result);
+		if (!result.success)
 		{
-			reply.status(400).send({ error: 'Invalid data' });
+			// console.log("Error de Zod = ", result.error.errors[0].path, " : ", result.error.errors[0].message);
+			reply.status(400).send({
+				errorPath: result.error.errors[0].path,
+				errorMessage: result.error.errors[0].message});
 			return;
-		};
-		const validUser = result.data;
-		if (validUser){
-			validUser.password = await bcrypt.hash(validUser.password, 10);
-			await insertUser(validUser);
 		}
-		console.log(validUser);
-		return { message : 'new person register !'}
+		const validUser = result.data;
+		validUser.password = await bcrypt.hash(validUser.password, 10);
+		const resultinsert = await insertUser(validUser);
+		reply.status(resultinsert.statusCode).send(resultinsert.message);
+		return;
 	});
-
 }

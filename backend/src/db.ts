@@ -7,6 +7,7 @@ import {ChatMessage,
   Game, Friends,
   GetUserForRegistration} from './types';
   import {z} from 'zod';
+import { STATUS_CODES } from 'http';
   // import {bcrypt} from 'bcrypt';
   
   const dbPath = path.resolve('./data/database.db');
@@ -34,15 +35,15 @@ import {ChatMessage,
   
   // retourne les infos d un user particulier - userId = le id de l user a afficher
   //  a priori ? protegerait contre les insertions sql
-  export async function getUser(userId : number) {
-    const db = await getDb();
+  export async function getUser(userId : number | null = null, search : string | null = null){
+    const db = await getDb(); 
     const user = await db.get(
       `SELECT pseudo, avatar, email, inscription, 
       lastlog, tournament, game_played, game_win, 
       game_loose, time_played, n_friends 
       FROM Users 
-      WHERE id = ?`,
-      [userId]
+      WHERE id = ? OR pseudo = ? OR email = ?`,
+      [userId, search, search]
     );
     return user as UserForDashboard;
   }
@@ -129,10 +130,16 @@ import {ChatMessage,
         export async function insertUser(user: GetUserForRegistration)
         {
           const db = await getDb();
+          if(await getUser(null, user.pseudo))
+            return {statusCode : 409, message : "pseudo already used"};
+            
+          if (await getUser(null, user.email))
+            return {statusCode: 409, message : "email already used"};
+
           await db.run(`
             INSERT INTO Users (pseudo, email, inscription, lastlog, password, tournament, avatar, game_played, game_win, game_loose, time_played, n_friends)
             VALUES (?, ?, datetime('now'), datetime('now'), ?, 0, NULL, 0, 0, 0, 0, 0)`,
             [user.pseudo, user.email, user.password]
           );    
-          return { message : 'ok'};
+          return {statusCode : 200, message : 'user add'};
         }
