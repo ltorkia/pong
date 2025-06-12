@@ -1,5 +1,5 @@
 PROJECT_NAME = transcendence
-APP_URL = http://localhost:8080
+APP_URL = https://localhost:443
 
 DEV_COMPOSE_FILE = docker-compose.dev.yml
 PROD_COMPOSE_FILE = docker-compose.prod.yml

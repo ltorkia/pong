@@ -28,9 +28,18 @@ FROM nginx:alpine
 # Copier les fichiers buildés du frontend dans nginx
 COPY --from=frontend-builder /app/dist /usr/share/nginx/html
 
+RUN mkdir -p /etc/nginx/ssl
+
+RUN apt install openssl
+#bibli open source pour gestion de communication secu sur internet
+
+RUN openssl req -x509 -nodes -out /etc/nginx/ssl/inception.crt -keyout /etc/nginx/ssl/inception.key -subj "/C=FR/ST=IDF/L=Paris/O=42/OU=42/CN=elcesped.42.fr/UID=elcesped@42.fr"
+# generer le certificat de securite et le cle. -x509 = autosigne -nodes= sans mdp
+# -out = chemin ou foutre le certif -keyout=chemin pour la cle -subj=les donnees a mettre dans le certificat sans passer pst le manuel
+
 # Copier la config nginx personnalisée
 COPY nginx/nginx.prod.conf /etc/nginx/nginx.conf
 
-EXPOSE 80
+EXPOSE 443
 
 CMD ["nginx", "-g", "daemon off;"]

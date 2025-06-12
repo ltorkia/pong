@@ -1,9 +1,11 @@
 services:
 
   nginx:
-    image: nginx:alpine
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile.dev
     ports:
-      - "8080:80"
+      - "8443:443"
     depends_on:
       - backend
       - frontend

@@ -7,7 +7,8 @@ import {ChatMessage,
   Game, Friends,
   GetUserForRegistration} from './types';
   import {z} from 'zod';
-import { STATUS_CODES } from 'http';
+// import { STATUS_CODES } from 'http';
+const { STATUS_CODES } = require('https');
   // import {bcrypt} from 'bcrypt';
   
   const dbPath = path.resolve('./data/database.db');

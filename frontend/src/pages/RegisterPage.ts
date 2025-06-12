@@ -10,10 +10,13 @@ export class RegisterPage extends BasePage {
 	protected attachListeners(): void {
 		const form = document.getElementById('login-form');
 
+		if (form instanceof HTMLFormElement) {
 		form.addEventListener('submit', async (event) => {
-			event.preventDefault(); // Empêche l'envoi classique du formulaire
-
-			// Récupérer les données du formulaire
+			event.preventDefault();
+			// ...
+		});
+		}
+	// Récupérer les données du formulaire
 			const formData = new FormData(form);
 			const data = Object.fromEntries(formData.entries()); // transforme en objet JS
 
