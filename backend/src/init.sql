@@ -27,7 +27,7 @@ CREATE TABLE IF NOT EXISTS Game (
 	end DATETIME,																				-- date et heure de fin du jeu, NULL si le jeu n'est pas fini
 	tournament INTEGER DEFAULT 0 NOT NULL CHECK (tournament IN (0, 1)),							-- pour preciser si c'est un jeu de tournoi ou non, 0 = non, 1 = oui
 	status TEXT NOT NULL CHECK (status IN ('waiting', 'in_progress', 'cancelled', 'finished')),	-- pour preciser si en cours, annule ou termine                                                             -- jeu en cours, termine, ou pas encore commence si tournoi ? 
-	temporary_result  INTEGER DEFAULT 0 NOT NULL												-- au cas ou le serveur plante, possibilite de recuperer le score en cours
+	temporary_result INTEGER DEFAULT 0 NOT NULL												-- au cas ou le serveur plante, possibilite de recuperer le score en cours
 );
 
 -- Users_Game : resultat entre user et game 
@@ -58,7 +58,7 @@ CREATE TABLE IF NOT EXISTS Friends (
 	user2_id INTEGER NOT NULL,
 	status TEXT NOT NULL CHECK (status IN ('pending', 'accepted', 'blocked')),	-- pour checker le status, oui, non, en attente
 	is_blocked INTEGER,
-	date DATETIME NOT NULL,
+	date DATETIME NOT NULL DEFAULT (datetime('now')),
 	FOREIGN KEY (user1_id) REFERENCES User(id) ON DELETE CASCADE,
 	FOREIGN KEY (user2_id) REFERENCES User(id) ON DELETE CASCADE,
 	CHECK (user1_id < user2_id), 

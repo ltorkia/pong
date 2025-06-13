@@ -14,21 +14,21 @@ export async function testsRoutes(app: FastifyInstance) {
        
 //   try {
     // Insérer Users
-    let user_mail = await db.get('SELECT id FROM Users WHERE email = ?', 'alice@example.com');
-    let user_name = await db.get('SELECT id FROM Users WHERE pseudo = ?', 'Alice');
+    let user_mail = await db.get('SELECT id FROM User WHERE email = ?', 'alice@example.com');
+    let user_name = await db.get('SELECT id FROM User WHERE pseudo = ?', 'Alice');
 if (!user_mail && !user_name) {
     await db.run(`
-      INSERT INTO Users (pseudo, email, inscription, lastlog, password, tournament, avatar, game_played, game_win, game_loose, time_played, n_friends)
+      INSERT INTO User (pseudo, email, inscription, lastlog, password, tournament, avatar, game_played, game_win, game_loose, time_played, n_friends)
       VALUES (?, ?, datetime('now'), datetime('now'), ?, 0, NULL, ?, ?, ?, ?, ?)`,
       ['Alice', 'alice@example.com', 'hashed_pass', 10, 5, 5, 3600, 2]
     );
 }
-    user_mail = await db.get('SELECT id FROM Users WHERE email = ?', 'bob@example.com');
-    user_name = await db.get('SELECT id FROM Users WHERE pseudo = ?', 'Bob');
+    user_mail = await db.get('SELECT id FROM User WHERE email = ?', 'bob@example.com');
+    user_name = await db.get('SELECT id FROM User WHERE pseudo = ?', 'Bob');
 if (!user_mail && !user_name) {
 
     await db.run(`
-      INSERT INTO Users (pseudo, email, inscription, lastlog, password, tournament, avatar, game_played, game_win, game_loose, time_played, n_friends)
+      INSERT INTO User (pseudo, email, inscription, lastlog, password, tournament, avatar, game_played, game_win, game_loose, time_played, n_friends)
       VALUES (?, ?, datetime('now'), datetime('now'), ?, 0, NULL, ?, ?, ?, ?, ?)`,
       ['Bob', 'bob@example.com', 'hashed_pass2', 8, 4, 4, 3000, 1]
     );
@@ -42,13 +42,13 @@ const usersToAdd = [
 
 for (const user of usersToAdd) {
   const userExists = await db.get(
-    `SELECT id FROM Users WHERE email = ? OR pseudo = ?`,
+    `SELECT id FROM User WHERE email = ? OR pseudo = ?`,
     [user.email, user.pseudo]
   );
 
   if (!userExists) {
     await db.run(`
-      INSERT INTO Users (pseudo, email, inscription, lastlog, password, tournament, avatar, game_played, game_win, game_loose, time_played, n_friends)
+      INSERT INTO User (pseudo, email, inscription, lastlog, password, tournament, avatar, game_played, game_win, game_loose, time_played, n_friends)
       VALUES (?, ?, datetime('now'), datetime('now'), ?, 0, NULL, ?, ?, ?, ?, ?)`,
       [user.pseudo, user.email, user.password, user.game_played, user.game_win, user.game_loose, user.time_played, user.n_friends]
     );
@@ -66,8 +66,8 @@ const friendships = [
 ];
 
 for (const [name1, name2] of friendships) {
-  const user1 = await db.get(`SELECT id FROM Users WHERE pseudo = ?`, [name1]);
-  const user2 = await db.get(`SELECT id FROM Users WHERE pseudo = ?`, [name2]);
+  const user1 = await db.get(`SELECT id FROM User WHERE pseudo = ?`, [name1]);
+  const user2 = await db.get(`SELECT id FROM User WHERE pseudo = ?`, [name2]);
 
   // enforce User1_id < User2_id convention
   const [User1_id, User2_id] = user1.id < user2.id
@@ -90,20 +90,20 @@ for (const [name1, name2] of friendships) {
 
     // Insérer Game
     await db.run(`
-      INSERT INTO Game (n_participants, date, begin, tournament, status, temporary_result)
-      VALUES (?, datetime('now'), datetime('now'), ?, ?, ?)`,
-      [2, 0, 1, 0]
+      INSERT INTO Game (n_participants, begin, end, tournament, status, temporary_result)
+      VALUES (?, datetime('now'), ?, ?, ?, ?)`,
+      [2, 0, 1, 'in_progress', 0]
     );
 
     // Insérer Users_Game
     await db.run(`
-      INSERT INTO Users_Game (Game_id, Users_id, status_win, duration)
+      INSERT INTO User_Game (Game_id, User_id, status_win, duration)
       VALUES (?, ?, ?, ?)`,
       [1, 1, 1, 900]
     );
 
     await db.run(`
-      INSERT INTO Users_Game (Game_id, Users_id, status_win, duration)
+      INSERT INTO User_Game (Game_id, User_id, status_win, duration)
       VALUES (?, ?, ?, ?)`,
       [1, 2, 0, 900]
     );
@@ -131,13 +131,13 @@ for (const [name1, name2] of friendships) {
 
     // Insérer Users_Tournament
     await db.run(`
-      INSERT INTO Users_Tournament (Tournament_id, Users_id, Game_id)
+      INSERT INTO User_Tournament (Tournament_id, User_id, Game_id)
       VALUES (?, ?, ?)`,
       [1, 1, 1]
     );
 
     await db.run(`
-      INSERT INTO Users_Tournament (Tournament_id, Users_id, Game_id)
+      INSERT INTO User_Tournament (Tournament_id, User_id, Game_id)
       VALUES (?, ?, ?)`,
       [1, 2, 1]
     );
