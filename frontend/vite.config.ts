@@ -10,7 +10,7 @@ export default defineConfig(({ command }: { command: string }) => {
 			hmr: true
 		},
 		css: {
-			postcss: './postcss.config.js'
+			postcss: './postcss.config.mjs'
 		},
 		build: {
 			outDir: 'dist',

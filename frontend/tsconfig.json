@@ -1,6 +1,7 @@
 {
 	"compilerOptions": {
 		"target": "ES2020",                        // Version JavaScript ciblée (pour async/await...)
+		"lib": ["DOM", "ESNext"],                  // Parce qu'on utilise fetch, le DOM
 		"module": "ESNext",                        // Utilise les modules ECMAScript (import/export modernes)
 		"moduleResolution": "bundler",             // Manière dont TypeScript résout les imports (ici comme vite ou webpack)
 		"strict": true,                            // Active toutes les vérifications strictes (bon pour la qualité du code)
