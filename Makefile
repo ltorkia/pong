@@ -64,8 +64,8 @@ up: check_env # Lance les services
 	@$(MAKE) status
 
 down: # Arrête les services
-	@echo "$(YELLOW)Arrêt des services...$(NC)"
-	docker compose -f $(COMPOSE_FILE) down
+	@echo "${YELLOW}Arrêt des conteneurs...${NC}"
+	docker compose -f $(COMPOSE_FILE) down --remove-orphans || true
 
 logs: # Affiche les logs des services
 	docker compose -f $(COMPOSE_FILE) logs -f
@@ -79,25 +79,29 @@ exec-backend: # Rentre dans le Docker backend
 exec-nginx: # Rentre dans le Docker nginx
 	docker compose -f $(COMPOSE_FILE) exec -ti nginx sh
 
-clean: # Nettoie les images, conteneurs et volumes
-	@echo "${YELLOW}Arrêt et suppression des conteneurs + volumes...${NC}"
-	docker compose -f $(COMPOSE_FILE) down -v --remove-orphans || true
-	@echo "${YELLOW}Suppression des images...${NC}"
-	docker rmi -f $$(docker images -q) 2>/dev/null || true
+clean: down # Nettoie les conteneurs et fichier .env mais conserve les images et volumes
 	@echo "$(COLOR_BLUE)Suppression du fichier .env...$(COLOR_RESET)"
 	rm -f $(ENV_DEST)
 
-fclean: clean # Nettoyage complet, y compris les données persistantes et système Docker global
-	@echo "${RED}Nettoyage des données persistantes...${NC}"
+fclean: clean # Nettoyage profond: volumes, images et données persistantes et système Docker global
+	@echo "${YELLOW}Suppression des volumes...${NC}"
+	docker volume prune -f
+	@echo "${YELLOW}Suppression des images...${NC}"
+	docker rmi -f $$(docker images -q) 2>/dev/null || true
+	@echo "${RED}Nettoyage des données persistantes locales...${NC}"
 	rm -rf frontend/node_modules backend/node_modules
 	rm -rf backend/data backend/dist nginx/dist .mode
+
+prune: fclean # Nettoyage complet y compris le système Docker global
 	@echo "$(YELLOW)⚠️ Suppression complète de tous les éléments Docker non utilisés...${NC}"
 	docker system prune -a --volumes -f
 	@echo "$(GREEN)Système Docker nettoyé avec succès!${NC}"
 
-re: fclean build up
+re: clean up
+
+rebuild: fclean build up
 
 status: # Affiche le statut des services
 	docker compose -f $(COMPOSE_FILE) ps
 
-.PHONY: dev prod check_env copy-local build build-frontend up down logs exec-frontend exec-backend exec-nginx clean fclean re status
+.PHONY: dev prod check_env copy-local build build-frontend up down logs exec-frontend exec-backend exec-nginx clean fclean prune re rebuild status
