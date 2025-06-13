@@ -16,7 +16,11 @@ export abstract class BasePage {
 	public async render(): Promise<void> {
 		try {
 			console.log(`${this.constructor.name}: Début du rendu...`);
-			
+
+			// Chargement asynchrone de la navbar en fonction du statut log utilisateur
+			this.generateNavbar();
+			console.log(`${this.constructor.name}: Navbar générée`);
+
 			// Chargement asynchrone du template html via fetch
 			// + injection html dans la div #app
 			const html = await this.loadTemplate(this.templatePath);
@@ -34,6 +38,24 @@ export abstract class BasePage {
 			console.error(`Erreur lors du rendu de ${this.constructor.name}:`, error);
 			this.container.innerHTML = this.getErrorMessage();
 		}
+	}
+
+	/**
+	 * Pour generer le contenu de la navbar en fonction de si on est log ou pas
+	 */
+	protected async generateNavbar(): Promise<void> {
+		const res = await fetch('/api/me');
+		const data = await res.json();
+		const navbar = document.getElementById('navbar-content');
+		let navbarPath;
+
+		if (res.ok && data.loggedIn) {
+			navbarPath = '/templates/navbar-logged.html';
+		} else {
+			navbarPath = '/templates/navbar-visitor.html';
+		}
+		const html = await this.loadTemplate(navbarPath);
+		navbar!.innerHTML = html;
 	}
 
 	/**

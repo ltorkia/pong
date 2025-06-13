@@ -36,7 +36,7 @@ export class UsersPage extends BasePage {
 				} else {
 					const noFriends = document.createElement('span');
 					noFriends.classList.add('friend-list');
-					noFriends.textContent = 'Aucun ami.';
+					noFriends.textContent = 'No friends.';
 					friendList.appendChild(noFriends);
 				}
 				userList.appendChild(clone);
