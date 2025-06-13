@@ -1,14 +1,3 @@
-export interface LoginBody {
-	email: string;
-	password: string;
-}
-
-export interface RegisterBody {
-	email: string;
-	password: string;
-	name: string;
-}
-
 // définit ce que Google envoie dans l'URL quand il redirige vers le callback
 export interface GoogleCallbackQuery {
 	code?: string;

@@ -1,6 +1,6 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import jwt from 'jsonwebtoken';
-import { LoginBody, RegisterBody, GoogleCallbackQuery, GoogleTokenResponse, GoogleUserInfo } from '../types/auth.types';
+import { GoogleCallbackQuery, GoogleTokenResponse, GoogleUserInfo } from '../types/auth.types';
 
 export async function authRoutes(app: FastifyInstance) {
 
@@ -83,7 +83,6 @@ export async function authRoutes(app: FastifyInstance) {
 			}
 
 			 // TODO: Vérifier si l'utilisateur existe déjà en bdd (par son email ou Google id)
-			 // TODO: Si oui mettre à jour ses infos si nécessaire
 			 // TODO: Si non créer un nouvel utilisateur
 
 			// Création d'un token JWT qui sera utilisé par le frontend pour les requêtes authentifiées
