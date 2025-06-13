@@ -25,7 +25,7 @@
 	body {
 		@apply flex flex-col overflow-x-hidden
 		bg-body-bg-color bg-body-bg-img bg-cover bg-center bg-no-repeat
-		font-home-font text-main-font-color;
+		font-home text-main-font-color;
 	}
 
 	header {

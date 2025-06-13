@@ -6,7 +6,7 @@
 	}
 
 	.site-title {
-		@apply font-title-font text-site-title-color text-3xl;
+		@apply font-title text-site-title-color text-3xl;
 	}
 	.navbar {
 		@apply flex justify-between items-center;
@@ -40,7 +40,7 @@
 	}
 
 	.section-box {
-		@apply flex flex-col items-center py-5 text-xl
+		@apply flex flex-col items-center py-5 text-xl relative
 		 bg-box-bg-color border border-box-border-color rounded-3xl bg-opacity-60;
 	}
 	.large-box {
@@ -72,21 +72,31 @@
 		@apply flex items-center justify-center space-x-4;
 	}
 
+	/* .btn {
+		@apply transition duration-200 hover:bg-btn-bg-color-hover hover:border-btn-bg-color-hover;
+	} */
+
 	.btn, .btn-gradient {
 		@apply block min-w-40 px-2 py-2 rounded-full text-btn-font-color bg-btn-bg-color border border-btn-border-color
-		text-center text-xl font-title-font tracking-widest transition-colors duration-200 ease-in-out;
+		text-center text-xl font-title tracking-widest
+		transition-shadow duration-300 hover:shadow-[0_4px_20px_rgba(255,255,255,0.2)];
 	}
 	.btn-gradient {
-		@apply bg-gradient-to-r from-gradient-btn-color-1 to-gradient-btn-color-2;
+		@apply bg-gradient-to-r from-gradient-btn-color-1 to-gradient-btn-color-2 border-btn-gradient-border-color;
 	}
 	#register-button {
-		@apply min-w-24 text-xs px-0 py-2 mt-4;
+		@apply min-w-24 text-xs px-0 py-2 mt-4 mb-9;
 	}
 
+	.btn-google-container {
+		@apply absolute bottom-0 left-0 w-full py-0.5 rounded-bl-[22px] rounded-br-[22px]
+		bg-btn-bg-color border border-btn-border-color;
+		/* transition-[letter-spacing] duration-200 ease-in-out hover:tracking-wider; */
+	}
 	.btn-google {
-		@apply flex items-center justify-center m-5 px-4 py-2 rounded-full text-btn-font-color bg-btn-bg-color border border-btn-border-color;
+		@apply font-classic w-full flex items-center text-[11px] justify-center text-gray-300;
 	}
 	.google-logo {
-		@apply w-4 h-4 mr-2;
+		@apply w-3.5 h-3.5 mr-2;
 	}
 }

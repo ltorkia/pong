@@ -11,9 +11,9 @@ export default {
 	theme: {
 		extend: {
 			fontFamily: {
-				'title-font': fonts.cinzel,
-				'home-font': fonts.garamond,
-				'classic-font': fonts.arial,
+				'title': fonts.cinzel,
+				'home': fonts.garamond,
+				'classic': fonts.arial,
 			},
 			colors: {
 				'site-title-color': colorsTheme1.greyishGreen,
@@ -30,8 +30,11 @@ export default {
 				'box-border-color': colorsTheme1.vdarkBlue,
 				'gradient-btn-color-1': colorsTheme1.deepCyan,
 				'gradient-btn-color-2': colorsTheme1.deepSky,
+				'btn-gradient-border-color': colorsTheme1.deepCyan,
 				'btn-bg-color': colorsTheme1.darkBlue,
+				'btn-bg-color-hover': colorsTheme1.lightForestGreen,
 				'btn-border-color': colorsTheme1.darkBlue,
+				'btn-google-hover': colorsTheme1.lightForestGreen,
 				'btn-font-color': colorsTheme1.white,
 				'online-btn-color': colorsTheme1.fadeForestGreen,
 				'section-title-color': colorsTheme1.fireflyYellow
