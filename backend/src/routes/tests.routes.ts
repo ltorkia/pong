@@ -9,7 +9,7 @@ const dbPath = path.resolve('./data/database.db');
 
 
 export async function testsRoutes(app: FastifyInstance) {
-    app.get('/api/tests', async () => {
+    app.get('/tests', async () => {
         const db = await open({ filename: dbPath, driver: sqlite3.Database });
        
 //   try {

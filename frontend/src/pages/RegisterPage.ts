@@ -2,44 +2,63 @@ import { BasePage } from './BasePage';
 
 export class RegisterPage extends BasePage {
 	constructor(container: HTMLElement) {
-		// super() appelle le constructeur du parent BasePage
-		// avec le container et le chemin du template HTML pour la page login
 		super(container, '/templates/register.html');
 	}
 
 	protected attachListeners(): void {
 		const form = document.getElementById('login-form');
 
-		if (form instanceof HTMLFormElement) {
+		if (!(form instanceof HTMLFormElement)) {
+			console.error('Formulaire non trouvé ou invalide');
+			return;
+		}
+
 		form.addEventListener('submit', async (event) => {
 			event.preventDefault();
-			// ...
-		});
-		}
-	// Récupérer les données du formulaire
+
+			// Récupérer les données du formulaire
 			const formData = new FormData(form);
-			const data = Object.fromEntries(formData.entries()); // transforme en objet JS
+			const data = Object.fromEntries(formData.entries());
 
-			// Envoyer les données en JSON avec fetch
-			const response = await fetch('/api/auth/register', {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json' // très important pour que le backend comprenne
-			},
-		body: JSON.stringify(data) // transforme l'objet JS en JSON
+			try {
+				const response = await fetch('/api/auth/register', {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+					},
+					body: JSON.stringify(data),
+				});
+				console.log("jesuisla");
+
+				const result = await response.json();
+
+				if (!response.ok) {
+					console.error('Erreur d’inscription :', result);
+					alert(`Erreur : ${result.message || 'Inconnue'}`);
+				} else {
+					console.log('Utilisateur inscrit :', result);
+					alert('Inscription réussie !');
+				}
+			} catch (err) {
+				console.error('Erreur réseau ou serveur', err);
+				alert('Erreur réseau.');
+			}
 		});
 
-		const result = await response.json();
-		console.log(result);	
-			// Tu peux ici gérer la réponse, afficher un message, etc.
-	});
+		// // WebSocket simple pour test
+		const socket = new WebSocket('ws://localhost:3001');
 
-	// 	const registerForm = document.getElementById('register-form');
-	// 	if (registerForm) {
-	// 		registerForm.addEventListener('submit', (e) => {
-	// 			e.preventDefault();
-	// 			// Logique d'inscription dans une méthode de RegisterController dans le dossier controller
-	// 		});
-	// 	}
+		socket.addEventListener('open', () => {
+			console.log('✅ WebSocket connecté');
+			socket.send('Hello depuis RegisterPage !');
+		});
+
+		socket.addEventListener('message', (event) => {
+			console.log('📩 Message du serveur WebSocket :', event.data);
+		});
+
+		socket.addEventListener('error', (error) => {
+			console.error('❌ WebSocket error:', error);
+		});
 	}
 }

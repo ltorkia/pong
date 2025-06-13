@@ -1,5 +1,6 @@
 import Fastify from 'fastify';
 import fastifyHelmet from '@fastify/helmet';
+import websocket from '@fastify/websocket';
 // Database
 import {initDb} from './db';
 
@@ -35,11 +36,29 @@ await fastify.register(fastifyHelmet);
   }
 
 // Enregistrement des routes
-await fastify.register(apiRoutes);
-await fastify.register(healthRoutes);
-await fastify.register(authRoutes);
-await fastify.register(usersRoutes);
-await fastify.register(testsRoutes);
+  try {
+      await fastify.register(apiRoutes, { prefix: '/api' });
+      console.log('Routes registered');
+  } catch (err) {
+      console.error('Register routes error:', err);
+      process.exit(1);
+  }
+
+// Register WebSocket plugin
+await fastify.register(websocket);
+new WebSocket('ws://backend:3001');
+
+
+  fastify.get('/ws', { websocket: true }, (connection, req) => {
+    console.log('✅ Client connecté via WebSocket');
+
+    connection.socket.on('message', (message : string) => {
+      console.log('📨 Message reçu :', message.toString());
+
+      // Réponse au client
+      connection.socket.send(`Echo : ${message}`);
+    });
+});
 
 // Lancement du serveur
 fastify.listen({ port: PORT, host: '0.0.0.0' }, (err, address) => {
