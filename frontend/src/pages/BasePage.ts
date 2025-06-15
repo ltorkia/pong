@@ -44,18 +44,21 @@ export abstract class BasePage {
 	 * Pour generer le contenu de la navbar en fonction de si on est log ou pas
 	 */
 	protected async generateNavbar(): Promise<void> {
-		const res = await fetch('/api/me');
-		const data = await res.json();
-		const navbar = document.getElementById('navbar-content');
-		let navbarPath;
+		// const res = await fetch('/api/me');
+		// const data = await res.json();
+		const navbar = document.getElementById('navbar');
+		// let navbarPath;
 
-		if (res.ok && data.loggedIn) {
-			navbarPath = '/templates/navbar-logged.html';
-		} else {
-			navbarPath = '/templates/navbar-visitor.html';
+		// if (data && res.ok && data.loggedIn) {
+		// 	navbarPath = '/templates/navbar-logged.html';
+		// }
+
+		if (this.templatePath !== '/templates/login.html'
+			&& this.templatePath !== '/templates/register.html') {
+			let navbarPath = '/templates/navbar.html';
+			const html = await this.loadTemplate(navbarPath);
+			navbar!.innerHTML = html;
 		}
-		const html = await this.loadTemplate(navbarPath);
-		navbar!.innerHTML = html;
 	}
 
 	/**

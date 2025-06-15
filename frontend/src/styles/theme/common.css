@@ -5,55 +5,67 @@
 		@apply fixed top-0 left-0 w-screen h-screen -z-10 pointer-events-none transition-opacity duration-300 ease-in-out;
 	}
 
-	.site-title {
-		@apply font-title text-site-title-color text-3xl;
+	.pong-logo {
+		@apply text-center mb-4 animate-logo-appear cursor-pointer;
 	}
-	.navbar {
-		@apply flex justify-between items-center;
+	.title {
+		@apply text-7xl md:text-6xl sm:text-5xl font-bold text-white font-title tracking-widest animate-logo-glow relative transition-transform duration-300 ease-out;
 	}
-	.navbar-links {
-		@apply text-2xl space-x-10;
+	.pong-logo span {
+		@apply inline-block relative;
 	}
-	.navbar-links a {
-		@apply text-nav-link-color
-		hover:text-nav-hover-link-color active:text-nav-hover-link-color focus:text-nav-focus-link-color
-		transition-colors duration-200 ease-linear;
+	.magical-ball {
+		@apply absolute bottom-2 right-3.5
+		w-10 animate-bounce;
+		filter: brightness(1.5) saturate(0.5) hue-rotate(156deg) drop-shadow(1px 2px 3px black);
 	}
-	.navbar-links a.active {
-		@apply text-nav-hover-link-color;
+
+	.navbar-content {
+		@apply fixed top-0 left-1/2 -translate-x-1/2 bg-black/40 backdrop-blur-xl border border-white/20 rounded-full shadow-md px-6 py-3 flex space-x-20 text-white z-50;
+	}
+	.navbar-content a {
+		@apply flex flex-col items-center;
+	}
+	.navbar-content a.active {
+		@apply text-blue-300;
+	}
+	.navbar-content a i, .navbar-content a span {
+		@apply transition;
+	}
+	.navbar-content a span {
+		@apply uppercase text-xs  tracking-wider mt-1 hidden md:block;
 	}
 
 	#app {
-		@apply w-full max-w-7xl mx-auto px-4 flex flex-col items-center justify-center;
-		padding-top: var(--app-padding);
-		padding-bottom: var(--app-padding);
+		@apply flex flex-col min-h-full items-center justify-center px-48;
 	}
 
 	.bloc-title {
 		@apply flex flex-col items-center mb-10;
 	}
 	.page-title {
-		@apply text-5xl mb-4 border-b pb-5 px-10;
+		@apply text-5xl mb-4;
 	}
 	.under-title {
-		@apply text-2xl mb-4 text-center;
+		@apply text-2xl border-t px-20 pt-5 mb-4 text-center;
 	}
 
 	.section-box {
-		@apply flex flex-col items-center py-5 text-xl relative
-		 bg-box-bg-color border border-box-border-color rounded-3xl bg-opacity-60;
+		@apply flex flex-col items-center text-xl relative
+		backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl shadow-lg;
 	}
 	.large-box {
-		@apply w-full bg-opacity-90 rounded-none p-5
-		overflow-auto;
-  		max-height: calc(100vh - var(--navbar-height) - var(--footer-height) - var(--main-padding-double) - var(--app-padding-double));
+		@apply w-full backdrop-blur-xl bg-opacity-90 rounded-none p-5;
+	}
+	.login-box {
+		@apply pb-5;
 	}
 
 	#login-form {
-		@apply mb-4 pb-8 border-b-8 border-b-black/30;
+		@apply mb-4 pb-8 border-b-8 border-b-white/20;
 	}
 	.form-box {
-		@apply max-w-sm mx-auto p-4 space-y-8;
+		@apply max-w-sm mx-auto p-4 space-y-8 text-xl;
 	}
 	.fields-container {
 		@apply space-y-4;
@@ -62,7 +74,7 @@
 		@apply flex items-center space-x-2;
 	}
 	.field-box label {
-		@apply w-24 text-right text-lg;
+		@apply w-24 text-right text-lg font-classic text-xs;
 	}
 	.field-box input, .field-box select {
 		@apply flex-1 border border-gray-300 rounded px-3 py-1 focus:outline-none focus:ring focus:ring-blue-300;
@@ -71,27 +83,20 @@
 	.btn-container {
 		@apply flex items-center justify-center space-x-4;
 	}
-
-	/* .btn {
-		@apply transition duration-200 hover:bg-btn-bg-color-hover hover:border-btn-bg-color-hover;
-	} */
-
-	.btn, .btn-gradient {
-		@apply block min-w-40 px-2 py-2 rounded-full text-btn-font-color bg-btn-bg-color border border-btn-border-color
-		text-center text-xl font-title tracking-widest
-		transition-shadow duration-300 hover:shadow-[0_4px_20px_rgba(255,255,255,0.2)];
+	.text-shadow-black {
+		text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.445);
 	}
-	.btn-gradient {
-		@apply bg-gradient-to-r from-gradient-btn-color-1 to-gradient-btn-color-2 border-btn-gradient-border-color;
+	.btn {
+		@apply px-6 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20
+		text-white text-shadow-black tracking-widest font-semibold uppercase text-lg text-center shadow-md hover:bg-white/20 hover:shadow-lg transition duration-300;
 	}
 	#register-button {
-		@apply min-w-24 text-xs px-0 py-2 mt-4 mb-9;
+		@apply min-w-24 text-xs px-0 mt-4 mb-9;
 	}
 
 	.btn-google-container {
-		@apply absolute bottom-0 left-0 w-full py-0.5 rounded-bl-[22px] rounded-br-[22px]
-		bg-btn-bg-color border border-btn-border-color;
-		/* transition-[letter-spacing] duration-200 ease-in-out hover:tracking-wider; */
+		@apply absolute bottom-0 left-0 w-full py-0.5 rounded-bl-[16px] rounded-br-[16px]
+		bg-btn-google-color;
 	}
 	.btn-google {
 		@apply font-classic w-full flex items-center text-[11px] justify-center text-gray-300;

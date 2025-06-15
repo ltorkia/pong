@@ -18,6 +18,7 @@ export const colorsTheme1 = {
 	vclearSky: '#87CEEB',
 	deepSky: '#12C5C2',
 	deepCyan: '#3762D5',
+	pastelBlue: '#3b4e7f',
 	deepPurple: '#4A2F6B',
 	lilac: '#B38BFF',
 	vlightLilac: '#C7B8E4',

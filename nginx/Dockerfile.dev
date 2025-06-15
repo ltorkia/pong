@@ -7,8 +7,5 @@ RUN apk add --no-cache openssl bash
 COPY ./generate-cert.sh /usr/local/bin/generate-cert.sh
 RUN chmod +x /usr/local/bin/generate-cert.sh
 
-# Copier la config nginx (optionnel, adapte si tu en as une)
-# COPY ./nginx.conf /etc/nginx/nginx.conf
-
 # Point d'entrée personnalisé qui génère le certificat puis lance nginx
 CMD ["/bin/bash", "-c", "/usr/local/bin/generate-cert.sh && nginx -g 'daemon off;'"]
