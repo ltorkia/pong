@@ -1,7 +1,6 @@
 import { BasePage } from './BasePage';
 
 export class LoginPage extends BasePage {
-	private dynamicParticleId = 0;
 
 	constructor(container: HTMLElement) {
 		// super() appelle le constructeur du parent BasePage

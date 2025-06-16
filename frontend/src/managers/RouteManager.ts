@@ -4,6 +4,7 @@ import { RegisterPage } from '../pages/RegisterPage';
 import { LoginPage } from '../pages/LoginPage';
 import { GamePage } from '../pages/GamePage';
 import { UsersPage } from '../pages/UsersPage';
+import { ProfilePage } from '../pages/ProfilePage';
 import { PageManager } from './PageManager';
 import { ParticlesManager } from './ParticlesManager';
 
@@ -130,9 +131,28 @@ export class RouteManager {
 			const usersPage = new UsersPage(appDiv) as UsersPage;
 			await this.loadPage(usersPage, true);
 			this.setActiveLink('/users');
-			usersPage.mount();
 			console.log('UsersPage rendue');
 		});
+
+		// Route Profile
+		router.register('/users/:id', async (params?: Record<string, string>) => {
+			if (!params?.id) {
+				console.error("Params manquants pour la route /users/:id");
+				return;
+			}
+			console.log(`Exec route: navigation vers Profile de l'utilisateur ${params.id}`);
+			const appDiv = document.getElementById('app');
+			if (!appDiv) {
+				console.error("div #app introuvable");
+				return;
+			}
+			console.log('div #app trouvée, création ProfilePage');
+			const profilePage = new ProfilePage(appDiv, Number(params.id));
+			await this.loadPage(profilePage, true);
+			this.setActiveLink(`/users`);
+			console.log('ProfilePage rendue');
+		});
+
 	}
 
 	/**

@@ -1,4 +1,4 @@
-type RouteHandler = () => Promise<void> | void;
+type RouteHandler = (params?: Record<string, string>) => Promise<void> | void;
 
 export class Router {
 	private routes: Map<string, RouteHandler> = new Map();
@@ -61,19 +61,21 @@ export class Router {
 	/**
 	 * Méthode principale pour demander une navigation vers une route donnée.
 	 * 
-	 * - Si une navigation est déjà en cours (isNavigating), ignore la demande.
-	 * - Vérifie si on est déjà sur cette route, si oui, ne fait rien (return).
-	 * - Normalise la route passée en paramètre (ex: /login/ -> /login).
-	 * - Vérifie si la route existe dans la Map des routes enregistrées.
-	 *   - Si oui, utilise history.pushState() pour ajouter l’URL à l'historique du navigateur
-	 *     puis appelle handleLocation() qui exécute le handler correspondant dans la map des routes.
-	 *   - Sinon, redirige vers la page d’accueil '/' en appelant aussi handleLocation().
-	 * - Remet `isNavigating` à false pour autoriser d’autres navigations.
+	 * - Ignore la demande si une navigation est déjà en cours (isNavigating).
+	 * - Normalise le chemin donné ("/login/" -> "/login").
+	 * - Si on est déjà sur ce chemin, ne fait rien.
+	 * - Utilise matchRoute() pour trouver une route enregistrée qui correspond
+	 *   au chemin donné, y compris avec paramètres dynamiques ("/users/42" pour profil utilisateur).
+	 * - Si une route correspond :
+	 *   - Ajoute l’URL à l’historique avec history.pushState().
+	 *   - Appelle handleLocation() pour exécuter le handler correspondant.
+	 * - Sinon, redirige vers la page d’accueil '/' en actualisant l’historique avec replaceState(),
+	 *   puis appelle `handleLocation()` pour afficher la page d’accueil.
+	 * - Remet isNavigating à false pour autoriser d’autres navigations.
 	 * 
-	 * Cette méthode peut être déclenchée par:
-	 * - Un clic sur un lien intercepté dans le constructeur
-	 *   avec "document.addEventListener('click', (e) => {...});"
-	 * - Une redirection vers l'accueil après une erreur dans handleLocation().
+	 * Peut être déclenchée par :
+	 * - Un clic sur un lien intercepté.
+	 * - Une redirection suite à une erreur.
 	 */
 	public async navigate(path: string) {
 		if (this.isNavigating) return;
@@ -84,8 +86,11 @@ export class Router {
 		}
 
 		this.isNavigating = true;
-		
-		if (this.routes.has(normalizedPath)) {
+
+		// Recherche d’une route qui correspond au chemin (supporte les routes dynamiques)
+		const matchedRoute = this.matchRoute(normalizedPath);
+		if (matchedRoute) {
+			// On pousse l’URL dans l’historique
 			window.history.pushState({}, '', normalizedPath);
 			await this.handleLocation();
 		} else {
@@ -93,30 +98,26 @@ export class Router {
 			window.history.pushState({}, '', '/');
 			await this.handleLocation();
 		}
+
 		this.isNavigating = false;
 	}
 
 	/**
-	 * Méthode privée qui gère la lecture de l’URL courante (window.location.pathname),
-	 * cherche la route correspondante dans la map des routes et exécute son handler
-	 * pour render la page.
+	 * Méthode privée qui gère la lecture de l’URL courante,
+	 * recherche la route correspondante (dynamique ou statique),
+	 * et exécute son handler avec les paramètres extraits.
 	 * 
 	 * - Récupère l’URL actuelle.
-	 * - Normalise le path avec normalizePath().
-	 * - Si la normalisation change l’URL, met à jour la barre d’adresse
-	 *   via history.replaceState() (sans ajouter d’entrée dans l’historique).
-	 * - Recherche dans la map si un handler existe pour cette route.
-	 *   - Si oui, exécute la fonction asynchrone associée.
-	 *     En cas d’erreur, exécute navigate('/') pour quand même pushState()
-	 *     l'URL valide (= ajout historique) avant redirection vers accueil.
-	 *   - Si aucune route n’est trouvée, met à jour la barre d’adresse avec history.replaceState()
-	 *     (sans ajouter d’entrée dans l’historique), puis redirige vers la page d’accueil '/'
-	 *     en rappelant récursivement handleLocation() pour gérer cette nouvelle route.
+	 * - Normalise le path (enleve le potentil \ de fin).
+	 * - Si la normalisation modifie l’URL, met à jour la barre d’adresse avec replaceState().
+	 * - Utilise matchRoute() pour trouver la route correspondante et ses params.
+	 * - Si une route est trouvée, exécute son handler en lui passant les params.
+	 * - Sinon, remplace l’URL par '/' et rappelle handleLocation() pour afficher la page d’accueil.
 	 * 
-	 * Cette méthode est appelée depuis:
-	 * - Le constructeur sur l’événement popstate (navigation par boutons précédent/suivant du navigateur).
-	 * - A la fin d'un navigate() réussi.
-	 * - Au démarrage via handleLocationPublic().
+	 * Appelée lors :
+	 * - D’un événement popstate (navigation navigateur).
+	 * - Après un navigate().
+	 * - Au démarrage de l’application.
 	 */
 	private async handleLocation() {
 		let path = window.location.pathname;
@@ -125,24 +126,31 @@ export class Router {
 			window.history.replaceState({}, '', normalizedPath);
 			path = normalizedPath;
 		}
-		
+
 		console.log(`Tentative de navigation vers: ${path}`);
 		console.log('Routes disponibles:', Array.from(this.routes.keys()));
-		
-		const routeHandler = this.routes.get(path);
-		
-		if (routeHandler) {
-			console.log(`Route trouvée pour ${path}, exécution...`);
-			try {
-				await routeHandler();
-				console.log(`Route ${path} exécutée`);
-			} catch (error) {
-				console.error(`Erreur lors de l'exécution de la route ${path}:`, error);
 
-				if (path !== '/') {
-					console.log('Redirection vers l\'accueil après erreur');
-					await this.navigate('/');
+		// Recherche la route qui matche (statique ou dynamique)
+		const matchedRoute = this.matchRoute(path);
+
+		if (matchedRoute) {
+			const routeHandler = this.routes.get(matchedRoute.route);
+			if (routeHandler) {
+				console.log(`Route trouvée pour ${path} (correspond à ${matchedRoute.route}), exécution...`);
+				try {
+					// Passe les params au handler s’il attend des arguments
+					await routeHandler(matchedRoute.params);
+					console.log(`Route ${path} exécutée`);
+				} catch (error) {
+					console.error(`Erreur lors de l'exécution de la route ${path}:`, error);
+
+					if (path !== '/') {
+						console.log('Redirection vers l\'accueil après erreur');
+						await this.navigate('/');
+					}
 				}
+			} else {
+				console.warn(`Handler introuvable pour la route ${matchedRoute.route}`);
 			}
 		} else {
 			console.warn(`Aucune route trouvée pour: ${path}`);
@@ -151,6 +159,55 @@ export class Router {
 			window.history.replaceState({}, '', '/');
 			await this.handleLocation();
 		}
+	}
+
+	/**
+	 * Permet de rechercher une route enregistrée qui correspond au chemin donné.
+	 * Elle gère les routes dynamiques avec paramètres, par exemple "/users/:id".
+	 * 
+	 * - On boucle sur toutes les routes enregistrées dans this.routes.
+	 * - Pour chaque route, on la découpe en segments séparés par "/" ("/users/:id" -> ["", "users", ":id"]).
+	 * - On découpe aussi le chemin passé en paramètre de la même façon ("/users/42" -> ["", "users", "42"]).
+	 * - Si le nombre de segments diffère entre la route et le chemin, on passe à la route suivante (pas de correspondance possible).
+	 * - On initialise un objet params vide pour stocker les paramètres extraits ({ id: "42" }).
+	 * - On initialise une variable matched à true qui servira à valider si la route correspond.
+	 * - On parcourt chaque segment des deux tableaux simultanément :
+	 *    - Si le segment de la route commence par ":", c'est un paramètre dynamique.  
+	 *      On extrait le nom du paramètre (ex : ":id" -> "id") et on associe sa valeur depuis le chemin ("42").
+	 *    - Sinon, on compare directement les segments.  
+	 *      Si ils ne sont pas égaux, la route ne correspond pas, on met matched à false et on sort de la boucle.
+	 * - Après la boucle, si matched est toujours true, ca veut dire que la route correspond bien au chemin donné.
+	 *    On retourne un objet contenant la route correspondante et les paramètres extraits.
+	 * - Si aucune route ne correspond, on retourne null.
+	 * 
+	 *  Record<string, string> pour dire objet avec des clés string, valeurs string, qu'on ne connait pas a l'avance.
+	 * 
+	 * @param path Le chemin à tester, ex: "/users/42"
+	 * @returns Un objet { route, params } si une route correspond, sinon null
+	*/
+	private matchRoute(path: string): { route: string; params: Record<string, string> } | null {
+		for (const [route, _] of this.routes) {
+			const routeParts = route.split('/');
+			const pathParts = path.split('/');
+
+			if (routeParts.length !== pathParts.length) continue;
+
+			let params: Record<string, string> = {};
+			let matched = true;
+
+			for (let i = 0; i < routeParts.length; i++) {
+				if (routeParts[i].startsWith(':')) {
+					const paramName = routeParts[i].substring(1);
+					params[paramName] = pathParts[i];
+				} else if (routeParts[i] !== pathParts[i]) {
+					matched = false;
+					break;
+				}
+			}
+
+			if (matched) return { route, params };
+		}
+		return null;
 	}
 	
 	/**
@@ -165,7 +222,6 @@ export class Router {
 		if (!path || path === '' || path === '/index.html') {
 			return '/';
 		}
-		
 		if (path.length > 1 && path.endsWith('/')) {
 			return path.slice(0, -1);
 		}

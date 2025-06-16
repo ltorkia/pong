@@ -1,3 +1,5 @@
+import { getUserById } from '../api/users';
+
 export abstract class BasePage {
 	protected container: HTMLElement;	// Élément DOM dans lequel le contenu html sera injecté
 	protected templatePath: string;		// Chemin vers le template html à charger pour cette page
@@ -31,6 +33,11 @@ export abstract class BasePage {
 			// On attache les listeners relatifs à la page (ex gestion de clic LOGIN pour gérer la logique de connexion)
 			this.attachListeners();
 			console.log(`${this.constructor.name}: Listeners attachés`);
+
+			// On genere les infos propres a chaque page
+			await this.mount();
+			console.log(`${this.constructor.name}: Page montée`);
+
 			console.log(`${this.constructor.name}: Rendu terminé`);
 			
 		} catch (error) {
@@ -58,6 +65,20 @@ export abstract class BasePage {
 			let navbarPath = '/templates/navbar.html';
 			const html = await this.loadTemplate(navbarPath);
 			navbar!.innerHTML = html;
+
+			// Personnalisation du lien profil avec l'ID utilisateur
+			try {
+				// const user = await getUserById(1);
+				const profileLink = document.querySelector('[data-link][href="/profile"]') as HTMLAnchorElement;
+				// if (profileLink && user?.id) {
+				// 	profileLink.href = `/users/${user.id}`;
+				// } else {
+				// 	console.warn("Lien non trouvé ou user.id manquant");
+				// }
+				profileLink.href = `/users/1`;
+			} catch (e) {
+				console.warn("Impossible d'ajuster le lien profil : ", e);
+			}
 		}
 	}
 
@@ -83,6 +104,12 @@ export abstract class BasePage {
 	 * pour attacher les eventListeners() spécifiques de chaque page.
 	 */
 	protected attachListeners(): void {}
+
+	/**
+	 * Méthode vide par défaut à surcharger dans les sous-classes
+	 * pour generer les infos propres a chque page.
+	 */
+	protected async mount(): Promise<void> {}
 
 	// Error message à afficher dans le catch de la méthode render()
 	protected getErrorMessage(): string {
