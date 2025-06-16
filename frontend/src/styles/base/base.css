@@ -29,7 +29,8 @@
 	}
 
 	footer {
-		@apply bg-black/40 backdrop-blur-xl border border-white/20 shadow-md py-1 text-white text-center
+		@apply flex items-center justify-center
+		font-classic text-xs bg-white/10 backdrop-blur-xl border border-white/20 shadow-md text-white text-center text-shadow-black
 		h-[--footer-height];
 	}
 }

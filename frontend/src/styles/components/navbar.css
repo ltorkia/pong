@@ -1,6 +1,7 @@
 @layer components {
 	.navbar-content {
-		@apply fixed top-0 left-1/2 -translate-x-1/2 bg-black/40 backdrop-blur-xl border border-white/20 rounded-full shadow-md px-6 py-3 flex space-x-20 text-white z-50
+		@apply fixed top-0 left-1/2 -translate-x-1/2 bg-white/10 backdrop-blur-xl border border-white/20 rounded-full
+		shadow-md px-6 py-3 flex space-x-20 text-white z-50 text-shadow-black
 		h-[--navbar-height];
 	}
 	.navbar-content a {
