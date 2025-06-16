@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS User (
 	password TEXT,																				-- a hascher + tard (NULL si register via Google)
 	-- ingame INTEGER DEFAULT 0 NOT NULL CHECK (ingame IN (0, 1)),								-- si actuellement en jeu
 	tournament INTEGER DEFAULT 0 NOT NULL,														-- a voir si utile ici, aussi s'il peut participer a plusieurs tournois
-	avatar TEXT DEFAULT '../../frontend/public/img/avatars/default.jpg',						-- facultatif / type TEXT car c'est le chemin de l'image qu'on stocke
+	avatar TEXT DEFAULT '../../frontend/public/img/avatars/default.png',						-- facultatif / type TEXT car c'est le chemin de l'image qu'on stocke
 	game_played INTEGER DEFAULT 0 NOT NULL,														-- total des parties jouees -> permet d'eviter de recalculer a chaque fois dans la db
 	game_win INTEGER DEFAULT 0 NOT NULL,														-- total parties gagnees -> pareil
 	game_loose INTEGER DEFAULT 0 NOT NULL,														-- total parties perdues -> pareil

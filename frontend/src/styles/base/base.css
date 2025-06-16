@@ -1,0 +1,35 @@
+@layer base {
+
+	:root {
+		--navbar-height: 62px;
+		--footer-height: 34px;
+		--m-top-main: calc(var(--navbar-height) + var(--footer-height));
+	}
+	
+	*, ::before, ::after {
+		@apply box-border;
+	}
+
+	html, body {
+		@apply h-screen;
+	}
+
+	body {
+		@apply flex flex-col overflow-x-hidden
+		bg-body-bg-color bg-body-bg-img bg-cover bg-center bg-no-repeat
+		font-home text-main-font-color;
+	}
+
+	nav {
+		@apply font-classic;
+	}
+
+	main {
+		@apply w-full h-full px-10 py-24 overflow-auto;
+	}
+
+	footer {
+		@apply bg-black/40 backdrop-blur-xl border border-white/20 shadow-md py-1 text-white text-center
+		h-[--footer-height];
+	}
+}

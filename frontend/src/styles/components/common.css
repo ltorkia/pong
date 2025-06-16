@@ -1,0 +1,59 @@
+@layer components {
+
+	/* BACKGROUND PARTICLES */
+	#tsparticles {
+		@apply fixed top-0 left-0 w-screen h-screen -z-10 pointer-events-none transition-opacity duration-300 ease-in-out;
+	}
+
+	/* SITE LOGO */
+	.pong-logo {
+		@apply text-center mb-4 animate-logo-appear cursor-pointer;
+	}
+	.title {
+		@apply text-7xl md:text-6xl sm:text-5xl font-bold text-white font-title tracking-widest animate-logo-glow relative transition-transform duration-300 ease-out;
+	}
+	.pong-logo span {
+		@apply inline-block relative;
+	}
+	.magical-ball {
+		@apply absolute bottom-2 right-3.5
+		w-10 animate-bounce;
+		filter: brightness(1.5) saturate(0.5) hue-rotate(156deg) drop-shadow(1px 2px 3px black);
+	}
+
+	/* APP CONTAINER */
+	#app {
+		@apply flex flex-col min-h-full items-center justify-center px-48;
+	}
+
+	/* PAGE TITLE */
+	.bloc-title {
+		@apply flex flex-col items-center justify-center mb-10;
+	}
+	.page-title {
+		@apply text-5xl mb-4;
+	}
+	.under-title {
+		@apply text-2xl border-t px-20 pt-5 mb-4 text-center;
+	}
+
+
+	/* BLURRED CONTAINER */
+	.section-box {
+		@apply flex flex-col items-center text-xl relative p-5
+		backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl shadow-lg
+		mt-[--m-top-main];
+	}
+	.large-box {
+		@apply w-full min-h-[75vh] mt-0 backdrop-blur-xl bg-opacity-90 rounded-none p-5;
+	}
+
+	/* HOME MENU ONCE LOGGED */
+	.home-menu {
+		@apply pt-24 pb-8;
+	}
+	.avatar {
+		@apply w-36 h-36 bg-avatar-default-img bg-cover bg-center rounded-full border border-white/65
+		absolute -top-16 left-1/2 -translate-x-1/2;
+	}
+}

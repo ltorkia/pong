@@ -5,7 +5,7 @@ import { fonts, colorsTheme1, images } from './src/styles/theme/theme'
 export default {
 	content: [
 		"./index.html",
-		"./public/templates/**/*.html",
+		"./public/templates/*.html",
 		"./src/**/*.{js,ts,jsx,tsx}",
   		"./node_modules/@fortawesome/fontawesome-free/**/*.js"
 	],

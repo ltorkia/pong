@@ -18,27 +18,48 @@ export class UsersPage extends BasePage {
 
 			for (const user of users) {
 				const template = document.getElementById('user-template') as HTMLTemplateElement;
-				const clone = template.content.cloneNode(true) as HTMLElement;
+				const clone = template.content.cloneNode(true) as DocumentFragment;
 
-				const userInfos = clone.querySelector('.user-infos') as HTMLElement;
-				userInfos.textContent = `${user.id}: ${user.pseudo} - ${user.email}`;
-
-				const friendList = clone.querySelector('.friend-list') as HTMLElement;
-				const userFriends = await getUserFriends(user.id);
-				if (userFriends.length > 0) {
-					for (const friend of userFriends) {
-						const friendLi = document.createElement('li');
-						friendLi.textContent = `${friend.pseudo}`;
-						friendList.appendChild(friendLi);
-					}
-					const br = document.createElement('br');
-					friendList.appendChild(br);
+				const userAvatar = clone.querySelector('.avatar-cell') as HTMLElement;
+				const img = document.createElement('img');
+				img.classList.add('avatar-img');
+				if (user.avatar) {
+					img.src = `img/avatars/${user.avatar}`;
 				} else {
-					const noFriends = document.createElement('span');
-					noFriends.classList.add('friend-list');
-					noFriends.textContent = 'No friends.';
-					friendList.appendChild(noFriends);
+					img.src = "img/avatars/default.png";
 				}
+				img.alt = `${user.pseudo}'s avatar`;
+				userAvatar.appendChild(img);
+
+				const userName = clone.querySelector('.name-cell') as HTMLElement;
+				const a = document.createElement('a');
+				a.href = `/users:${user.id}`;
+				a.textContent = user.pseudo;
+				userName.appendChild(a);
+
+				const userLevel = clone.querySelector('.level-cell') as HTMLElement;
+				if (user.avatar) {
+					userLevel.textContent = `${user.level}`;
+				} else {
+					userLevel.textContent = "No level";
+				}
+
+				// const userFriendList = clone.querySelector('#friend-list') as HTMLElement;
+				// const userFriends = await getUserFriends(user.id);
+				// if (userFriends.length > 0) {
+				// 	for (const friend of userFriends) {
+				// 		const friendLi = document.createElement('li');
+				// 		friendLi.textContent = `${friend.pseudo}`;
+				// 		userFriendList.appendChild(friendLi);
+				// 	}
+				// 	const br = document.createElement('br');
+				// 	userFriendList.appendChild(br);
+				// } else {
+				// 	const noFriends = document.createElement('span');
+				// 	noFriends.classList.add('no-friend-list');
+				// 	noFriends.textContent = 'No friends.';
+				// 	userFriendList.appendChild(noFriends);
+				// }
 				userList.appendChild(clone);
 			}
 		} catch (err) {

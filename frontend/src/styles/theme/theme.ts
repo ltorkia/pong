@@ -42,7 +42,7 @@ export const particleColors = {
 
 export const images = {
 	forestWallpaper: "url('/img/design/forest-bg.jpg')",
-	avatarDefault: "url('/img/avatars/elisa.jpg')",
+	avatarDefault: "url('/img/avatars/default.png')",
 } as const;
 
 /**

@@ -1,0 +1,19 @@
+@layer components {
+	.btn-container {
+		@apply flex items-center justify-center space-x-4 py-2;
+	}
+	.btn {
+		@apply min-w-72 px-6 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20
+		text-white text-shadow-black tracking-widest font-semibold uppercase text-lg text-center shadow-md hover:bg-white/20 hover:shadow-lg transition duration-300;
+	}
+	.btn-google-container {
+		@apply absolute bottom-0 left-0 w-full py-0.5 rounded-bl-[16px] rounded-br-[16px]
+		bg-btn-google-color;
+	}
+	.btn-google {
+		@apply font-classic w-full flex items-center text-[11px] justify-center text-gray-300;
+	}
+	.google-logo {
+		@apply w-3.5 h-3.5 mr-2;
+	}
+}
