@@ -40,6 +40,10 @@ export default {
 				'online-btn-color': colorsTheme1.fadeForestGreen,
 				'section-title-color': colorsTheme1.fireflyYellow
 			},
+			backgroundImage: {
+				'body-bg-img': images.forestWallpaper,
+				'avatar-default-img': images.avatarDefault
+			},
 			keyframes: {
 				logoGlow: {
 					'0%': {
@@ -95,11 +99,7 @@ export default {
 				'letter-float-3': 'letterFloat 4s ease-in-out infinite 0.4s',
 				'letter-float-4': 'letterFloat 4s ease-in-out infinite 0.6s',
 				'logo-appear': 'logoAppear 1s ease-out',
-			},
-			backgroundImage: {
-				'body-bg-img': images.forestWallpaper,
-				'avatar-default-img': images.avatarDefault
-			},
+			}
 		},
 	},
 	plugins: [],

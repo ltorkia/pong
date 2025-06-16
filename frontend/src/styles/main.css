@@ -6,6 +6,12 @@
 @tailwind utilities;
 
 @layer base {
+
+	:root {
+		--navbar-height: 62px;
+		--footer-height: 34px;
+		--m-top-main: calc(var(--navbar-height) + var(--footer-height));
+	}
 	
 	*, ::before, ::after {
 		@apply box-border;
@@ -30,6 +36,7 @@
 	}
 
 	footer {
-		@apply bg-black/40 backdrop-blur-xl border border-white/20 shadow-md py-1 text-white text-center;
+		@apply bg-black/40 backdrop-blur-xl border border-white/20 shadow-md py-1 text-white text-center
+		h-[--footer-height];
 	}
 }

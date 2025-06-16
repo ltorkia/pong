@@ -21,7 +21,8 @@
 	}
 
 	.navbar-content {
-		@apply fixed top-0 left-1/2 -translate-x-1/2 bg-black/40 backdrop-blur-xl border border-white/20 rounded-full shadow-md px-6 py-3 flex space-x-20 text-white z-50;
+		@apply fixed top-0 left-1/2 -translate-x-1/2 bg-black/40 backdrop-blur-xl border border-white/20 rounded-full shadow-md px-6 py-3 flex space-x-20 text-white z-50
+		h-[--navbar-height];
 	}
 	.navbar-content a {
 		@apply flex flex-col items-center;
@@ -41,7 +42,7 @@
 	}
 
 	.bloc-title {
-		@apply flex flex-col items-center mb-10;
+		@apply flex flex-col items-center justify-center mb-10;
 	}
 	.page-title {
 		@apply text-5xl mb-4;
@@ -52,17 +53,27 @@
 
 	.section-box {
 		@apply flex flex-col items-center text-xl relative p-5
-		backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl shadow-lg;
+		backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl shadow-lg
+		mt-[--m-top-main];
 	}
 	.large-box {
-		@apply w-full backdrop-blur-xl bg-opacity-90 rounded-none p-5;
+		@apply w-full min-h-[75vh] mt-0 backdrop-blur-xl bg-opacity-90 rounded-none p-5;
 	}
 	.login-box {
-		@apply p-0 pb-5;
+		@apply px-0 mt-0;
+	}
+	.register-box {
+		@apply mt-0;
+	}
+	.game-menu {
+		@apply pt-24 pb-8;
 	}
 
 	#login-form {
 		@apply mb-4 border-b-8 border-b-white/20;
+	}
+	#register-form {
+		@apply mb-4;
 	}
 	.form-box {
 		@apply max-w-sm mx-auto p-4 space-y-8 text-xl;
@@ -74,10 +85,20 @@
 		@apply flex items-center space-x-2;
 	}
 	.field-box label {
-		@apply w-24 text-right text-lg font-classic text-xs;
+		@apply w-28 text-right text-lg font-classic text-xs;
+	}
+	#login-form .field-box label {
+		@apply w-20;
 	}
 	.field-box input, .field-box select {
-		@apply flex-1 border border-gray-300 rounded px-3 py-1 focus:outline-none focus:ring focus:ring-blue-300;
+		@apply flex-1 border border-gray-300 rounded px-3 py-1 focus:outline-none focus:ring focus:ring-blue-300
+		text-black font-classic text-sm;
+	}
+	.important-field {
+		@apply font-bold text-red-300 text-base;
+	}
+	.field-box input.avatar-field {
+		@apply text-gray-500 bg-white;
 	}
 
 	.btn-container {
@@ -87,11 +108,11 @@
 		text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.445);
 	}
 	.btn {
-		@apply min-w-56 px-6 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20
+		@apply min-w-72 px-6 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20
 		text-white text-shadow-black tracking-widest font-semibold uppercase text-lg text-center shadow-md hover:bg-white/20 hover:shadow-lg transition duration-300;
 	}
 	#login-button {
-		@apply -mt-3;
+		@apply min-w-40 -mt-3;
 	}
 	#register-button {
 		@apply min-w-24 text-xs px-0 mt-2 mb-7;
@@ -106,5 +127,10 @@
 	}
 	.google-logo {
 		@apply w-3.5 h-3.5 mr-2;
+	}
+
+	.avatar {
+		@apply w-36 h-36 bg-avatar-default-img bg-cover bg-center rounded-full border border-white/65
+		absolute -top-16 left-1/2 -translate-x-1/2;
 	}
 }

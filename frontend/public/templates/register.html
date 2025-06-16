@@ -1,12 +1,58 @@
-			<h1 class="page-title">Register</h1>
-			<div class="section-box">
-				<h2 class="text-2xl mb-4">Ceci est juste un test</h2>
-				<div class="btn-container">
-					<a href="/register" id="register-button" class="btn" data-link>
-						Register
-					</a>
-					<a href="/login" id="login-button" class="btn-gradient" data-link>
-						Login
+			<div class="bloc-title">
+				<h1 class="page-title">Register</h1>
+				<div class="under-title">
+					<span>Join us, transcende and play</span>
+					<img src="img/design/magical-ball.png" class="magical-ball" alt="Magical ball">
+				</div>
+			</div>
+			<div class="section-box register-box">
+				<form class="form-box" id="register-form">
+
+					<div class="fields-container">
+
+						<!-- Username -->
+						<div class="field-box">
+							<label for="username">Username <span class="important-field">*</span> :</label>
+							<input type="text" id="username" name="username" required>
+						</div>
+
+						<!-- Email -->
+						<div class="field-box">
+							<label for="email">Email <span class="important-field">*</span> :</label>
+							<input type="email" id="email" name="email" required>
+						</div>
+
+						<!-- Password -->
+						<div class="field-box">
+							<label for="password">Password <span class="important-field">*</span> :</label>
+							<input type="password" id="password" name="password" required>
+						</div>
+
+						<!-- Secret question -->
+						<div class="field-box">
+							<label for="secret">Secret question <span class="important-field">*</span> :</label>
+							<input type="text" id="secret" name="secret" required>
+						</div>
+
+						<!-- Avatar -->
+						<div class="field-box">
+							<label for="avatar">Avatar :</label>
+							<input type="file" id="avatar" name="avatar" class="avatar-field">
+						</div>
+					</div>
+
+					<!-- Submit -->
+					<div class="btn-container">
+						<button type="submit" id="login-button" class="btn">
+							Sign up
+						</button>
+					</div>
+				</form>
+
+				<div class="btn-container btn-google-container">
+					<a href="/api/auth/google" class="btn-google " aria-label="Sign in with Google">
+						<img src="public/img/design/google-icon.svg" alt="Google logo" class="google-logo" />
+						<span>Sign up with Google</span>
 					</a>
 				</div>
 			</div>
