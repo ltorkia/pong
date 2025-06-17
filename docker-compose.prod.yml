@@ -1,6 +1,7 @@
 services:
 
   nginx:
+    container_name: nginx
     build:
       context: .
       dockerfile: ./nginx/Dockerfile.prod
@@ -12,6 +13,7 @@ services:
       - transcendence
 
   backend:
+    container_name: backend
     build:
       context: ./backend
       dockerfile: Dockerfile.prod

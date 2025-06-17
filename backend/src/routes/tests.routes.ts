@@ -9,6 +9,7 @@ const dbPath = path.resolve('./data/database.db');
 
 
 export async function testsRoutes(app: FastifyInstance) {
+<<<<<<< HEAD
 	app.get('/', async () => {
 		const db = await open({ filename: dbPath, driver: sqlite3.Database });
 	
@@ -23,6 +24,25 @@ export async function testsRoutes(app: FastifyInstance) {
 				['Alice', 'alice@example.com', 'hashed_pass', 10, 5, 5, 3600, 1, 'bla', 2]
 			);
 		}
+=======
+    app.get('/tests', async () => {
+        const db = await open({ filename: dbPath, driver: sqlite3.Database });
+       
+//   try {
+    // Insérer Users
+    let user_mail = await db.get('SELECT id FROM Users WHERE email = ?', 'alice@example.com');
+    let user_name = await db.get('SELECT id FROM Users WHERE pseudo = ?', 'Alice');
+if (!user_mail && !user_name) {
+    await db.run(`
+      INSERT INTO Users (pseudo, email, inscription, lastlog, password, tournament, avatar, game_played, game_win, game_loose, time_played, n_friends)
+      VALUES (?, ?, datetime('now'), datetime('now'), ?, 0, NULL, ?, ?, ?, ?, ?)`,
+      ['Alice', 'alice@example.com', 'hashed_pass', 10, 5, 5, 3600, 2]
+    );
+}
+    user_mail = await db.get('SELECT id FROM Users WHERE email = ?', 'bob@example.com');
+    user_name = await db.get('SELECT id FROM Users WHERE pseudo = ?', 'Bob');
+if (!user_mail && !user_name) {
+>>>>>>> elisa
 
 		user_mail = await db.get('SELECT id FROM User WHERE email = ?', 'bob@example.com');
 		user_name = await db.get('SELECT id FROM User WHERE pseudo = ?', 'Bob');
@@ -96,6 +116,7 @@ export async function testsRoutes(app: FastifyInstance) {
 			[2, 0, 1, 'in_progress', 0]
 		);
 
+<<<<<<< HEAD
 		// Insérer Users_Game
 		await db.run(`
 			INSERT INTO User_Game (Game_id, User_id, status_win, duration)
@@ -108,6 +129,34 @@ export async function testsRoutes(app: FastifyInstance) {
 			VALUES (?, ?, ?, ?)`,
 			[1, 2, 0, 900]
 		);
+=======
+    // Insérer Users_Game
+    const exist1 = await db.get(
+    `SELECT 1 FROM Users_Game WHERE Game_id = 1 AND Users_id = 1`,
+  );
+
+  if (!exist1)
+  {
+    await db.run(`
+      INSERT INTO Users_Game (Game_id, Users_id, status_win, duration)
+      VALUES (?, ?, ?, ?)`,
+      [1, 1, 1, 900]
+    );
+  }
+
+
+    const exist2 = await db.get(
+    `SELECT 1 FROM Users_Game WHERE Game_id = 1 AND Users_id = 2`,
+  );
+  if (!exist2)
+  {
+    await db.run(`
+      INSERT INTO Users_Game (Game_id, Users_id, status_win, duration)
+      VALUES (?, ?, ?, ?)`,
+      [1, 2, 0, 900]
+    );
+  }
+>>>>>>> elisa
 
 		// Insérer Chat (fusionné)
 		await db.run(`
@@ -143,10 +192,18 @@ export async function testsRoutes(app: FastifyInstance) {
 			[1, 2, 1]
 		);
 
+<<<<<<< HEAD
 		console.log('✅ Base de données remplie avec des données de test !');
 	//   } catch (err) {
 		// console.error('❌ Erreur lors de l’insertion des données de test :', err);
 	//   }
+=======
+    console.log('✅ Base de données remplie avec des données de test !');
+    return ("✅ Base de données remplie avec des données de test !");
+//   } catch (err) {
+    // console.error('❌ Erreur lors de l’insertion des données de test :', err);
+//   }
+>>>>>>> elisa
 
 			// const users = await db.all(`SELECT * FROM users`);
 			// return users;

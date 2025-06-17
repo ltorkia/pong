@@ -9,7 +9,11 @@ export async function usersRoutes(app: FastifyInstance) {
 	})
 
 	// pour afficher des infos detaillees sur un user specifique sans le password
+<<<<<<< HEAD
 	app.get('/:id', async (request: FastifyRequest, reply: FastifyReply) => {
+=======
+	app.get('/:id', async (request, reply) => {
+>>>>>>> elisa
 		const { id } = request.params as { id: number };
 		const user = await getUser(id);
 		if (!user)
@@ -18,7 +22,11 @@ export async function usersRoutes(app: FastifyInstance) {
 	})
 
 	// pour afficher les potos de klk1 -> id = la personne concernee
+<<<<<<< HEAD
 	app.get('/:id/friends', async(request: FastifyRequest, reply: FastifyReply) => {
+=======
+	app.get('/:id/friends', async(request, reply) => {
+>>>>>>> elisa
 		const { id } = request.params as { id: number };
 		const friends = await getUserFriends(id);
 		if (!friends)
@@ -26,25 +34,32 @@ export async function usersRoutes(app: FastifyInstance) {
 		return friends;
 	})
 
+<<<<<<< HEAD
 	app.get('/:id/games', async(request: FastifyRequest, reply: FastifyReply) => {
+=======
+	app.get('/:id/games', async(request, reply) => {
+>>>>>>> elisa
 		const { id } = request.params as { id: number };
 		const games = await getUserGames(id);
-		console.log("id = ", id);
+		// console.log("id = ", id);
 		if (!games)
 			return reply.code(404).send({ Error : 'User not found'});
 		return games;
 	})
 
+<<<<<<< HEAD
 	app.get('/:id1/:id2/chat', async(request: FastifyRequest, reply: FastifyReply) => {
+=======
+	app.get('/:id1/:id2/chat', async(request, reply) => {
+>>>>>>> elisa
 		const { id1 } = request.params as { id1: number };
 		const { id2 } = request.params as { id2: number };
-		console.log("id1 = ", id1);
+		// console.log("id1 = ", id1);
 		// return id1;
 		const chat = await getUserChat(id1, id2);
 		if (!chat)
 			return reply.code(404).send({ Error : 'User not found'});
 		return chat;
 	})
-
 };
 

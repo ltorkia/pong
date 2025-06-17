@@ -1,6 +1,10 @@
 import Fastify from 'fastify';
 import fastifyHelmet from '@fastify/helmet';
-
+import websocket from '@fastify/websocket';
+import { FastifyRequest } from 'fastify';
+import fastifyJwt from '@fastify/jwt';
+import fastifyCookie from '@fastify/cookie';
+// import { SocketStream } from '@fastify/websocket';
 // Database
 import { initDb } from './db';
 
@@ -15,18 +19,48 @@ async function start() {
 		ignoreTrailingSlash: true // ignore les / à la fin des urls
 	});
 
+
+	//insertion jwt 
+
+	const JWT_SECRET = process.env.JWT_SECRET || 'super-secret-key';
+
+	fastify.register(fastifyCookie);
+	fastify.register(fastifyJwt, {
+		secret: JWT_SECRET,
+		cookie: {
+			cookieName: 'auth_token',
+			signed: false,
+		}
+	});
+
+
 	// Sécurise
 	await fastify.register(fastifyHelmet);
+	// await fastify.register(fastifyBcrypt, {
+	//   saltWorkFactor: 12,  // par exemple ??????????????????
+	// });
 
-	// Initialisation de la db
-	try {
-		const db = await initDb();
-		console.log('Database initialized');
-		await db.close();
-	} catch (err) {
-		console.error('Database init error:', err);
-		process.exit(1);
-	}
+		// Initialisation de la db
+		try {
+			const db = await initDb();
+			console.log('Database initialized');
+			await db.close();
+		} catch (err) {
+			console.error('Database init error:', err);
+			process.exit(1);
+		}
+
+	// // Register WebSocket plugin
+	//   fastify.get('/ws', { websocket: true }, (connection: SocketStream, req: SocketStream ) => {
+	//     console.log('✅ Client connecté via WebSocket');
+
+	//     connection.socket.on('message', (message : string) => {
+	//       console.log('📨 Message reçu :', message.toString());
+
+	//       // Réponse au client
+	//       connection.socket.send(`Echo : ${message}`);
+	//     });
+	// });
 
 	// Enregistrement des routes
 	try {
@@ -36,6 +70,7 @@ async function start() {
 		console.error('Register routes error:', err);
 		process.exit(1);
 	}
+
 
 	// Lancement du serveur
 	try {
