@@ -30,7 +30,8 @@
 
 	footer {
 		@apply flex items-center justify-center
-		font-classic text-xs bg-white/10 backdrop-blur-xl border border-white/20 shadow-md text-white text-center text-shadow-black
+		font-classic text-xs bg-white/10 backdrop-blur-xl border border-white/20
+		shadow-md text-white text-center text-shadow-black
 		h-[--footer-height];
 	}
 }
