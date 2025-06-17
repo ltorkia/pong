@@ -1,25 +1,26 @@
-import { FastifyInstance } from 'fastify';
-import fastifyJwt from '@fastify/jwt';
-import fastifyCookie from '@fastify/cookie';
-import {getUser} from '../../src/db'
+import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
+import { getUser } from '../../src/db';
+import { JwtPayload } from '../types/auth.types';
 
 export async function apiMe(app: FastifyInstance) {
 
-    app.register(fastifyCookie);
-    app.register(fastifyJwt, { secret: JWT_SECRET });
-    
-    app.get('/', async (request, reply) => {
-      try {
-        const token = request.cookies.auth_token;
-        const decoded = app.jwt.verify(token);
-        const user = await getUser(decoded.id);
-        return reply.send({
-          id: user.id,
-          username: user.pseudo,
-          email: user.email
-        });
-      } catch (err) {
-        return reply.status(401).send({ error: 'Unauthorized' });
-      }
-    });
+	app.get('/', async (request: FastifyRequest, reply: FastifyReply) => {
+		try {
+			const decoded = await request.jwtVerify<JwtPayload>();
+			if (!decoded) {
+				return reply.status(401).send({ error: 'Token missing' });
+			}
+
+			const user = await getUser(Number(decoded.id));
+
+			return reply.send({
+				id: user.id,
+				username: user.pseudo,
+				email: user.email
+			});
+		} catch (err) {
+			return reply.status(401).send({ error: 'Unauthorized' });
+		}
+	});
+
 }

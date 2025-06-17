@@ -23,7 +23,7 @@ COPY frontend/public ./public
 RUN npm run build
 
 # Étape 2: builder l'image finale nginx
-FROM nginx:alpine
+FROM nginx:stable-alpine
 
 # Copier les fichiers buildés du frontend dans nginx
 COPY --from=frontend-builder /app/dist /usr/share/nginx/html
@@ -37,8 +37,6 @@ RUN apk add --no-cache openssl bash
 # Copier le script de génération de certificat dans l'image
 COPY nginx/generate-cert.sh /usr/local/bin/generate-cert.sh
 RUN chmod +x /usr/local/bin/generate-cert.sh
-
-EXPOSE 443
 
 # Point d'entrée personnalisé qui génère le certificat puis lance nginx
 CMD ["/bin/bash", "-c", "/usr/local/bin/generate-cert.sh && nginx -g 'daemon off;'"]

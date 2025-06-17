@@ -42,7 +42,7 @@ export async function getUser(userId : number | null = null, search : string | n
 		SELECT pseudo, avatar, email, inscription, 
 		lastlog, tournament, game_played, game_win, 
 		game_loose, time_played, n_friends 
-		FROM Users 
+		FROM User 
 		WHERE id = ? OR pseudo = ? OR email = ?
 		`,
 		[userId, search, search]
@@ -55,7 +55,7 @@ export async function getAllUsers() {
 	const db = await getDb();
 	const users = await db.all(`
 		SELECT id, pseudo, email 
-		FROM Users 
+		FROM User 
 	`);
 	return users as UserBasic[];
 }
@@ -65,7 +65,7 @@ export async function getUserP(email: string) {
 	const db = await getDb();
 	const user = await db.get(`
 		SELECT id, email, password 
-		FROM Users 
+		FROM User 
 		WHERE email = ?
 		`,
 		[email]
@@ -81,7 +81,7 @@ export async function getUserFriends(userId: number) {
 	const friends = await db.all(`
 		SELECT u.id, u.pseudo, u.avatar, u.lastlog
 		FROM Friends f
-		JOIN Users u ON (
+		JOIN User u ON (
 			(f.User1_id = ? AND f.User2_id = u.id)
 			OR
 			(f.User2_id = ? AND f.User1_id = u.id)
@@ -98,8 +98,8 @@ export async function getUserGames(userId: number) {
 	const db = await getDb();
 	const games = await db.all(`
 		SELECT ug.Game_id, ug.status_win, ug.duration
-		FROM Users_Game ug
-		WHERE ug.Users_id = ?
+		FROM User_Game ug
+		WHERE ug.User_id = ?
 		`,
 		[userId]
 	);
@@ -107,8 +107,8 @@ export async function getUserGames(userId: number) {
 	for (const game of games) {
 		const players = await db.all(`
 			SELECT u.id, u.pseudo, u.avatar
-			FROM Users_Game ug
-			JOIN Users u ON u.id = ug.Users_id
+			FROM User_Game ug
+			JOIN User u ON u.id = ug.User_id
 			WHERE ug.Game_id = ?
 			AND u.id != ?
 			`,
@@ -133,7 +133,7 @@ export async function getUserChat(userId1: number, userId2: number) {
 
 	const other_user = await db.get(`
 		SELECT u.id, u.pseudo, u.avatar
-		FROM Users u
+		FROM User u
 		WHERE u.id != ?
 		`,
 		[userId2]
@@ -153,10 +153,10 @@ export async function insertUser(user: GetUserForRegistration) {
 		return {statusCode: 409, message : "email already used"};
 
 	await db.run(`
-		INSERT INTO Users (pseudo, email, inscription, lastlog, password, tournament, avatar, game_played, game_win, game_loose, time_played, n_friends)
-		VALUES (?, ?, datetime('now'), datetime('now'), ?, 0, NULL, 0, 0, 0, 0, 0)
+		INSERT INTO User (pseudo, email, password, secret_question_number, secret_question_answer)
+		VALUES (?, ?, ?, ?, ?)
 		`,
-		[user.pseudo, user.email, user.password]
+		[user.pseudo, user.email, user.password, user.question, user.answer]
 	);    
 	return {statusCode : 200, message : 'user add'};
 }

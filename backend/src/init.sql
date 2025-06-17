@@ -1,9 +1,9 @@
--- Users : comprend les infos persos du user + stats pour le dashboard + situation en cours
+-- User : comprend les infos persos du user + stats pour le dashboard + situation en cours
 CREATE TABLE IF NOT EXISTS User (
 	id INTEGER PRIMARY KEY AUTOINCREMENT,
 	pseudo TEXT UNIQUE NOT NULL,
 	email TEXT UNIQUE NOT NULL,
-	inscription DATETIME NOT NULL,																-- 1ere inscription
+	inscription DATETIME NOT NULL DEFAULT (datetime('now')),																-- 1ere inscription
 	lastlog DATETIME,																			-- derniere connection (NULL si jamais connecté)
 	password TEXT,																				-- a hascher + tard (NULL si register via Google)
 	-- ingame INTEGER DEFAULT 0 NOT NULL CHECK (ingame IN (0, 1)),								-- si actuellement en jeu
@@ -31,7 +31,7 @@ CREATE TABLE IF NOT EXISTS Game (
 	temporary_result INTEGER DEFAULT 0 NOT NULL												-- au cas ou le serveur plante, possibilite de recuperer le score en cours
 );
 
--- Users_Game : resultat entre user et game 
+-- User_Game : resultat entre user et game 
 CREATE TABLE IF NOT EXISTS User_Game (
 	Game_id INTEGER NOT NULL,												-- necessaire pour ensuite faire les foreign key et relier les tables entre elles
 	User_id INTEGER NOT NULL,
@@ -69,20 +69,20 @@ CREATE TABLE IF NOT EXISTS Friends (
 -- Chat -> pour gerer les messages echanges
 CREATE TABLE IF NOT EXISTS Chat (                                             -- Si on decide de rendre le chat a plus de 1 VS 1 / ou si on veut stocker dans un endroit precis les discussion en solo
 	id INTEGER PRIMARY KEY AUTOINCREMENT,                                     -- sur un seul user_chat puis message, a remettre en place
-	Users_id INTEGER,                                                         -- user qui a envoye le message - pertinent ? 
+	User_id INTEGER,                                                         -- user qui a envoye le message - pertinent ? 
 	time_send DATETIME,
 	message TEXT,
-	FOREIGN KEY (Users_id) REFERENCES Users(id)
+	FOREIGN KEY (User_id) REFERENCES User(id)
 );
-CREATE TABLE IF NOT EXISTS Users_Chat (
+CREATE TABLE IF NOT EXISTS User_Chat (
 	Chat_id INTEGER NOT NULL,                                                 
 	Sender_id INTEGER NOT NULL,
 	Receiver_id INTEGER NOT NULL,
 	friend BOOL,
 	lock BOOL,
 	FOREIGN KEY (Chat_id) REFERENCES Chat(id),
-	FOREIGN KEY (Sender_id) REFERENCES Users(id),
-	FOREIGN KEY (Receiver_id) REFERENCES Users(id),
+	FOREIGN KEY (Sender_id) REFERENCES User(id),
+	FOREIGN KEY (Receiver_id) REFERENCES User(id),
 	PRIMARY KEY (Sender_id, Receiver_id)
 );
 */

@@ -18,3 +18,7 @@ export interface GoogleUserInfo {
 	name: string;
 	picture: string;
 }
+
+export interface JwtPayload {
+	id: string;
+}

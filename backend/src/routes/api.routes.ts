@@ -3,6 +3,7 @@ import { healthRoutes } from './health.routes';
 import { authRoutes } from './auth.routes';
 import { usersRoutes } from './users.routes';
 import { testsRoutes } from './tests.routes';
+import { apiMe } from './api.me';
 
 export async function apiRoutes(app: FastifyInstance) {
 	app.get('/', async () => {
@@ -17,4 +18,5 @@ export async function apiRoutes(app: FastifyInstance) {
 	await app.register(authRoutes, { prefix: '/auth' });
 	await app.register(usersRoutes, { prefix: '/users' });
 	await app.register(testsRoutes, { prefix: '/tests' });
+	await app.register(apiMe, { prefix: '/me' });
 }

@@ -17,7 +17,7 @@ export class RegisterPage extends BasePage {
 		// console.log('📩 Message du serveur :', event.data);
 		// });
 		
-		const form = document.getElementById('login-form');
+		const form = document.getElementById('register-form');
 		
 		if (!(form instanceof HTMLFormElement)) {
 			console.error('Formulaire non trouvé ou invalide');
@@ -39,7 +39,6 @@ export class RegisterPage extends BasePage {
 					},
 					body: JSON.stringify(data),
 				});
-				// console.log("jesuisla");
 
 				const result = await response.json();
 
