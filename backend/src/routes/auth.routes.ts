@@ -2,6 +2,7 @@ import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import jwt from 'jsonwebtoken';
 import { GoogleCallbackQuery, GoogleTokenResponse, GoogleUserInfo } from '../types/auth.types';
 
+// ! A readapter en fonction du 'login' de Pelosa
 export async function authRoutes(app: FastifyInstance) {
 
 	// TODO: Ci-dessous authentification google + jwt ok, reste a faire 2FA pour completter le module cybersecu "Implement Two-Factor Authentication (2FA) and JWT"
