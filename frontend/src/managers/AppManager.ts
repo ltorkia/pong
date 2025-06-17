@@ -4,26 +4,6 @@ import { ParticlesManager } from './ParticlesManager';
 import { RouteManager } from './RouteManager';
 import { PageManager } from './PageManager';
 
-// const ws = new WebSocket('wss://localhost:8443/ws/');
-// --> pour gerer les wss et proposition pour test
-/*
-ws.onopen = () => {
-  console.log('WebSocket connecté !');
-  ws.send('Hello serveur !');
-};
-
-ws.onmessage = (event) => {
-  console.log('Message reçu:', event.data);
-};
-
-ws.onerror = (err) => {
-  console.error('Erreur WebSocket:', err);
-};
-
-ws.onclose = () => {
-  console.log('Connexion WebSocket fermée');
-};*/
-
 export class AppManager {
 	private particlesManager: ParticlesManager;		// Gestionnaire des particules d'arrière-plan
 	private routeManager: RouteManager;				// Gestionnaire des routes/navigation

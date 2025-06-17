@@ -5,7 +5,8 @@ import { readFile } from 'fs/promises';
 import {ChatMessage,
   UserBasic, UserForDashboard, UserToRegister, UserWithAvatar,
   Game, Friends,
-  GetUserForRegistration} from './types';
+  GetUserForRegistration,
+  GetUserForLogin} from './types';
   import {z} from 'zod';
 // import { STATUS_CODES } from 'http';
 const { STATUS_CODES } = require('https');
@@ -57,6 +58,19 @@ const { STATUS_CODES } = require('https');
       FROM Users 
       `);
       return users as UserBasic[];
+    }
+
+  //retourne les infos de tous les users pour l authentification 
+  export async function getUserP(email: string) {
+    const db = await getDb();
+    const user = await db.get(`
+      SELECT id, email, password 
+      FROM Users 
+      WHERE email = ?
+      `,
+    [email]
+    );
+      return user;
     }
     
     //pour choper les friends, mais implique qu un element chat soit forcement cree des qu on devient ami

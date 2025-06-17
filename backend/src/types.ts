@@ -33,6 +33,11 @@ export interface GetUserForRegistration {
     password : string;
 }
 
+export interface GetUserForLogin {
+    email: string;
+    password : string;
+}
+
 export interface ChatMessage {
   id: number;
   sender_id: number;

@@ -4,10 +4,21 @@ export class RegisterPage extends BasePage {
 	constructor(container: HTMLElement) {
 		super(container, '/templates/register.html');
 	}
-
+	
 	protected attachListeners(): void {
+		// // WebSocket simple pour test
+		// const socket = new WebSocket('wss://localhost:8443/ws');
+		
+		// socket.addEventListener('open', () => {
+		// console.log('✅ WebSocket connecté');
+		// });
+		
+		// socket.addEventListener('message', (event) => {
+		// console.log('📩 Message du serveur :', event.data);
+		// });
+		
 		const form = document.getElementById('login-form');
-
+		
 		if (!(form instanceof HTMLFormElement)) {
 			console.error('Formulaire non trouvé ou invalide');
 			return;
@@ -28,7 +39,7 @@ export class RegisterPage extends BasePage {
 					},
 					body: JSON.stringify(data),
 				});
-				console.log("jesuisla");
+				// console.log("jesuisla");
 
 				const result = await response.json();
 
@@ -45,20 +56,5 @@ export class RegisterPage extends BasePage {
 			}
 		});
 
-		// // WebSocket simple pour test
-		const socket = new WebSocket('ws://localhost:3001');
-
-		socket.addEventListener('open', () => {
-			console.log('✅ WebSocket connecté');
-			socket.send('Hello depuis RegisterPage !');
-		});
-
-		socket.addEventListener('message', (event) => {
-			console.log('📩 Message du serveur WebSocket :', event.data);
-		});
-
-		socket.addEventListener('error', (error) => {
-			console.error('❌ WebSocket error:', error);
-		});
 	}
 }

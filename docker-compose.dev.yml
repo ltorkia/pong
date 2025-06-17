@@ -1,6 +1,7 @@
 services:
 
   nginx:
+    container_name: nginx
     build:
       context: ./nginx
       dockerfile: Dockerfile.dev
@@ -15,6 +16,7 @@ services:
       - transcendence
 
   backend:
+    container_name: backend
     build:
       context: ./backend
       dockerfile: Dockerfile.dev
@@ -27,6 +29,7 @@ services:
     restart: unless-stopped
 
   frontend:
+    container_name: frontend
     build:
       context: ./frontend
       dockerfile: Dockerfile.dev
