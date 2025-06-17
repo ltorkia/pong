@@ -75,7 +75,7 @@ export abstract class BasePage {
 				// } else {
 				// 	console.warn("Lien non trouvé ou user.id manquant");
 				// }
-				profileLink.href = `/users/1`;
+				profileLink.href = `/user/1`;
 			} catch (e) {
 				console.warn("Impossible d'ajuster le lien profil : ", e);
 			}

@@ -135,9 +135,9 @@ export class RouteManager {
 		});
 
 		// Route Profile
-		router.register('/users/:id', async (params?: Record<string, string>) => {
+		router.register('/user/:id', async (params?: Record<string, string>) => {
 			if (!params?.id) {
-				console.error("Params manquants pour la route /users/:id");
+				console.error("Params manquants pour la route /user/:id");
 				return;
 			}
 			console.log(`Exec route: navigation vers Profile de l'utilisateur ${params.id}`);
@@ -149,7 +149,9 @@ export class RouteManager {
 			console.log('div #app trouvée, création ProfilePage');
 			const profilePage = new ProfilePage(appDiv, Number(params.id));
 			await this.loadPage(profilePage, true);
-			this.setActiveLink(`/users`);
+
+			// TODO: Set active link entre profil et id du user en cours
+			// this.setActiveLink('user');
 			console.log('ProfilePage rendue');
 		});
 
@@ -188,7 +190,7 @@ export class RouteManager {
 	 * Permet de styliser le lien actif dans la navbar.
 	 */
 	public setActiveLink(pathname: string): void {
-		const navLinks = document.querySelectorAll('.navbar-links a[data-link]') as NodeListOf<HTMLElement>;
+		const navLinks = document.querySelectorAll('.navbar-content a[data-link]') as NodeListOf<HTMLElement>;
 		navLinks.forEach(link => {
 			const anchor = link as HTMLAnchorElement;
 			anchor.classList.remove('active');

@@ -37,7 +37,6 @@
 		@apply text-2xl border-t px-20 pt-5 mb-4 text-center;
 	}
 
-
 	/* BLURRED CONTAINER */
 	.section-box {
 		@apply flex flex-col items-center text-xl relative p-5
