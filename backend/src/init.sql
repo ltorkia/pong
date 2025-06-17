@@ -13,6 +13,8 @@ CREATE TABLE IF NOT EXISTS User (
 	game_win INTEGER DEFAULT 0 NOT NULL,														-- total parties gagnees -> pareil
 	game_loose INTEGER DEFAULT 0 NOT NULL,														-- total parties perdues -> pareil
 	time_played INTEGER DEFAULT 0 NOT NULL,														-- total temps joue -> a remettre a jour a chaque fin de jeu
+	secret_question_number INTEGER NOT NULL CHECK (secret_question_number IN (1, 2, 3, 4)),
+	secret_question_answer TEXT NOT NULL,
 	n_friends INTEGER DEFAULT 0 NOT NULL,														-- nbre d'amis total -> a mettre a jour a chaque ajout/suppression d'ami
 	is_deleted INTEGER DEFAULT 0 NOT NULL CHECK (is_deleted IN (0, 1)),							-- pour savoir si le compte est actif ou non (on garde le user en bdd meme apres desinscription pour garder les stats des jeux pour ses partenaires toujours inscrits), 0 = actif, 1 = pas actif
 	register_from TEXT DEFAULT 'local' NOT NULL CHECK (register_from IN ('local', 'google'))	-- pour savoir si le user s'est inscrit via le site ou via Google, utile pour l'authentification
@@ -22,7 +24,6 @@ CREATE TABLE IF NOT EXISTS User (
 CREATE TABLE IF NOT EXISTS Game (
 	id INTEGER PRIMARY KEY AUTOINCREMENT,
 	n_participants INTEGER NOT NULL,
-	-- date DATETIME NOT NULL,																	-- inutile car DATETIME stocke la date et l'heure, donc c'est dans begin
 	begin DATETIME NOT NULL DEFAULT (datetime('now')),											-- date et heure de debut du jeu, par defaut quand la table est creee (ouverture du jeu)
 	end DATETIME,																				-- date et heure de fin du jeu, NULL si le jeu n'est pas fini
 	tournament INTEGER DEFAULT 0 NOT NULL CHECK (tournament IN (0, 1)),							-- pour preciser si c'est un jeu de tournoi ou non, 0 = non, 1 = oui

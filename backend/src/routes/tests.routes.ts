@@ -18,9 +18,9 @@ export async function testsRoutes(app: FastifyInstance) {
 		let user_name = await db.get('SELECT id FROM User WHERE pseudo = ?', 'Alice');
 		if (!user_mail && !user_name) {
 			await db.run(`
-				INSERT INTO User (pseudo, email, inscription, lastlog, password, tournament, avatar, game_played, game_win, game_loose, time_played, n_friends)
-				VALUES (?, ?, datetime('now'), datetime('now'), ?, 0, NULL, ?, ?, ?, ?, ?)`,
-				['Alice', 'alice@example.com', 'hashed_pass', 10, 5, 5, 3600, 2]
+				INSERT INTO User (pseudo, email, inscription, lastlog, password, tournament, avatar, game_played, game_win, game_loose, time_played, secret_question_number, secret_question_answer, n_friends)
+				VALUES (?, ?, datetime('now'), datetime('now'), ?, 0, NULL, ?, ?, ?, ?, ?, ?, ?)`,
+				['Alice', 'alice@example.com', 'hashed_pass', 10, 5, 5, 3600, 1, 'bla', 2]
 			);
 		}
 
@@ -28,16 +28,16 @@ export async function testsRoutes(app: FastifyInstance) {
 		user_name = await db.get('SELECT id FROM User WHERE pseudo = ?', 'Bob');
 		if (!user_mail && !user_name) {
 			await db.run(`
-				INSERT INTO User (pseudo, email, inscription, lastlog, password, tournament, avatar, game_played, game_win, game_loose, time_played, n_friends)
-				VALUES (?, ?, datetime('now'), datetime('now'), ?, 0, NULL, ?, ?, ?, ?, ?)`,
-				['Bob', 'bob@example.com', 'hashed_pass2', 8, 4, 4, 3000, 1]
+				INSERT INTO User (pseudo, email, inscription, lastlog, password, tournament, avatar, game_played, game_win, game_loose, time_played, secret_question_number, secret_question_answer, n_friends)
+				VALUES (?, ?, datetime('now'), datetime('now'), ?, 0, NULL, ?, ?, ?, ?, ?, ?, ?)`,
+				['Bob', 'bob@example.com', 'hashed_pass2', 8, 4, 4, 3000, 1, 'bla', 1]
 			);
 		}
 		const usersToAdd = [
-			{ pseudo: 'Charlie', email: 'charlie@example.com', password: 'hashed_pass3', game_played: 15, game_win: 9, game_loose: 6, time_played: 4200, n_friends: 2 },
-			{ pseudo: 'Dana', email: 'dana@example.com', password: 'hashed_pass4', game_played: 12, game_win: 6, game_loose: 6, time_played: 3900, n_friends: 2 },
-			{ pseudo: 'Eve', email: 'eve@example.com', password: 'hashed_pass5', game_played: 20, game_win: 12, game_loose: 8, time_played: 5000, n_friends: 1 },
-			{ pseudo: 'Frank', email: 'frank@example.com', password: 'hashed_pass6', game_played: 5, game_win: 1, game_loose: 4, time_played: 2000, n_friends: 1 }
+			{ pseudo: 'Charlie', email: 'charlie@example.com', password: 'hashed_pass3', game_played: 15, game_win: 9, game_loose: 6, time_played: 4200, secret_question_number: 1, secret_question_answer: 'bla', n_friends: 2 },
+			{ pseudo: 'Dana', email: 'dana@example.com', password: 'hashed_pass4', game_played: 12, game_win: 6, game_loose: 6, time_played: 3900, secret_question_number: 1, secret_question_answer: 'bla', n_friends: 2 },
+			{ pseudo: 'Eve', email: 'eve@example.com', password: 'hashed_pass5', game_played: 20, game_win: 12, game_loose: 8, time_played: 5000, secret_question_number: 1, secret_question_answer: 'bla', n_friends: 1 },
+			{ pseudo: 'Frank', email: 'frank@example.com', password: 'hashed_pass6', game_played: 5, game_win: 1, game_loose: 4, time_played: 2000, secret_question_number: 1, secret_question_answer: 'bla', n_friends: 1 }
 		];
 
 		for (const user of usersToAdd) {
@@ -48,9 +48,9 @@ export async function testsRoutes(app: FastifyInstance) {
 
 			if (!userExists) {
 				await db.run(`
-					INSERT INTO User (pseudo, email, inscription, lastlog, password, tournament, avatar, game_played, game_win, game_loose, time_played, n_friends)
-					VALUES (?, ?, datetime('now'), datetime('now'), ?, 0, NULL, ?, ?, ?, ?, ?)`,
-					[user.pseudo, user.email, user.password, user.game_played, user.game_win, user.game_loose, user.time_played, user.n_friends]
+					INSERT INTO User (pseudo, email, inscription, lastlog, password, tournament, avatar, game_played, game_win, game_loose, time_played, secret_question_number, secret_question_answer, n_friends)
+					VALUES (?, ?, datetime('now'), datetime('now'), ?, 0, NULL, ?, ?, ?, ?, ?, ?, ?)`,
+					[user.pseudo, user.email, user.password, user.game_played, user.game_win, user.game_loose, user.time_played, user.secret_question_number, user.secret_question_answer, user.n_friends]
 				);
 			}
 	

@@ -16,6 +16,13 @@ export class UsersPage extends BasePage {
 			const template = document.getElementById('users-template') as HTMLTemplateElement;
 			if (!userList || !template) return;
 
+			if (users.length === 0) {
+				const div = document.createElement('div');
+				div.textContent = "No user registered";
+				userList.appendChild(div);
+				return;
+			}
+
 			for (const user of users) {
 				const clone = template.content.cloneNode(true) as DocumentFragment;
 
@@ -32,7 +39,7 @@ export class UsersPage extends BasePage {
 
 				const userName = clone.querySelector('.name-cell') as HTMLElement;
 				const a = document.createElement('a');
-				a.href = `/users/${user.id}`;
+				a.href = `/user/${user.id}`;
 				a.textContent = user.pseudo;
 				a.setAttribute('data-link', '');
 				userName.appendChild(a);

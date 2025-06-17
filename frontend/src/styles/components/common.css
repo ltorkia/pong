@@ -44,7 +44,8 @@
 		mt-[--m-top-main];
 	}
 	.large-box {
-		@apply w-full min-h-[75vh] mt-0 backdrop-blur-xl bg-opacity-90 rounded-none p-5;
+		@apply w-full min-h-[75vh] mt-0 backdrop-blur-xl bg-opacity-90 rounded-none p-5
+		flex items-center justify-center;
 	}
 
 	/* HOME MENU ONCE LOGGED */
