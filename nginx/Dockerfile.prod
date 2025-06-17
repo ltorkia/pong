@@ -12,8 +12,8 @@ RUN npm install
 # Copier les fichiers de config
 COPY frontend/tsconfig.json ./
 COPY frontend/vite.config.ts ./
-COPY frontend/postcss.config.js ./
-COPY frontend/tailwind.config.js ./
+COPY frontend/postcss.config.mjs ./
+COPY frontend/tailwind.config.mjs ./
 
 # Copier le code source
 COPY frontend/index.html ./
@@ -31,6 +31,14 @@ COPY --from=frontend-builder /app/dist /usr/share/nginx/html
 # Copier la config nginx personnalisée
 COPY nginx/nginx.prod.conf /etc/nginx/nginx.conf
 
-EXPOSE 80
+# Installer openssl dans l'image
+RUN apk add --no-cache openssl bash
 
-CMD ["nginx", "-g", "daemon off;"]
+# Copier le script de génération de certificat dans l'image
+COPY nginx/generate-cert.sh /usr/local/bin/generate-cert.sh
+RUN chmod +x /usr/local/bin/generate-cert.sh
+
+EXPOSE 443
+
+# Point d'entrée personnalisé qui génère le certificat puis lance nginx
+CMD ["/bin/bash", "-c", "/usr/local/bin/generate-cert.sh && nginx -g 'daemon off;'"]
