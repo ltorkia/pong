@@ -9,7 +9,6 @@ const { STATUS_CODES } = require('https');
 
 const dbPath = path.resolve('./data/database.db');
 const sqlPath = path.resolve('./sql/init.sql');
-// const sqlPath = path.resolve(__dirname, '../../sql/init.sql');
 
 // initialise la db
 export async function initDb() {

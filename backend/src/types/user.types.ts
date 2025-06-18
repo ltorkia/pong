@@ -1,3 +1,16 @@
+// export interface GetUserForRegistration {
+// 	pseudo : string;
+// 	email: string;
+// 	password : string;
+// 	question : number;
+// 	answer : string;
+// }
+
+// export interface GetUserForLogin {
+// 	email: string;
+// 	password : string;
+// }
+
 export interface UserBasic {
 	id:number;
 	pseudo : string;
