@@ -44,7 +44,7 @@ export async function authRoutes(app: FastifyInstance) {
 				path: '/',
 				httpOnly: true,
 				sameSite: 'lax',
-				// secure: process.env.NODE_ENV === 'production',
+				secure: process.env.NODE_ENV === 'production',
 				maxAge: 60 * 60 * 24 * 7, // 7 jours
 			});
 

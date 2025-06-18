@@ -21,6 +21,8 @@ services:
       - ./backend/data:/app/data
     env_file:
       - ./backend/.env
+    environment:
+      - NODE_ENV=production
     networks:
       - transcendence
     restart: unless-stopped

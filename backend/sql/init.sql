@@ -38,7 +38,7 @@ CREATE TABLE IF NOT EXISTS User_Game (
 	status_win INTEGER DEFAULT 0 NOT NULL CHECK (status_win IN (0, 1)),		-- 0 = perdu 1 = gagne (pas de NULL car on ne peut pas avoir un jeu sans resultat)
 	duration INTEGER NOT NULL,												-- Duree du jeu (pas en DATETIME car DATETIME = une date + heure))
 	FOREIGN KEY (Game_id) REFERENCES Game(id) ON DELETE CASCADE,			-- ON DELETE CASCADE: si le jeu est supprime on supprime le resultat du jeu
-	FOREIGN KEY (User_id) REFERENCES User(id),							-- pas de DELETE CASCADE ici pour garder les stats du user (pour ses partenaires par exemple)
+	FOREIGN KEY (User_id) REFERENCES User(id),								-- pas de DELETE CASCADE ici pour garder les stats du user (pour ses partenaires par exemple)
 	PRIMARY KEY (Game_id, User_id)											-- un element pour chaque user qui a participe au meme jeu
 );
 
@@ -98,6 +98,7 @@ CREATE TABLE IF NOT EXISTS User_Tournament (
 	Tournament_id INTEGER NOT NULL,
 	User_id INTEGER NOT NULL,
 	Game_id INTEGER,
+	alias TEXT NOT NULL,
 	FOREIGN KEY (Tournament_id) REFERENCES Tournament(id) ON DELETE CASCADE,
 	FOREIGN KEY (User_id) REFERENCES User(id),
 	FOREIGN KEY (Game_id) REFERENCES Game(id)

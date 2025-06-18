@@ -1,4 +1,4 @@
-import { getDb } from './index';
+import { getDb } from './index.db';
 import { RegisterInput } from '../types/zod/auth.zod';
 import { UserBasic, UserForDashboard, UserWithAvatar, Friends } from '../types/user.types';
 import { Game } from '../types/game.types';

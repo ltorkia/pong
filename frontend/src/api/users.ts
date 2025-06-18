@@ -1,8 +1,11 @@
-// export async function getUser() {
-// 	const res = await fetch('/api/me');
-// 	if (!res.ok) throw new Error('Erreur de l’API');
-// 	return res.json();
-// }
+export async function getUser() {
+	const res = await fetch('/api/me', {
+		method: 'GET',
+		credentials: 'include'
+	});
+	if (!res.ok) return null;
+	return res.json();
+}
 
 export async function getUserById(id: number | string) {
 	const res = await fetch(`/api/users/${id}`);
