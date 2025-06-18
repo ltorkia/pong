@@ -1,5 +1,6 @@
 import { router } from '../router/router';
-import { getUserLog, logoutUser } from '../api/users';
+import { logoutUser } from '../api/users';
+import { setProfileLink } from '../utils/navbar.utils';
 
 export abstract class BasePage {
 	protected container: HTMLElement;	// Élément DOM dans lequel le contenu html sera injecté
@@ -72,11 +73,7 @@ export abstract class BasePage {
 
 		try {
 			// Personnalisation du lien profil avec l'ID utilisateur
-			const profileLink = document.querySelector('[data-link][href="/profile"]') as HTMLAnchorElement;
-			const userLogStatus = await getUserLog();
-			if (profileLink && userLogStatus && userLogStatus.id) {
-				profileLink.href = `/user/${userLogStatus.id}`;
-			}
+			await setProfileLink();
 			
 			// Listener sur le bouton logout
 			await this.listenLogout();
@@ -101,6 +98,7 @@ export abstract class BasePage {
 				}
 
 				// Redirection SPA vers login
+				console.log('Déconnexion réussie. Redirection /login');
 				router.navigate('/login');
 			});
 		}
