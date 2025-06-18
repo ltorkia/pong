@@ -23,15 +23,15 @@ export class LoginPage extends BasePage {
 			const data: Record<string, string> = Object.fromEntries(formData.entries()) as Record<string, string>;
 
 			try {
-				const res = await fetch('/api/auth/login', {
+				const response = await fetch('/api/auth/login', {
 					method: 'POST',
 					headers: { 'Content-Type': 'application/json' },
 					body: JSON.stringify(data),
 					credentials: 'include'
 				});
-				const result = await res.json();
 
-				if (!res.ok || result.errorMessage) {
+				const result = await response.json();
+				if (!response.ok || result.errorMessage) {
 					console.error('Erreur d’authentification :', result);
 					alert(result.errorMessage || result.message || 'Erreur inconnue');
 					return;

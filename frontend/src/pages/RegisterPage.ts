@@ -42,17 +42,18 @@ export class RegisterPage extends BasePage {
 				});
 
 				const result = await response.json();
-
-				if (!response.ok) {
+				if (!response.ok || result.errorMessage) {
 					console.error('Erreur d’inscription :', result);
-					alert(`Erreur : ${result.message || 'Inconnue'}`);
-				} else {
-					console.log('Utilisateur inscrit :', result);
-					alert('Inscription réussie !');
-					
-					// Redirection SPA vers login
-					router.navigate('/login');
+					alert(result.errorMessage || result.message || 'Erreur inconnue');
+					return;
 				}
+
+				console.log('Utilisateur inscrit :', result);
+				alert('Inscription réussie !');
+				
+				// Redirection SPA vers login
+				router.navigate('/login');
+
 			} catch (err) {
 				console.error('Erreur réseau ou serveur', err);
 				alert('Erreur réseau.');
