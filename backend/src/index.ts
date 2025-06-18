@@ -14,26 +14,26 @@ import { apiRoutes } from './routes/api.routes';
 const PORT = 3001;
 
 async function start() {
-	const fastify = Fastify({ 
+
+	// Instanciation de Fastify
+	const app = Fastify({ 
 		logger: true,
 		ignoreTrailingSlash: true // ignore les / à la fin des urls
 	});
 
 	// Sécurise
-	await fastify.register(fastifyHelmet);
+	await app.register(fastifyHelmet);
 
-	// await fastify.register(fastifyBcrypt, {
-	//   saltWorkFactor: 12,  // par exemple ??????????????????
-	// });
+	// Enregistre le plugin fastify-cookie pour gérer les cookies HTTP
+	// dans les requêtes et réponses
+	app.register(fastifyCookie);
 
-	fastify.register(fastifyCookie);
-
+	// Enregistrement du plugin JWT
 	const jwtSecret = process.env.JWT_SECRET;
 	if (!jwtSecret) {
 		throw new Error('JWT_SECRET must be defined in .env file');
 	}
-	
-	fastify.register(fastifyJwt, {
+	app.register(fastifyJwt, {
 		secret: jwtSecret,
 		cookie: {
 			cookieName: 'auth_token',
@@ -65,7 +65,7 @@ async function start() {
 
 	// Enregistrement des routes
 	try {
-		await fastify.register(apiRoutes, { prefix: '/api' });
+		await app.register(apiRoutes, { prefix: '/api' });
 		console.log('Routes registered');
 	} catch (err) {
 		console.error('Register routes error:', err);
@@ -75,10 +75,10 @@ async function start() {
 
 	// Lancement du serveur
 	try {
-		await fastify.listen({ port: PORT, host: '0.0.0.0' });
-		fastify.log.info(`Server started on http://0.0.0.0:${PORT}`);
+		await app.listen({ port: PORT, host: '0.0.0.0' });
+		app.log.info(`Server started on http://0.0.0.0:${PORT}`);
 	} catch (err) {
-		fastify.log.error(err);
+		app.log.error(err);
 		process.exit(1);
 	}
 }

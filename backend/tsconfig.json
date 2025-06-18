@@ -10,7 +10,7 @@
 		"moduleResolution": "node",                // Résout les modules comme le fait Node.js (avec extensions .ts, .js, .json…)
 		"forceConsistentCasingInFileNames": true,  // Évite les problèmes de casse dans les noms de fichiers (cross-platform)
 		"skipLibCheck": true,                      // Ignore les erreurs dans les fichiers `.d.ts` des dépendances
-		"types": ["node"]                          // Charge les types Node.js pour utiliser des APIs comme `fs`, `path`, etc.
+		"types": ["node"],                         // Charge les types Node.js pour utiliser des APIs comme `fs`, `path`, etc.
 	},
 	"include": ["src"],                            // Fichiers/dossiers à inclure pour la compilation
 	"exclude": ["node_modules", "dist"]            // Dossiers ignorés (ne pas compiler ce qui est déjà généré)

@@ -4,30 +4,55 @@ import { authRoutes } from './auth.routes';
 import { usersRoutes } from './users.routes';
 import { testsRoutes } from './tests.routes';
 import { apiMe } from './api.me';
+import { JwtPayload } from '../types/jwt.types';
 
 export async function apiRoutes(app: FastifyInstance) {
 
-	// Hook global pour vérifier JWT sauf sur les routes publiques
-	// (va s'ajouter automatiquement a chaque requete get / post)
+	// Hook global pour vérifier JWT et injecter l'utilisateur sur les routes protégées
 	app.addHook('onRequest', async (request: FastifyRequest, reply: FastifyReply) => {
-		const publicRoutes = ['/api/auth/login', '/api/auth/register'];
+		// Fastify enlève le préfixe dans request.url
+		// donc /api/auth/login devient /auth/login
+		// et /api/me devient /me
+		
+		// Routes publiques qu'on peut visiter pas logged
+		const publicRoutes = [
+			'/auth/login', 
+			'/auth/register', 
+			'/health',
+			'/'
+		];
 
-		// On récupère le chemin de la route appelée, exemple "/api/auth/login"
-		const path = request.routerPath || request.raw.url || '';
-
-		// Si la route est publique, on skip la vérification
-		if (publicRoutes.includes(path)) {
+		// Vérifier si c'est une route publique
+		const path = request.url;
+		const isPublicRoute = publicRoutes.some(route => path.startsWith(route));
+		
+		// Si oui pas de check JWT
+		if (isPublicRoute) {
 			return;
 		}
 
-		// Sinon on vérifie le token
+		// Route protégée: on check JWT et on injecte l'utilisateur
 		try {
-			await request.jwtVerify();
-		} catch {
-			return reply.status(401).send({ error: 'Unauthorized' });
+			const decoded = await request.jwtVerify<JwtPayload>();
+			if (!decoded || !decoded.id) {
+				return reply.status(401).send({ 
+					error: 'Unauthorized',
+					message: 'Token JWT invalide - payload manquant'
+				});
+			}
+			
+			// On stocke l'utilisateur dans request
+			// request.user = decoded;
+			
+		} catch (err) {
+			return reply.status(401).send({ 
+				error: 'Unauthorized',
+				message: 'Token JWT manquant ou invalide'
+			});
 		}
 	});
 
+	// Route racine
 	app.get('/', async () => {
 		return {
 			status: 'OK',
@@ -36,6 +61,7 @@ export async function apiRoutes(app: FastifyInstance) {
 		};
 	});
 
+	// Enregistrement des routes
 	await app.register(healthRoutes, { prefix: '/health' });
 	await app.register(authRoutes, { prefix: '/auth' });
 	await app.register(usersRoutes, { prefix: '/users' });
