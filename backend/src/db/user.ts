@@ -1,37 +1,8 @@
-import { open } from 'sqlite';
-import sqlite3 from 'sqlite3';
-import path from 'path';
-import { readFile } from 'fs/promises';
+import { getDb } from './index';
 import { RegisterInput } from '../types/zod/auth.zod';
 import { UserBasic, UserForDashboard, UserWithAvatar, Friends } from '../types/user.types';
 import { Game } from '../types/game.types';
 import { ChatMessage } from '../types/chat.types';
-
-// import { STATUS_CODES } from 'http';
-// const { STATUS_CODES } = require('https');
-// import {bcrypt} from 'bcrypt';
-
-const dbPath = path.resolve('./data/database.db');
-const sqlPath = path.resolve('./src/init.sql');
-
-// initialise la db
-export async function initDb() {
-	const db = await open({
-		filename: dbPath,
-		driver: sqlite3.Database
-	});
-	
-	const initSql = await readFile(sqlPath, 'utf-8');
-	await db.exec(initSql);
-	return db;
-}
-
-// recupere la db
-export async function getDb() {
-	const db = await open({ filename: dbPath, driver: sqlite3.Database });
-	return db;
-}
-
 
 // retourne les infos d un user particulier - userId = le id de l user a afficher
 // a priori ? protegerait contre les insertions sql
