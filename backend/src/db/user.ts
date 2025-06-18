@@ -2,14 +2,13 @@ import { open } from 'sqlite';
 import sqlite3 from 'sqlite3';
 import path from 'path';
 import { readFile } from 'fs/promises';
-import { ChatMessage,
-UserBasic, UserForDashboard, UserToRegister, UserWithAvatar,
-Game, Friends,
-GetUserForRegistration,
-GetUserForLogin } from './types';
-import { z } from 'zod';
+import { RegisterInput } from '../types/zod/auth.zod';
+import { UserBasic, UserForDashboard, UserWithAvatar, Friends } from '../types/user.types';
+import { Game } from '../types/game.types';
+import { ChatMessage } from '../types/chat.types';
+
 // import { STATUS_CODES } from 'http';
-const { STATUS_CODES } = require('https');
+// const { STATUS_CODES } = require('https');
 // import {bcrypt} from 'bcrypt';
 
 const dbPath = path.resolve('./data/database.db');
@@ -27,7 +26,7 @@ export async function initDb() {
 	return db;
 }
 
-//recupere la db
+// recupere la db
 export async function getDb() {
 	const db = await open({ filename: dbPath, driver: sqlite3.Database });
 	return db;
@@ -35,7 +34,7 @@ export async function getDb() {
 
 
 // retourne les infos d un user particulier - userId = le id de l user a afficher
-//  a priori ? protegerait contre les insertions sql
+// a priori ? protegerait contre les insertions sql
 export async function getUser(userId : number | null = null, search : string | null = null){
 	const db = await getDb(); 
 	const user = await db.get(`
@@ -50,7 +49,7 @@ export async function getUser(userId : number | null = null, search : string | n
 	return user as UserForDashboard;
 }
 
-//retourne les infos de tous les users pour l authentification 
+// retourne les infos de tous les users pour l authentification 
 export async function getAllUsers() {
 	const db = await getDb();
 	const users = await db.all(`
@@ -60,7 +59,7 @@ export async function getAllUsers() {
 	return users as UserBasic[];
 }
 
-//retourne les infos de tous les users pour l authentification 
+// retourne les infos de tous les users pour l authentification 
 export async function getUserP(email: string) {
 	const db = await getDb();
 	const user = await db.get(`
@@ -73,9 +72,9 @@ export async function getUserP(email: string) {
 	return user;
 }
 	
-//pour choper les friends, mais implique qu un element chat soit forcement cree des qu on devient ami
-//->comment ajouter un ami ? nouvelle page ?
-// ->version ou on decide d avoir forcement de cree par defaut une donnee avec le client en tant que sender et receveur
+// pour choper les friends, mais implique qu un element chat soit forcement cree des qu on devient ami
+//  -> comment ajouter un ami ? nouvelle page ?
+//  -> version ou on decide d avoir forcement de cree par defaut une donnee avec le client en tant que sender et receveur
 export async function getUserFriends(userId: number) {
 	const db = await getDb();
 	const friends = await db.all(`
@@ -144,7 +143,7 @@ export async function getUserChat(userId1: number, userId2: number) {
 	};
 }
 	
-export async function insertUser(user: GetUserForRegistration) {
+export async function insertUser(user: RegisterInput) {
 	const db = await getDb();
 	if(await getUser(null, user.pseudo))
 		return {statusCode : 409, message : "pseudo already used"};

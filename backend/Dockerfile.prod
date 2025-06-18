@@ -30,5 +30,8 @@ RUN npm install --omit=dev
 # Copier le dossier dist compilé en première étape
 COPY --from=backend-builder /app/dist ./dist
 
+# Copier le fichier SQL init
+COPY sql/init.sql ./sql/init.sql
+
 # Commande pour lancer le backend en prod selon package.json
 CMD ["npm", "start"]

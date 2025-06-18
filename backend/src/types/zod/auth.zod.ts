@@ -1,0 +1,17 @@
+import { z } from 'zod';
+
+export const RegisterInputSchema = z.object({
+	pseudo : z.string(),
+	email: z.string().email(),
+	password: z.string().min(3),
+	question: z.coerce.number().int().min(1).max(4),
+	answer: z.string(),
+});
+
+export const LoginInputSchema = z.object({
+	email: z.string().email(),
+	password: z.string().min(3),
+});
+
+export type RegisterInput = z.infer<typeof RegisterInputSchema>;
+export type LoginInput = z.infer<typeof LoginInputSchema>;

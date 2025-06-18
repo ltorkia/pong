@@ -1,64 +1,91 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
-import { GoogleCallbackQuery, GoogleTokenResponse, GoogleUserInfo } from '../types/auth.types';
 import bcrypt from 'bcrypt';
-import { insertUser, getUserP } from '../db';
-import { safeRegister, safeLogin } from '../ztypes';
+import { GoogleCallbackQuery, GoogleTokenResponse, GoogleUserInfo } from '../types/google.types';
+import { insertUser, getUserP } from '../db/user';
+import { RegisterInputSchema, LoginInputSchema } from '../types/zod/auth.zod';
 
 export async function authRoutes(app: FastifyInstance) {
 
 	// LOGIN
 	app.post('/login', async (request: FastifyRequest, reply: FastifyReply) => {
-		const result = safeLogin.safeParse(request.body);
+		try {
+			const result = LoginInputSchema.safeParse(request.body);
 
-		if (!result.success) {
-			const error = result.error.errors[0];
-			return reply.status(400).send({
-				errorPath: error.path,
-				errorMessage: error.message,
+			if (!result.success) {
+				const error = result.error.errors[0];
+				return reply.status(400).send({
+					errorPath: error.path,
+					errorMessage: error.message,
+				});
+			}
+
+			const { email, password } = result.data;
+			const validUser = await getUserP(email);
+
+			if (!validUser) {
+				return reply.status(401).send({
+					errorMessage: 'Email invalid or unknown',
+				});
+			}
+
+			const isPassValid = await bcrypt.compare(password, validUser.password);
+			if (!isPassValid) {
+				return reply.status(401).send({
+					errorMessage: 'Password does not match',
+				});
+			}
+
+			const token = app.jwt.sign({
+				id: validUser.id,
+				email: validUser.email,
+			});
+
+			reply.setCookie('auth_token', token, {
+				path: '/',
+				httpOnly: true,
+				sameSite: 'lax',
+				// secure: process.env.NODE_ENV === 'production',
+				maxAge: 60 * 60 * 24 * 7, // 7 jours
+			});
+
+			return reply.status(200).send({
+				message: 'Connexion réussie',
+			});
+
+		} catch (err) {
+			request.log.error(err);
+			return reply.status(500).send({
+				errorMessage: 'Erreur serveur lors de la connexion',
 			});
 		}
-
-		const { email, password } = result.data;
-		const validUser = await getUserP(email);
-
-		if (!validUser) {
-			return reply.status(401).send({ errorMessage: 'Email invalid or unknown' });
-		}
-
-		const isPassValid = await bcrypt.compare(password, validUser.password);
-		if (!isPassValid) {
-			return reply.status(401).send({ errorMessage: 'Password does not match' });
-		}
-
-		const token = app.jwt.sign({ id: validUser.id, email: validUser.email });
-		reply.setCookie('auth_token', token, {
-			path: '/',
-			httpOnly: true,
-			sameSite: 'lax',
-			// secure: process.env.NODE_ENV === 'production',
-			maxAge: 60 * 60 * 24 * 7, // 7 jours
-		});
-
-		return reply.status(200).send({ message: 'ok' });
 	});
 
 	// REGISTER
 	app.post('/register', async (request: FastifyRequest, reply: FastifyReply) => {
-		const result = safeRegister.safeParse(request.body);
+		try {
+			const result = RegisterInputSchema.safeParse(request.body);
 
-		if (!result.success) {
-			const error = result.error.errors[0];
-			return reply.status(400).send({
-				errorPath: error.path,
-				errorMessage: error.message,
+			if (!result.success) {
+				const error = result.error.errors[0];
+				return reply.status(400).send({
+					errorPath: error.path,
+					errorMessage: error.message,
+				});
+			}
+
+			const userToInsert = result.data;
+			userToInsert.password = await bcrypt.hash(userToInsert.password, 10);
+
+			const resultinsert = await insertUser(userToInsert);
+
+			return reply.status(resultinsert.statusCode).send(resultinsert);
+
+		} catch (err) {
+			request.log.error(err);
+			return reply.status(500).send({
+				errorMessage: 'Erreur serveur lors de l’inscription',
 			});
 		}
-
-		const userToInsert = result.data;
-		userToInsert.password = await bcrypt.hash(userToInsert.password, 10);
-
-		const resultinsert = await insertUser(userToInsert);
-		return reply.status(resultinsert.statusCode).send(resultinsert);
 	});
 
 	// LOGIN AVEC GOOGLE

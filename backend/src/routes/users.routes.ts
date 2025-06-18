@@ -1,5 +1,5 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
-import { getAllUsers, getUser, getUserFriends, getUserGames, getUserChat } from '../db';
+import { getAllUsers, getUser, getUserFriends, getUserGames, getUserChat } from '../db/user';
 
 export async function usersRoutes(app: FastifyInstance) {
 	// pour afficher tous les users : nom + email

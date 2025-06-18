@@ -6,7 +6,7 @@ import websocket from '@fastify/websocket';
 // import { SocketStream } from '@fastify/websocket';
 
 // Database
-import { initDb } from './db';
+import { initDb } from './db/index';
 
 // Routes importées
 import { apiRoutes } from './routes/api.routes';

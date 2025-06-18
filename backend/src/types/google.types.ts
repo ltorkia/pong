@@ -1,3 +1,16 @@
+// export interface GetUserForRegistration {
+// 	pseudo : string;
+// 	email: string;
+// 	password : string;
+// 	question : number;
+// 	answer : string;
+// }
+
+// export interface GetUserForLogin {
+// 	email: string;
+// 	password : string;
+// }
+
 // définit ce que Google envoie dans l'URL quand il redirige vers le callback
 export interface GoogleCallbackQuery {
 	code?: string;
@@ -17,8 +30,4 @@ export interface GoogleUserInfo {
 	email: string;
 	name: string;
 	picture: string;
-}
-
-export interface JwtPayload {
-	id: string;
 }

@@ -1,6 +1,6 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
-import { getUser } from '../../src/db';
-import { JwtPayload } from '../types/auth.types';
+import { getUser } from '../db/user';
+import { JwtPayload } from '../types/jwt.types';
 
 export async function apiMe(app: FastifyInstance) {
 
