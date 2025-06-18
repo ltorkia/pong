@@ -1,3 +1,4 @@
+import { getUser } from '../api/users';
 type RouteHandler = (params?: Record<string, string>) => Promise<void> | void;
 
 export class Router {
@@ -111,7 +112,8 @@ export class Router {
 	 * - Normalise le path (enleve le potentil \ de fin).
 	 * - Si la normalisation modifie l’URL, met à jour la barre d’adresse avec replaceState().
 	 * - Utilise matchRoute() pour trouver la route correspondante et ses params.
-	 * - Si une route est trouvée, exécute son handler en lui passant les params.
+	 * - Si une route est trouvée, on verifie d'abord que l'utilisateur est authentifie pour la redirection.
+	 * - Ensuite on exécute son handler en lui passant les params.
 	 * - Sinon, remplace l’URL par '/' et rappelle handleLocation() pour afficher la page d’accueil.
 	 * 
 	 * Appelée lors :
@@ -135,7 +137,22 @@ export class Router {
 
 		if (matchedRoute) {
 			const routeHandler = this.routes.get(matchedRoute.route);
+
 			if (routeHandler) {
+				const publicRoutes = ['/login', '/register'];
+				if (!publicRoutes.includes(matchedRoute.route)) {
+					try {
+						const user = await getUser();
+						if (!user) {
+							console.log('Redirection vers /login (non authentifié)');
+							return await this.navigate('/login');
+						}
+					} catch {
+						console.log('Redirection vers /login (erreur auth)');
+						return await this.navigate('/login');
+					}
+				}
+
 				console.log(`Route trouvée pour ${path} (correspond à ${matchedRoute.route}), exécution...`);
 				try {
 					// Passe les params au handler s’il attend des arguments
