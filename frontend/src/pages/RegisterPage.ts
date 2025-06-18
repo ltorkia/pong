@@ -1,4 +1,5 @@
 import { BasePage } from './BasePage';
+import { router } from '../router/router';
 
 export class RegisterPage extends BasePage {
 	constructor(container: HTMLElement) {
@@ -48,6 +49,9 @@ export class RegisterPage extends BasePage {
 				} else {
 					console.log('Utilisateur inscrit :', result);
 					alert('Inscription réussie !');
+					
+					// Redirection SPA vers login
+					router.navigate('/login');
 				}
 			} catch (err) {
 				console.error('Erreur réseau ou serveur', err);

@@ -6,6 +6,34 @@ import { RegisterInputSchema, LoginInputSchema } from '../types/zod/auth.zod';
 
 export async function authRoutes(app: FastifyInstance) {
 
+	// REGISTER
+	app.post('/register', async (request: FastifyRequest, reply: FastifyReply) => {
+		try {
+			const result = RegisterInputSchema.safeParse(request.body);
+
+			if (!result.success) {
+				const error = result.error.errors[0];
+				return reply.status(400).send({
+					errorPath: error.path,
+					errorMessage: error.message,
+				});
+			}
+
+			const userToInsert = result.data;
+			userToInsert.password = await bcrypt.hash(userToInsert.password, 10);
+
+			const resultinsert = await insertUser(userToInsert);
+
+			return reply.status(resultinsert.statusCode).send(resultinsert);
+
+		} catch (err) {
+			request.log.error(err);
+			return reply.status(500).send({
+				errorMessage: 'Erreur serveur lors de l’inscription',
+			});
+		}
+	});
+
 	// LOGIN
 	app.post('/login', async (request: FastifyRequest, reply: FastifyReply) => {
 		try {
@@ -44,7 +72,7 @@ export async function authRoutes(app: FastifyInstance) {
 				path: '/',
 				httpOnly: true,
 				sameSite: 'lax',
-				secure: process.env.NODE_ENV === 'production',
+				secure: false,
 				maxAge: 60 * 60 * 24 * 7, // 7 jours
 			});
 
@@ -60,32 +88,10 @@ export async function authRoutes(app: FastifyInstance) {
 		}
 	});
 
-	// REGISTER
-	app.post('/register', async (request: FastifyRequest, reply: FastifyReply) => {
-		try {
-			const result = RegisterInputSchema.safeParse(request.body);
-
-			if (!result.success) {
-				const error = result.error.errors[0];
-				return reply.status(400).send({
-					errorPath: error.path,
-					errorMessage: error.message,
-				});
-			}
-
-			const userToInsert = result.data;
-			userToInsert.password = await bcrypt.hash(userToInsert.password, 10);
-
-			const resultinsert = await insertUser(userToInsert);
-
-			return reply.status(resultinsert.statusCode).send(resultinsert);
-
-		} catch (err) {
-			request.log.error(err);
-			return reply.status(500).send({
-				errorMessage: 'Erreur serveur lors de l’inscription',
-			});
-		}
+	// LOGOUT
+	app.post('/logout', async (request: FastifyRequest, reply: FastifyReply) => {
+		reply.clearCookie('auth_token', { path: '/' });
+		reply.send({ message: 'Déconnecté' });
 	});
 
 	// LOGIN AVEC GOOGLE

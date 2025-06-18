@@ -1,4 +1,4 @@
-import { getUser } from '../api/users';
+import { getUserLog } from '../api/users';
 type RouteHandler = (params?: Record<string, string>) => Promise<void> | void;
 
 export class Router {
@@ -109,7 +109,7 @@ export class Router {
 	 * et exécute son handler avec les paramètres extraits.
 	 * 
 	 * - Récupère l’URL actuelle.
-	 * - Normalise le path (enleve le potentil \ de fin).
+	 * - Normalise le path (enleve le potentiel \ de fin).
 	 * - Si la normalisation modifie l’URL, met à jour la barre d’adresse avec replaceState().
 	 * - Utilise matchRoute() pour trouver la route correspondante et ses params.
 	 * - Si une route est trouvée, on verifie d'abord que l'utilisateur est authentifie pour la redirection.
@@ -139,18 +139,9 @@ export class Router {
 			const routeHandler = this.routes.get(matchedRoute.route);
 
 			if (routeHandler) {
-				const publicRoutes = ['/login', '/register'];
-				if (!publicRoutes.includes(matchedRoute.route)) {
-					try {
-						const user = await getUser();
-						if (!user) {
-							console.log('Redirection vers /login (non authentifié)');
-							return await this.navigate('/login');
-						}
-					} catch {
-						console.log('Redirection vers /login (erreur auth)');
-						return await this.navigate('/login');
-					}
+				const redirected = await this.handleAuthRedirect(matchedRoute);
+				if (redirected) {
+					return;
 				}
 
 				console.log(`Route trouvée pour ${path} (correspond à ${matchedRoute.route}), exécution...`);
@@ -176,6 +167,45 @@ export class Router {
 			window.history.replaceState({}, '', '/');
 			await this.handleLocation();
 		}
+	}
+
+	/**
+	 * Gestion des redirections d’authentification:
+	 * Rediriger vers /login si l’utilisateur non authentifié tente d’accéder à une page privée.
+	 * Rediriger vers / si un utilisateur déjà authentifié tente d’accéder à /login ou /register.
+	 */
+	private async handleAuthRedirect(matchedRoute: { route: string }): Promise<boolean> {
+		const publicRoutes = ['/login', '/register'];
+		const userLogStatus = await getUserLog();
+
+		if (!publicRoutes.includes(matchedRoute.route)) {
+			// Route privée
+			try {
+				if (!userLogStatus) {
+					console.log('Redirection vers /login (non authentifié)');
+					await this.navigate('/login');
+					return true;
+				}
+			} catch {
+				console.log('Redirection vers /login (erreur auth)');
+				await this.navigate('/login');
+				return true;
+			}
+		} else {
+			// Route publique
+			try {
+				if (userLogStatus) {
+					console.log('Redirection vers / (authentifié)');
+					await this.navigate('/');
+					return true;
+				}
+			} catch {
+				console.log('Redirection vers /login (erreur auth)');
+				await this.navigate('/login');
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/**

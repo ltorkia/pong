@@ -1,4 +1,5 @@
-import { getUserById } from '../api/users';
+import { router } from '../router/router';
+import { getUserLog, logoutUser } from '../api/users';
 
 export abstract class BasePage {
 	protected container: HTMLElement;	// Élément DOM dans lequel le contenu html sera injecté
@@ -20,7 +21,7 @@ export abstract class BasePage {
 			console.log(`${this.constructor.name}: Début du rendu...`);
 
 			// Chargement asynchrone de la navbar en fonction du statut log utilisateur
-			this.generateNavbar();
+			await this.generateNavbar();
 			console.log(`${this.constructor.name}: Navbar générée`);
 
 			// Chargement asynchrone du template html via fetch
@@ -51,34 +52,57 @@ export abstract class BasePage {
 	 * Pour generer le contenu de la navbar en fonction de si on est log ou pas
 	 */
 	protected async generateNavbar(): Promise<void> {
-		// const res = await fetch('/api/me');
-		// const data = await res.json();
+
+		// On return si on est sur une page publique (login / register = pas de navbar)
+		// et on clean la navbar pour qu'elle ne reste pas sur la prochaine page
 		const navbar = document.getElementById('navbar');
-		// let navbarPath;
+		const publicRoutes = [
+			'/templates/login.html',
+			'/templates/register.html'
+		];
+		if (publicRoutes.includes(this.templatePath)) {
+			if (navbar) navbar.innerHTML = '';
+			return;
+		}
 
-		// if (data && res.ok && data.loggedIn) {
-		// 	navbarPath = '/templates/navbar-logged.html';
-		// }
+		// Injection de la navbar
+		const navbarPath = '/templates/navbar.html';
+		const html = await this.loadTemplate(navbarPath);
+		navbar!.innerHTML = html;
 
-		if (this.templatePath !== '/templates/login.html'
-			&& this.templatePath !== '/templates/register.html') {
-			let navbarPath = '/templates/navbar.html';
-			const html = await this.loadTemplate(navbarPath);
-			navbar!.innerHTML = html;
-
+		try {
 			// Personnalisation du lien profil avec l'ID utilisateur
-			try {
-				// const user = await getUserById(1);
-				const profileLink = document.querySelector('[data-link][href="/profile"]') as HTMLAnchorElement;
-				// if (profileLink && user?.id) {
-				// 	profileLink.href = `/users/${user.id}`;
-				// } else {
-				// 	console.warn("Lien non trouvé ou user.id manquant");
-				// }
-				profileLink.href = `/user/1`;
-			} catch (e) {
-				console.warn("Impossible d'ajuster le lien profil : ", e);
+			const profileLink = document.querySelector('[data-link][href="/profile"]') as HTMLAnchorElement;
+			const userLogStatus = await getUserLog();
+			if (profileLink && userLogStatus && userLogStatus.id) {
+				profileLink.href = `/user/${userLogStatus.id}`;
 			}
+			
+			// Listener sur le bouton logout
+			await this.listenLogout();
+			
+		} catch (e) {
+			console.warn("Impossible de générer la navbar : ", e);
+		}
+	}
+
+	/**
+	 * Listener sur le bouton logout de la navbar
+	 */
+	protected async listenLogout(): Promise<void> {
+		const logoutLink = document.querySelector('a[href="/logout"]');
+		if (logoutLink) {
+			logoutLink.addEventListener('click', async (e) => {
+				e.preventDefault();
+				try {
+					await logoutUser();
+				} catch (err) {
+					console.error('Erreur lors du logout', err);
+				}
+
+				// Redirection SPA vers login
+				router.navigate('/login');
+			});
 		}
 	}
 

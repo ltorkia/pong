@@ -1,7 +1,7 @@
 import Fastify from 'fastify';
 import fastifyHelmet from '@fastify/helmet';
-import fastifyJwt from '@fastify/jwt';
 import fastifyCookie from '@fastify/cookie';
+import fastifyJwt from '@fastify/jwt';
 import websocket from '@fastify/websocket';
 // import { SocketStream } from '@fastify/websocket';
 

@@ -9,7 +9,7 @@ import { ChatMessage } from '../types/chat.types';
 export async function getUser(userId : number | null = null, search : string | null = null){
 	const db = await getDb(); 
 	const user = await db.get(`
-		SELECT pseudo, avatar, email, inscription, 
+		SELECT id, pseudo, avatar, email, inscription, 
 		lastlog, tournament, game_played, game_win, 
 		game_loose, time_played, n_friends 
 		FROM User 
