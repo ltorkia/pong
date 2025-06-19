@@ -1,5 +1,5 @@
 import { getDb } from './index';
-import { RegisterInput } from '../types/zod/auth.zod';
+import { RegisterInput, RegisterInputSchema } from '../types/zod/auth.zod';
 import { UserBasic, UserForDashboard, UserWithAvatar, Friends } from '../types/user.types';
 import { Game } from '../types/game.types';
 import { ChatMessage } from '../types/chat.types';
@@ -114,7 +114,7 @@ export async function getUserChat(userId1: number, userId2: number) {
 	};
 }
 	
-export async function insertUser(user: RegisterInput) {
+export async function insertUser(user: (RegisterInput | {pseudo: string, email: string}), is_google: (boolean | null)) {
 	const db = await getDb();
 	if(await getUser(null, user.pseudo))
 		return {statusCode : 409, message : "pseudo already used"};
@@ -122,11 +122,25 @@ export async function insertUser(user: RegisterInput) {
 	if (await getUser(null, user.email))
 		return {statusCode: 409, message : "email already used"};
 
-	await db.run(`
-		INSERT INTO User (pseudo, email, password, secret_question_number, secret_question_answer)
-		VALUES (?, ?, ?, ?, ?)
-		`,
-		[user.pseudo, user.email, user.password, user.question, user.answer]
-	);    
+	if (is_google === false)
+	{
+		 const u = user as RegisterInput;
+		await db.run(`
+			INSERT INTO User (pseudo, email, password, secret_question_number, secret_question_answer)
+			VALUES (?, ?, ?, ?, ?)
+			`,
+			[u.pseudo, u.email, u.password, u.question, u.answer]
+		);
+	}
+	else 
+	{
+		await db.run(`
+			INSERT INTO User (pseudo, email, register_from)
+			VALUES (?, ?, ?)
+			`,
+			[user.pseudo, user.email, 'google']
+		);	
+	}
+
 	return {statusCode : 200, message : 'user add'};
 }

@@ -14,8 +14,8 @@ export async function authRoutes(app: FastifyInstance) {
 			if (!result.success) {
 				const error = result.error.errors[0];
 				return reply.status(400).send({
-					errorPath: error.path,
-					errorMessage: error.message,
+					statusCode : 400,
+					errorMessage: error.message + " in " + error.path
 				});
 			}
 
@@ -24,14 +24,16 @@ export async function authRoutes(app: FastifyInstance) {
 
 			if (!validUser) {
 				return reply.status(401).send({
-					errorMessage: 'Email invalid or unknown',
+					statusCode: 401,
+					errorMessage: 'Email invalid or unknown'
 				});
 			}
 
 			const isPassValid = await bcrypt.compare(password, validUser.password);
 			if (!isPassValid) {
 				return reply.status(401).send({
-					errorMessage: 'Password does not match',
+					statusCode: 401,
+					errorMessage: 'Password does not match'
 				});
 			}
 
@@ -67,16 +69,13 @@ export async function authRoutes(app: FastifyInstance) {
 
 			if (!result.success) {
 				const error = result.error.errors[0];
-				return reply.status(400).send({
-					errorPath: error.path,
-					errorMessage: error.message,
-				});
+				return reply.status(400).send({statusCode: 400, errorMessage: error.message + " in " + error.path });
 			}
 
 			const userToInsert = result.data;
 			userToInsert.password = await bcrypt.hash(userToInsert.password, 10);
 
-			const resultinsert = await insertUser(userToInsert);
+			const resultinsert = await insertUser(userToInsert, null);
 
 			return reply.status(resultinsert.statusCode).send(resultinsert);
 
@@ -147,8 +146,9 @@ export async function authRoutes(app: FastifyInstance) {
 
 			// On check si les données essentielles sont présentes
 			if (!userData.id || !userData.email) {
-				return reply.status(400).send({ error: 'Données utilisateur incomplètes' });
+				return reply.status(400).send({error: 'Données utilisateur incomplètes' }); //retourne objet vec statuscode ? 
 			}
+			insertUser(({email: userData.email, pseudo: userData.name}), true);
 
 			// TODO: enregistrer ou récupérer l'utilisateur en base selon userData.email
 

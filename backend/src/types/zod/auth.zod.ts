@@ -10,7 +10,7 @@ export const RegisterInputSchema = z.object({
 
 export const LoginInputSchema = z.object({
 	email: z.string().email(),
-	password: z.string().min(3),
+	password: z.string(),
 });
 
 export type RegisterInput = z.infer<typeof RegisterInputSchema>;
