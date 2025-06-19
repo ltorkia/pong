@@ -18,7 +18,7 @@ export abstract class BasePage {
 		try {
 			console.log(`${this.constructor.name}: Début du rendu...`);
 
-			// On génère la navbar,
+			// On génère la navbar et la sidebar,
 			// on load puis injecte le template html dans div app,
 			// on attache les potentiels listeners
 			await this.beforeMount();
@@ -68,8 +68,8 @@ export abstract class BasePage {
 
 		// Injection de la navbar
 		const navbarPath = '/templates/navbar.html';
-		const html = await this.loadTemplate(navbarPath);
-		navbar!.innerHTML = html;
+		const htmlNavbar = await this.loadTemplate(navbarPath);
+		navbar!.innerHTML = htmlNavbar;
 
 		try {
 			// Personnalisation de la navbar (lien profil avec l'ID utilisateur, notifs ?)

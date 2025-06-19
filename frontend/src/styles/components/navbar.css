@@ -1,19 +1,42 @@
 @layer components {
+
+	/* NAVBAR + NOTIFBAR */
 	.navbar-content {
-		@apply fixed top-0 left-1/2 -translate-x-1/2 bg-white/10 backdrop-blur-xl border border-white/20 rounded-full
-		shadow-md px-6 py-3 flex space-x-20 text-white z-50 text-shadow-black
+		@apply fixed z-50 w-full left-1/2 top-0 -translate-x-1/2 
+		flex justify-center items-center;
+	}
+	.navbar-style {
+		@apply bg-white/10 backdrop-blur-xl border border-white/20 rounded-full
+		shadow-md text-white text-shadow-black
+		px-6 py-3 flex
 		h-[--navbar-height];
 	}
-	.navbar-content a {
+
+	/* NAVBAR */
+	.navbar-px {
+		@apply space-x-20;
+	}
+	.navbar-px a {
 		@apply flex flex-col items-center;
 	}
-	.navbar-content a.active {
+	.navbar-px a.active {
 		@apply text-blue-300;
 	}
-	.navbar-content a i, .navbar-content a span {
+	.navbar-px a i, .navbar-px a span {
 		@apply transition;
 	}
-	.navbar-content a span {
-		@apply uppercase text-xs  tracking-wider mt-1 hidden md:block;
+	.navbar-px a span {
+		@apply uppercase text-xs tracking-wider mt-1 hidden md:block;
+	}
+
+	/* NOTIFBAR */
+	.notifbar-px {
+		@apply absolute right-6 space-x-10;
+	}
+	.notifbar-px a {
+		@apply flex justify-center items-center;
+	}
+	.notifbar-px a i {
+		@apply text-2xl transition;
 	}
 }

@@ -21,7 +21,8 @@ export async function apiRoutes(app: FastifyInstance) {
 		];
 
 		// Vérifier si c'est une route publique
-		const path = request.url;
+		// (on extrait les query potentielles apres l'url comme pour Google callback)
+		const path = request.url.split('?')[0];
 		const isPublicRoute = publicRoutes.some(route => route === path);
 		
 		// Si oui pas de check JWT

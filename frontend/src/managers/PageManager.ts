@@ -1,5 +1,5 @@
 export class PageManager {
-	private currentPage: any = null;
+	private currentPage: { render: () => Promise<void>; cleanup?: () => Promise<void> } | null = null;
 
 	/**
 	 * Méthode principale pour afficher une nouvelle page.
@@ -11,7 +11,7 @@ export class PageManager {
 	 * 
 	 *  Méthode appelée par RouteManager.ts dans router.register(path) de chaque route.
 	 */
-	public async renderPage(page: any) {
+	public async renderPage(page: { render: () => Promise<void>; cleanup?: () => Promise<void> }) {
 
 		const app = document.getElementById('app');
 		if (app) {

@@ -2,7 +2,7 @@ import { PUBLIC_ROUTES } from '../config/public.routes';
 import { setProfileLink } from '../utils/navbar.utils';
 
 export function shouldShowNavbar(templatePath: string): boolean {
-	const publicTemplates = PUBLIC_ROUTES.map(page => `/templates${page}.html`);
+	const publicTemplates = PUBLIC_ROUTES.map(route => `/templates${route}.html`);
 	return !publicTemplates.includes(templatePath);
 }
 
