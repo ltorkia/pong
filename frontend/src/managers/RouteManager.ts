@@ -7,6 +7,8 @@ import { UsersPage } from '../pages/UsersPage';
 import { ProfilePage } from '../pages/ProfilePage';
 import { PageManager } from './PageManager';
 import { ParticlesManager } from './ParticlesManager';
+import { getProfilePath, setActiveNavLink } from '../utils/navbar.utils';
+import { userStore } from '../store/UserStore';
 
 export class RouteManager {
 	private pageManager: PageManager;
@@ -54,7 +56,7 @@ export class RouteManager {
 	 *     - Crée une instance de la page correspondante (HomePage, LoginPage, etc.)
 	 *     - Appelle loadPage() pour gérer les particules
 	 *       et demande au pageManager de rendre la nouvelle page via renderPage()
-	 *     - Met à jour le lien actif dans la barre de navigation avec setActiveLink()
+	 *     - Met à jour le lien actif dans la barre de navigation avec setActiveNavLink()
 	 *     - Mount la page si nécessaire (ex: UsersPage)
 	 */
 	private setupRoutes() {
@@ -68,9 +70,15 @@ export class RouteManager {
 				return;
 			}
 			console.log('div #app trouvée, création HomePage');
-			const homePage = new HomePage(appDiv) as HomePage;
-			await this.loadPage(homePage, true);
-			this.setActiveLink('/');
+			const currentUser = userStore.getCurrentUser();
+			if (!currentUser) {
+				console.log('currentUser inexistant dans le store)');
+				await router.redirectPublic('/login');
+				return;
+			}
+			const homePage = new HomePage(appDiv, currentUser!.id) as HomePage;
+			await this.loadPage(homePage);
+			setActiveNavLink('/');
 			console.log('HomePage rendue');
 		});
 
@@ -84,8 +92,8 @@ export class RouteManager {
 			}
 			console.log('div #app trouvée, création RegisterPage');
 			const registerPage = new RegisterPage(appDiv) as RegisterPage;
-			await this.loadPage(registerPage, true);
-			this.setActiveLink('/register');
+			await this.loadPage(registerPage);
+			setActiveNavLink('/register');
 			console.log('RegisterPage rendue');
 		});
 
@@ -99,8 +107,8 @@ export class RouteManager {
 			}
 			console.log('div #app trouvée, création LoginPage');
 			const loginPage = new LoginPage(appDiv) as LoginPage;
-			await this.loadPage(loginPage, true);
-			this.setActiveLink('/login');
+			await this.loadPage(loginPage);
+			setActiveNavLink('/login');
 			console.log('LoginPage rendue');
 		});
 
@@ -115,7 +123,7 @@ export class RouteManager {
 			console.log('div #app trouvée, création GamePage');
 			const gamePage = new GamePage(appDiv) as GamePage;
 			await this.loadPage(gamePage, false);
-			this.setActiveLink('/game');
+			setActiveNavLink('/game');
 			console.log('GamePage rendue');
 		});
 
@@ -129,8 +137,8 @@ export class RouteManager {
 			}
 			console.log('div #app trouvée, création UsersPage');
 			const usersPage = new UsersPage(appDiv) as UsersPage;
-			await this.loadPage(usersPage, true);
-			this.setActiveLink('/users');
+			await this.loadPage(usersPage);
+			setActiveNavLink('/users');
 			console.log('UsersPage rendue');
 		});
 
@@ -148,10 +156,14 @@ export class RouteManager {
 			}
 			console.log('div #app trouvée, création ProfilePage');
 			const profilePage = new ProfilePage(appDiv, Number(params.id));
-			await this.loadPage(profilePage, true);
+			await this.loadPage(profilePage);
 
-			// TODO: Set active link entre profil et id du user en cours
-			// this.setActiveLink('user');
+			const profilePath = await getProfilePath();
+			if (profilePath) {
+				setActiveNavLink(profilePath);
+			} else {
+				console.warn('Impossible de déterminer le chemin du profil, setActiveNavLink ignoré');
+			}
 			console.log('ProfilePage rendue');
 		});
 
@@ -162,13 +174,13 @@ export class RouteManager {
 	 * active ou désactive les particules,
 	 * charge et affiche une nouvelle page.
 	*/
-	private async loadPage(pageInstance: any, enableParticles: boolean): Promise<void> {
+	private async loadPage(pageInstance: any, enableParticles: boolean = true): Promise<void> {
 		const appDiv = document.getElementById('app') as HTMLElement | null;
 		if (!appDiv) {
 			console.error("div #app introuvable");
 			return;
 		}
-		await this.pageManager.cleanup();
+		// await this.pageManager.cleanup();
 
 		if (enableParticles) {
 			await this.particlesManager.enable();
@@ -177,28 +189,6 @@ export class RouteManager {
 		}
 
 		await this.pageManager.renderPage(pageInstance);
-	}
-
-	/**
-	 * Met à jour la navigation active dans le header.
-	 * 
-	 * - Sélectionne tous les liens avec l'attribut data-link.
-	 * - Supprime la classe active de tous les liens.
-	 * - Compare leur pathname avec celui passé en paramètre.
-	 * - Ajoute la classe active au lien correspondant.
-	 * 
-	 * Permet de styliser le lien actif dans la navbar.
-	 */
-	public setActiveLink(pathname: string): void {
-		const navLinks = document.querySelectorAll('.navbar-content a[data-link]') as NodeListOf<HTMLElement>;
-		navLinks.forEach(link => {
-			const anchor = link as HTMLAnchorElement;
-			anchor.classList.remove('active');
-			const linkPath = new URL(anchor.href).pathname;
-			if (linkPath === pathname) {
-				anchor.classList.add('active');
-			}
-		});
 	}
 
 	/**

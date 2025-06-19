@@ -1,15 +1,24 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { getAllUsers, getUser, getUserFriends, getUserGames, getUserChat } from '../db/user';
+import { requireAuth } from '../utils/auth';
 
 export async function usersRoutes(app: FastifyInstance) {
 	// pour afficher tous les users : nom + email
-	app.get('/', async () => {
+	app.get('/', async (request: FastifyRequest, reply: FastifyReply) => {
+		const jwtUser = requireAuth(request, reply);
+		if (!jwtUser) {
+			return;
+		}
 		const users = await getAllUsers();
 		return users;
 	})
 
 	// pour afficher des infos detaillees sur un user specifique sans le password
 	app.get('/:id', async (request: FastifyRequest, reply: FastifyReply) => {
+		const jwtUser = requireAuth(request, reply);
+		if (!jwtUser) {
+			return;
+		}
 		const { id } = request.params as { id: number };
 		const user = await getUser(id);
 		if (!user)
@@ -19,6 +28,10 @@ export async function usersRoutes(app: FastifyInstance) {
 
 	// pour afficher les potos de klk1 -> id = la personne concernee
 	app.get('/:id/friends', async(request: FastifyRequest, reply: FastifyReply) => {
+		const jwtUser = requireAuth(request, reply);
+		if (!jwtUser) {
+			return;
+		}
 		const { id } = request.params as { id: number };
 		const friends = await getUserFriends(id);
 		if (!friends)
@@ -27,6 +40,10 @@ export async function usersRoutes(app: FastifyInstance) {
 	})
 
 	app.get('/:id/games', async(request: FastifyRequest, reply: FastifyReply) => {
+		const jwtUser = requireAuth(request, reply);
+		if (!jwtUser) {
+			return;
+		}
 		const { id } = request.params as { id: number };
 		const games = await getUserGames(id);
 		// console.log("id = ", id);
@@ -36,6 +53,10 @@ export async function usersRoutes(app: FastifyInstance) {
 	})
 
 	app.get('/:id1/:id2/chat', async(request: FastifyRequest, reply: FastifyReply) => {
+		const jwtUser = requireAuth(request, reply);
+		if (!jwtUser) {
+			return;
+		}
 		const { id1 } = request.params as { id1: number };
 		const { id2 } = request.params as { id2: number };
 		// console.log("id1 = ", id1);

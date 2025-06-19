@@ -3,10 +3,6 @@ import sqlite3 from 'sqlite3';
 import path from 'path';
 import { readFile } from 'fs/promises';
 
-// import { STATUS_CODES } from 'http';
-const { STATUS_CODES } = require('https');
-// import {bcrypt} from 'bcrypt';
-
 const dbPath = path.resolve('./data/database.db');
 const sqlPath = path.resolve('./sql/init.sql');
 

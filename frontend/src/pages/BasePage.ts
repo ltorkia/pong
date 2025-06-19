@@ -1,4 +1,5 @@
-import { getUserById } from '../api/users';
+import { shouldShowNavbar, setupNavbar } from '../controllers/NavbarController';
+import { logoutController } from '../controllers/UserController';
 
 export abstract class BasePage {
 	protected container: HTMLElement;	// Élément DOM dans lequel le contenu html sera injecté
@@ -12,33 +13,19 @@ export abstract class BasePage {
 
 	/**
 	 * Méthode principale de rendu.
-	 * On charge le template, on l'injecte dans le container (div #app),
-	 * et on attache les listeners spécifiques.
 	 */
 	public async render(): Promise<void> {
 		try {
 			console.log(`${this.constructor.name}: Début du rendu...`);
 
-			// Chargement asynchrone de la navbar en fonction du statut log utilisateur
-			this.generateNavbar();
-			console.log(`${this.constructor.name}: Navbar générée`);
-
-			// Chargement asynchrone du template html via fetch
-			// + injection html dans la div #app
-			const html = await this.loadTemplate(this.templatePath);
-			this.container.innerHTML = html;
-			
-			console.log(`${this.constructor.name}: HTML injecté`);
-
-			// On attache les listeners relatifs à la page (ex gestion de clic LOGIN pour gérer la logique de connexion)
-			this.attachListeners();
-			console.log(`${this.constructor.name}: Listeners attachés`);
+			// On génère la navbar et la sidebar,
+			// on load puis injecte le template html dans div app,
+			// on attache les potentiels listeners
+			await this.beforeMount();
 
 			// On genere les infos propres a chaque page
 			await this.mount();
-			console.log(`${this.constructor.name}: Page montée`);
-
-			console.log(`${this.constructor.name}: Rendu terminé`);
+			console.log(`${this.constructor.name}: Page montée, rendu terminé`);
 			
 		} catch (error) {
 			// En cas d'erreur (ex fetch qui échoue) afficher un message d'erreur dans le container
@@ -47,38 +34,65 @@ export abstract class BasePage {
 		}
 	}
 
+	protected async beforeMount(): Promise<void> {
+
+		// Chargement asynchrone de la navbar en fonction du statut log utilisateur
+		await this.generateNavbar();
+		console.log(`${this.constructor.name}: Navbar générée`);
+
+		// Chargement asynchrone du template html via fetch
+		// + injection html dans la div #app
+		const html = await this.loadTemplate(this.templatePath);
+		this.container.innerHTML = html;
+		
+		console.log(`${this.constructor.name}: HTML injecté`);
+
+		// On attache les listeners relatifs à la page (ex gestion de clic LOGIN pour gérer la logique de connexion)
+		this.attachListeners();
+		console.log(`${this.constructor.name}: Listeners attachés`);
+	}
+
 	/**
 	 * Pour generer le contenu de la navbar en fonction de si on est log ou pas
 	 */
 	protected async generateNavbar(): Promise<void> {
-		// const res = await fetch('/api/me');
-		// const data = await res.json();
+
+		// On return si on est sur une page publique (login / register = pas de navbar)
+		// et on clean la navbar pour qu'elle ne reste pas sur la prochaine page
 		const navbar = document.getElementById('navbar');
-		// let navbarPath;
+		const showNavbar = shouldShowNavbar(this.templatePath);
+		if (!showNavbar) {
+			if (navbar) navbar.innerHTML = '';
+			return;
+		}
 
-		// if (data && res.ok && data.loggedIn) {
-		// 	navbarPath = '/templates/navbar-logged.html';
-		// }
+		// Injection de la navbar
+		const navbarPath = '/templates/navbar.html';
+		const htmlNavbar = await this.loadTemplate(navbarPath);
+		navbar!.innerHTML = htmlNavbar;
 
-		if (this.templatePath !== '/templates/login.html'
-			&& this.templatePath !== '/templates/register.html') {
-			let navbarPath = '/templates/navbar.html';
-			const html = await this.loadTemplate(navbarPath);
-			navbar!.innerHTML = html;
+		try {
+			// Personnalisation de la navbar (lien profil avec l'ID utilisateur, notifs ?)
+			await setupNavbar();
+			
+			// Listener sur le bouton logout
+			await this.listenLogout();
+			
+		} catch (e) {
+			console.warn("Impossible de générer la navbar : ", e);
+		}
+	}
 
-			// Personnalisation du lien profil avec l'ID utilisateur
-			try {
-				// const user = await getUserById(1);
-				const profileLink = document.querySelector('[data-link][href="/profile"]') as HTMLAnchorElement;
-				// if (profileLink && user?.id) {
-				// 	profileLink.href = `/users/${user.id}`;
-				// } else {
-				// 	console.warn("Lien non trouvé ou user.id manquant");
-				// }
-				profileLink.href = `/user/1`;
-			} catch (e) {
-				console.warn("Impossible d'ajuster le lien profil : ", e);
-			}
+	/**
+	 * Listener sur le bouton logout de la navbar
+	 */
+	protected async listenLogout(): Promise<void> {
+		const logoutLink = document.querySelector('a[href="/logout"]');
+		if (logoutLink) {
+			logoutLink.addEventListener('click', async (e) => {
+				e.preventDefault();
+				await logoutController();
+			});
 		}
 	}
 

@@ -1,14 +1,14 @@
 -- User : comprend les infos persos du user + stats pour le dashboard + situation en cours
 CREATE TABLE IF NOT EXISTS User (
 	id INTEGER PRIMARY KEY AUTOINCREMENT,
-	pseudo TEXT UNIQUE NOT NULL,
+	username TEXT UNIQUE NOT NULL,
 	email TEXT UNIQUE NOT NULL,
-	inscription DATETIME NOT NULL DEFAULT (datetime('now')),																-- 1ere inscription
+	registration DATETIME NOT NULL DEFAULT (datetime('now')),																-- 1ere inscription
 	lastlog DATETIME,																			-- derniere connection (NULL si jamais connecté)
 	password TEXT,																				-- a hascher + tard (NULL si register via Google)
 	-- ingame INTEGER DEFAULT 0 NOT NULL CHECK (ingame IN (0, 1)),								-- si actuellement en jeu
 	tournament INTEGER DEFAULT 0 NOT NULL,														-- a voir si utile ici, aussi s'il peut participer a plusieurs tournois
-	avatar TEXT DEFAULT '../../frontend/public/img/avatars/default.png',						-- facultatif / type TEXT car c'est le chemin de l'image qu'on stocke
+	avatar TEXT DEFAULT 'default.png' NOT NULL,													-- facultatif / type TEXT car c'est le chemin de l'image qu'on stocke
 	game_played INTEGER DEFAULT 0 NOT NULL,														-- total des parties jouees -> permet d'eviter de recalculer a chaque fois dans la db
 	game_win INTEGER DEFAULT 0 NOT NULL,														-- total parties gagnees -> pareil
 	game_loose INTEGER DEFAULT 0 NOT NULL,														-- total parties perdues -> pareil
@@ -16,6 +16,7 @@ CREATE TABLE IF NOT EXISTS User (
 	secret_question_number INTEGER NOT NULL DEFAULT 4 CHECK (secret_question_number IN (1, 2, 3, 4)), -- pour moi possibilite de null et a proteger dans les inputs pour si auth google, idem pour answer
 	secret_question_answer TEXT DEFAULT 0 NOT NULL,
 	n_friends INTEGER DEFAULT 0 NOT NULL,														-- nbre d'amis total -> a mettre a jour a chaque ajout/suppression d'ami
+	status TEXT DEFAULT 'offline' NOT NULL CHECK (status IN ('online', 'offline', 'in-game')),
 	is_deleted INTEGER DEFAULT 0 NOT NULL CHECK (is_deleted IN (0, 1)),							-- pour savoir si le compte est actif ou non (on garde le user en bdd meme apres desinscription pour garder les stats des jeux pour ses partenaires toujours inscrits), 0 = actif, 1 = pas actif
 	register_from TEXT DEFAULT 'local' NOT NULL CHECK (register_from IN ('local', 'google'))	-- pour savoir si le user s'est inscrit via le site ou via Google, utile pour l'authentification
 );
@@ -28,7 +29,7 @@ CREATE TABLE IF NOT EXISTS Game (
 	end DATETIME,																				-- date et heure de fin du jeu, NULL si le jeu n'est pas fini
 	tournament INTEGER DEFAULT 0 NOT NULL CHECK (tournament IN (0, 1)),							-- pour preciser si c'est un jeu de tournoi ou non, 0 = non, 1 = oui
 	status TEXT NOT NULL CHECK (status IN ('waiting', 'in_progress', 'cancelled', 'finished')),	-- pour preciser si en cours, annule ou termine                                                             -- jeu en cours, termine, ou pas encore commence si tournoi ? 
-	temporary_result INTEGER DEFAULT 0 NOT NULL												-- au cas ou le serveur plante, possibilite de recuperer le score en cours
+	temporary_result INTEGER DEFAULT 0 NOT NULL													-- au cas ou le serveur plante, possibilite de recuperer le score en cours
 );
 
 -- User_Game : resultat entre user et game 
@@ -38,7 +39,7 @@ CREATE TABLE IF NOT EXISTS User_Game (
 	status_win INTEGER DEFAULT 0 NOT NULL CHECK (status_win IN (0, 1)),		-- 0 = perdu 1 = gagne (pas de NULL car on ne peut pas avoir un jeu sans resultat)
 	duration INTEGER NOT NULL,												-- Duree du jeu (pas en DATETIME car DATETIME = une date + heure))
 	FOREIGN KEY (Game_id) REFERENCES Game(id) ON DELETE CASCADE,			-- ON DELETE CASCADE: si le jeu est supprime on supprime le resultat du jeu
-	FOREIGN KEY (User_id) REFERENCES User(id),							-- pas de DELETE CASCADE ici pour garder les stats du user (pour ses partenaires par exemple)
+	FOREIGN KEY (User_id) REFERENCES User(id),								-- pas de DELETE CASCADE ici pour garder les stats du user (pour ses partenaires par exemple)
 	PRIMARY KEY (Game_id, User_id)											-- un element pour chaque user qui a participe au meme jeu
 );
 
@@ -98,6 +99,7 @@ CREATE TABLE IF NOT EXISTS User_Tournament (
 	Tournament_id INTEGER NOT NULL,
 	User_id INTEGER NOT NULL,
 	Game_id INTEGER,
+	alias TEXT NOT NULL,
 	FOREIGN KEY (Tournament_id) REFERENCES Tournament(id) ON DELETE CASCADE,
 	FOREIGN KEY (User_id) REFERENCES User(id),
 	FOREIGN KEY (Game_id) REFERENCES Game(id)

@@ -1,11 +1,57 @@
-import { FastifyInstance } from 'fastify';
+import { FastifyRequest, FastifyReply, FastifyInstance } from 'fastify';
 import { healthRoutes } from './health.routes';
 import { authRoutes } from './auth.routes';
 import { usersRoutes } from './users.routes';
 import { testsRoutes } from './tests.routes';
 import { apiMe } from './api.me';
+import { JwtPayload } from '../types/jwt.types';
 
 export async function apiRoutes(app: FastifyInstance) {
+
+	// Hook global pour vérifier JWT et injecter l'utilisateur sur les routes protégées
+	app.addHook('onRequest', async (request: FastifyRequest, reply: FastifyReply) => {
+		
+		// Routes publiques qu'on peut visiter pas logged
+		const publicRoutes = [
+			'/api/auth/login',
+			'/api/auth/register',
+			'/api/auth/google',
+			'/api/auth/google/callback',
+			'/api/health',
+		];
+
+		// Vérifier si c'est une route publique
+		// (on extrait les query potentielles apres l'url comme pour Google callback)
+		const path = request.url.split('?')[0];
+		const isPublicRoute = publicRoutes.some(route => route === path);
+		
+		// Si oui pas de check JWT
+		if (isPublicRoute) {
+			return;
+		}
+
+		// Route protégée: on check JWT et on injecte l'utilisateur
+		try {
+			const decoded = await request.jwtVerify<JwtPayload>();
+			if (!decoded || !decoded.id) {
+				return reply.status(401).send({ 
+					error: 'Unauthorized',
+					message: 'Token JWT invalide - payload manquant'
+				});
+			}
+			
+			// On stocke l'utilisateur dans request
+			request.user = decoded;
+			
+		} catch (err) {
+			return reply.status(401).send({ 
+				error: 'Unauthorized',
+				message: 'Token JWT manquant ou invalide'
+			});
+		}
+	});
+
+	// Route racine
 	app.get('/', async () => {
 		return {
 			status: 'OK',
@@ -14,6 +60,7 @@ export async function apiRoutes(app: FastifyInstance) {
 		};
 	});
 
+	// Enregistrement des routes
 	await app.register(healthRoutes, { prefix: '/health' });
 	await app.register(authRoutes, { prefix: '/auth' });
 	await app.register(usersRoutes, { prefix: '/users' });

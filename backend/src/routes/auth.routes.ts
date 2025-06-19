@@ -1,10 +1,35 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import bcrypt from 'bcrypt';
 import { GoogleCallbackQuery, GoogleTokenResponse, GoogleUserInfo } from '../types/google.types';
-import { insertUser, getUserP } from '../db/user';
+import { insertUser, getUserP, majLastlog } from '../db/user';
 import { RegisterInputSchema, LoginInputSchema } from '../types/zod/auth.zod';
 
 export async function authRoutes(app: FastifyInstance) {
+	
+	// REGISTER
+	app.post('/register', async (request: FastifyRequest, reply: FastifyReply) => {
+		try {
+			const result = RegisterInputSchema.safeParse(request.body);
+	
+			if (!result.success) {
+				const error = result.error.errors[0];
+				return reply.status(400).send({statusCode: 400, errorMessage: error.message + " in " + error.path });
+			}
+	
+			const userToInsert = result.data;
+			userToInsert.password = await bcrypt.hash(userToInsert.password, 10);
+	
+			const resultinsert = await insertUser(userToInsert, null);
+	
+			return reply.status(resultinsert.statusCode).send(resultinsert);
+	
+		} catch (err) {
+			request.log.error(err);
+			return reply.status(500).send({
+				errorMessage: 'Erreur serveur lors de l’inscription',
+			});
+		}
+	});
 
 	// LOGIN
 	app.post('/login', async (request: FastifyRequest, reply: FastifyReply) => {
@@ -46,9 +71,11 @@ export async function authRoutes(app: FastifyInstance) {
 				path: '/',
 				httpOnly: true,
 				sameSite: 'lax',
-				// secure: process.env.NODE_ENV === 'production',
+				secure: false,
 				maxAge: 60 * 60 * 24 * 7, // 7 jours
 			});
+
+			await majLastlog(validUser.username);
 
 			return reply.status(200).send({
 				message: 'Connexion réussie',
@@ -62,30 +89,12 @@ export async function authRoutes(app: FastifyInstance) {
 		}
 	});
 
-	// REGISTER
-	app.post('/register', async (request: FastifyRequest, reply: FastifyReply) => {
-		try {
-			const result = RegisterInputSchema.safeParse(request.body);
+	// LOGOUT
+	app.post('/logout', async (request: FastifyRequest, reply: FastifyReply) => {
+		reply.clearCookie('auth_token', { path: '/' });
+		reply.send({ message: 'Déconnecté' })});
 
-			if (!result.success) {
-				const error = result.error.errors[0];
-				return reply.status(400).send({statusCode: 400, errorMessage: error.message + " in " + error.path });
-			}
 
-			const userToInsert = result.data;
-			userToInsert.password = await bcrypt.hash(userToInsert.password, 10);
-
-			const resultinsert = await insertUser(userToInsert, null);
-
-			return reply.status(resultinsert.statusCode).send(resultinsert);
-
-		} catch (err) {
-			request.log.error(err);
-			return reply.status(500).send({
-				errorMessage: 'Erreur serveur lors de l’inscription',
-			});
-		}
-	});
 
 	// LOGIN AVEC GOOGLE
 	// Route qui redirige vers la page d'autorisation de Google quand on clique sur "sign in with Google"
@@ -148,7 +157,7 @@ export async function authRoutes(app: FastifyInstance) {
 			if (!userData.id || !userData.email) {
 				return reply.status(400).send({error: 'Données utilisateur incomplètes' }); //retourne objet vec statuscode ? 
 			}
-			insertUser(({email: userData.email, pseudo: userData.name}), true);
+			insertUser(({email: userData.email, username: userData.given_name}), true);
 
 			// TODO: enregistrer ou récupérer l'utilisateur en base selon userData.email
 
@@ -156,13 +165,15 @@ export async function authRoutes(app: FastifyInstance) {
 			// JWT = JSON Web Token = format pour transporter des informations de manière sécurisée entre deux parties, ici le frontend et le backend.
 			const token = app.jwt.sign(
 				{
-					id: userData.id,			// ID Google de l'utilisateur
+					id: userData.id,			// ID Google de l'utilisateur -> pour moi plutot id de la db non ? / a verifier aussi
 					email: userData.email,		// Email de l'utilisateur
-					name: userData.name,		// Nom complet
+					name: userData.given_name,		// juste le prenom -> a verigier si ok
 					avatar: userData.picture,	// URL de la photo de profil
 				},
 				{ expiresIn: '1h' }				// Le token expire dans 1 heure
 			);
+
+			await majLastlog(userData.given_name);
 
 			// L'utilisateur est redirigé vers le frontend avec le token JWT dans l'URL
 			return reply.redirect(`${process.env.GOOGLE_REDIRECT_FRONTEND}?token=${token}`);

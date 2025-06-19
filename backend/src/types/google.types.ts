@@ -15,6 +15,6 @@ export interface GoogleTokenResponse {
 export interface GoogleUserInfo {
 	id: string;
 	email: string;
-	name: string;
+	given_name: string;
 	picture: string;
 }

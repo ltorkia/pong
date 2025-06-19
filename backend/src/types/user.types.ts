@@ -1,44 +1,37 @@
-// export interface GetUserForRegistration {
-// 	pseudo : string;
-// 	email: string;
-// 	password : string;
-// 	question : number;
-// 	answer : string;
-// }
-
-// export interface GetUserForLogin {
-// 	email: string;
-// 	password : string;
-// }
-
 export interface UserBasic {
 	id:number;
-	pseudo : string;
+	username : string;
 	email: string;
+	avatar: string;
 }
 
 export interface UserWithAvatar {
 	id:number;
-	pseudo : string;
-	avatar : string | null;
+	username : string;
+	avatar : string;
 }
 
 export interface UserForDashboard extends UserBasic {
 	id: number;
-	pseudo: string;
+	username: string;
 	email: string;
-	avatar?: string | null;
-	lastlog: string;
+	lastlog: string | null;
+	registration: Date;
+	tournament: string;
+	avatar: string;
 	game_played: number;
 	game_win: number;
 	game_loose: number;
 	time_played: number;
 	n_friends: number;
+	status: string;
+	is_deleted: number;
+	register_from: string;
 }
 
 export interface Friends {
 	id: number;
-	pseudo: string;
+	username: string;
 	avatar?: string | null;
 	lastlog: number;
 }

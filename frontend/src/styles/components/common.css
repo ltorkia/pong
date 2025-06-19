@@ -5,6 +5,12 @@
 		@apply fixed top-0 left-0 w-screen h-screen -z-10 pointer-events-none transition-opacity duration-300 ease-in-out;
 	}
 
+	/* ERROR MESSAGES BOX */
+	#alert {
+		@apply font-classic text-sm text-center
+		bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded;
+	}
+
 	/* SITE LOGO */
 	.pong-logo {
 		@apply text-center mb-4 animate-logo-appear cursor-pointer;
@@ -53,7 +59,7 @@
 		@apply pt-24 pb-8;
 	}
 	.avatar {
-		@apply w-36 h-36 bg-avatar-default-img bg-cover bg-center rounded-full border border-white/65
+		@apply w-36 h-36 rounded-full border border-white/65
 		absolute -top-16 left-1/2 -translate-x-1/2;
 	}
 }

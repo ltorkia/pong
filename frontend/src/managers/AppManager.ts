@@ -3,6 +3,7 @@ import { loadFull } from "tsparticles";
 import { ParticlesManager } from './ParticlesManager';
 import { RouteManager } from './RouteManager';
 import { PageManager } from './PageManager';
+import { userStore, type User } from '../store/UserStore';
 
 export class AppManager {
 	private particlesManager: ParticlesManager;		// Gestionnaire des particules d'arrière-plan
@@ -13,6 +14,7 @@ export class AppManager {
 		this.particlesManager = new ParticlesManager();
 		this.pageManager = new PageManager();
 		this.routeManager = new RouteManager(this.pageManager, this.particlesManager);
+		this.restoreUserFromStorage();
 	}
 
 	/**
@@ -55,6 +57,23 @@ export class AppManager {
 			console.log('tsParticles initialisé');
 		} catch (error) {
 			console.error('Error init tsParticles:', error);
+		}
+	}
+
+	/**
+	 * Permet d'accéder au router pour debug
+	 */
+	private restoreUserFromStorage(): void {
+		const userJSON = localStorage.getItem('currentUser');
+		if (userJSON) {
+			try {
+				const user: User = JSON.parse(userJSON);
+				userStore.setCurrentUser(user);
+				console.log('[restoreUserFromStorage] User restauré :', user.id);
+			} catch {
+				console.warn('[restoreUserFromStorage] JSON invalide dans localStorage');
+				localStorage.removeItem('currentUser');
+			}
 		}
 	}
 

@@ -6,6 +6,15 @@
 		@apply min-w-72 px-6 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20
 		text-white text-shadow-black tracking-widest font-semibold uppercase text-lg text-center shadow-md hover:bg-white/20 hover:shadow-lg transition duration-300;
 	}
+	.smaller-btn {
+		@apply min-w-24 text-xs px-0 mt-2 mb-7;
+	}
+	.form-btn {
+		@apply min-w-40 -mt-3;
+	}
+	.btn-icon {
+		@apply mt-5 text-5xl text-[#d5d5d5] text-opacity-80;
+	}
 	.btn-google-container {
 		@apply absolute bottom-0 left-0 w-full py-0.5 rounded-bl-[16px] rounded-br-[16px]
 		bg-btn-google-color;

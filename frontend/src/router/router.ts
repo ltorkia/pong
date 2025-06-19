@@ -1,3 +1,7 @@
+import { PUBLIC_ROUTES } from '../config/public.routes';
+import { getUserLog } from '../api/users';
+import { initUserStore } from '../store/UserStore';
+
 type RouteHandler = (params?: Record<string, string>) => Promise<void> | void;
 
 export class Router {
@@ -38,8 +42,16 @@ export class Router {
 	 * Utilisée dans RouteManager (méthode start()), elle-même appelée
 	 * par AppManager (méthode start()).
 	 */
-	public async handleLocationPublic() {
+	public async handleLocationPublic(): Promise<void> {
 		await this.handleLocation();
+	}
+
+	/**
+	 * Méthode publique pour gérer les redirections forcées
+	 * sans ajouter de nouvelle entrée dans l'historique navigateur
+	 */
+	public async redirectPublic(path: string): Promise<void> {
+		await this.redirect(path);
 	}
 
 	/**
@@ -108,10 +120,11 @@ export class Router {
 	 * et exécute son handler avec les paramètres extraits.
 	 * 
 	 * - Récupère l’URL actuelle.
-	 * - Normalise le path (enleve le potentil \ de fin).
+	 * - Normalise le path (enleve le potentiel \ de fin).
 	 * - Si la normalisation modifie l’URL, met à jour la barre d’adresse avec replaceState().
 	 * - Utilise matchRoute() pour trouver la route correspondante et ses params.
-	 * - Si une route est trouvée, exécute son handler en lui passant les params.
+	 * - Si une route est trouvée, on verifie d'abord que l'utilisateur est authentifie pour la redirection.
+	 * - Ensuite on exécute son handler en lui passant les params.
 	 * - Sinon, remplace l’URL par '/' et rappelle handleLocation() pour afficher la page d’accueil.
 	 * 
 	 * Appelée lors :
@@ -135,7 +148,13 @@ export class Router {
 
 		if (matchedRoute) {
 			const routeHandler = this.routes.get(matchedRoute.route);
+
 			if (routeHandler) {
+				const redirected = await this.handleAuthRedirect(matchedRoute);
+				if (redirected) {
+					return;
+				}
+
 				console.log(`Route trouvée pour ${path} (correspond à ${matchedRoute.route}), exécution...`);
 				try {
 					// Passe les params au handler s’il attend des arguments
@@ -155,10 +174,55 @@ export class Router {
 		} else {
 			console.warn(`Aucune route trouvée pour: ${path}`);
 			console.log('Redirection automatique vers l\'accueil');
-
-			window.history.replaceState({}, '', '/');
-			await this.handleLocation();
+			await this.redirect('/');
 		}
+	}
+
+	/**
+	 * Gestion des redirections d’authentification:
+	 * Rediriger vers /login si l’utilisateur non authentifié tente d’accéder à une page privée.
+	 * Rediriger vers / si un utilisateur déjà authentifié tente d’accéder à /login ou /register.
+	 * Enregistrement du current user dans store pour éviter de faire des appels intempestifs à api/me
+	 */
+	private async handleAuthRedirect(matchedRoute: { route: string }): Promise<boolean> {
+		try {
+			const publicRoutes = PUBLIC_ROUTES.map(route => `${route}`);
+			const userLogStatus = await getUserLog();
+
+			if (!publicRoutes.includes(matchedRoute.route)) {
+				// Route privée
+				if (!userLogStatus) {
+					console.log('Redirection vers /login (non authentifié)');
+					await this.redirect('/login');
+					return true;
+				}
+				initUserStore(userLogStatus);
+			} else {
+				// Route publique
+				if (userLogStatus) {
+					initUserStore(userLogStatus);
+					console.log('Redirection vers / (authentifié)');
+					await this.redirect('/');
+					return true;
+				}
+			}
+			return false;
+		} catch (err) {
+			console.log('Erreur lors de la vérification auth:', err);
+			await this.redirect('/login');
+			return true;
+		}
+	}
+
+	/**
+	 * Redirige vers une route sans ajouter d'entrée dans l'historique du navigateur.
+	 * 
+	 * Utilisé notamment pour les redirections forcées (auth, erreurs, etc.),
+	 * pour éviter les doublons lors du retour arrière (précédent / suivant).
+	 */
+	private async redirect(path: string): Promise<void> {
+		window.history.replaceState({}, '', path);
+		await this.handleLocation();
 	}
 
 	/**
