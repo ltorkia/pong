@@ -10,9 +10,6 @@
 	.field-box input.avatar-field {
 		@apply text-gray-500 bg-white;
 	}
-	#register-button {
-		@apply min-w-24 text-xs px-0 mt-2 mb-7;
-	}
 
 	/* LOGIN PAGE */
 	.login-box {
@@ -23,8 +20,5 @@
 	}
 	#login-form .field-box label {
 		@apply w-20;
-	}	
-	#login-button {
-		@apply min-w-40 -mt-3;
 	}
 }

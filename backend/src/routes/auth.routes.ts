@@ -14,7 +14,7 @@ export async function authRoutes(app: FastifyInstance) {
 			if (!result.success) {
 				const error = result.error.errors[0];
 				return reply.status(400).send({
-					errorPath: error.path,
+					errorPath: error.path.join('.'),
 					errorMessage: error.message,
 				});
 			}

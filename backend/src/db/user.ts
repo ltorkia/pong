@@ -9,11 +9,11 @@ import { ChatMessage } from '../types/chat.types';
 export async function getUser(userId : number | null = null, search : string | null = null){
 	const db = await getDb(); 
 	const user = await db.get(`
-		SELECT id, pseudo, avatar, email, inscription, 
-		lastlog, tournament, game_played, game_win, 
-		game_loose, time_played, n_friends 
+		SELECT id, username, email, registration, 
+		lastlog, tournament, avatar, game_played, game_win, 
+		game_loose, time_played, n_friends, status, is_deleted, register_from 
 		FROM User 
-		WHERE id = ? OR pseudo = ? OR email = ?
+		WHERE id = ? OR username = ? OR email = ?
 		`,
 		[userId, search, search]
 	);
@@ -24,7 +24,7 @@ export async function getUser(userId : number | null = null, search : string | n
 export async function getAllUsers() {
 	const db = await getDb();
 	const users = await db.all(`
-		SELECT id, pseudo, email 
+		SELECT id, username, email, avatar 
 		FROM User 
 	`);
 	return users as UserBasic[];
@@ -49,7 +49,7 @@ export async function getUserP(email: string) {
 export async function getUserFriends(userId: number) {
 	const db = await getDb();
 	const friends = await db.all(`
-		SELECT u.id, u.pseudo, u.avatar, u.lastlog
+		SELECT u.id, u.username, u.avatar, u.lastlog
 		FROM Friends f
 		JOIN User u ON (
 			(f.User1_id = ? AND f.User2_id = u.id)
@@ -76,7 +76,7 @@ export async function getUserGames(userId: number) {
 
 	for (const game of games) {
 		const players = await db.all(`
-			SELECT u.id, u.pseudo, u.avatar
+			SELECT u.id, u.username, u.avatar
 			FROM User_Game ug
 			JOIN User u ON u.id = ug.User_id
 			WHERE ug.Game_id = ?
@@ -102,7 +102,7 @@ export async function getUserChat(userId1: number, userId2: number) {
 	);
 
 	const other_user = await db.get(`
-		SELECT u.id, u.pseudo, u.avatar
+		SELECT u.id, u.username, u.avatar
 		FROM User u
 		WHERE u.id != ?
 		`,
@@ -116,17 +116,17 @@ export async function getUserChat(userId1: number, userId2: number) {
 	
 export async function insertUser(user: RegisterInput) {
 	const db = await getDb();
-	if(await getUser(null, user.pseudo))
-		return {statusCode : 409, message : "pseudo already used"};
+	if(await getUser(null, user.username))
+		return {statusCode : 409, message : "username already used"};
 		
 	if (await getUser(null, user.email))
 		return {statusCode: 409, message : "email already used"};
 
 	await db.run(`
-		INSERT INTO User (pseudo, email, password, secret_question_number, secret_question_answer)
+		INSERT INTO User (username, email, password, secret_question_number, secret_question_answer)
 		VALUES (?, ?, ?, ?, ?)
 		`,
-		[user.pseudo, user.email, user.password, user.question, user.answer]
+		[user.username, user.email, user.password, user.question, user.answer]
 	);    
 	return {statusCode : 200, message : 'user add'};
 }

@@ -1,6 +1,5 @@
-import { router } from '../router/router';
-import { logoutUser } from '../api/users';
-import { setProfileLink } from '../utils/navbar.utils';
+import { shouldShowNavbar, setupNavbar } from '../controllers/NavbarController';
+import { logoutController } from '../controllers/UserController';
 
 export abstract class BasePage {
 	protected container: HTMLElement;	// Élément DOM dans lequel le contenu html sera injecté
@@ -14,39 +13,43 @@ export abstract class BasePage {
 
 	/**
 	 * Méthode principale de rendu.
-	 * On charge le template, on l'injecte dans le container (div #app),
-	 * et on attache les listeners spécifiques.
 	 */
 	public async render(): Promise<void> {
 		try {
 			console.log(`${this.constructor.name}: Début du rendu...`);
 
-			// Chargement asynchrone de la navbar en fonction du statut log utilisateur
-			await this.generateNavbar();
-			console.log(`${this.constructor.name}: Navbar générée`);
-
-			// Chargement asynchrone du template html via fetch
-			// + injection html dans la div #app
-			const html = await this.loadTemplate(this.templatePath);
-			this.container.innerHTML = html;
-			
-			console.log(`${this.constructor.name}: HTML injecté`);
-
-			// On attache les listeners relatifs à la page (ex gestion de clic LOGIN pour gérer la logique de connexion)
-			this.attachListeners();
-			console.log(`${this.constructor.name}: Listeners attachés`);
+			// On génère la navbar,
+			// on load puis injecte le template html dans div app,
+			// on attache les potentiels listeners
+			await this.beforeMount();
 
 			// On genere les infos propres a chaque page
 			await this.mount();
-			console.log(`${this.constructor.name}: Page montée`);
-
-			console.log(`${this.constructor.name}: Rendu terminé`);
+			console.log(`${this.constructor.name}: Page montée, rendu terminé`);
 			
 		} catch (error) {
 			// En cas d'erreur (ex fetch qui échoue) afficher un message d'erreur dans le container
 			console.error(`Erreur lors du rendu de ${this.constructor.name}:`, error);
 			this.container.innerHTML = this.getErrorMessage();
 		}
+	}
+
+	protected async beforeMount(): Promise<void> {
+
+		// Chargement asynchrone de la navbar en fonction du statut log utilisateur
+		await this.generateNavbar();
+		console.log(`${this.constructor.name}: Navbar générée`);
+
+		// Chargement asynchrone du template html via fetch
+		// + injection html dans la div #app
+		const html = await this.loadTemplate(this.templatePath);
+		this.container.innerHTML = html;
+		
+		console.log(`${this.constructor.name}: HTML injecté`);
+
+		// On attache les listeners relatifs à la page (ex gestion de clic LOGIN pour gérer la logique de connexion)
+		this.attachListeners();
+		console.log(`${this.constructor.name}: Listeners attachés`);
 	}
 
 	/**
@@ -57,11 +60,8 @@ export abstract class BasePage {
 		// On return si on est sur une page publique (login / register = pas de navbar)
 		// et on clean la navbar pour qu'elle ne reste pas sur la prochaine page
 		const navbar = document.getElementById('navbar');
-		const publicRoutes = [
-			'/templates/login.html',
-			'/templates/register.html'
-		];
-		if (publicRoutes.includes(this.templatePath)) {
+		const showNavbar = shouldShowNavbar(this.templatePath);
+		if (!showNavbar) {
 			if (navbar) navbar.innerHTML = '';
 			return;
 		}
@@ -72,8 +72,8 @@ export abstract class BasePage {
 		navbar!.innerHTML = html;
 
 		try {
-			// Personnalisation du lien profil avec l'ID utilisateur
-			await setProfileLink();
+			// Personnalisation de la navbar (lien profil avec l'ID utilisateur, notifs ?)
+			await setupNavbar();
 			
 			// Listener sur le bouton logout
 			await this.listenLogout();
@@ -91,15 +91,7 @@ export abstract class BasePage {
 		if (logoutLink) {
 			logoutLink.addEventListener('click', async (e) => {
 				e.preventDefault();
-				try {
-					await logoutUser();
-				} catch (err) {
-					console.error('Erreur lors du logout', err);
-				}
-
-				// Redirection SPA vers login
-				console.log('Déconnexion réussie. Redirection /login');
-				router.navigate('/login');
+				await logoutController();
 			});
 		}
 	}

@@ -4,6 +4,7 @@ export class PageManager {
 	/**
 	 * Méthode principale pour afficher une nouvelle page.
 	 * 
+	 * - On ajoute une petite animation zoom-out / zoom-in au changement de page
 	 * - On stocke la nouvelle page en cours dans currentPage.
 	 * - On appelle la méthode render() qui doit être async - pour ne pas bloquer le fil 
 	 *   principal du navigateur et faire tout le rendu HTML + logique).
@@ -11,6 +12,22 @@ export class PageManager {
 	 *  Méthode appelée par RouteManager.ts dans router.register(path) de chaque route.
 	 */
 	public async renderPage(page: any) {
+
+		const app = document.getElementById('app');
+		if (app) {
+			app.classList.add('transition-transform', 'duration-200');
+			app.classList.add('scale-90'); // dezoom léger
+			await new Promise(resolve => setTimeout(resolve, 120));
+		}
+
+		await this.cleanup();
+
+		if (app) {
+			app.classList.remove('scale-90');
+			app.classList.add('scale-100'); // zoom-in léger
+			setTimeout(() => app.classList.remove('scale-100'), 200);
+		}
+
 		this.currentPage = page;
 		await page.render();
 	}

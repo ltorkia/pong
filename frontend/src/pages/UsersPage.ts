@@ -12,7 +12,7 @@ export class UsersPage extends BasePage {
 	async mount() {
 		try {
 			const users = await getUsers();
-			const userList = document.getElementById('user-list') as HTMLUListElement;
+			const userList = document.getElementById('user-list') as HTMLTableElement;
 			const template = document.getElementById('users-template') as HTMLTemplateElement;
 			if (!userList || !template) return;
 
@@ -29,27 +29,20 @@ export class UsersPage extends BasePage {
 				const userAvatar = clone.querySelector('.avatar-cell') as HTMLElement;
 				const img = document.createElement('img');
 				img.classList.add('avatar-img');
-				if (user.avatar) { 
-					img.src = `img/avatars/${user.avatar}`;
-				} else {
-					img.src = "img/avatars/default.png";
-				}
-				img.alt = `${user.pseudo}'s avatar`;
+				img.src = `/img/avatars/${user.avatar || 'default.png'}`;
+				img.alt = `${user.displayName}'s avatar`;
 				userAvatar.appendChild(img);
 
 				const userName = clone.querySelector('.name-cell') as HTMLElement;
 				const a = document.createElement('a');
 				a.href = `/user/${user.id}`;
-				a.textContent = user.pseudo;
+				a.textContent = user.displayName;
 				a.setAttribute('data-link', '');
 				userName.appendChild(a);
 
 				const userLevel = clone.querySelector('.level-cell') as HTMLElement;
-				if (user.avatar) {
-					userLevel.textContent = `${user.level}`;
-				} else {
-					userLevel.textContent = "No level";
-				}
+				userLevel.textContent = user.winRate !== undefined ? `Win rate: ${user.winRate}%` : "No stats";
+
 				userList.appendChild(clone);
 			}
 		} catch (err) {

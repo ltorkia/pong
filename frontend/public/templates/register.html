@@ -2,9 +2,9 @@
 				<h1 class="page-title">Register</h1>
 				<div class="under-title">
 					<span>Join us, transcende and play</span>
-					<img src="img/design/magical-ball.png" class="magical-ball" alt="Magical ball">
 				</div>
 			</div>
+
 			<div class="section-box register-box">
 				<form class="form-box" id="register-form">
 
@@ -12,8 +12,8 @@
 
 						<!-- Username -->
 						<div class="field-box">
-							<label for="pseudo">Username <span class="important-field">*</span> :</label>
-							<input type="text" id="pseudo" name="pseudo" required>
+							<label for="username">Username <span class="important-field">*</span> :</label>
+							<input type="text" id="username" name="username" required>
 						</div>
 
 						<!-- Email -->
@@ -54,10 +54,18 @@
 
 					<!-- Submit -->
 					<div class="btn-container">
-						<button type="submit" id="login-button" class="btn">
+						<button type="submit" class="btn form-btn">
 							Sign up
 						</button>
 					</div>
+
+					<div id="alert" aria-live="assertive" class="hidden"></div>
+
+					<!-- <div class="btn-container">
+						<a href="/login" class="btn smaller-btn" data-link>
+							<i class="fa-regular fa-circle-left"></i> Back
+						</a>
+					</div> -->
 				</form>
 
 				<div class="btn-container btn-google-container">
@@ -66,4 +74,10 @@
 						<span>Sign up with Google</span>
 					</a>
 				</div>
+			</div>
+
+			<div class="btn-container">
+				<a href="/login" class="btn-icon" data-link>
+					<i class="fa-regular fa-circle-left"></i>
+				</a>
 			</div>

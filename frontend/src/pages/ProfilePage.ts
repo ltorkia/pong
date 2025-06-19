@@ -14,42 +14,35 @@ export class ProfilePage extends BasePage {
 	protected async mount(): Promise<void> {
 		try {
 			const user = await getUserById(this.userId);
-			const profileSection = document.getElementById('profile-section') as HTMLUListElement;
+			const profileSection = document.getElementById('profile-section') as HTMLDivElement;
 			const template = document.getElementById('user-template') as HTMLTemplateElement;
-			if (!profileSection || !template) return;
+			if (!profileSection || !template || !user) return;
 
 			const clone = template.content.cloneNode(true) as DocumentFragment;
 
 			const userAvatar = clone.querySelector('.avatar-cell') as HTMLElement;
 			const img = document.createElement('img');
 			img.classList.add('avatar-img');
-			if (user.avatar) {
-				img.src = `img/avatars/${user.avatar}`;
-			} else {
-				img.src = "img/avatars/default.png";
-			}
-			img.alt = `${user.pseudo}'s avatar`;
+			img.src = `/img/avatars/${user.avatar}`;
+				console.log(user.avatar);
+			img.alt = `${user.username}'s avatar`;
 			userAvatar.appendChild(img);
 
 			const userName = clone.querySelector('.name-cell') as HTMLElement;
 			const a = document.createElement('a');
 			a.href = `/users/${user.id}`;
-			a.textContent = user.pseudo;
+			a.textContent = user.username;
 			userName.appendChild(a);
 
 			const userLevel = clone.querySelector('.level-cell') as HTMLElement;
-			if (user.avatar) {
-				userLevel.textContent = `${user.level}`;
-			} else {
-				userLevel.textContent = "No level";
-			}
+			userLevel.textContent = user.winRate !== undefined ? `Win rate: ${user.winRate}%` : "No stats";
 
 			// const userFriendList = clone.querySelector('#friend-list') as HTMLElement;
 			// const userFriends = await getUserFriends(user.id);
 			// if (userFriends.length > 0) {
 			// 	for (const friend of userFriends) {
 			// 		const friendLi = document.createElement('li');
-			// 		friendLi.textContent = `${friend.pseudo}`;
+			// 		friendLi.textContent = `${friend.username}`;
 			// 		userFriendList.appendChild(friendLi);
 			// 	}
 			// 	const br = document.createElement('br');
@@ -62,7 +55,7 @@ export class ProfilePage extends BasePage {
 			// }
 			profileSection.appendChild(clone);
 		} catch (err) {
-			console.error('Erreur lors de la récupération des utilisateurs', err);
+			console.error('Erreur lors de la récupération du user', err);
 		}
 	}
 }

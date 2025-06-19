@@ -1,4 +1,6 @@
+import { PUBLIC_ROUTES } from '../config/public.routes';
 import { getUserLog } from '../api/users';
+
 type RouteHandler = (params?: Record<string, string>) => Promise<void> | void;
 
 export class Router {
@@ -175,7 +177,7 @@ export class Router {
 	 * Rediriger vers / si un utilisateur déjà authentifié tente d’accéder à /login ou /register.
 	 */
 	private async handleAuthRedirect(matchedRoute: { route: string }): Promise<boolean> {
-		const publicRoutes = ['/login', '/register'];
+		const publicRoutes = PUBLIC_ROUTES.map(route => `${route}`);
 		const userLogStatus = await getUserLog();
 
 		if (!publicRoutes.includes(matchedRoute.route)) {

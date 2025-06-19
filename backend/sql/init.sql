@@ -1,14 +1,14 @@
 -- User : comprend les infos persos du user + stats pour le dashboard + situation en cours
 CREATE TABLE IF NOT EXISTS User (
 	id INTEGER PRIMARY KEY AUTOINCREMENT,
-	pseudo TEXT UNIQUE NOT NULL,
+	username TEXT UNIQUE NOT NULL,
 	email TEXT UNIQUE NOT NULL,
-	inscription DATETIME NOT NULL DEFAULT (datetime('now')),																-- 1ere inscription
+	registration DATETIME NOT NULL DEFAULT (datetime('now')),																-- 1ere inscription
 	lastlog DATETIME,																			-- derniere connection (NULL si jamais connecté)
 	password TEXT,																				-- a hascher + tard (NULL si register via Google)
 	-- ingame INTEGER DEFAULT 0 NOT NULL CHECK (ingame IN (0, 1)),								-- si actuellement en jeu
 	tournament INTEGER DEFAULT 0 NOT NULL,														-- a voir si utile ici, aussi s'il peut participer a plusieurs tournois
-	avatar TEXT DEFAULT '../../frontend/public/img/avatars/default.png',						-- facultatif / type TEXT car c'est le chemin de l'image qu'on stocke
+	avatar TEXT DEFAULT 'default.png' NOT NULL,													-- facultatif / type TEXT car c'est le chemin de l'image qu'on stocke
 	game_played INTEGER DEFAULT 0 NOT NULL,														-- total des parties jouees -> permet d'eviter de recalculer a chaque fois dans la db
 	game_win INTEGER DEFAULT 0 NOT NULL,														-- total parties gagnees -> pareil
 	game_loose INTEGER DEFAULT 0 NOT NULL,														-- total parties perdues -> pareil
@@ -16,6 +16,7 @@ CREATE TABLE IF NOT EXISTS User (
 	secret_question_number INTEGER NOT NULL CHECK (secret_question_number IN (1, 2, 3, 4)),
 	secret_question_answer TEXT NOT NULL,
 	n_friends INTEGER DEFAULT 0 NOT NULL,														-- nbre d'amis total -> a mettre a jour a chaque ajout/suppression d'ami
+	status TEXT DEFAULT 'offline' NOT NULL CHECK (status IN ('online', 'offline', 'in-game')),
 	is_deleted INTEGER DEFAULT 0 NOT NULL CHECK (is_deleted IN (0, 1)),							-- pour savoir si le compte est actif ou non (on garde le user en bdd meme apres desinscription pour garder les stats des jeux pour ses partenaires toujours inscrits), 0 = actif, 1 = pas actif
 	register_from TEXT DEFAULT 'local' NOT NULL CHECK (register_from IN ('local', 'google'))	-- pour savoir si le user s'est inscrit via le site ou via Google, utile pour l'authentification
 );
@@ -28,7 +29,7 @@ CREATE TABLE IF NOT EXISTS Game (
 	end DATETIME,																				-- date et heure de fin du jeu, NULL si le jeu n'est pas fini
 	tournament INTEGER DEFAULT 0 NOT NULL CHECK (tournament IN (0, 1)),							-- pour preciser si c'est un jeu de tournoi ou non, 0 = non, 1 = oui
 	status TEXT NOT NULL CHECK (status IN ('waiting', 'in_progress', 'cancelled', 'finished')),	-- pour preciser si en cours, annule ou termine                                                             -- jeu en cours, termine, ou pas encore commence si tournoi ? 
-	temporary_result INTEGER DEFAULT 0 NOT NULL												-- au cas ou le serveur plante, possibilite de recuperer le score en cours
+	temporary_result INTEGER DEFAULT 0 NOT NULL													-- au cas ou le serveur plante, possibilite de recuperer le score en cours
 );
 
 -- User_Game : resultat entre user et game 

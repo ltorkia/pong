@@ -7,6 +7,7 @@ import { UsersPage } from '../pages/UsersPage';
 import { ProfilePage } from '../pages/ProfilePage';
 import { PageManager } from './PageManager';
 import { ParticlesManager } from './ParticlesManager';
+import { getUserLog } from '../api/users';
 import { getProfilePath, setActiveNavLink } from '../utils/navbar.utils';
 
 export class RouteManager {
@@ -69,8 +70,13 @@ export class RouteManager {
 				return;
 			}
 			console.log('div #app trouvée, création HomePage');
-			const homePage = new HomePage(appDiv) as HomePage;
-			await this.loadPage(homePage, true);
+			const currentUser = await getUserLog();
+			if (!currentUser) {
+				console.log('currentUser inexistant)');
+				await router.navigate('/login');
+			}
+			const homePage = new HomePage(appDiv, currentUser.id) as HomePage;
+			await this.loadPage(homePage);
 			setActiveNavLink('/');
 			console.log('HomePage rendue');
 		});
@@ -85,7 +91,7 @@ export class RouteManager {
 			}
 			console.log('div #app trouvée, création RegisterPage');
 			const registerPage = new RegisterPage(appDiv) as RegisterPage;
-			await this.loadPage(registerPage, true);
+			await this.loadPage(registerPage);
 			setActiveNavLink('/register');
 			console.log('RegisterPage rendue');
 		});
@@ -100,7 +106,7 @@ export class RouteManager {
 			}
 			console.log('div #app trouvée, création LoginPage');
 			const loginPage = new LoginPage(appDiv) as LoginPage;
-			await this.loadPage(loginPage, true);
+			await this.loadPage(loginPage);
 			setActiveNavLink('/login');
 			console.log('LoginPage rendue');
 		});
@@ -130,7 +136,7 @@ export class RouteManager {
 			}
 			console.log('div #app trouvée, création UsersPage');
 			const usersPage = new UsersPage(appDiv) as UsersPage;
-			await this.loadPage(usersPage, true);
+			await this.loadPage(usersPage);
 			setActiveNavLink('/users');
 			console.log('UsersPage rendue');
 		});
@@ -149,7 +155,7 @@ export class RouteManager {
 			}
 			console.log('div #app trouvée, création ProfilePage');
 			const profilePage = new ProfilePage(appDiv, Number(params.id));
-			await this.loadPage(profilePage, true);
+			await this.loadPage(profilePage);
 
 			const profilePath = await getProfilePath();
 			if (profilePath) {
@@ -167,13 +173,13 @@ export class RouteManager {
 	 * active ou désactive les particules,
 	 * charge et affiche une nouvelle page.
 	*/
-	private async loadPage(pageInstance: any, enableParticles: boolean): Promise<void> {
+	private async loadPage(pageInstance: any, enableParticles: boolean = true): Promise<void> {
 		const appDiv = document.getElementById('app') as HTMLElement | null;
 		if (!appDiv) {
 			console.error("div #app introuvable");
 			return;
 		}
-		await this.pageManager.cleanup();
+		// await this.pageManager.cleanup();
 
 		if (enableParticles) {
 			await this.particlesManager.enable();
