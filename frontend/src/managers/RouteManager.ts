@@ -7,8 +7,8 @@ import { UsersPage } from '../pages/UsersPage';
 import { ProfilePage } from '../pages/ProfilePage';
 import { PageManager } from './PageManager';
 import { ParticlesManager } from './ParticlesManager';
-import { getUserLog } from '../api/users';
 import { getProfilePath, setActiveNavLink } from '../utils/navbar.utils';
+import { userStore } from '../store/UserStore';
 
 export class RouteManager {
 	private pageManager: PageManager;
@@ -70,12 +70,13 @@ export class RouteManager {
 				return;
 			}
 			console.log('div #app trouvée, création HomePage');
-			const currentUser = await getUserLog();
+			const currentUser = userStore.getCurrentUser();
 			if (!currentUser) {
-				console.log('currentUser inexistant)');
-				await router.navigate('/login');
+				console.log('currentUser inexistant dans le store)');
+				await router.redirectPublic('/login');
+				return;
 			}
-			const homePage = new HomePage(appDiv, currentUser.id) as HomePage;
+			const homePage = new HomePage(appDiv, currentUser!.id) as HomePage;
 			await this.loadPage(homePage);
 			setActiveNavLink('/');
 			console.log('HomePage rendue');

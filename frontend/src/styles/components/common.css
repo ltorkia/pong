@@ -59,7 +59,7 @@
 		@apply pt-24 pb-8;
 	}
 	.avatar {
-		@apply w-36 h-36 bg-avatar-default-img bg-cover bg-center rounded-full border border-white/65
+		@apply w-36 h-36 rounded-full border border-white/65
 		absolute -top-16 left-1/2 -translate-x-1/2;
 	}
 }

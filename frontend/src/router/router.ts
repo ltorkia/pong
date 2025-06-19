@@ -1,5 +1,6 @@
 import { PUBLIC_ROUTES } from '../config/public.routes';
 import { getUserLog } from '../api/users';
+import { initUserStore } from '../store/UserStore';
 
 type RouteHandler = (params?: Record<string, string>) => Promise<void> | void;
 
@@ -181,39 +182,36 @@ export class Router {
 	 * Gestion des redirections d’authentification:
 	 * Rediriger vers /login si l’utilisateur non authentifié tente d’accéder à une page privée.
 	 * Rediriger vers / si un utilisateur déjà authentifié tente d’accéder à /login ou /register.
+	 * Enregistrement du current user dans store pour éviter de faire des appels intempestifs à api/me
 	 */
 	private async handleAuthRedirect(matchedRoute: { route: string }): Promise<boolean> {
-		const publicRoutes = PUBLIC_ROUTES.map(route => `${route}`);
-		const userLogStatus = await getUserLog();
+		try {
+			const publicRoutes = PUBLIC_ROUTES.map(route => `${route}`);
+			const userLogStatus = await getUserLog();
 
-		if (!publicRoutes.includes(matchedRoute.route)) {
-			// Route privée
-			try {
+			if (!publicRoutes.includes(matchedRoute.route)) {
+				// Route privée
 				if (!userLogStatus) {
 					console.log('Redirection vers /login (non authentifié)');
 					await this.redirect('/login');
 					return true;
 				}
-			} catch {
-				console.log('Redirection vers /login (erreur auth)');
-				await this.redirect('/login');
-				return true;
-			}
-		} else {
-			// Route publique
-			try {
+				initUserStore(userLogStatus);
+			} else {
+				// Route publique
 				if (userLogStatus) {
+					initUserStore(userLogStatus);
 					console.log('Redirection vers / (authentifié)');
 					await this.redirect('/');
 					return true;
 				}
-			} catch {
-				console.log('Redirection vers /login (erreur auth)');
-				await this.redirect('/login');
-				return true;
 			}
+			return false;
+		} catch (err) {
+			console.log('Erreur lors de la vérification auth:', err);
+			await this.redirect('/login');
+			return true;
 		}
-		return false;
 	}
 
 	/**

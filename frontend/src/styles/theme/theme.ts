@@ -5,27 +5,8 @@ export const fonts = {
 } as const;
 
 export const colorsTheme1 = {
-	vdarkBlue: '#10131B',
-	darkBlue: '#101626',
-	darkForestGreen: '#0E191B',
-	fadeForestGreen: '#1A2B2E',
-	forestGreen: '#102D2C',
-	lightForestGreen: '#275857',
-	vlightForestGreen: '#3C5A5E',
-	greyishGreen: '#728D8F',
-	pureMint: '#97D0BE',
-	mint: '#8AC8CD',
-	vclearSky: '#87CEEB',
-	deepSky: '#12C5C2',
-	deepCyan: '#3762D5',
+	darkBlue: '#10131B',
 	pastelBlue: '#3b4e7f',
-	deepPurple: '#4A2F6B',
-	lilac: '#B38BFF',
-	vlightLilac: '#C7B8E4',
-	orangyYellow: '#F09400',
-	fireflyYellow: '#FFD37C',
-	grey: '#777381',
-	vlightGrey: '#ABBBBD',
 	white: '#FFFFFF',
 	black: '#000000'
 } as const;
@@ -41,8 +22,7 @@ export const particleColors = {
 } as const;
 
 export const images = {
-	forestWallpaper: "url('/img/design/forest-bg.jpg')",
-	avatarDefault: "url('/img/avatars/default.png')",
+	forestWallpaper: "url('/img/design/forest-bg.jpg')"
 } as const;
 
 /**

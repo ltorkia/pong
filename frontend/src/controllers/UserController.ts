@@ -2,6 +2,7 @@ import { router } from '../router/router';
 import { registerUser, loginUser, logoutUser } from '../api/users';
 import { REGISTERED_MSG } from '../config/messages';
 import { showError } from '../utils/errors.utils';
+import { userStore } from '../store/UserStore';
 
 export async function registerController(data: Record<string, string>): Promise<void> {
 	try {
@@ -32,6 +33,8 @@ export async function loginController(data: Record<string, string>): Promise<voi
 		}
 
 		console.log('Utilisateur connecté :', result);
+
+		// Redirection home
 		router.redirectPublic('/');
 
 	} catch (err) {
@@ -48,7 +51,10 @@ export async function logoutController(): Promise<void> {
 			showError(result.errorMessage);
 			return;
 		}
-		// Nettoyer le localStorage, notifier l'utilisateur ...? A compléter
+		
+		// Nettoyer le store et localStorage
+		userStore.clearCurrentUser();
+		localStorage.removeItem('currentUser');
 		
 		// Redirection SPA vers login
 		console.log('Déconnexion réussie. Redirection /login');
