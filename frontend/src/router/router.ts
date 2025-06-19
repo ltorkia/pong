@@ -41,8 +41,16 @@ export class Router {
 	 * Utilisée dans RouteManager (méthode start()), elle-même appelée
 	 * par AppManager (méthode start()).
 	 */
-	public async handleLocationPublic() {
+	public async handleLocationPublic(): Promise<void> {
 		await this.handleLocation();
+	}
+
+	/**
+	 * Méthode publique pour gérer les redirections forcées
+	 * sans ajouter de nouvelle entrée dans l'historique navigateur
+	 */
+	public async redirectPublic(path: string): Promise<void> {
+		await this.redirect(path);
 	}
 
 	/**
@@ -165,9 +173,7 @@ export class Router {
 		} else {
 			console.warn(`Aucune route trouvée pour: ${path}`);
 			console.log('Redirection automatique vers l\'accueil');
-
-			window.history.replaceState({}, '', '/');
-			await this.handleLocation();
+			await this.redirect('/');
 		}
 	}
 
@@ -185,12 +191,12 @@ export class Router {
 			try {
 				if (!userLogStatus) {
 					console.log('Redirection vers /login (non authentifié)');
-					await this.navigate('/login');
+					await this.redirect('/login');
 					return true;
 				}
 			} catch {
 				console.log('Redirection vers /login (erreur auth)');
-				await this.navigate('/login');
+				await this.redirect('/login');
 				return true;
 			}
 		} else {
@@ -198,16 +204,27 @@ export class Router {
 			try {
 				if (userLogStatus) {
 					console.log('Redirection vers / (authentifié)');
-					await this.navigate('/');
+					await this.redirect('/');
 					return true;
 				}
 			} catch {
 				console.log('Redirection vers /login (erreur auth)');
-				await this.navigate('/login');
+				await this.redirect('/login');
 				return true;
 			}
 		}
 		return false;
+	}
+
+	/**
+	 * Redirige vers une route sans ajouter d'entrée dans l'historique du navigateur.
+	 * 
+	 * Utilisé notamment pour les redirections forcées (auth, erreurs, etc.),
+	 * pour éviter les doublons lors du retour arrière (précédent / suivant).
+	 */
+	private async redirect(path: string): Promise<void> {
+		window.history.replaceState({}, '', path);
+		await this.handleLocation();
 	}
 
 	/**

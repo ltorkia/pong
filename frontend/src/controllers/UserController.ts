@@ -32,7 +32,7 @@ export async function loginController(data: Record<string, string>): Promise<voi
 		}
 
 		console.log('Utilisateur connecté :', result);
-		router.navigate('/');
+		router.redirectPublic('/');
 
 	} catch (err) {
 		console.error('Erreur réseau ou serveur', err);
@@ -52,14 +52,10 @@ export async function logoutController(): Promise<void> {
 		
 		// Redirection SPA vers login
 		console.log('Déconnexion réussie. Redirection /login');
-		router.navigate('/login');
+		router.redirectPublic('/login');
 
 	} catch (err) {
 		console.error('Erreur réseau ou serveur', err);
 		showError('Erreur réseau');
 	}
-	
-	// Redirection SPA vers login
-	console.log('Déconnexion réussie. Redirection /login');
-	router.navigate('/login');
 }
