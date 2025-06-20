@@ -15,11 +15,8 @@ export async function authRoutes(app: FastifyInstance) {
 				const error = result.error.errors[0];
 				return reply.status(400).send({statusCode: 400, errorMessage: error.message + " in " + error.path });
 			}
-			// console.log(result);
 			const userToInsert = result.data;
-			// console.log(userToInsert);
 			userToInsert.password = await bcrypt.hash(userToInsert.password, 10);
-			// console.log(userToInsert);
 	
 			const resultinsert = await insertUser(userToInsert, null);
 	
@@ -45,7 +42,7 @@ export async function authRoutes(app: FastifyInstance) {
 					errorMessage: error.message + " in " + error.path
 				});
 			}
-			console.log(result);
+			// console.log(result);
 
 			// const { email, password } = result.data;
 			const validUser = await getUserP(result.data.email);
@@ -164,12 +161,14 @@ export async function authRoutes(app: FastifyInstance) {
 			insertUser(({email: userData.email, username: userData.given_name}), true);
 
 			// TODO: enregistrer ou récupérer l'utilisateur en base selon userData.email
+			const userGoogle = await getUserP(userData.email)
 
 			// Création d'un token JWT qui sera utilisé par le frontend pour les requêtes authentifiées
 			// JWT = JSON Web Token = format pour transporter des informations de manière sécurisée entre deux parties, ici le frontend et le backend.
 			const token = app.jwt.sign(
 				{
-					id: userData.id,			// ID Google de l'utilisateur -> pour moi plutot id de la db non ? / a verifier aussi
+					id: userGoogle.id,
+					// id: userData.id,			// ID Google de l'utilisateur -> pour moi plutot id de la db non ? / a verifier aussi
 					email: userData.email,		// Email de l'utilisateur
 					name: userData.given_name,		// juste le prenom -> a verigier si ok
 					avatar: userData.picture,	// URL de la photo de profil
@@ -179,8 +178,16 @@ export async function authRoutes(app: FastifyInstance) {
 
 			await majLastlog(userData.given_name);
 
+			reply.setCookie('auth_token', token, {
+				path: '/',
+				httpOnly: true,
+				sameSite: 'lax',
+				secure: false,
+				maxAge: 60 * 60 * 24 * 7, // 7 jours
+			});
+			reply.redirect(`${process.env.GOOGLE_REDIRECT_FRONTEND}?token=${token}`);
 			// L'utilisateur est redirigé vers le frontend avec le token JWT dans l'URL
-			return reply.redirect(`${process.env.GOOGLE_REDIRECT_FRONTEND}?token=${token}`);
+			return reply;
 		} catch (err) {
 			console.error('Erreur callback Google:', err);
 			return reply.status(500).send({ error: 'Erreur serveur' });

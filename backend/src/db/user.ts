@@ -149,7 +149,7 @@ export async function majLastlog(username: string)
 	const db = await getDb();
 	await db.run(`
 		UPDATE User
-		SET lastliog = datetime('now')
+		SET lastlog = datetime('now')
 		WHERE (username = ?)
 		`,
 	[username]);
