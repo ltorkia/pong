@@ -15,9 +15,11 @@ export async function authRoutes(app: FastifyInstance) {
 				const error = result.error.errors[0];
 				return reply.status(400).send({statusCode: 400, errorMessage: error.message + " in " + error.path });
 			}
-	
+			// console.log(result);
 			const userToInsert = result.data;
+			// console.log(userToInsert);
 			userToInsert.password = await bcrypt.hash(userToInsert.password, 10);
+			// console.log(userToInsert);
 	
 			const resultinsert = await insertUser(userToInsert, null);
 	
@@ -43,25 +45,27 @@ export async function authRoutes(app: FastifyInstance) {
 					errorMessage: error.message + " in " + error.path
 				});
 			}
+			console.log(result);
 
-			const { email, password } = result.data;
-			const validUser = await getUserP(email);
+			// const { email, password } = result.data;
+			const validUser = await getUserP(result.data.email);
 
+			
 			if (!validUser) {
 				return reply.status(401).send({
 					statusCode: 401,
 					errorMessage: 'Email invalid or unknown'
 				});
 			}
-
-			const isPassValid = await bcrypt.compare(password, validUser.password);
+			
+			const isPassValid = await bcrypt.compare(result.data.password, validUser.password);
 			if (!isPassValid) {
 				return reply.status(401).send({
 					statusCode: 401,
 					errorMessage: 'Password does not match'
 				});
 			}
-
+			
 			const token = app.jwt.sign({
 				id: validUser.id,
 				email: validUser.email,
@@ -75,7 +79,7 @@ export async function authRoutes(app: FastifyInstance) {
 				maxAge: 60 * 60 * 24 * 7, // 7 jours
 			});
 
-			await majLastlog(validUser.username);
+			// await majLastlog(validUser.username);
 
 			return reply.status(200).send({
 				message: 'Connexion réussie',

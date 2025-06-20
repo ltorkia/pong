@@ -122,7 +122,7 @@ export async function insertUser(user: (RegisterInput | {username: string, email
 	if (await getUser(null, user.email))
 		return {statusCode: 409, message : "email already used"};
 
-	if (is_google === false)
+	if (!is_google)
 	{
 		 const u = user as RegisterInput;
 		await db.run(`
