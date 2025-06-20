@@ -76,7 +76,7 @@ export async function authRoutes(app: FastifyInstance) {
 				maxAge: 60 * 60 * 24 * 7, // 7 jours
 			});
 
-			// await majLastlog(validUser.username);
+			await majLastlog(validUser.username);
 
 			return reply.status(200).send({
 				message: 'Connexion réussie',
@@ -160,17 +160,16 @@ export async function authRoutes(app: FastifyInstance) {
 			}
 			insertUser(({email: userData.email, username: userData.given_name}), true);
 
-			// TODO: enregistrer ou récupérer l'utilisateur en base selon userData.email
+			// TODO: check si email existe deja en bdd (register_from local)
 			const userGoogle = await getUserP(userData.email)
 
 			// Création d'un token JWT qui sera utilisé par le frontend pour les requêtes authentifiées
 			// JWT = JSON Web Token = format pour transporter des informations de manière sécurisée entre deux parties, ici le frontend et le backend.
 			const token = app.jwt.sign(
 				{
-					id: userGoogle.id,
-					// id: userData.id,			// ID Google de l'utilisateur -> pour moi plutot id de la db non ? / a verifier aussi
+					id: userGoogle.id,			// ID de l'utilisateur
 					email: userData.email,		// Email de l'utilisateur
-					name: userData.given_name,		// juste le prenom -> a verigier si ok
+					name: userData.given_name,	// juste le prenom -> a verigier si ok
 					avatar: userData.picture,	// URL de la photo de profil
 				},
 				{ expiresIn: '1h' }				// Le token expire dans 1 heure
