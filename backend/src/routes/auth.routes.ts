@@ -186,8 +186,7 @@ export async function authRoutes(app: FastifyInstance) {
 			});
 
 			// Redirection simple sans token dans l'URL
-			reply.redirect(process.env.GOOGLE_REDIRECT_FRONTEND!);
-			return reply;
+			return reply.redirect(process.env.GOOGLE_REDIRECT_FRONTEND!);
 		} catch (err) {
 			console.error('Erreur callback Google:', err);
 			return reply.status(500).send({ error: 'Erreur serveur' });

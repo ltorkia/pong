@@ -23,7 +23,7 @@ export class HomePage extends BasePage {
 				backgroundSize: "cover",
 				backgroundPosition: "center"
 			});
-			h1.textContent = `Hello ${user.username} !`;
+			h1.textContent = `Hi ${user.username} !`;
 
 		} catch (err) {
 			console.error('Erreur lors de la récupération du user', err);

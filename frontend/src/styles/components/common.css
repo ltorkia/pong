@@ -33,7 +33,7 @@
 		@apply absolute bottom-2 right-3.5
 		w-10 animate-bounce
 		
-		mobile:right-5;
+		mobile:right-5 mobile:bottom-3;
 
 		filter: brightness(1.5) saturate(0.5) hue-rotate(156deg) drop-shadow(1px 2px 3px black);
 	}
@@ -51,12 +51,15 @@
 		@apply flex flex-col items-center justify-center mb-10;
 	}
 	.page-title {
-		@apply text-5xl mb-4;
+		@apply font-title tracking-widest font-semibold text-2xl mb-4 animate-logo-glow
+		
+		desktop:text-3xl;
 	}
 	.under-title {
-		@apply text-xl border-t px-5 pt-5 mb-4 text-center
+		@apply text-xl border-t pt-5 mb-4 text-center
 		
-		mobile:text-2xl px-20;
+		mobile:text-2xl px-5
+		desktop:px-20;
 	}
 
 	/* BLURRED CONTAINER */
@@ -94,10 +97,18 @@
 
 	/* HOME MENU ONCE LOGGED */
 	.home-menu {
-		@apply pt-24 pb-8;
+		@apply pt-24 pb-8 mt-12
+		tablet:mt-16;
+	}
+	.home-menu .bloc-title {
+		@apply mt-2 mb-4
+		
+		tablet:mt-4 tablet:mb-6;
 	}
 	.avatar {
-		@apply w-36 h-36 rounded-full border border-white/65
-		absolute -top-16 left-1/2 -translate-x-1/2;
+		@apply w-32 h-32 rounded-full border border-white/65
+		absolute -top-12 left-1/2 -translate-x-1/2
+		
+		tablet:w-36 tablet:h-36 tablet:-top-16;
 	}
 }

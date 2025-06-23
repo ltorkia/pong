@@ -20,7 +20,9 @@ export async function setupNavbar(): Promise<void> {
 		if (icon?.classList.contains('fa-bars')) {
 			icon.classList.remove('fa-bars');
 			icon.classList.add('fa-xmark');
+			icon.classList.add('text-blue-300');
 		} else {
+			icon?.classList.remove('text-blue-300');
 			icon?.classList.remove('fa-xmark');
 			icon?.classList.add('fa-bars');
 		}

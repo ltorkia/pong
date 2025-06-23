@@ -3,8 +3,11 @@
 		@apply flex items-center justify-center space-x-4 py-2;
 	}
 	.btn {
-		@apply min-w-72 px-6 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20
-		text-white text-shadow-black tracking-widest font-semibold uppercase text-lg text-center shadow-md hover:bg-white/20 hover:shadow-lg transition duration-300;
+		@apply min-w-64 px-6 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20
+		text-white tracking-widest font-semibold uppercase text-sm text-center shadow-md 
+		hover:bg-white/20 hover:shadow-lg transition duration-300
+		
+		mobile:min-w-80 mobile:text-lg;
 	}
 	.smaller-btn {
 		@apply min-w-24 text-xs px-0 mt-2 mb-7;
