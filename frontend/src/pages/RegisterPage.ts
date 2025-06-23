@@ -12,11 +12,11 @@ export class RegisterPage extends BasePage {
 		// const socket = new WebSocket('wss://localhost:8443/ws');
 		
 		// socket.addEventListener('open', () => {
-		// console.log('✅ WebSocket connecté');
+		// console.log('WebSocket connecté');
 		// });
 		
 		// socket.addEventListener('message', (event) => {
-		// console.log('📩 Message du serveur :', event.data);
+		// console.log('Message du serveur :', event.data);
 		// });
 
 		const form = document.getElementById('register-form');
