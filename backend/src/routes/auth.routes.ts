@@ -1,26 +1,51 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import bcrypt from 'bcrypt';
 import { GoogleCallbackQuery, GoogleTokenResponse, GoogleUserInfo } from '../types/google.types';
-import { insertUser, getUserP, majLastlog } from '../db/user';
+import { insertUser, getUserP, majLastlog, getUser } from '../db/user';
 import { RegisterInputSchema, LoginInputSchema } from '../types/zod/auth.zod';
+
+
+// async function checkLogin(result, validUser) {
+
+
+// } 
+
+async function RegisterClassic(request: FastifyRequest, reply: FastifyReply)
+{
+	const result = RegisterInputSchema.safeParse(request.body);
+	
+	if (!result.success) {
+		const error = result.error.errors[0];
+		return reply.status(400).send({statusCode: 400, errorMessage: error.message + " in " + error.path });
+	}
+	const userToInsert = result.data;
+	userToInsert.password = await bcrypt.hash(userToInsert.password, 10);
+
+	const resultinsert = await insertUser(userToInsert, null);
+
+	return reply.status(resultinsert.statusCode).send(resultinsert);
+}
+
+
 
 export async function authRoutes(app: FastifyInstance) {
 	
 	// REGISTER
 	app.post('/register', async (request: FastifyRequest, reply: FastifyReply) => {
 		try {
-			const result = RegisterInputSchema.safeParse(request.body);
+			return (RegisterClassic(request, reply));
+			// const result = RegisterInputSchema.safeParse(request.body);
 	
-			if (!result.success) {
-				const error = result.error.errors[0];
-				return reply.status(400).send({statusCode: 400, errorMessage: error.message + " in " + error.path });
-			}
-			const userToInsert = result.data;
-			userToInsert.password = await bcrypt.hash(userToInsert.password, 10);
+			// if (!result.success) {
+			// 	const error = result.error.errors[0];
+			// 	return reply.status(400).send({statusCode: 400, errorMessage: error.message + " in " + error.path });
+			// }
+			// const userToInsert = result.data;
+			// userToInsert.password = await bcrypt.hash(userToInsert.password, 10);
 	
-			const resultinsert = await insertUser(userToInsert, null);
+			// const resultinsert = await insertUser(userToInsert, null);
 	
-			return reply.status(resultinsert.statusCode).send(resultinsert);
+			// return reply.status(resultinsert.statusCode).send(resultinsert);
 	
 		} catch (err) {
 			request.log.error(err);
@@ -53,6 +78,14 @@ export async function authRoutes(app: FastifyInstance) {
 					statusCode: 401,
 					errorMessage: 'Email invalid or unknown'
 				});
+			}
+
+			if(validUser && validUser.register_from == 'google')
+			{
+				return reply.status(402).send({
+					statusCode: 402,
+					errorMessage: 'Email already register from google'
+				});				
 			}
 			
 			const isPassValid = await bcrypt.compare(result.data.password, validUser.password);
@@ -158,10 +191,12 @@ export async function authRoutes(app: FastifyInstance) {
 			if (!userData.id || !userData.email) {
 				return reply.status(400).send({error: 'Données utilisateur incomplètes' }); //retourne objet vec statuscode ? 
 			}
-			insertUser(({email: userData.email, username: userData.given_name}), true);
+			if(!await (getUser(null,userData.email)))
+				await insertUser(({email: userData.email, username: userData.given_name}), true);
 
-			// TODO: enregistrer ou récupérer l'utilisateur en base selon userData.email
 			const userGoogle = await getUserP(userData.email)
+			// console.log("usergoogle is :" + userGoogle.id);
+			// console.log("userdata is :" + userData.given_name);
 
 			// Création d'un token JWT qui sera utilisé par le frontend pour les requêtes authentifiées
 			// JWT = JSON Web Token = format pour transporter des informations de manière sécurisée entre deux parties, ici le frontend et le backend.
@@ -177,7 +212,7 @@ export async function authRoutes(app: FastifyInstance) {
 			);
 
 			await majLastlog(userData.given_name);
-
+			
 			reply.setCookie('auth_token', token, {
 				path: '/',
 				httpOnly: true,
@@ -185,7 +220,8 @@ export async function authRoutes(app: FastifyInstance) {
 				secure: false,
 				maxAge: 60 * 60 * 24 * 7, // 7 jours
 			});
-			reply.redirect(`${process.env.GOOGLE_REDIRECT_FRONTEND}?token=${token}`);
+			
+			reply.redirect(`${process.env.GOOGLE_REDIRECT_FRONTEND}?token=${token}`); //bugau debut klors du premier enregistrmeent 
 			// L'utilisateur est redirigé vers le frontend avec le token JWT dans l'URL
 			return reply;
 		} catch (err) {
