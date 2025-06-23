@@ -34,7 +34,7 @@ export async function getAllUsers() {
 export async function getUserP(email: string) {
 	const db = await getDb();
 	const user = await db.get(`
-		SELECT id, email, password 
+		SELECT id, username, email, password 
 		FROM User 
 		WHERE email = ?
 		`,
@@ -114,7 +114,7 @@ export async function getUserChat(userId1: number, userId2: number) {
 	};
 }
 	
-export async function insertUser(user: (RegisterInput | {username: string, email: string}), is_google: (boolean | null)) {
+export async function insertUser(user: (RegisterInput | {username: string, email: string, avatar?: string}), is_google: (boolean | null)) {
 	const db = await getDb();
 	if(await getUser(null, user.username))
 		return {statusCode : 409, message : "username already used"};

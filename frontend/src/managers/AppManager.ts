@@ -58,14 +58,14 @@ export class AppManager {
 		// Vérification rapide avec le cookie compagnon
 		const authCookieIsActive = hasAuthCookie();
 		if (authCookieIsActive) {
-			console.log('[AppManager] Cookie auth-status présent, chargement utilisateur...');
+			console.log('[AppManager] Cookie auth_status présent, chargement utilisateur...');
 			// Seulement dans ce cas on charge l'utilisateur
 			// Cette fonction utilisera localStorage en priorité, puis API si nécessaire
 			await loadOrRestoreUser();
 			return;
 		}
 		// Si pas de cookie:
-		console.log('[AppManager] Pas de cookie auth-status, démarrage sans utilisateur');
+		console.log('[AppManager] Pas de cookie auth_status, démarrage sans utilisateur');
 		// Pas besoin d'appeler loadOrRestoreUser(), on sait déjà qu'il n'y a pas d'utilisateur
 		// Le router gérera les redirections si nécessaire
 	}

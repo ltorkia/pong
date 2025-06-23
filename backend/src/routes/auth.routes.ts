@@ -25,8 +25,7 @@ export async function authRoutes(app: FastifyInstance) {
 				const user = await getUserP(userToInsert.email);
 				const token = generateJwt(app, {
 					id: user.id,
-					email: user.email,
-					name: user.username,
+					username: user.username,
 				});
 
 				await majLastlog(user.username);
@@ -81,10 +80,9 @@ export async function authRoutes(app: FastifyInstance) {
 
 			const token = generateJwt(app, {
 				id: validUser.id,
-				email: validUser.email,
-				name: validUser.username,
+				username: validUser.username,
 			});
-			console.log(validUser.username);
+
 			await majLastlog(validUser.username);
 			setAuthCookie(reply, token);
 			setStatusCookie(reply);
@@ -179,7 +177,7 @@ export async function authRoutes(app: FastifyInstance) {
 			// TODO: Insère l'utilisateur seulement s'il n'existe pas en bdd
 			// TODO: Logique à améliorer, j'ai juste mis ça pour régler un probleme
 			if (!userGoogle) {
-				await insertUser({ email: userData.email, username: userData.given_name }, true);
+				await insertUser({ email: userData.email, username: userData.given_name, avatar: userData.picture }, true);
 				userGoogle = await getUserP(userData.email);
 				if (!userGoogle) {
 					return reply.status(500).send({ error: 'Impossible de récupérer l’utilisateur après insertion' });
@@ -190,9 +188,7 @@ export async function authRoutes(app: FastifyInstance) {
 			// JWT = JSON Web Token = format pour transporter des informations de manière sécurisée entre deux parties, ici le frontend et le backend.
 			const token = generateJwt(app, {
 				id: userGoogle.id,
-				email: userData.email,
-				name: userData.given_name,
-				avatar: userData.picture,
+				username: userData.given_name,
 			});
 
 			await majLastlog(userData.given_name);

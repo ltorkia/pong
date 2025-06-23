@@ -10,7 +10,7 @@ import { getUserLog } from '../api/users';
  * sans faire d'appel API ni accéder au store
  */
 export function hasAuthCookie(): boolean {
-	return document.cookie.includes('auth-status=active');
+	return document.cookie.includes('auth_status=active');
 }
 
 /**
@@ -25,12 +25,12 @@ export async function loadOrRestoreUser(): Promise<User | null> {
 
 	// Vérification du cookie compagnon en premier
 	if (!hasAuthCookie()) {
-		console.log('[UserController] Pas de cookie auth-status, utilisateur non connecté');
+		console.log('[UserController] Pas de cookie auth_status, utilisateur non connecté');
 		userStore.clearCurrentUser();
 		return null;
 	}
 
-	console.log('[UserController] Cookie auth-status présent, tentative de restauration utilisateur');
+	console.log('[UserController] Cookie auth_status présent, tentative de restauration utilisateur');
 
 	// Essayer de restaurer depuis localStorage d'abord
 	userStore.restoreFromStorage();

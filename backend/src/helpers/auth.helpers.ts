@@ -5,7 +5,7 @@ import { JwtPayload } from '../types/jwt.types';
  * Génère un token JWT pour un utilisateur donné
  * @returns Token JWT signé valide 7 jours
  */
-export function generateJwt(app: FastifyInstance, user: { id: number; email: string; name: string; avatar?: string }) {
+export function generateJwt(app: FastifyInstance, user: { id: number; username: string }) {
 	return app.jwt.sign(user, { expiresIn: '7d' });
 }
 
