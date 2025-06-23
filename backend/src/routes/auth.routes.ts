@@ -3,6 +3,7 @@ import bcrypt from 'bcrypt';
 import { GoogleCallbackQuery, GoogleTokenResponse, GoogleUserInfo } from '../types/google.types';
 import { insertUser, getUserP, majLastlog } from '../db/user';
 import { RegisterInputSchema, LoginInputSchema } from '../types/zod/auth.zod';
+import { generateJwt, setAuthCookie } from '../helpers/auth.helpers';
 
 export async function authRoutes(app: FastifyInstance) {
 	
@@ -19,8 +20,21 @@ export async function authRoutes(app: FastifyInstance) {
 			userToInsert.password = await bcrypt.hash(userToInsert.password, 10);
 	
 			const resultinsert = await insertUser(userToInsert, null);
-	
-			return reply.status(resultinsert.statusCode).send(resultinsert);
+
+			if (resultinsert.statusCode === 201) {
+				const user = await getUserP(userToInsert.email);
+				const token = generateJwt(app, {
+					id: user.id,
+					email: user.email,
+					name: user.username,
+				});
+				await majLastlog(user.username);
+				setAuthCookie(reply, token);
+				return reply.status(201).send({ message: 'Inscription réussie', token });
+			
+			} else {
+				return reply.status(resultinsert.statusCode).send(resultinsert);
+			}
 	
 		} catch (err) {
 			request.log.error(err);
@@ -42,12 +56,8 @@ export async function authRoutes(app: FastifyInstance) {
 					errorMessage: error.message + " in " + error.path
 				});
 			}
-			// console.log(result);
 
-			// const { email, password } = result.data;
 			const validUser = await getUserP(result.data.email);
-
-			
 			if (!validUser) {
 				return reply.status(401).send({
 					statusCode: 401,
@@ -62,25 +72,15 @@ export async function authRoutes(app: FastifyInstance) {
 					errorMessage: 'Password does not match'
 				});
 			}
-			
-			const token = app.jwt.sign({
+
+			const token = generateJwt(app, {
 				id: validUser.id,
 				email: validUser.email,
+				name: validUser.username,
 			});
-
-			reply.setCookie('auth_token', token, {
-				path: '/',
-				httpOnly: true,
-				sameSite: 'lax',
-				secure: false,
-				maxAge: 60 * 60 * 24 * 7, // 7 jours
-			});
-
 			await majLastlog(validUser.username);
-
-			return reply.status(200).send({
-				message: 'Connexion réussie',
-			});
+			setAuthCookie(reply, token);
+			return reply.status(200).send({ message: 'Connexion réussie', token });
 
 		} catch (err) {
 			request.log.error(err);
@@ -119,6 +119,7 @@ export async function authRoutes(app: FastifyInstance) {
 	// Une fois que le user s'est connecté sur Google, Google le redirige vers cette route
 	app.get('/google/callback', async (request: FastifyRequest<{ Querystring: GoogleCallbackQuery }>, reply: FastifyReply) => {
 		const { code, error } = request.query;
+  		console.log('Google callback hit', request.query);
 
 		// On check si Google a renvoyé une erreur
 		if (error) return reply.status(400).send({ error: `Erreur OAuth: ${error}` });
@@ -127,6 +128,7 @@ export async function authRoutes(app: FastifyInstance) {
 		if (!code) return reply.status(400).send({ error: 'Code manquant' });
 
 		try {
+
 			// On échange le code d'autorisation reçu de Google contre un access_token
 			// (code temporaire qui ne permet pas d'accéder aux données, il faut l'échanger contre un access_token auprès de Google)
 			const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
@@ -142,6 +144,7 @@ export async function authRoutes(app: FastifyInstance) {
 			});
 
 			const tokenData = await tokenRes.json() as GoogleTokenResponse;
+			console.log('Google token response:', tokenData);
 
 			// On check si Google a renvoyé une erreur lors de l'échange du code
 			if (tokenData.error) {
@@ -158,32 +161,29 @@ export async function authRoutes(app: FastifyInstance) {
 			if (!userData.id || !userData.email) {
 				return reply.status(400).send({error: 'Données utilisateur incomplètes' }); //retourne objet vec statuscode ? 
 			}
-			insertUser(({email: userData.email, username: userData.given_name}), true);
 
-			// TODO: check si email existe deja en bdd (register_from local)
-			const userGoogle = await getUserP(userData.email)
+			let userGoogle = await getUserP(userData.email);
+
+			// TODO: Insère l'utilisateur seulement s'il n'existe pas en bdd
+			// TODO: Logique à améliorer, j'ai juste mis ça pour régler un probleme
+			if (!userGoogle) {
+				await insertUser({ email: userData.email, username: userData.given_name }, true);
+				userGoogle = await getUserP(userData.email);
+				if (!userGoogle) {
+					return reply.status(500).send({ error: 'Impossible de récupérer l’utilisateur après insertion' });
+				}
+			}
 
 			// Création d'un token JWT qui sera utilisé par le frontend pour les requêtes authentifiées
 			// JWT = JSON Web Token = format pour transporter des informations de manière sécurisée entre deux parties, ici le frontend et le backend.
-			const token = app.jwt.sign(
-				{
-					id: userGoogle.id,			// ID de l'utilisateur
-					email: userData.email,		// Email de l'utilisateur
-					name: userData.given_name,	// juste le prenom -> a verigier si ok
-					avatar: userData.picture,	// URL de la photo de profil
-				},
-				{ expiresIn: '7d' }				// Le token expire dans 7 jours
-			);
-
-			await majLastlog(userData.given_name);
-
-			reply.setCookie('auth_token', token, {
-				path: '/',
-				httpOnly: true,
-				sameSite: 'lax',
-				secure: false,
-				maxAge: 60 * 60 * 24 * 7, // 7 jours
+			const token = generateJwt(app, {
+				id: userGoogle.id,
+				email: userData.email,
+				name: userData.given_name,
+				avatar: userData.picture,
 			});
+			await majLastlog(userData.given_name);
+			setAuthCookie(reply, token);
 
 			// Redirection simple sans token dans l'URL
 			return reply.redirect(process.env.GOOGLE_REDIRECT_FRONTEND!);

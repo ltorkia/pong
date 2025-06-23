@@ -141,7 +141,7 @@ export async function insertUser(user: (RegisterInput | {username: string, email
 			[user.username, user.email, 'google']
 		);	
 	}
-	return {statusCode : 200, message : 'user add'};
+	return {statusCode : 201, message : 'user add'};
 }
 
 export async function majLastlog(username: string)

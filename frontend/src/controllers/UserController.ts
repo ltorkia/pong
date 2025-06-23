@@ -15,7 +15,7 @@ export async function registerController(data: Record<string, string>): Promise<
 
 		console.log('Utilisateur inscrit :', result);
 		alert(REGISTERED_MSG);
-		router.navigate('/login');
+		router.navigate('/');
 
 	} catch (err) {
 		console.error('Erreur réseau ou serveur', err);
