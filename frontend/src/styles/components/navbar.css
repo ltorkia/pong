@@ -1,37 +1,89 @@
 @layer components {
-
+	
 	/* NAVBAR + NOTIFBAR */
 	.navbar-content {
-		@apply fixed z-50 w-full left-1/2 top-0 -translate-x-1/2 
-		flex justify-center items-center;
+		@apply fixed z-50 h-[--navbar-height]
+		w-screen top-0 left-0 space-x-10
+		flex justify-center items-center
+		text-white text-shadow-black
+		bg-white/10 backdrop-blur-xl shadow-md
+
+		desktop:bg-transparent desktop:backdrop-blur-none desktop:shadow-none;
 	}
+	
 	.navbar-style {
-		@apply bg-white/10 backdrop-blur-xl border border-white/20 rounded-full
-		shadow-md text-white text-shadow-black
-		px-6 py-3 flex
-		h-[--navbar-height];
+		@apply flex justify-center items-center
+		
+		desktop:bg-white/10 desktop:backdrop-blur-xl desktop:border desktop:px-6
+		desktop:border-white/20 desktop:shadow-md desktop:rounded-full;
+	}
+
+	.navbar-pos {
+		@apply w-screen h-[--navbar-height]
+		desktop:w-auto;
 	}
 
 	/* NAVBAR */
-	.navbar-px {
-		@apply space-x-20;
+
+	/* MENU BURGER POUR MOBILE/TABLET */
+	#burger-btn {
+		@apply absolute left-6 top-4 text-white text-2xl z-50
+		hover:text-blue-300
+		hover:scale-105 active:scale-95
+		
+		desktop:hidden;
 	}
-	.navbar-px a {
-		@apply flex flex-col items-center;
+
+	#navbar-menu.hide {
+		/* @apply opacity-0 pointer-events-none; */
+		@apply -translate-x-[100vw] pointer-events-none;
 	}
-	.navbar-px a.active {
+	#navbar-menu.show {
+		/* @apply opacity-100 pointer-events-auto; */
+		@apply translate-x-0 pointer-events-auto;
+	}
+
+	#navbar-menu {
+		@apply w-full h-screen flex-col justify-center items-center
+		absolute top-full left-0
+		bg-slate-900/50
+		border-r border-t border-l border-slate-500/40 shadow-2xl
+		transition-transform duration-200 ease-in-out
+
+		desktop:show desktop:static desktop:w-auto desktop:flex desktop:flex-row desktop:space-x-16
+		desktop:bg-transparent desktop:backdrop-blur-none desktop:border-none desktop:shadow-none;
+	}
+	#navbar-menu a {
+		@apply w-full bg-slate-900/90 hover:bg-slate-800/95
+		flex flex-row justify-center items-center space-x-3
+		border-b border-slate-500/30 py-6 px-4 hover:text-blue-200
+
+		desktop:w-auto desktop:pl-0
+		desktop:flex-col desktop:justify-center desktop:space-x-0 desktop:border-none desktop:py-0 desktop:bg-transparent desktop:hover:bg-transparent;
+	}
+	#navbar-menu a.active {
 		@apply text-blue-300;
 	}
-	.navbar-px a i, .navbar-px a span {
+	#navbar-menu a i, #navbar-menu a span {
 		@apply transition;
 	}
-	.navbar-px a span {
-		@apply uppercase text-xs tracking-wider mt-1 hidden md:block;
+	#navbar-menu a span {
+		@apply uppercase text-xs tracking-wider mt-1;
 	}
 
 	/* NOTIFBAR */
+	.notifbar-wrapper {
+		@apply absolute w-auto top-0 right-6 flex justify-center items-center
+		
+		desktop:h-screen desktop:right-3
+		wide:h-[--navbar-height];
+	}
+
 	.notifbar-px {
-		@apply absolute right-6 space-x-10;
+		@apply flex-row space-x-10 space-y-0 w-auto h-[--navbar-height] 
+		desktop:rounded-full desktop:bg-white/10 desktop:backdrop-blur-xl desktop:border desktop:border-white/20
+		desktop:flex-col desktop:py-3 desktop:space-x-0 desktop:space-y-6 desktop:w-[--navbar-height] desktop:h-auto
+		wide:flex-row wide:space-x-10 wide:space-y-0 wide:w-auto wide:h-[--navbar-height];
 	}
 	.notifbar-px a {
 		@apply flex justify-center items-center;

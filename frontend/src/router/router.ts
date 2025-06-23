@@ -1,6 +1,6 @@
 import { PUBLIC_ROUTES } from '../config/public.routes';
 import { getUserLog } from '../api/users';
-import { initUserStore } from '../store/UserStore';
+import { userStore, initUserStore } from '../store/UserStore';
 
 type RouteHandler = (params?: Record<string, string>) => Promise<void> | void;
 
@@ -187,7 +187,17 @@ export class Router {
 	private async handleAuthRedirect(matchedRoute: { route: string }): Promise<boolean> {
 		try {
 			const publicRoutes = PUBLIC_ROUTES.map(route => `${route}`);
-			const userLogStatus = await getUserLog();
+
+			// Check localStorage -> userStore avant de faire la requête API qui check si l'utilisateur est connecté
+			const localUser = userStore.getCurrentUser();
+			let userLogStatus;
+				if (localUser) {
+					// Utilisateur local existe
+					userLogStatus = localUser;
+				} else {
+					// Pas d'utilisateur en local, on fait la requête API pour vérifier
+					userLogStatus = await getUserLog();
+				}
 
 			if (!publicRoutes.includes(matchedRoute.route)) {
 				// Route privée

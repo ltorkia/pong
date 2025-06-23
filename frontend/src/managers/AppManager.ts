@@ -4,6 +4,7 @@ import { ParticlesManager } from './ParticlesManager';
 import { RouteManager } from './RouteManager';
 import { PageManager } from './PageManager';
 import { userStore, type User } from '../store/UserStore';
+import { wait } from '../utils/helpers';
 
 export class AppManager {
 	private particlesManager: ParticlesManager;		// Gestionnaire des particules d'arrière-plan
@@ -21,7 +22,8 @@ export class AppManager {
 	 * Méthode principale pour démarrer l'app.
 	 * 
 	 * - Initialise le moteur tsParticles
-	 * - Attend que le DOM soit prêt: await new Promise();
+	 * - Attend que le DOM soit prêt: wait (await new Promise())
+	 * - Supprime la class Load sur le body qui empêche les transitions au refresh
 	 * - Vérifie que le container principal #app existe dans le DOM
 	 * - Charge les particules d'arrière-plan
 	 * - Lance le RouteManager pour gérer la navigation et afficher la bonne page
@@ -29,7 +31,8 @@ export class AppManager {
 	public async start() {
 		console.log('=== DEMARRAGE APP ===');
 		await this.tsParticlesInit();
-		await new Promise(resolve => setTimeout(resolve, 100));
+		await wait(100);
+		document.body.classList.remove('load');
 		
 		const appDiv = document.getElementById('app');
 		if (!appDiv) {

@@ -1,5 +1,10 @@
 @layer components {
 
+	/* NO TRANSITION WHEN RELOADING */
+	.load {
+		@apply !transition-none;
+	}
+
 	/* BACKGROUND PARTICLES */
 	#tsparticles {
 		@apply fixed top-0 left-0 w-screen h-screen -z-10 pointer-events-none transition-opacity duration-300 ease-in-out;
@@ -29,7 +34,7 @@
 
 	/* APP CONTAINER */
 	#app {
-		@apply flex flex-col min-h-full items-center justify-center px-48;
+		@apply flex flex-col min-h-full items-center justify-center;
 	}
 
 	/* PAGE TITLE */
@@ -46,12 +51,28 @@
 	/* BLURRED CONTAINER */
 	.section-box {
 		@apply flex flex-col items-center text-xl relative p-5
-		backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl shadow-lg
-		mt-[--m-top-main];
+		backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl shadow-lg;
 	}
 	.large-box {
-		@apply w-full min-h-[75vh] mt-0 backdrop-blur-xl bg-opacity-90 rounded-none p-5
-		flex items-center justify-center;
+		@apply w-full min-h-[--h] mt-0 p-5
+		backdrop-blur-xl bg-opacity-90 rounded-none
+		flex items-center justify-center
+		
+		tablet:min-h-[--h-tablet]
+		desktop:min-h-[--h-desktop]
+		wide:min-h-[--h-wide]
+		extra-wide:min-h-[--h-extra-wide];
+	}
+	.large-box-overflow {
+		@apply w-full h-[--h] p-5
+		backdrop-blur-xl bg-opacity-90 rounded-none
+		flex items-center justify-start
+		overflow-auto
+		
+		tablet:h-[--h-tablet]
+		desktop:h-[--h-desktop]
+		wide:h-[--h-wide]
+		extra-wide:h-[--h-extra-wide];
 	}
 
 	/* HOME MENU ONCE LOGGED */

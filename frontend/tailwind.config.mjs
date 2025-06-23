@@ -24,8 +24,14 @@ export default {
 				'btn-google-color': colorsTheme1.pastelBlue,
 			},
 			backgroundImage: {
-				'body-bg-img': images.forestWallpaper,
-				'avatar-default-img': images.avatarDefault
+				'body-bg-img': images.forestWallpaper
+			},
+			screens: {
+				'mobile': '360px',
+				'tablet': '768px',
+				'desktop': '1024px',
+				'wide': '1280px',
+				'extra-wide': '1536px'
 			},
 			keyframes: {
 				logoGlow: {
