@@ -180,7 +180,6 @@ export class RouteManager {
 			console.error("div #app introuvable");
 			return;
 		}
-		// await this.pageManager.cleanup();
 
 		if (enableParticles) {
 			await this.particlesManager.enable();
