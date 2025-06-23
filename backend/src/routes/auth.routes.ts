@@ -172,7 +172,7 @@ export async function authRoutes(app: FastifyInstance) {
 					name: userData.given_name,	// juste le prenom -> a verigier si ok
 					avatar: userData.picture,	// URL de la photo de profil
 				},
-				{ expiresIn: '1h' }				// Le token expire dans 1 heure
+				{ expiresIn: '7d' }				// Le token expire dans 7 jours
 			);
 
 			await majLastlog(userData.given_name);
@@ -184,8 +184,9 @@ export async function authRoutes(app: FastifyInstance) {
 				secure: false,
 				maxAge: 60 * 60 * 24 * 7, // 7 jours
 			});
-			reply.redirect(`${process.env.GOOGLE_REDIRECT_FRONTEND}?token=${token}`);
-			// L'utilisateur est redirigé vers le frontend avec le token JWT dans l'URL
+
+			// Redirection simple sans token dans l'URL
+			reply.redirect(process.env.GOOGLE_REDIRECT_FRONTEND!);
 			return reply;
 		} catch (err) {
 			console.error('Erreur callback Google:', err);
