@@ -18,15 +18,25 @@ export abstract class BasePage {
 		try {
 			console.log(`${this.constructor.name}: Début du rendu...`);
 
-			// On génère la navbar et la sidebar,
-			// on load puis injecte le template html dans div app,
-			// on attache les potentiels listeners
-			await this.beforeMount();
+			// Chargement asynchrone de la navbar en fonction du statut log utilisateur
+			await this.generateNavbar();
+			console.log(`${this.constructor.name}: Navbar générée`);
+
+			// Chargement asynchrone du template html via fetch
+			// + injection html dans la div #app
+			const html = await this.loadTemplate(this.templatePath);
+			this.container.innerHTML = html;
+			
+			console.log(`${this.constructor.name}: HTML injecté`);
 
 			// On genere les infos propres a chaque page
 			await this.mount();
 			console.log(`${this.constructor.name}: Page montée, rendu terminé`);
 			
+			// On attache les listeners relatifs à la page (ex gestion de clic LOGIN pour gérer la logique de connexion)
+			this.attachListeners();
+			console.log(`${this.constructor.name}: Listeners attachés`);
+
 		} catch (error) {
 			// En cas d'erreur (ex fetch qui échoue) afficher un message d'erreur dans le container
 			console.error(`Erreur lors du rendu de ${this.constructor.name}:`, error);
