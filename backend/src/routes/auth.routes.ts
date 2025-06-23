@@ -3,7 +3,7 @@ import bcrypt from 'bcrypt';
 import { GoogleCallbackQuery, GoogleTokenResponse, GoogleUserInfo } from '../types/google.types';
 import { insertUser, getUserP, majLastlog } from '../db/user';
 import { RegisterInputSchema, LoginInputSchema } from '../types/zod/auth.zod';
-import { generateJwt, setAuthCookie } from '../helpers/auth.helpers';
+import { generateJwt, setAuthCookie, setStatusCookie, clearAuthCookies } from '../helpers/auth.helpers';
 
 export async function authRoutes(app: FastifyInstance) {
 	
@@ -28,9 +28,15 @@ export async function authRoutes(app: FastifyInstance) {
 					email: user.email,
 					name: user.username,
 				});
+
 				await majLastlog(user.username);
 				setAuthCookie(reply, token);
-				return reply.status(201).send({ message: 'Inscription réussie', token });
+				setStatusCookie(reply);
+
+				return reply.status(200).send({
+					message: 'Inscription réussie',
+					user: { id: user.id, username: user.username }
+				});
 			
 			} else {
 				return reply.status(resultinsert.statusCode).send(resultinsert);
@@ -78,9 +84,15 @@ export async function authRoutes(app: FastifyInstance) {
 				email: validUser.email,
 				name: validUser.username,
 			});
+			console.log(validUser.username);
 			await majLastlog(validUser.username);
 			setAuthCookie(reply, token);
-			return reply.status(200).send({ message: 'Connexion réussie', token });
+			setStatusCookie(reply);
+
+			return reply.status(200).send({
+				message: 'Connexion réussie',
+				user: { id: validUser.id, username: validUser.username }
+			});
 
 		} catch (err) {
 			request.log.error(err);
@@ -92,7 +104,7 @@ export async function authRoutes(app: FastifyInstance) {
 
 	// LOGOUT
 	app.post('/logout', async (request: FastifyRequest, reply: FastifyReply) => {
-		reply.clearCookie('auth_token', { path: '/' });
+		clearAuthCookies(reply);
 		reply.send({ message: 'Déconnecté' })});
 
 
@@ -182,8 +194,10 @@ export async function authRoutes(app: FastifyInstance) {
 				name: userData.given_name,
 				avatar: userData.picture,
 			});
+
 			await majLastlog(userData.given_name);
 			setAuthCookie(reply, token);
+			setStatusCookie(reply);
 
 			// Redirection simple sans token dans l'URL
 			return reply.redirect(process.env.GOOGLE_REDIRECT_FRONTEND!);

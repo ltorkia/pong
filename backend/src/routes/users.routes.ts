@@ -1,6 +1,6 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { getAllUsers, getUser, getUserFriends, getUserGames, getUserChat } from '../db/user';
-import { requireAuth } from '../utils/auth';
+import { requireAuth } from '../helpers/auth.helpers';
 
 export async function usersRoutes(app: FastifyInstance) {
 	// pour afficher tous les users : nom + email

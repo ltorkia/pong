@@ -12,28 +12,32 @@ class UserStore {
 
 	setCurrentUser(user: User) {
 		this.user = user;
+		localStorage.setItem('currentUser', JSON.stringify(user));
+		console.log('[UserStore] Utilisateur stocké :', user.id);
 	}
 
 	clearCurrentUser() {
+		if (!this.user) {
+			return;
+		}
 		this.user = null;
+		localStorage.removeItem('currentUser');
+		console.log('[UserStore] Utilisateur supprimé');
+	}
+
+	restoreFromStorage(): void {
+		const userJSON = localStorage.getItem('currentUser');
+		if (userJSON) {
+			try {
+				const user: User = JSON.parse(userJSON);
+				this.user = user;
+				console.log('[UserStore] User restauré :', user.id);
+			} catch {
+				console.warn('[UserStore] JSON invalide dans localStorage');
+				localStorage.removeItem('currentUser');
+			}
+		}
 	}
 }
-
-// Stocker notifications, préférences etc...
 
 export const userStore = new UserStore();
-
-export function initUserStore(rawUser: any): void {
-	if (!userStore.getCurrentUser()) {
-		const currentUser: User = {
-			id: rawUser.id as number,
-			username: rawUser.username as string
-		};
-		userStore.setCurrentUser(currentUser);
-		
-		// Sauvegarder dans localStorage (stringify)
-		localStorage.setItem('currentUser', JSON.stringify(currentUser));
-
-		console.log('[initUserStore] Utilisateur stocké :', currentUser.id);
-	}
-}

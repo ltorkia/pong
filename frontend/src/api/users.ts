@@ -1,10 +1,8 @@
 import { User } from '../models/User';
+import { secureFetch } from '../utils/helpers';
 
 export async function getUserLog(): Promise<any | null> {
-	const res = await fetch('/api/me', {
-		method: 'GET',
-		credentials: 'include'
-	});
+	const res = await secureFetch('/api/me', { method: 'GET' });
 	if (!res.ok) return null;
 	return res.json();
 }
@@ -28,9 +26,9 @@ export async function loginUser(data: Record<string, string>): Promise<any> {
 		method: 'POST',
 		headers: { 'Content-Type': 'application/json' },
 		body: JSON.stringify(data),
-		credentials: 'include'
 	});
 	const result = await res.json();
+
 	if (!res.ok || result.errorMessage) {
 		return { errorMessage: result.errorMessage || result.message || 'Erreur inconnue' };
 	}
@@ -50,31 +48,31 @@ export async function logoutUser(): Promise<any> {
 }
 
 export async function getUserById(id: number): Promise<User> {
-	const res = await fetch(`/api/users/${id}`);
+	const res = await secureFetch(`/api/users/${id}`, { method: 'GET' });
+	if (!res.ok) throw new Error('Erreur de l’API');
 	const data = await res.json();
 	return User.fromJson(data);
 }
 
 export async function getUsers(): Promise<User[]> {
-	const res = await fetch('/api/users');
+	const res = await secureFetch('/api/users', { method: 'GET' });
 	if (!res.ok) throw new Error('Erreur de l’API');
 	const data: any[] = await res.json();
 	return data.map(User.fromJson);
 }
 
 export async function getUserFriends(id: number | string): Promise<any> {
-	const res = await fetch(`/api/users/${id}/friends`);
+	const res = await secureFetch(`/api/users/${id}/friends`, { method: 'GET' });
 	if (!res.ok) throw new Error('Erreur de l’API');
 	return res.json();
 }
 
 export async function updateUser(id: number, data: any): Promise<any> {
-	const res = await fetch(`/api/users/${id}`, {
+	const res = await secureFetch(`/api/users/${id}`, {
 		method: 'PUT',
 		headers: { 'Content-Type': 'application/json' },
-		body: JSON.stringify(data)
+		body: JSON.stringify(data),
 	});
-	if (!res.ok) throw new Error('Erreur lors du logout');
+	if (!res.ok) throw new Error('Erreur lors de la mise à jour');
 	return res.json();
 }
-

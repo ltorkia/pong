@@ -3,7 +3,7 @@ import { loadFull } from "tsparticles";
 import { ParticlesManager } from './ParticlesManager';
 import { RouteManager } from './RouteManager';
 import { PageManager } from './PageManager';
-import { userStore, type User } from '../store/UserStore';
+import { hasAuthCookie, loadOrRestoreUser } from '../controllers/UserController';
 import { wait } from '../utils/helpers';
 
 export class AppManager {
@@ -15,12 +15,12 @@ export class AppManager {
 		this.particlesManager = new ParticlesManager();
 		this.pageManager = new PageManager();
 		this.routeManager = new RouteManager(this.pageManager, this.particlesManager);
-		this.restoreUserFromStorage();
 	}
 
 	/**
 	 * Méthode principale pour démarrer l'app.
 	 * 
+	 * - Charge ou restaure un utilisateur
 	 * - Initialise le moteur tsParticles
 	 * - Attend que le DOM soit prêt: wait (await new Promise())
 	 * - Supprime la class Load sur le body qui empêche les transitions au refresh
@@ -28,8 +28,9 @@ export class AppManager {
 	 * - Charge les particules d'arrière-plan
 	 * - Lance le RouteManager pour gérer la navigation et afficher la bonne page
 	 */
-	public async start() {
+	public async start(): Promise<void> {
 		console.log('=== DEMARRAGE APP ===');
+		await this.loadUser();
 		await this.tsParticlesInit();
 		await wait(100);
 		document.body.classList.remove('load');
@@ -50,36 +51,36 @@ export class AppManager {
 	}
 
 	/**
+	 * Charge ou restaure un utilisateur à l'aide du cookie compagnon,
+	 * le store, localStorage, et enfin l'api avec requête à /api/me
+	 */
+	private async loadUser(): Promise<void> {
+		// Vérification rapide avec le cookie compagnon
+		const authCookieIsActive = hasAuthCookie();
+		if (authCookieIsActive) {
+			console.log('[AppManager] Cookie auth-status présent, chargement utilisateur...');
+			// Seulement dans ce cas on charge l'utilisateur
+			// Cette fonction utilisera localStorage en priorité, puis API si nécessaire
+			await loadOrRestoreUser();
+			return;
+		}
+		// Si pas de cookie:
+		console.log('[AppManager] Pas de cookie auth-status, démarrage sans utilisateur');
+		// Pas besoin d'appeler loadOrRestoreUser(), on sait déjà qu'il n'y a pas d'utilisateur
+		// Le router gérera les redirections si nécessaire
+	}
+
+	/**
 	 * Initialise le moteur tsParticles avec toutes ses fonctionnalités.
 	 * Cette méthode est appelée ue seule fois au démarrage de l'app.
 	 * Doit être appelée avant toute utilisation de tsParticles.load().
 	 */
-	private async tsParticlesInit() {
+	private async tsParticlesInit(): Promise<void> {
 		try {
 			await loadFull(tsParticles);
 			console.log('tsParticles initialisé');
 		} catch (error) {
 			console.error('Error init tsParticles:', error);
-		}
-	}
-
-	/**
-	 * Restaure l'utilisateur depuis le localStorage s'il existe.
-	 * Si une donnée currentUser est trouvée on tente de la parser en objet User.
-	 * Si le parsing réussit l'utilisateur est enregistré dans le store.
-	 * Si le parsing échoue, genre données corrompues, on supprime currentUser du localStorage.
-	 */
-	private restoreUserFromStorage(): void {
-		const userJSON = localStorage.getItem('currentUser');
-		if (userJSON) {
-			try {
-				const user: User = JSON.parse(userJSON);
-				userStore.setCurrentUser(user);
-				console.log('[restoreUserFromStorage] User restauré :', user.id);
-			} catch {
-				console.warn('[restoreUserFromStorage] JSON invalide dans localStorage');
-				localStorage.removeItem('currentUser');
-			}
 		}
 	}
 

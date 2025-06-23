@@ -1,6 +1,6 @@
 import { PUBLIC_ROUTES } from '../config/public.routes';
-import { getUserLog } from '../api/users';
-import { userStore, initUserStore } from '../store/UserStore';
+import { hasAuthCookie, loadOrRestoreUser } from '../controllers/UserController';
+import { userStore } from '../store/UserStore';
 
 type RouteHandler = (params?: Record<string, string>) => Promise<void> | void;
 
@@ -179,48 +179,69 @@ export class Router {
 	}
 
 	/**
-	 * Gestion des redirections d’authentification:
-	 * Rediriger vers /login si l’utilisateur non authentifié tente d’accéder à une page privée.
-	 * Rediriger vers / si un utilisateur déjà authentifié tente d’accéder à /login ou /register.
-	 * Enregistrement du current user dans store pour éviter de faire des appels intempestifs à api/me
+	 * Gère les redirections d’authentification avant d’exécuter une route.
+	 * 
+	 * - Restaure l’utilisateur depuis localStorage si absent du store.
+	 * - Redirige vers /login si l’utilisateur tente d’accéder à une page privée sans être authentifié.
+	 * - Redirige vers / si l’utilisateur authentifié tente d’accéder à une page publique (/login, /register).
+	 * 
+	 * Retourne true si une redirection a eu lieu, false sinon.
 	 */
 	private async handleAuthRedirect(matchedRoute: { route: string }): Promise<boolean> {
 		try {
 			const publicRoutes = PUBLIC_ROUTES.map(route => `${route}`);
+			const isPublic = publicRoutes.includes(matchedRoute.route);
 
-			let userLogStatus = null;
-			try {
-				// Vérification du token de connexion auprès du backend
-				userLogStatus = await getUserLog(); // appel /api/me
-				initUserStore(userLogStatus);       // met à jour le store + localStorage
-			} catch {
-				// Token invalide ou expiré, nettoyage
+			// Vérifie si un utilisateur est déjà chargé avec le cookie compagnon
+			const authCookieIsActive = hasAuthCookie();
+
+			// LOGIQUE DE REDIRECTION
+			// Si route privée et user pas authentifié, redirection vers /login
+			if (!isPublic && !authCookieIsActive) {
 				userStore.clearCurrentUser();
-				window.localStorage.removeItem('user');
+				console.log('[handleAuthRedirect] Non connecté -> redirection vers /login');
+				await this.redirect('/login');
+				return true;
 			}
 
-			if (!publicRoutes.includes(matchedRoute.route)) {
-				// Route privée
-				if (!userLogStatus) {
-					console.log('Redirection vers /login (non authentifié)');
-					await this.redirect('/login');
-					return true;
-				}
-				initUserStore(userLogStatus);
-			} else {
-				// Route publique
-				if (userLogStatus) {
-					initUserStore(userLogStatus);
-					console.log('Redirection vers / (authentifié)');
+			// Si route publique (login ou register) et user authentifié, redirection vers /
+			if (isPublic && authCookieIsActive) {
+
+				// Vérification dans le store d'abord
+				if (userStore.getCurrentUser()) {
+					console.log('[handleAuthRedirect] Utilisateur déjà en store -> redirection vers /');
 					await this.redirect('/');
 					return true;
 				}
+				
+				// Si pas en store mais cookie présent, essayer de restaurer
+				// via localStorage puis fallback API
+				const user = await loadOrRestoreUser();
+				if (user) {
+					console.log('[handleAuthRedirect] Utilisateur restauré -> redirection vers /');
+					await this.redirect('/');
+					return true;
+				}
+				// Si pas d'utilisateur mais cookie présent: désynchronisation cookie/serveur
 			}
+
+			// Seulement pour les routes privées avec cookie présent, on charge le user avec requête API
+			if (!isPublic && authCookieIsActive) {
+				const user = await loadOrRestoreUser();
+				if (!user) {
+					// Cookie présent mais pas d'utilisateur valide
+					// (cas de désynchronisation ou session expirée côté serveur)
+					console.log('[handleAuthRedirect] Cookie présent mais utilisateur invalide -> redirection vers /login');
+					await this.redirect('/login');
+					return true;
+				}
+			}
+
 			return false;
+
 		} catch (err) {
-			console.log('Erreur lors de la vérification auth:', err);
+			console.error('[handleAuthRedirect] Erreur critique', err);
 			userStore.clearCurrentUser();
-			window.localStorage.removeItem('user');
 			await this.redirect('/login');
 			return true;
 		}

@@ -1,6 +1,6 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { getUser } from '../db/user';
-import { requireAuth } from '../utils/auth';
+import { requireAuth } from '../helpers/auth.helpers';
 
 export async function apiMe(app: FastifyInstance) {
 
