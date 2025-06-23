@@ -64,7 +64,10 @@ export class AppManager {
 	}
 
 	/**
-	 * Permet d'accéder au router pour debug
+	 * Restaure l'utilisateur depuis le localStorage s'il existe.
+	 * Si une donnée currentUser est trouvée on tente de la parser en objet User.
+	 * Si le parsing réussit l'utilisateur est enregistré dans le store.
+	 * Si le parsing échoue, genre données corrompues, on supprime currentUser du localStorage.
 	 */
 	private restoreUserFromStorage(): void {
 		const userJSON = localStorage.getItem('currentUser');
