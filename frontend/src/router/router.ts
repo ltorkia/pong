@@ -188,16 +188,16 @@ export class Router {
 		try {
 			const publicRoutes = PUBLIC_ROUTES.map(route => `${route}`);
 
-			// Check localStorage -> userStore avant de faire la requête API qui check si l'utilisateur est connecté
-			const localUser = userStore.getCurrentUser();
-			let userLogStatus;
-				if (localUser) {
-					// Utilisateur local existe
-					userLogStatus = localUser;
-				} else {
-					// Pas d'utilisateur en local, on fait la requête API pour vérifier
-					userLogStatus = await getUserLog();
-				}
+			let userLogStatus = null;
+			try {
+				// Vérification du token de connexion auprès du backend
+				userLogStatus = await getUserLog(); // appel /api/me
+				initUserStore(userLogStatus);       // met à jour le store + localStorage
+			} catch {
+				// Token invalide ou expiré, nettoyage
+				userStore.clearCurrentUser();
+				window.localStorage.removeItem('user');
+			}
 
 			if (!publicRoutes.includes(matchedRoute.route)) {
 				// Route privée
@@ -219,6 +219,8 @@ export class Router {
 			return false;
 		} catch (err) {
 			console.log('Erreur lors de la vérification auth:', err);
+			userStore.clearCurrentUser();
+			window.localStorage.removeItem('user');
 			await this.redirect('/login');
 			return true;
 		}

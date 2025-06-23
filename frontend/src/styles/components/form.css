@@ -1,19 +1,29 @@
 @layer components {
 	.form-box {
-		@apply max-w-sm mx-auto p-4 space-y-8 text-xl;
+		@apply w-full mx-auto p-4 space-y-8 text-xl
+
+		mobile:max-w-sm;
+	}
+	.form-box#login-form {
+		@apply px-9;
 	}
 	.fields-container {
 		@apply space-y-4;
 	}
+
 	.field-box {
-		@apply flex items-center space-x-2;
+		@apply flex flex-col justify-center
+		
+		mobile:flex-row mobile:items-center mobile:space-x-2;
 	}
 	.field-box label {
-		@apply w-28 text-right text-lg font-classic text-xs;
+		@apply w-full font-classic text-xs
+		
+		mobile:w-28 mobile:text-right;
 	}	
 	.field-box input, .field-box select {
-		@apply flex-1 border border-gray-300 rounded px-3 py-1 focus:outline-none focus:ring focus:ring-blue-300
-		text-black font-classic text-sm;
+		@apply border border-gray-300 rounded px-3 py-1 focus:outline-none focus:ring focus:ring-blue-300
+		text-black font-classic text-sm w-full;
 	}
 	.important-field {
 		@apply font-bold text-red-300 text-base;

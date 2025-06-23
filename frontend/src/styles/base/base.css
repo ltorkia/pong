@@ -6,17 +6,10 @@
 
 		/* Padding de la box principale / responsive */
 		--p: 0.5rem;
-		--p-tablet: 4rem;
+		--p-tablet: 3rem;
 		--p-desktop: 3rem;
 		--p-wide: 3rem;
 		--p-extra-wide: 3rem;
-
-		/* Padding top main / responsive */
-		--pt-main: calc(var(--navbar-height) + var(--p));
-		--pt-main-tablet: calc(var(--navbar-height) + var(--p-tablet));
-		--pt-main-desktop: calc(var(--navbar-height) + var(--p-desktop));
-		--pt-main-wide: calc(var(--navbar-height) + var(--p-wide));
-		--pt-main-extra-wide: calc(var(--navbar-height) + var(--p-extra-wide));
 
 		/* A déduire de la taille de la box principale / responsive */
 		--minus: calc(var(--navbar-height) + var(--footer-height) + var(--p) + var(--p));
@@ -52,13 +45,14 @@
 	}
 
 	main {
-		@apply w-screen h-full pt-[--pt-main] pb-[--p] px-[--p]
+		@apply w-screen h-full py-[--p] px-[--p]
 		overflow-auto
 		
-		tablet:pb-[--p-main-tablet] tablet:px-14
-		desktop:pb-[--p-main-desktop] desktop:px-24
-		wide:pb-[--p-main-wide] wide:px-24
-		extra-wide:pb-[--p-main-extra-wide] extra-wide:px-48;
+		/* mobile:py-[--p] px-[--p] */
+		tablet:py-[--p-tablet] tablet:px-14
+		desktop:py-[--p-desktop] desktop:px-24
+		wide:py-[--p-wide] wide:px-24
+		extra-wide:py-[--p-extra-wide] extra-wide:px-48;
 	}
 
 	footer {

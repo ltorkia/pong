@@ -1,26 +1,33 @@
 @layer components {
 	
-	/* NAVBAR + NOTIFBAR */
+	/* LOGO + NAVBAR + NOTIFBAR */
 	.navbar-content {
 		@apply fixed z-50 h-[--navbar-height]
 		w-screen top-0 left-0 space-x-10
-		flex justify-center items-center
+		flex justify-between items-center
 		text-white text-shadow-black
 		bg-white/10 backdrop-blur-xl shadow-md
+		pl-14 pr-6
 
-		desktop:bg-transparent desktop:backdrop-blur-none desktop:shadow-none;
+		desktop:bg-white/10 desktop:pl-6 desktop:pr-3 desktop:space-x-6
+		wide:px-6;
 	}
 	
 	.navbar-style {
 		@apply flex justify-center items-center
-		
-		desktop:bg-white/10 desktop:backdrop-blur-xl desktop:border desktop:px-6
-		desktop:border-white/20 desktop:shadow-md desktop:rounded-full;
 	}
 
-	.navbar-pos {
-		@apply w-screen h-[--navbar-height]
-		desktop:w-auto;
+	/* LOGO */
+	.navbar-content .pong-logo {
+		@apply animate-none m-0;
+	}
+	.navbar-content .title {
+		@apply flex flex-row text-2xl ml-3 mr-4
+		
+		desktop:ml-0;
+	}
+	.navbar-content .magical-ball {
+		@apply animate-none static w-5 h-5;
 	}
 
 	/* NAVBAR */
@@ -28,7 +35,7 @@
 	/* MENU BURGER POUR MOBILE/TABLET */
 	#burger-btn {
 		@apply absolute left-6 top-4 text-white text-2xl z-50
-		hover:text-blue-300
+		hover:text-blue-200
 		hover:scale-105 active:scale-95
 		
 		desktop:hidden;
@@ -43,6 +50,19 @@
 		@apply translate-x-0 pointer-events-auto;
 	}
 
+	.sharp-edges {
+		clip-path: polygon(5% 0%, 100% 0%, 95% 100%, 0% 100%);
+	}
+
+	.navbar-pos {
+		@apply w-screen h-[--navbar-height]
+
+		desktop:absolute desktop:left-1/2 desktop:transform desktop:-translate-x-1/2
+		desktop:w-auto
+		desktop:bg-black/30 desktop:backdrop-blur-xl desktop:px-10
+		desktop:sharp-edges;
+	}
+
 	#navbar-menu {
 		@apply w-full h-screen flex-col justify-center items-center
 		absolute top-full left-0
@@ -50,7 +70,9 @@
 		border-r border-t border-l border-slate-500/40 shadow-2xl
 		transition-transform duration-200 ease-in-out
 
-		desktop:show desktop:static desktop:w-auto desktop:flex desktop:flex-row desktop:space-x-16
+		desktop:show desktop:static desktop:w-auto desktop:flex desktop:flex-row
+		desktop:space-x-8
+		wide:space-x-16
 		desktop:bg-transparent desktop:backdrop-blur-none desktop:border-none desktop:shadow-none;
 	}
 	#navbar-menu a {
@@ -73,17 +95,14 @@
 
 	/* NOTIFBAR */
 	.notifbar-wrapper {
-		@apply absolute w-auto top-0 right-6 flex justify-center items-center
+		@apply flex justify-center items-center
 		
-		desktop:h-screen desktop:right-3
 		wide:h-[--navbar-height];
 	}
 
 	.notifbar-px {
-		@apply flex-row space-x-10 space-y-0 w-auto h-[--navbar-height] 
-		desktop:rounded-full desktop:bg-white/10 desktop:backdrop-blur-xl desktop:border desktop:border-white/20
-		desktop:flex-col desktop:py-3 desktop:space-x-0 desktop:space-y-6 desktop:w-[--navbar-height] desktop:h-auto
-		wide:flex-row wide:space-x-10 wide:space-y-0 wide:w-auto wide:h-[--navbar-height];
+		@apply flex-row space-x-10 space-y-0 w-auto h-[--navbar-height]
+		wide:flex-row wide:space-x-14 wide:space-y-0 wide:w-auto wide:h-[--navbar-height];
 	}
 	.notifbar-px a {
 		@apply flex justify-center items-center;

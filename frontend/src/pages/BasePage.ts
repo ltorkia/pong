@@ -66,6 +66,12 @@ export abstract class BasePage {
 			return;
 		}
 
+		// On ajoute un margin à la balise 'main' qui correspond à ola hauteur de la navbar
+		const main = document.querySelector('main');
+		if (main) {
+			main.classList.add('mt-main');
+		}
+
 		// Injection de la navbar
 		const navbarPath = '/templates/navbar.html';
 		const htmlNavbar = await this.loadTemplate(navbarPath);

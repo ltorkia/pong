@@ -27,7 +27,7 @@ export default {
 				'body-bg-img': images.forestWallpaper
 			},
 			screens: {
-				'mobile': '360px',
+				'mobile': '390px',
 				'tablet': '768px',
 				'desktop': '1024px',
 				'wide': '1280px',

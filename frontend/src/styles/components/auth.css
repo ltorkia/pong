@@ -13,7 +13,7 @@
 
 	/* LOGIN PAGE */
 	.login-box {
-		@apply px-0 mt-0;
+		@apply px-0 m-5 mt-0;
 	}
 	#login-form {
 		@apply mb-4 border-b-8 border-b-white/20;
