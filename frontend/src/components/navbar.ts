@@ -1,5 +1,6 @@
 import { setProfileLink } from '../utils/navbar.utils';
 import { isPublicTemplate } from '../utils/app.utils';
+// import { isPublicTemplate, shouldShowNavbar } from '../config/routes.config';
 
 export function shouldShowNavbar(templatePath: string): boolean {
 	return !isPublicTemplate(templatePath);
