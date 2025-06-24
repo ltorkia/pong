@@ -1,6 +1,6 @@
 import { router } from '../router/router';
 import { userManager } from '../managers/UserManager';
-import { showError } from '../utils/errors.utils';
+import { showError } from '../utils/app.utils';
 import { REGISTERED_MSG } from '../config/messages';
 
 /**

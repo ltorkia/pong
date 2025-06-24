@@ -1,10 +1,10 @@
 // PAGES
-import { HomePage } from '../pages/HomePage';
-import { RegisterPage } from '../pages/RegisterPage';
-import { LoginPage } from '../pages/LoginPage';
-import { GamePage } from '../pages/GamePage';
-import { UsersPage } from '../pages/UsersPage';
-import { ProfilePage } from '../pages/ProfilePage';
+import { HomePage } from '../views/HomeView';
+import { RegisterPage } from '../views/RegisterView';
+import { LoginPage } from '../views/LoginView';
+import { GamePage } from '../views/GameView';
+import { UsersPage } from '../views/UsersView';
+import { ProfilePage } from '../views/ProfileView';
 
 // MANAGERS
 import { PageManager } from './PageManager';

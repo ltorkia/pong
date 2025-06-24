@@ -1,6 +1,6 @@
-import { PUBLIC_ROUTES } from '../config/public.routes';
 import { userManager } from '../managers/UserManager';
 import { userStore } from '../store/UserStore';
+import { isPublicRoute } from '../utils/app.utils';
 
 type RouteHandler = (params?: Record<string, string>) => Promise<void> | void;
 
@@ -189,8 +189,7 @@ export class Router {
 	 */
 	private async handleAuthRedirect(matchedRoute: { route: string }): Promise<boolean> {
 		try {
-			const publicRoutes = PUBLIC_ROUTES.map(route => `${route}`);
-			const isPublic = publicRoutes.includes(matchedRoute.route);
+			const isPublic = isPublicRoute(matchedRoute.route);
 
 			// Vérifie si un utilisateur est déjà chargé avec le cookie compagnon
 			const authCookieIsActive = userManager.hasAuthCookie();

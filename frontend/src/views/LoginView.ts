@@ -1,4 +1,4 @@
-import { BasePage } from './BasePage';
+import { BasePage } from './BaseView';
 import { UserController } from '../controllers/UserController';
 
 export class LoginPage extends BasePage {

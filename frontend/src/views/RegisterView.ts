@@ -1,4 +1,4 @@
-import { BasePage } from './BasePage';
+import { BasePage } from './BaseView';
 
 export class RegisterPage extends BasePage {
 

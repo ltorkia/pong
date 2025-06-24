@@ -11,16 +11,15 @@ export async function authRoutes(app: FastifyInstance) {
 	app.post('/register', async (request: FastifyRequest, reply: FastifyReply) => {
 		try {
 			const result = RegisterInputSchema.safeParse(request.body);
-	
 			if (!result.success) {
 				const error = result.error.errors[0];
 				return reply.status(400).send({statusCode: 400, errorMessage: error.message + " in " + error.path });
 			}
+
 			const userToInsert = result.data;
 			userToInsert.password = await bcrypt.hash(userToInsert.password, 10);
 	
 			const resultinsert = await insertUser(userToInsert, null);
-
 			if (resultinsert.statusCode === 201) {
 				const user = await getUserP(userToInsert.email);
 				const token = generateJwt(app, {
@@ -36,10 +35,8 @@ export async function authRoutes(app: FastifyInstance) {
 					message: 'Inscription réussie',
 					user: { id: user.id, username: user.username }
 				});
-			
-			} else {
-				return reply.status(resultinsert.statusCode).send(resultinsert);
 			}
+			return reply.status(resultinsert.statusCode).send(resultinsert);
 	
 		} catch (err) {
 			request.log.error(err);

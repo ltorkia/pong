@@ -5,8 +5,7 @@
 		@apply fixed z-50 h-[--navbar-height]
 		w-screen top-0 left-0 space-x-10
 		flex justify-between items-center
-		text-white text-shadow-black
-		bg-white/10 backdrop-blur-xl shadow-md
+		text-white bg-white/10 backdrop-blur-xl
 		pl-14 pr-6
 
 		desktop:bg-white/10 desktop:pl-6 desktop:pr-3 desktop:space-x-6
@@ -50,30 +49,25 @@
 		@apply translate-x-0 pointer-events-auto;
 	}
 
-	.sharp-edges {
-		clip-path: polygon(5% 0%, 100% 0%, 95% 100%, 0% 100%);
-	}
-
 	.navbar-pos {
 		@apply w-screen h-[--navbar-height]
 
 		desktop:absolute desktop:left-1/2 desktop:transform desktop:-translate-x-1/2
 		desktop:w-auto
-		desktop:bg-black/30 desktop:backdrop-blur-xl desktop:px-10
+		desktop:bg-black/40 desktop:backdrop-blur-xl desktop:px-10
 		desktop:sharp-edges;
 	}
 
 	#navbar-menu {
 		@apply w-full h-screen flex-col justify-center items-center
-		absolute top-full left-0
-		bg-slate-900/50
-		border-r border-t border-l border-slate-500/40 shadow-2xl
+		absolute top-full left-0 bg-slate-900/50
+		border-r border-t border-l border-slate-500/40
 		transition-transform duration-200 ease-in-out
 
 		desktop:show desktop:static desktop:w-auto desktop:flex desktop:flex-row
 		desktop:space-x-8
 		wide:space-x-16
-		desktop:bg-transparent desktop:backdrop-blur-none desktop:border-none desktop:shadow-none;
+		desktop:bg-transparent desktop:backdrop-blur-none desktop:border-none;
 	}
 	#navbar-menu a {
 		@apply w-full bg-slate-900/90 hover:bg-slate-800/95
@@ -81,7 +75,8 @@
 		border-b border-slate-500/30 py-6 px-4 hover:text-blue-200
 
 		desktop:w-auto desktop:pl-0
-		desktop:flex-col desktop:justify-center desktop:space-x-0 desktop:border-none desktop:py-0 desktop:bg-transparent desktop:hover:bg-transparent;
+		desktop:flex-col desktop:justify-center desktop:space-x-0 desktop:border-none
+		desktop:py-0 desktop:bg-transparent desktop:hover:bg-transparent;
 	}
 	#navbar-menu a.active {
 		@apply text-blue-300;

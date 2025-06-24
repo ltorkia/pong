@@ -1,4 +1,4 @@
-import { shouldShowNavbar, setupNavbar } from '../controllers/NavbarController';
+import { shouldShowNavbar, setupNavbar } from '../components/navbar';
 import { UserController } from '../controllers/UserController';
 
 export abstract class BasePage {
@@ -21,7 +21,7 @@ export abstract class BasePage {
 			console.log(`${this.constructor.name}: Début du rendu...`);
 
 			// Chargement asynchrone de la navbar en fonction du statut log utilisateur
-			await this.generateNavbar();
+			await this.loadNavbar();
 			console.log(`${this.constructor.name}: Navbar générée`);
 
 			// Chargement asynchrone du template html via fetch
@@ -46,46 +46,30 @@ export abstract class BasePage {
 		}
 	}
 
-	protected async beforeMount(): Promise<void> {
-
-		// Chargement asynchrone de la navbar en fonction du statut log utilisateur
-		await this.generateNavbar();
-		console.log(`${this.constructor.name}: Navbar générée`);
-
-		// Chargement asynchrone du template html via fetch
-		// + injection html dans la div #app
-		const html = await this.loadTemplate(this.templatePath);
-		this.container.innerHTML = html;
-		
-		console.log(`${this.constructor.name}: HTML injecté`);
-
-		// On attache les listeners relatifs à la page (ex gestion de clic LOGIN pour gérer la logique de connexion)
-		this.attachListeners();
-		console.log(`${this.constructor.name}: Listeners attachés`);
-	}
-
 	/**
 	 * Pour generer le contenu de la navbar en fonction de si on est log ou pas
 	 */
-	protected async generateNavbar(): Promise<void> {
+	protected async loadNavbar(): Promise<void> {
 
 		// On return si on est sur une page publique (login / register = pas de navbar)
 		// et on clean la navbar pour qu'elle ne reste pas sur la prochaine page
 		const navbar = document.getElementById('navbar');
 		const showNavbar = shouldShowNavbar(this.templatePath);
 		if (!showNavbar) {
-			if (navbar) navbar.innerHTML = '';
+			if (navbar) {
+				navbar.innerHTML = '';
+			}
 			return;
 		}
 
-		// On ajoute un margin à la balise 'main' qui correspond à ola hauteur de la navbar
+		// On ajoute un margin à la balise 'main' qui correspond à la hauteur de la navbar
 		const main = document.querySelector('main');
 		if (main) {
 			main.classList.add('mt-main');
 		}
 
 		// Injection de la navbar
-		const navbarPath = '/templates/navbar.html';
+		const navbarPath = '/components/navbar.html';
 		const htmlNavbar = await this.loadTemplate(navbarPath);
 		navbar!.innerHTML = htmlNavbar;
 

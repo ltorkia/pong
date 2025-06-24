@@ -1,5 +1,5 @@
 import { User } from '../models/User';
-import { secureFetch } from '../utils/helpers';
+import { secureFetch } from '../utils/app.utils';
 
 export async function getUserLog(): Promise<any | null> {
 	const res = await secureFetch('/api/me', { method: 'GET' });

@@ -1,11 +1,11 @@
-import { BasePage } from './BasePage';
+import { BasePage } from './BaseView';
 import { getUserById, getUserFriends } from '../api/users';
 
 export class ProfilePage extends BasePage {
 	private userId: number;
 
 	constructor(container: HTMLElement, userId: number) {
-		// super() appelle le constructeur du parent BasePage
+		// super() appelle le constructeur du parent BaseView
 		// avec le container et le chemin du template HTML pour la page profile
 		super(container, '/templates/profile.html');
 		this.userId = userId;

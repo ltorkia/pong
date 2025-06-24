@@ -48,7 +48,6 @@
 		@apply w-screen h-full py-[--p] px-[--p]
 		overflow-auto
 		
-		/* mobile:py-[--p] px-[--p] */
 		tablet:py-[--p-tablet] tablet:px-14
 		desktop:py-[--p-desktop] desktop:px-24
 		wide:py-[--p-wide] wide:px-24
@@ -56,7 +55,7 @@
 	}
 
 	footer {
-		@apply flex items-center justify-center
+		@apply w-screen flex items-center justify-center
 		font-classic text-xs bg-white/10 backdrop-blur-xl border border-white/20
 		shadow-md text-white text-center text-shadow-black
 		h-[--footer-height];

@@ -16,6 +16,11 @@
 		bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded;
 	}
 
+	/* EDGES FOR NAVBAR + FOOTER */
+	.sharp-edges {
+		clip-path: polygon(5% 0%, 100% 0%, 95% 100%, 0% 100%);
+	}
+
 	/* SITE LOGO */
 	.pong-logo {
 		@apply text-center mb-4 animate-logo-appear cursor-pointer;
@@ -110,5 +115,9 @@
 		absolute -top-12 left-1/2 -translate-x-1/2
 		
 		tablet:w-36 tablet:h-36 tablet:-top-16;
+	}
+
+	footer div {
+		@apply h-full flex justify-center items-center;
 	}
 }

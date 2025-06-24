@@ -20,8 +20,7 @@ export async function apiMe(app: FastifyInstance) {
 
 			return reply.send({
 				id: dbUser.id,
-				username: dbUser.username,
-				email: dbUser.email
+				username: dbUser.username
 			});
 			
 		} catch (err) {

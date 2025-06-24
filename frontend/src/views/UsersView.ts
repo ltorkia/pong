@@ -1,10 +1,10 @@
-import { BasePage } from './BasePage';
+import { BasePage } from './BaseView';
 import { getUsers, getUserFriends } from '../api/users';
 
 export class UsersPage extends BasePage {
 
 	constructor(container: HTMLElement) {
-		// super() appelle le constructeur du parent BasePage
+		// super() appelle le constructeur du parent BaseView
 		// avec le container et le chemin du template HTML pour la page home
 		super(container, '/templates/users.html');
 	}
