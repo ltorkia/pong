@@ -4,12 +4,6 @@ import { GoogleCallbackQuery, GoogleTokenResponse, GoogleUserInfo } from '../typ
 import { insertUser, getUserP, majLastlog, getUser } from '../db/user';
 import { RegisterInputSchema, LoginInputSchema } from '../types/zod/auth.zod';
 
-
-// async function checkLogin(result, validUser) {
-
-
-// } 
-
 async function RegisterClassic(request: FastifyRequest, reply: FastifyReply)
 {
 	const result = RegisterInputSchema.safeParse(request.body);
@@ -100,7 +94,8 @@ export async function authRoutes(app: FastifyInstance) {
 				id: validUser.id,
 				email: validUser.email,
 			});
-
+			await majLastlog(validUser.username);
+			
 			reply.setCookie('auth_token', token, {
 				path: '/',
 				httpOnly: true,
@@ -109,7 +104,6 @@ export async function authRoutes(app: FastifyInstance) {
 				maxAge: 60 * 60 * 24 * 7, // 7 jours
 			});
 
-			// await majLastlog(validUser.username);
 
 			return reply.status(200).send({
 				message: 'Connexion réussie',
@@ -211,7 +205,7 @@ export async function authRoutes(app: FastifyInstance) {
 				{ expiresIn: '1h' }				// Le token expire dans 1 heure
 			);
 
-			await majLastlog(userData.given_name);
+			await majLastlog(userGoogle.given_name);
 			
 			reply.setCookie('auth_token', token, {
 				path: '/',

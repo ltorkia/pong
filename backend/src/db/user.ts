@@ -141,9 +141,14 @@ export async function insertUser(user: (RegisterInput | {username: string, email
 	{
 		if(await getUser(null, user.username))
 		{
-			for (let i = 0; i < 20000000; i++)
+			const now = Date.now();
+			const digits = now.toString().split('');
+			const len = digits.length;
+			console.log( now + " " + digits + " " + len);
+
+			for (let i = 0; i < len; i++)
 			{
-				user.username = user.username + "_" + i;
+				user.username = user.username + "_" + digits[i];
 				if (!await getUser(null, user.username))
 					break ;
 			}
