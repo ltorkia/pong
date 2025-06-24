@@ -1,17 +1,21 @@
 import { FastifyRequest, FastifyReply, FastifyInstance } from 'fastify';
+import { JwtPayload } from '../types/jwt.types';
+import { clearAuthCookies } from '../helpers/auth.helpers';
+
+// ROUTES
 import { healthRoutes } from './health.routes';
 import { authRoutes } from './auth.routes';
 import { usersRoutes } from './users.routes';
 import { testsRoutes } from './tests.routes';
 import { apiMe } from './api.me';
-import { JwtPayload } from '../types/jwt.types';
+
+// DB
+import { getUser } from '../db/user';
 
 export async function apiRoutes(app: FastifyInstance) {
 
 	// Hook global pour vérifier JWT et injecter l'utilisateur sur les routes protégées
 	app.addHook('onRequest', async (request: FastifyRequest, reply: FastifyReply) => {
-		
-		// Routes publiques qu'on peut visiter pas logged
 		const publicRoutes = [
 			'/api/auth/login',
 			'/api/auth/register',
@@ -33,20 +37,37 @@ export async function apiRoutes(app: FastifyInstance) {
 		// Route protégée: on check JWT et on injecte l'utilisateur
 		try {
 			const decoded = await request.jwtVerify<JwtPayload>();
-			if (!decoded || !decoded.id) {
-				return reply.status(401).send({ 
+
+			// Si JWT invalide, on clear les cookies d'authentification
+			if (!decoded || !decoded?.id) {
+				clearAuthCookies(reply);
+				return reply.status(401).send({
 					error: 'Unauthorized',
-					message: 'Token JWT invalide - payload manquant'
+					message: 'Token JWT invalide - payload manquant',
 				});
 			}
-			
-			// On stocke l'utilisateur dans request
+
+			// On check que l'utilisateur existe bien en bdd
+			// Si non on clear les cookies d'authentification
+			const user = await getUser(decoded.id);
+			if (!user || user.is_deleted) {
+				clearAuthCookies(reply);
+				return reply.status(401).send({
+					error: 'Unauthorized',
+					message: 'Utilisateur inexistant ou supprimé',
+				});
+			}
+
 			request.user = decoded;
-			
+			// ou injecter directement l'objet user ??
+			// (request as any).user = user;
+			// a caster plus tard dans les handlers avec const user = request.user as UserForDashboard;
+
 		} catch (err) {
-			return reply.status(401).send({ 
+			clearAuthCookies(reply);
+			return reply.status(401).send({
 				error: 'Unauthorized',
-				message: 'Token JWT manquant ou invalide'
+				message: 'Token JWT manquant ou invalide',
 			});
 		}
 	});

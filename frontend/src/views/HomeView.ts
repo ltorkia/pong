@@ -13,6 +13,10 @@ export class HomeView extends BaseView {
 
 	protected async mount(): Promise<void> {
 		try {
+			if (!this?.userId) {
+				console.warn('[HomeView] Pas d\'ID utilisateur défini');
+				return;
+			}
 			const user = await getUserById(this.userId);
 			const avatar = document.querySelector('.avatar') as HTMLElement;
 			const h1 = document.querySelector('.page-title') as HTMLElement;

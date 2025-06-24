@@ -55,7 +55,9 @@ export function matchRoute(path: string, routes: Map<string, RouteHandler>): { r
 		const routeParts = route.split('/');
 		const pathParts = path.split('/');
 
-		if (routeParts.length !== pathParts.length) continue;
+		if (routeParts.length !== pathParts.length) {
+			continue;
+		}
 
 		let params: Record<string, string> = {};
 		let matched = true;
