@@ -3,20 +3,20 @@ export type User = {
 	username: string;
 };
 
-class UserStore {
+export class UserStore {
 	private user: User | null = null;
 
-	getCurrentUser(): User | null {
+	public getCurrentUser(): User | null {
 		return this.user;
 	}
 
-	setCurrentUser(user: User) {
+	public setCurrentUser(user: User) {
 		this.user = user;
 		localStorage.setItem('currentUser', JSON.stringify(user));
 		console.log('[UserStore] Utilisateur stocké :', user.id);
 	}
 
-	clearCurrentUser() {
+	public clearCurrentUser() {
 		if (!this.user) {
 			return;
 		}
@@ -25,7 +25,7 @@ class UserStore {
 		console.log('[UserStore] Utilisateur supprimé');
 	}
 
-	restoreFromStorage(): void {
+	public restoreFromStorage(): void {
 		const userJSON = localStorage.getItem('currentUser');
 		if (userJSON) {
 			try {

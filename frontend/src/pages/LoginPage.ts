@@ -1,5 +1,5 @@
 import { BasePage } from './BasePage';
-import { loginController } from '../controllers/UserController';
+import { UserController } from '../controllers/UserController';
 
 export class LoginPage extends BasePage {
 
@@ -18,7 +18,7 @@ export class LoginPage extends BasePage {
 			event.preventDefault();
 			const formData = new FormData(form);
 			const data = Object.fromEntries(formData.entries()) as Record<string, string>;
-			await loginController(data);
+			await this.userController.loginController(data);
 		});
 	}
 }

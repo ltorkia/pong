@@ -2,10 +2,10 @@ import { GameManager } from '../managers/GameManager';
 import { router } from '../router/router';
 
 export class GameController {
-	private manager?: GameManager;
+	private gameManager: GameManager;
 
-	public setManager(manager: GameManager): void {
-		this.manager = manager;
+	constructor() {
+		this.gameManager = new GameManager(this);
 	}
 
 	public start(): void {
@@ -13,12 +13,12 @@ export class GameController {
 	}
 
 	async quit(): Promise<void> {
-		if (!this.manager) {
+		if (!this.gameManager) {
 			console.error('GameManager non défini dans GameController');
 			return;
 		}
 		// Exemple de méthode pour gérer l'arrêt de la logique métier, WebSocket, timers etc...
-		this.manager.stop();
+		this.gameManager.stop();
 		// Méthode existante dans router pour rediriger vers la page d’accueil
 		router.navigate('/');
 	}

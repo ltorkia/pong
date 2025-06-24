@@ -1,7 +1,11 @@
 import { GameController } from '../controllers/GameController'
 
 export class GameManager {
-	constructor(private controller: GameController) {}
+	private gameController: GameController;
+
+	constructor(gameController: GameController) {
+		this.gameController = gameController;
+	}
 
 	public stop(): void {
 		// Arrêter communication serveur, websockets etc...

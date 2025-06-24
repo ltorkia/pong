@@ -1,28 +1,24 @@
 import { BasePage } from './BasePage';
-import { GameManager } from '../managers/GameManager';
 import { GameController } from '../controllers/GameController';
 
 /**
- * TODO: Suggestion d'orga pour Kiki pour rester cohérent avec notre structure
- * GamePage = vue principale pour injecter le canvas + boutons dans le DOM
- * GameController = logique graphique et de rendu (canvas, animations, mouvements...)
- * GameManager = logique métier (WebSocket, communication serveur...)
+ * TODO: Suggestion d'orga pour Kiki pour rester cohérent avec notre structure existante
+ * GamePage = vue principale basique pour injecter le template HTML, canvas + boutons dans le DOM
+ * GameController = logique graphique et de rendu + poussée (canvas, animations, calculs, mouvements...)
+ * GameManager = logique métier (WebSocket, communication serveur etc...)
  */
 export class GamePage extends BasePage {
-	private manager: GameManager;
-	private controller: GameController;
+	private gameController: GameController;
 
 	constructor(container: HTMLElement) {
 		// super() appelle le constructeur du parent BasePage
 		// avec le container et le chemin du template HTML pour la page game
 		super(container, '/templates/game.html');
-		this.controller = new GameController();
-		this.manager = new GameManager(this.controller);
-		this.controller.setManager(this.manager);
+		this.gameController = new GameController();
 	}
 
 	protected attachListeners(): void {
-		// Exemple listener sur bouton "Quit"
+		// Exemple de listener sur bouton "Quit"
 		const quitBtn = document.getElementById('quit-btn');
 		if (!quitBtn) {
 			console.error('Bouton Quit non trouvé');
@@ -30,8 +26,8 @@ export class GamePage extends BasePage {
 		}
 		quitBtn.addEventListener('click', async (event) => {
 			event.preventDefault();
-			// appelle la méthode quit qui gère tout
-			await this.controller.quit();
+			// appelle la méthode quit du controller qui gère tout
+			await this.gameController.quit();
 		});
 	}
 
@@ -62,6 +58,6 @@ export class GamePage extends BasePage {
 		}
 
 		// Exemple de méthode appelée dans le controller pour démarrer le jeu
-		this.controller.start();
+		this.gameController.start();
 	}
 }

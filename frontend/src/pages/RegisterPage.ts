@@ -1,7 +1,7 @@
 import { BasePage } from './BasePage';
-import { registerController } from '../controllers/UserController';
 
 export class RegisterPage extends BasePage {
+
 	constructor(container: HTMLElement) {
 		super(container, '/templates/register.html');
 	}
@@ -29,7 +29,7 @@ export class RegisterPage extends BasePage {
 			event.preventDefault();
 			const formData = new FormData(form);
 			const data = Object.fromEntries(formData.entries()) as Record<string, string>;
-			await registerController(data);
+			await this.userController.registerController(data);
 		});
 	}
 }

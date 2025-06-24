@@ -1,14 +1,16 @@
 import { shouldShowNavbar, setupNavbar } from '../controllers/NavbarController';
-import { logoutController } from '../controllers/UserController';
+import { UserController } from '../controllers/UserController';
 
 export abstract class BasePage {
-	protected container: HTMLElement;	// Élément DOM dans lequel le contenu html sera injecté
-	protected templatePath: string;		// Chemin vers le template html à charger pour cette page
+	protected container: HTMLElement;			// Élément DOM dans lequel le contenu html sera injecté
+	protected templatePath: string;				// Chemin vers le template html à charger pour cette page
+	protected userController: UserController;	// Instance qui va gérer le parcourt d'authentification du current user
 
 	// Le constructeur reçoit le container DOM et le chemin du template
 	constructor(container: HTMLElement, templatePath: string) {
 		this.container = container;
 		this.templatePath = templatePath;
+		this.userController = new UserController();
 	}
 
 	/**
@@ -107,7 +109,7 @@ export abstract class BasePage {
 		if (logoutLink) {
 			logoutLink.addEventListener('click', async (e) => {
 				e.preventDefault();
-				await logoutController();
+				await this.userController.logoutController();
 			});
 		}
 	}

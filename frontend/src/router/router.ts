@@ -1,5 +1,5 @@
 import { PUBLIC_ROUTES } from '../config/public.routes';
-import { hasAuthCookie, loadOrRestoreUser } from '../controllers/UserController';
+import { userManager } from '../managers/UserManager';
 import { userStore } from '../store/UserStore';
 
 type RouteHandler = (params?: Record<string, string>) => Promise<void> | void;
@@ -193,8 +193,8 @@ export class Router {
 			const isPublic = publicRoutes.includes(matchedRoute.route);
 
 			// Vérifie si un utilisateur est déjà chargé avec le cookie compagnon
-			const authCookieIsActive = hasAuthCookie();
-
+			const authCookieIsActive = userManager.hasAuthCookie();
+			
 			// LOGIQUE DE REDIRECTION
 			// Si route privée et user pas authentifié, redirection vers /login
 			if (!isPublic && !authCookieIsActive) {
@@ -216,7 +216,7 @@ export class Router {
 				
 				// Si pas en store mais cookie présent, essayer de restaurer
 				// via localStorage puis fallback API
-				const user = await loadOrRestoreUser();
+				const user = await userManager.loadOrRestoreUser();
 				if (user) {
 					console.log('[handleAuthRedirect] Utilisateur restauré -> redirection vers /');
 					await this.redirect('/');
@@ -227,7 +227,7 @@ export class Router {
 
 			// Seulement pour les routes privées avec cookie présent, on charge le user avec requête API
 			if (!isPublic && authCookieIsActive) {
-				const user = await loadOrRestoreUser();
+				const user = await userManager.loadOrRestoreUser();
 				if (!user) {
 					// Cookie présent mais pas d'utilisateur valide
 					// (cas de désynchronisation ou session expirée côté serveur)

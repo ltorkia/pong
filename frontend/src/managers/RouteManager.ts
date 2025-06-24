@@ -1,14 +1,19 @@
-import { router } from '../router/router';
+// PAGES
 import { HomePage } from '../pages/HomePage';
 import { RegisterPage } from '../pages/RegisterPage';
 import { LoginPage } from '../pages/LoginPage';
 import { GamePage } from '../pages/GamePage';
 import { UsersPage } from '../pages/UsersPage';
 import { ProfilePage } from '../pages/ProfilePage';
+
+// MANAGERS
 import { PageManager } from './PageManager';
 import { ParticlesManager } from './ParticlesManager';
+import { userManager } from './UserManager';
+
+// ROUTER / OUTILS
+import { router } from '../router/router';
 import { getProfilePath, setActiveNavLink } from '../utils/navbar.utils';
-import { userStore } from '../store/UserStore';
 
 export class RouteManager {
 	private pageManager: PageManager;
@@ -18,6 +23,7 @@ export class RouteManager {
 	 * Constructeur de RouteManager.
 	 * 
 	 * Prend en paramètres:
+	 * - userManager pour gérer le store / localStorage / authentification etc du user
 	 * - pageManager pour gérer le rendu et le nettoyage des pages,
 	 * - particlesManager pour gérer les effets visuels de particules.
 	 * 
@@ -70,13 +76,13 @@ export class RouteManager {
 				return;
 			}
 			console.log('div #app trouvée, création HomePage');
-			const currentUser = userStore.getCurrentUser();
+			const currentUser = await userManager.loadOrRestoreUser();
 			if (!currentUser) {
-				console.log('currentUser inexistant dans le store)');
+				console.log('currentUser inexistant');
 				await router.redirectPublic('/login');
 				return;
 			}
-			const homePage = new HomePage(appDiv, currentUser!.id) as HomePage;
+			const homePage = new HomePage(appDiv, currentUser.id) as HomePage;
 			await this.loadPage(homePage);
 			setActiveNavLink('/');
 			console.log('HomePage rendue');

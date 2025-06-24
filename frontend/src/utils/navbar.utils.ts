@@ -1,10 +1,11 @@
-import { getUserLog } from '../api/users';
+import { userManager } from '../managers/UserManager';
 
 /**
  * Récupère le chemin du profil de l'utilisateur connecté.
  */
 export async function getProfilePath(): Promise<string | null> {
-	const userLogStatus = await getUserLog();
+	const userLogStatus = await userManager.loadOrRestoreUser();
+	console.log('[getProfilePath] userLogStatus =', userLogStatus);
 	if (!userLogStatus || !userLogStatus.id) {
 		return null;
 	}
@@ -13,7 +14,7 @@ export async function getProfilePath(): Promise<string | null> {
 
 /**
  * Modifie dynamiquement le lien du profil dans la barre de navigation pour pointer vers la page de l'utilisateur connecté.
- * Récupère l'état de connexion de l'utilisateur via getUserLog() (fetch api/me route).
+ * Récupère l'état de connexion de l'utilisateur via loadOrRestoreUser()
  */
 export async function setProfileLink(selector = '[data-link][href="/profile"]'): Promise<void> {
 	const profileLink = document.querySelector(selector) as HTMLAnchorElement;

@@ -12,6 +12,7 @@ export async function registerUser(data: Record<string, string>): Promise<any> {
 		method: 'POST',
 		headers: { 'Content-Type': 'application/json' },
 		body: JSON.stringify(data),
+		credentials: 'include',
 	});
 	const result = await res.json();
 
@@ -26,6 +27,7 @@ export async function loginUser(data: Record<string, string>): Promise<any> {
 		method: 'POST',
 		headers: { 'Content-Type': 'application/json' },
 		body: JSON.stringify(data),
+		credentials: 'include',
 	});
 	const result = await res.json();
 
