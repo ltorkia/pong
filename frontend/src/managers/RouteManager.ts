@@ -157,6 +157,9 @@ export class RouteManager {
 	 */
 	private createParamPageInstance(config: RouteConfig, appDiv: HTMLElement, params: RouteParams): any {
 		// ProfilePage attend un number pour l'ID
+		if (config.component.name === 'Profile' && params.id) {
+			return new config.component(appDiv, Number(params.id));
+		}
 		if (config.component.name === 'ProfilePage' && params.id) {
 			return new config.component(appDiv, Number(params.id));
 		}

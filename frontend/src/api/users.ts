@@ -50,6 +50,7 @@ export async function logoutUser(): Promise<any> {
 }
 
 export async function getUserById(id: number): Promise<User> {
+	console.log('ID: ', id);
 	const res = await secureFetch(`/api/users/${id}`, { method: 'GET' });
 	if (!res.ok) throw new Error('Erreur de l’API');
 	const data = await res.json();

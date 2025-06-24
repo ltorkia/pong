@@ -1,7 +1,7 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import bcrypt from 'bcrypt';
 import { GoogleCallbackQuery, GoogleTokenResponse, GoogleUserInfo } from '../types/google.types';
-import { insertUser, getUserP, majLastlog } from '../db/user';
+import { insertUser, getUser, getUserP, majLastlog } from '../db/user';
 import { RegisterInputSchema, LoginInputSchema } from '../types/zod/auth.zod';
 import { generateJwt, setAuthCookie, setStatusCookie, clearAuthCookies } from '../helpers/auth.helpers';
 
@@ -21,7 +21,7 @@ export async function authRoutes(app: FastifyInstance) {
 	
 			const resultinsert = await insertUser(userToInsert, null);
 			if (resultinsert.statusCode === 201) {
-				const user = await getUserP(userToInsert.email);
+				const user = await getUser(null, userToInsert.email);
 				const token = generateJwt(app, {
 					id: user.id,
 					username: user.username,
@@ -169,13 +169,13 @@ export async function authRoutes(app: FastifyInstance) {
 				return reply.status(400).send({error: 'Données utilisateur incomplètes' }); //retourne objet vec statuscode ? 
 			}
 
-			let userGoogle = await getUserP(userData.email);
+			let userGoogle = await getUser(null, userData.email);
 
 			// TODO: Insère l'utilisateur seulement s'il n'existe pas en bdd
 			// TODO: Logique à améliorer, j'ai juste mis ça pour régler un probleme
 			if (!userGoogle) {
 				await insertUser({ email: userData.email, username: userData.given_name, avatar: userData.picture }, true);
-				userGoogle = await getUserP(userData.email);
+				userGoogle = await getUser(null, userData.email);
 				if (!userGoogle) {
 					return reply.status(500).send({ error: 'Impossible de récupérer l’utilisateur après insertion' });
 				}
