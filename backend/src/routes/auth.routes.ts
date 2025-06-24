@@ -1,7 +1,7 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import bcrypt from 'bcrypt';
 import { GoogleCallbackQuery, GoogleTokenResponse, GoogleUserInfo } from '../types/google.types';
-import { insertUser, getUserP, majLastlog } from '../db/user';
+import { insertUser, getUserP, majLastlog, getUser } from '../db/user';
 import { RegisterInputSchema, LoginInputSchema } from '../types/zod/auth.zod';
 import { generateJwt, setAuthCookie, setStatusCookie, clearAuthCookies } from '../helpers/auth.helpers';
 
@@ -65,6 +65,14 @@ export async function authRoutes(app: FastifyInstance) {
 					statusCode: 401,
 					errorMessage: 'Email invalid or unknown'
 				});
+			}
+
+			if(validUser && validUser.register_from == 'google')
+			{
+				return reply.status(402).send({
+					statusCode: 402,
+					errorMessage: 'Email already register from google'
+				});				
 			}
 			
 			const isPassValid = await bcrypt.compare(result.data.password, validUser.password);
@@ -168,6 +176,13 @@ export async function authRoutes(app: FastifyInstance) {
 			if (!userData.id || !userData.email) {
 				return reply.status(400).send({error: 'Données utilisateur incomplètes' }); //retourne objet vec statuscode ? 
 			}
+			
+			// if(!await (getUser(null,userData.email)))
+			// 	await insertUser(({email: userData.email, username: userData.given_name}), true);
+
+			// const userGoogle = await getUserP(userData.email)
+			// // console.log("usergoogle is :" + userGoogle.id);
+			// // console.log("userdata is :" + userData.given_name);
 
 			let userGoogle = await getUserP(userData.email);
 
@@ -185,10 +200,10 @@ export async function authRoutes(app: FastifyInstance) {
 			// JWT = JSON Web Token = format pour transporter des informations de manière sécurisée entre deux parties, ici le frontend et le backend.
 			const token = generateJwt(app, {
 				id: userGoogle.id,
-				username: userData.given_name,
+				username: userGoogle.username,
 			});
 
-			await majLastlog(userData.given_name);
+			await majLastlog(userGoogle.username);
 			setAuthCookie(reply, token);
 			setStatusCookie(reply);
 

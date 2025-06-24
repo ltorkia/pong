@@ -34,7 +34,7 @@ export async function getAllUsers() {
 export async function getUserP(email: string) {
 	const db = await getDb();
 	const user = await db.get(`
-		SELECT id, username, email, password 
+		SELECT id, username, email, password, register_from
 		FROM User 
 		WHERE email = ?
 		`,
@@ -116,14 +116,19 @@ export async function getUserChat(userId1: number, userId2: number) {
 	
 export async function insertUser(user: (RegisterInput | {username: string, email: string, avatar?: string}), is_google: (boolean | null)) {
 	const db = await getDb();
-	if(await getUser(null, user.username))
-		return {statusCode : 409, message : "username already used"};
+	// if(await getUser(null, user.username))
+	// 	return {statusCode : 409, message : "username already used"};
 		
-	if (await getUser(null, user.email))
-		return {statusCode: 409, message : "email already used"};
+	// if (await getUser(null, user.email))
+	// 	return {statusCode: 409, message : "email already used"};
 
 	if (!is_google)
 	{
+		if(await getUser(null, user.username))
+			return {statusCode : 409, message : "username already used"};
+		
+		if (await getUser(null, user.email))
+			return {statusCode: 409, message : "email already used"};
 		 const u = user as RegisterInput;
 		await db.run(`
 			INSERT INTO User (username, email, password, secret_question_number, secret_question_answer)
@@ -134,6 +139,21 @@ export async function insertUser(user: (RegisterInput | {username: string, email
 	}
 	else 
 	{
+		if(await getUser(null, user.username))
+		{
+			const now = Date.now();
+			const digits = now.toString().split('');
+			const len = digits.length;
+			console.log( now + " " + digits + " " + len);
+
+			for (let i = 0; i < len; i++)
+			{
+				user.username = user.username + "_" + digits[i];
+				if (!await getUser(null, user.username))
+					break ;
+			}
+		}
+	
 		await db.run(`
 			INSERT INTO User (username, email, register_from)
 			VALUES (?, ?, ?)
