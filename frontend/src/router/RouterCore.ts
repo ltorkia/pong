@@ -1,7 +1,7 @@
 import { RouteGuard } from './RouteGuard';
 import { NavigationHandler } from './NavigationHandler';
+import { RouteHandler } from '../types/navigation.types';
 import { normalizePath, matchRoute } from '../utils/router.utils';
-import { RouteHandler } from './router';
 
 /**
  * Gère l'ensemble du système de routage pour:

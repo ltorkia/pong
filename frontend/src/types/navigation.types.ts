@@ -9,7 +9,7 @@ export interface RouteConfig {
 	enableParticles?: boolean;	// Si true, active les particules sur cette page (défaut: true)
 	
 	// Fonction pour récupérer le chemin de navigation actif dans la navbar
-	getNavPath?: () => Promise<string | null> | string | null;	// Fonction pour récupérer le chemin de navigation actif dans la navbar
+	getNavPath?: () => Promise<string | null> | string | null;
 	
 	// Middlewares à exécuter avant le rendu de la page
 	middlewares?: RouteMiddleware[];

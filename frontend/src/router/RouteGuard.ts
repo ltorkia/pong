@@ -1,7 +1,6 @@
 import { userManager } from '../managers/UserManager';
 import { userStore } from '../store/UserStore';
-import { isPublicRoute } from '../utils/app.utils';
-// import { isPublicRoute } from '../config/routes.config';
+import { isPublicRoute } from '../utils/navigation.utils';
 
 /**
  * Gère la logique d'authentification pour redirections.

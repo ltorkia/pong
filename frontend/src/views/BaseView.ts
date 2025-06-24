@@ -1,4 +1,5 @@
-import { shouldShowNavbar, setupNavbar } from '../components/navbar';
+import { setupNavbar } from '../components/navbar';
+import { shouldShowNavbar } from '../utils/navbar.utils';
 import { UserController } from '../controllers/UserController';
 
 export abstract class BasePage {
@@ -80,8 +81,8 @@ export abstract class BasePage {
 			// Listener sur le bouton logout
 			await this.listenLogout();
 			
-		} catch (e) {
-			console.warn("Impossible de générer la navbar : ", e);
+		} catch (err) {
+			console.warn("Impossible de générer la navbar : ", err);
 		}
 	}
 

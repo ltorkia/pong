@@ -1,11 +1,3 @@
-// PAGES
-import { HomePage } from '../views/HomeView';
-import { RegisterPage } from '../views/RegisterView';
-import { LoginPage } from '../views/LoginView';
-import { GamePage } from '../views/GameView';
-import { UsersPage } from '../views/UsersView';
-import { ProfilePage } from '../views/ProfileView';
-
 // MANAGERS
 import { PageManager } from './PageManager';
 import { ParticlesManager } from './ParticlesManager';
@@ -13,7 +5,11 @@ import { userManager } from './UserManager';
 
 // ROUTER / OUTILS
 import { router } from '../router/router';
-import { getProfilePath, setActiveNavLink } from '../utils/navbar.utils';
+import { setActiveNavLink } from '../utils/navbar.utils';
+
+// CONFIG & TYPES
+import { routesConfig, authFallbackRoute } from '../config/navigation.config';
+import { RouteConfig, RouteParams } from '../types/navigation.types';
 
 export class RouteManager {
 	private pageManager: PageManager;
@@ -23,12 +19,10 @@ export class RouteManager {
 	 * Constructeur de RouteManager.
 	 * 
 	 * Prend en paramètres:
-	 * - userManager pour gérer le store / localStorage / authentification etc du user
 	 * - pageManager pour gérer le rendu et le nettoyage des pages,
 	 * - particlesManager pour gérer les effets visuels de particules.
 	 * 
-	 * - Initialise les routes en appelant setupRoutes() qui enregistre
-	 * les différentes routes dans le router global (la map dans Router.ts).
+	 * Initialise les routes à partir de la configuration externe.
 	 */
 	constructor(pageManager: PageManager, particlesManager: ParticlesManager) {
 		this.pageManager = pageManager;
@@ -40,10 +34,8 @@ export class RouteManager {
 	 * Méthode publique pour démarrer la gestion des routes.
 	 * 
 	 * - Affiche dans la console la liste des routes enregistrées (utile pour debug)
-	 * - Appelle router.handleLocationPublic() qui va lire l’URL courante
+	 * - Appelle router.handleLocationPublic() qui va lire l'URL courante
 	 *   et déclencher le rendu de la page correspondante.
-	 * 
-	 * Cette méthode est appelée par AppManager lors du démarrage de l’application.
 	 */
 	public async start() {
 		console.log('Routes enregistrées:', Array.from(router.getRoutes().keys()));
@@ -51,157 +43,214 @@ export class RouteManager {
 	}
 
 	/**
-	 * Méthode privée pour enregistrer toutes les routes utilisées dans l’application.
-	 * 
-	 * Pour chaque route :
-	 * - On utilise router.register() pour associer un chemin (ex: '/login') 
-	 *   à une fonction asynchrone qui :
-	 *     - Nettoie la page actuelle avec pageManager.cleanup()
-	 *     - Cherche la div principale (#app) dans le DOM
-	 *     - Active ou désactive les particules via particlesManager
-	 *     - Crée une instance de la page correspondante (HomePage, LoginPage, etc.)
-	 *     - Appelle loadPage() pour gérer les particules
-	 *       et demande au pageManager de rendre la nouvelle page via renderPage()
-	 *     - Met à jour le lien actif dans la barre de navigation avec setActiveNavLink()
-	 *     - Mount la page si nécessaire (ex: UsersPage)
+	 * Enregistre toutes les routes à partir de la configuration externe.
 	 */
-	private setupRoutes() {
-
-		// Route Accueil
-		router.register('/', async () => {
-			console.log('Exec route: navigation vers Accueil');
-			const appDiv = document.getElementById('app') as HTMLElement | null;
-			if (!appDiv) {
-				console.error("div #app introuvable");
-				return;
-			}
-			console.log('div #app trouvée, création HomePage');
-			const currentUser = await userManager.loadOrRestoreUser();
-			if (!currentUser) {
-				console.log('currentUser inexistant');
-				await router.redirectPublic('/login');
-				return;
-			}
-			const homePage = new HomePage(appDiv, currentUser.id) as HomePage;
-			await this.loadPage(homePage);
-			setActiveNavLink('/');
-			console.log('HomePage rendue');
-		});
-
-		// Route Register
-		router.register('/register', async () => {
-			console.log('Exec route: navigation vers Register');
-			const appDiv = document.getElementById('app') as HTMLElement | null;
-			if (!appDiv) {
-				console.error("div #app introuvable");
-				return;
-			}
-			console.log('div #app trouvée, création RegisterPage');
-			const registerPage = new RegisterPage(appDiv) as RegisterPage;
-			await this.loadPage(registerPage);
-			setActiveNavLink('/register');
-			console.log('RegisterPage rendue');
-		});
-
-		// Route Login
-		router.register('/login', async () => {
-			console.log('Exec route: navigation vers Login');
-			const appDiv = document.getElementById('app') as HTMLElement | null;
-			if (!appDiv) {
-				console.error("div #app introuvable");
-				return;
-			}
-			console.log('div #app trouvée, création LoginPage');
-			const loginPage = new LoginPage(appDiv) as LoginPage;
-			await this.loadPage(loginPage);
-			setActiveNavLink('/login');
-			console.log('LoginPage rendue');
-		});
-
-		// Route Game
-		router.register('/game', async () => {
-			console.log('Exec route: navigation vers Game');
-			const appDiv = document.getElementById('app') as HTMLElement | null;
-			if (!appDiv) {
-				console.error("div #app introuvable");
-				return;
-			}
-			console.log('div #app trouvée, création GamePage');
-			const gamePage = new GamePage(appDiv) as GamePage;
-			await this.loadPage(gamePage, false);
-			setActiveNavLink('/game');
-			console.log('GamePage rendue');
-		});
-
-		// Route Users
-		router.register('/users', async () => {
-			console.log('Exec route: navigation vers Users');
-			const appDiv = document.getElementById('app') as HTMLElement | null;
-			if (!appDiv) {
-				console.error("div #app introuvable");
-				return;
-			}
-			console.log('div #app trouvée, création UsersPage');
-			const usersPage = new UsersPage(appDiv) as UsersPage;
-			await this.loadPage(usersPage);
-			setActiveNavLink('/users');
-			console.log('UsersPage rendue');
-		});
-
-		// Route Profile
-		router.register('/user/:id', async (params?: Record<string, string>) => {
-			if (!params?.id) {
-				console.error("Params manquants pour la route /user/:id");
-				return;
-			}
-			console.log(`Exec route: navigation vers Profile de l'utilisateur ${params.id}`);
-			const appDiv = document.getElementById('app');
-			if (!appDiv) {
-				console.error("div #app introuvable");
-				return;
-			}
-			console.log('div #app trouvée, création ProfilePage');
-			const profilePage = new ProfilePage(appDiv, Number(params.id));
-			await this.loadPage(profilePage);
-
-			const profilePath = await getProfilePath();
-			if (profilePath) {
-				setActiveNavLink(profilePath);
+	private setupRoutes(): void {routesConfig.forEach(config => {
+			if (this.isParamRoute(config.path)) {
+				router.register(config.path, async (params?: RouteParams) => {
+					await this.handleParamRoute(config, params);
+				});
 			} else {
-				console.warn('Impossible de déterminer le chemin du profil, setActiveNavLink ignoré');
+				router.register(config.path, async () => {
+					await this.handleSimpleRoute(config);
+				});
 			}
-			console.log('ProfilePage rendue');
 		});
-
 	}
 
 	/**
-	 * Nettoie la page courante,
-	 * active ou désactive les particules,
-	 * charge et affiche une nouvelle page.
-	*/
-	private async loadPage(pageInstance: any, enableParticles: boolean = true): Promise<void> {
-		const appDiv = document.getElementById('app') as HTMLElement | null;
-		if (!appDiv) {
-			console.error("div #app introuvable");
+	 * Vérifie si une route contient des paramètres (ex: /user/:id)
+	 */
+	private isParamRoute(path: string): boolean {
+		return path.includes(':');
+	}
+
+	/**
+	 * Gère les routes simples (sans paramètres)
+	 */
+	private async handleSimpleRoute(config: RouteConfig): Promise<void> {
+		console.log(`Exec route: navigation vers ${config.name}`);
+		
+		const appDiv = this.getAppDiv();
+		if (!appDiv) return;
+
+		// Vérification d'authentification
+		if (!config.isPublic && !(await this.checkAuthentication())) {
 			return;
 		}
 
-		if (enableParticles) {
-			await this.particlesManager.enable();
-		} else {
-			await this.particlesManager.disable();
-		}
+		// Création de l'instance de page
+		const pageInstance = await this.createPageInstance(config, appDiv);
+		if (!pageInstance) return;
 
-		await this.pageManager.renderPage(pageInstance);
+		// Chargement et affichage de la page
+		await this.loadPage(pageInstance, config.enableParticles);
+		await this.updateNavigation(config);
+		
+		console.log(`${config.name} rendue`);
 	}
 
 	/**
-	 * Getter public pour récupérer le router.
-	 * Utile pour le debug ou pour des interactions directes avec le router
-	 * depuis d'autres classes comme AppManager.
+	 * Gère les routes avec paramètres
+	 */
+	private async handleParamRoute(config: RouteConfig, params?: RouteParams): Promise<void> {
+		if (!params || Object.keys(params).length === 0) {
+			console.error(`Paramètres manquants pour la route ${config.path}`);
+			return;
+		}
+
+		console.log(`Exec route: navigation vers ${config.name} avec params:`, params);
+		
+		const appDiv = this.getAppDiv();
+		if (!appDiv) return;
+
+		// Vérification d'authentification
+		if (!config.isPublic && !(await this.checkAuthentication())) {
+			return;
+		}
+
+		// Création de l'instance avec paramètres
+		const pageInstance = await this.createPageInstance(config, appDiv, params);
+		if (!pageInstance) return;
+
+		// Chargement et affichage de la page
+		await this.loadPage(pageInstance, config.enableParticles);
+		await this.updateNavigation(config);
+		
+		console.log(`${config.name} rendue`);
+	}
+
+	/**
+	 * Vérifie l'authentification de l'utilisateur
+	 */
+	private async checkAuthentication(): Promise<boolean> {
+		const currentUser = await userManager.loadOrRestoreUser();
+		if (!currentUser) {
+			console.log('Utilisateur non authentifié, redirection vers la page de connexion');
+			await router.redirectPublic(authFallbackRoute);
+			return false;
+		}
+		return true;
+	}
+
+	/**
+	 * Crée une instance de page avec ou sans paramètres
+	 */
+	private async createPageInstance(config: RouteConfig, appDiv: HTMLElement, params?: RouteParams): Promise<any> {
+		try {
+			// Cas spécial pour HomePage qui nécessite l'ID utilisateur
+			if (!config.isPublic && config.component.name === 'HomePage') {
+				const currentUser = await userManager.loadOrRestoreUser();
+				return new config.component(appDiv, currentUser?.id);
+			}
+
+			// Cas avec paramètres
+			if (params) {
+				return this.createParamPageInstance(config, appDiv, params);
+			}
+
+			// Cas simple
+			return new config.component(appDiv);
+		} catch (error) {
+			console.error(`Erreur lors de la création de l'instance de page pour ${config.name}:`, error);
+			return null;
+		}
+	}
+
+	/**
+	 * Crée une instance de page avec des paramètres spécifiques
+	 */
+	private createParamPageInstance(config: RouteConfig, appDiv: HTMLElement, params: RouteParams): any {
+		// ProfilePage attend un number pour l'ID
+		if (config.component.name === 'ProfilePage' && params.id) {
+			return new config.component(appDiv, Number(params.id));
+		}
+		
+		// Cas général - extensible pour d'autres composants
+		return new config.component(appDiv, params);
+	}
+
+	/**
+	 * Met à jour la navigation et le lien actif dans la navbar
+	 */
+	private async updateNavigation(config: RouteConfig): Promise<void> {
+		try {
+			if (config.getNavPath) {
+				const navPath = await config.getNavPath();
+				if (navPath) {
+					setActiveNavLink(navPath);
+				} else {
+					console.warn(`Impossible de déterminer le chemin de navigation pour ${config.name}`);
+				}
+			} else {
+				setActiveNavLink(config.path);
+			}
+		} catch (error) {
+			console.error(`Erreur lors de la mise à jour de la navigation pour ${config.name}:`, error);
+		}
+	}
+
+	/**
+	 * Récupère l'élément DOM principal de l'application
+	 */
+	private getAppDiv(): HTMLElement | null {
+		const appDiv = document.getElementById('app') as HTMLElement | null;
+		if (!appDiv) {
+			console.error("Élément #app introuvable dans le DOM");
+		}
+		return appDiv;
+	}
+
+	/**
+	 * Charge et affiche une page avec gestion des particules
+	 */
+	private async loadPage(pageInstance: any, enableParticles: boolean = true): Promise<void> {
+		try {
+			// Gestion des particules
+			if (enableParticles) {
+				await this.particlesManager.enable();
+			} else {
+				await this.particlesManager.disable();
+			}
+
+			// Rendu de la page
+			await this.pageManager.renderPage(pageInstance);
+		} catch (error) {
+			console.error('Erreur lors du chargement de la page:', error);
+		}
+	}
+
+	/**
+	 * Getter public pour récupérer le router
 	 */
 	public getRouter() {
 		return router;
+	}
+
+	/**
+	 * Ajoute dynamiquement une nouvelle route
+	 */
+	public addRoute(config: RouteConfig): void {
+		try {
+			if (this.isParamRoute(config.path)) {
+				router.register(config.path, async (params?: RouteParams) => {
+					await this.handleParamRoute(config, params);
+				});
+			} else {
+				router.register(config.path, async () => {
+					await this.handleSimpleRoute(config);
+				});
+			}
+			console.log(`Route ${config.path} ajoutée dynamiquement`);
+		} catch (error) {
+			console.error(`Erreur lors de l'ajout de la route ${config.path}:`, error);
+		}
+	}
+
+	/**
+	 * Méthode utilitaire pour obtenir la liste des routes configurées
+	 */
+	public getRoutesConfig(): RouteConfig[] {
+		return [...routesConfig]; // Retourne une copie pour éviter les modifications
 	}
 }

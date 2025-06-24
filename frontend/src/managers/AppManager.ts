@@ -4,7 +4,7 @@ import { RouteManager } from './RouteManager';
 import { PageManager } from './PageManager';
 import { userManager } from './UserManager';
 
-// OUTILS
+// UTILS
 import { tsParticles } from "@tsparticles/engine";
 import { loadFull } from "tsparticles";
 import { wait } from '../utils/app.utils';
