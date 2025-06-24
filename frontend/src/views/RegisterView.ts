@@ -1,6 +1,6 @@
-import { BasePage } from './BaseView';
+import { BaseView } from './BaseView';
 
-export class RegisterPage extends BasePage {
+export class RegisterView extends BaseView {
 
 	constructor(container: HTMLElement) {
 		super(container, '/templates/register.html');

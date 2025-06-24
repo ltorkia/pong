@@ -1,7 +1,7 @@
-import { BasePage } from './BaseView';
+import { BaseView } from './BaseView';
 import { getUserById, getUserFriends } from '../api/users';
 
-export class ProfilePage extends BasePage {
+export class ProfileView extends BaseView {
 	private userId: number;
 
 	constructor(container: HTMLElement, userId: number) {

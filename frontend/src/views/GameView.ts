@@ -1,13 +1,13 @@
-import { BasePage } from './BaseView';
+import { BaseView } from './BaseView';
 import { GameController } from '../controllers/GameController';
 
 /**
  * TODO: Suggestion d'orga pour Kiki pour rester cohérent avec notre structure existante
- * GamePage = vue principale basique pour injecter le template HTML, canvas + boutons dans le DOM
+ * GameView = vue principale basique pour injecter le template HTML, canvas + boutons dans le DOM
  * GameController = logique graphique et de rendu + poussée (canvas, animations, calculs, mouvements...)
  * GameManager = logique métier (WebSocket, communication serveur etc...)
  */
-export class GamePage extends BasePage {
+export class GameView extends BaseView {
 	private gameController: GameController;
 
 	constructor(container: HTMLElement) {

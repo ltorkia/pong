@@ -1,10 +1,10 @@
-// PAGES
-import { HomePage } from '../views/HomeView';
-import { RegisterPage } from '../views/RegisterView';
-import { LoginPage } from '../views/LoginView';
-import { GamePage } from '../views/GameView';
-import { UsersPage } from '../views/UsersView';
-import { ProfilePage } from '../views/ProfileView';
+// VIEWS
+import { HomeView } from '../views/HomeView';
+import { RegisterView } from '../views/RegisterView';
+import { LoginView } from '../views/LoginView';
+import { GameView } from '../views/GameView';
+import { UsersView } from '../views/UsersView';
+import { ProfileView } from '../views/ProfileView';
 
 // TYPES
 import { RouteConfig } from '../types/navigation.types';
@@ -25,42 +25,42 @@ import { getProfilePath } from '../utils/navbar.utils';
 export const routesConfig: RouteConfig[] = [
 	{
 		path: '/',
-		component: HomePage,
+		component: HomeView,
 		name: 'Accueil',
 		isPublic: false,
 		enableParticles: true
 	},
 	{
 		path: '/register',
-		component: RegisterPage,
+		component: RegisterView,
 		name: 'Inscription',
 		isPublic: true,
 		enableParticles: true
 	},
 	{
 		path: '/login',
-		component: LoginPage,
+		component: LoginView,
 		name: 'Connexion',
 		isPublic: true,
 		enableParticles: true
 	},
 	{
 		path: '/game',
-		component: GamePage,
+		component: GameView,
 		name: 'Jeu',
 		isPublic: true,
 		enableParticles: false
 	},
 	{
 		path: '/users',
-		component: UsersPage,
+		component: UsersView,
 		name: 'Utilisateurs',
 		isPublic: true,
 		enableParticles: true
 	},
 	{
 		path: '/user/:id',
-		component: ProfilePage,
+		component: ProfileView,
 		name: 'Profil',
 		isPublic: true,
 		enableParticles: true,

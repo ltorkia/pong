@@ -2,7 +2,7 @@ import { setupNavbar } from '../components/navbar';
 import { shouldShowNavbar } from '../utils/navbar.utils';
 import { UserController } from '../controllers/UserController';
 
-export abstract class BasePage {
+export abstract class BaseView {
 	protected container: HTMLElement;			// Élément DOM dans lequel le contenu html sera injecté
 	protected templatePath: string;				// Chemin vers le template html à charger pour cette page
 	protected userController: UserController;	// Instance qui va gérer le parcourt d'authentification du current user

@@ -1,7 +1,7 @@
-import { BasePage } from './BaseView';
+import { BaseView } from './BaseView';
 import { getUsers, getUserFriends } from '../api/users';
 
-export class UsersPage extends BasePage {
+export class UsersView extends BaseView {
 
 	constructor(container: HTMLElement) {
 		// super() appelle le constructeur du parent BaseView

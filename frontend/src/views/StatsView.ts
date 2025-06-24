@@ -1,6 +1,6 @@
-import { BasePage } from './BaseView';
+import { BaseView } from './BaseView';
 
-export class GamePage extends BasePage {
+export class GameView extends BaseView {
 
 	constructor(container: HTMLElement) {
 		// super() appelle le constructeur du parent BaseView
