@@ -160,7 +160,7 @@ export class RouteManager {
 		if (config.component.name === 'Profile' && params.id) {
 			return new config.component(appDiv, Number(params.id));
 		}
-		if (config.component.name === 'ProfilePage' && params.id) {
+		if (config.component.name === 'Home') {
 			return new config.component(appDiv, Number(params.id));
 		}
 		
