@@ -1,4 +1,11 @@
-type RouteHandler = (params?: Record<string, string>) => Promise<void> | void;
+import { RouteHandler } from '../types/navigation.types';
+
+/**
+ * Vérifie si une route contient des paramètres (ex: /user/:id)
+ */
+export function hasParams(path: string): boolean {
+	return path.includes(':');
+}
 
 /**
  * Méthode utilitaire pour normaliser les paths.

@@ -205,7 +205,7 @@ export class RouterCore {
 	 * Getter public pour récupérer la liste des routes enregistrées.
 	 * Pour debug dans AppManager, méthode start().
 	 */
-	public getRoutes() {
+	public getRoutes(): Map<string, RouteHandler> {
 		return this.routes;
 	}
 }

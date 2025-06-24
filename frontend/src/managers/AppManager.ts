@@ -1,7 +1,12 @@
-// MANAGERS
+// ROUTER CLASS
+import { RouterCore } from '../router/RouterCore';
+
+// MANAGERS CLASS
 import { ParticlesManager } from './ParticlesManager';
 import { RouteManager } from './RouteManager';
 import { PageManager } from './PageManager';
+
+// MANAGERS INSTANCE
 import { userManager } from './UserManager';
 
 // UTILS
@@ -70,7 +75,7 @@ export class AppManager {
 	/**
 	 * Permet d'accéder au router pour debug
 	 */
-	public getRouter() {
+	public getRouter(): RouterCore {
 		return this.routeManager.getRouter();
 	}
 }

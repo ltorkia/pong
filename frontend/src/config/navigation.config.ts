@@ -15,53 +15,53 @@ import { getProfilePath } from '../utils/navbar.utils';
 /**
  * Configuration des routes de l'app
  * 
- * - path: Le chemin de l'URL
- * - component: Le composant à rendre
- * - name: Nom de la route pour les logs
- * - isPublic: Si la route est accessible sans être authentifié (login, register)
- * - enableParticles: Si les particules doivent être activées
- * - getNavPath: Fonction pour récupérer le chemin de navigation (facultatif)
+ * - path: Chemin de la route ('/', '/users', '/user/:id'...)
+ * - component: Composant de la page à render (HomeView, GameView...)
+ * - name: Nom de la route pour logs et debug
+ * - isPublic: Si true, la route est accessible sans être authentifié (login, register)
+ * - enableParticles: Si true, active les particules sur cette page (défaut: true)
+ * - getNavPath: Fonction pour récupérer le lien actif dans la navbar
  */
 export const routesConfig: RouteConfig[] = [
 	{
 		path: '/',
 		component: HomeView,
-		name: 'Accueil',
+		name: 'Home',
 		isPublic: false,
 		enableParticles: true
 	},
 	{
 		path: '/register',
 		component: RegisterView,
-		name: 'Inscription',
+		name: 'Register',
 		isPublic: true,
 		enableParticles: true
 	},
 	{
 		path: '/login',
 		component: LoginView,
-		name: 'Connexion',
+		name: 'Login',
 		isPublic: true,
 		enableParticles: true
 	},
 	{
 		path: '/game',
 		component: GameView,
-		name: 'Jeu',
+		name: 'Game',
 		isPublic: true,
 		enableParticles: false
 	},
 	{
 		path: '/users',
 		component: UsersView,
-		name: 'Utilisateurs',
+		name: 'Users',
 		isPublic: true,
 		enableParticles: true
 	},
 	{
 		path: '/user/:id',
 		component: ProfileView,
-		name: 'Profil',
+		name: 'Profile',
 		isPublic: true,
 		enableParticles: true,
 		getNavPath: getProfilePath

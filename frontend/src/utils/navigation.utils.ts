@@ -52,3 +52,11 @@ export const isPublicTemplate = (templatePath: string): boolean => {
 export const getRouteConfig = (path: string): RouteConfig | undefined => {
 	return routesConfig.find(route => route.path === path);
 };
+
+/**
+ * Fonction utilitaire pour obtenir la liste des routes configurées
+ * (retourne une copie pour éviter les modifications)
+ */
+export function getRoutesConfig(): RouteConfig[] {
+	return [...routesConfig];
+}

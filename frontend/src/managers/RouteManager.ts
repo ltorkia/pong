@@ -2,10 +2,12 @@
 import { PageManager } from './PageManager';
 import { ParticlesManager } from './ParticlesManager';
 import { userManager } from './UserManager';
+import { RouterCore } from '../router/RouterCore';
 
 // ROUTER / OUTILS
 import { router } from '../router/router';
 import { setActiveNavLink } from '../utils/navbar.utils';
+import { hasParams } from '../utils/router.utils';
 
 // CONFIG & TYPES
 import { routesConfig, authFallbackRoute } from '../config/navigation.config';
@@ -46,7 +48,7 @@ export class RouteManager {
 	 * Enregistre toutes les routes à partir de la configuration externe.
 	 */
 	private setupRoutes(): void {routesConfig.forEach(config => {
-			if (this.isParamRoute(config.path)) {
+			if (hasParams(config.path)) {
 				router.register(config.path, async (params?: RouteParams) => {
 					await this.handleParamRoute(config, params);
 				});
@@ -59,14 +61,7 @@ export class RouteManager {
 	}
 
 	/**
-	 * Vérifie si une route contient des paramètres (ex: /user/:id)
-	 */
-	private isParamRoute(path: string): boolean {
-		return path.includes(':');
-	}
-
-	/**
-	 * Gère les routes simples (sans paramètres)
+	 * Gère les routes simples sans paramètres
 	 */
 	private async handleSimpleRoute(config: RouteConfig): Promise<void> {
 		console.log(`Exec route: navigation vers ${config.name}`);
@@ -221,18 +216,11 @@ export class RouteManager {
 	}
 
 	/**
-	 * Getter public pour récupérer le router
-	 */
-	public getRouter() {
-		return router;
-	}
-
-	/**
 	 * Ajoute dynamiquement une nouvelle route
 	 */
 	public addRoute(config: RouteConfig): void {
 		try {
-			if (this.isParamRoute(config.path)) {
+			if (hasParams(config.path)) {
 				router.register(config.path, async (params?: RouteParams) => {
 					await this.handleParamRoute(config, params);
 				});
@@ -248,9 +236,9 @@ export class RouteManager {
 	}
 
 	/**
-	 * Méthode utilitaire pour obtenir la liste des routes configurées
+	 * Getter public pour récupérer le router
 	 */
-	public getRoutesConfig(): RouteConfig[] {
-		return [...routesConfig]; // Retourne une copie pour éviter les modifications
+	public getRouter(): RouterCore {
+		return router;
 	}
 }
