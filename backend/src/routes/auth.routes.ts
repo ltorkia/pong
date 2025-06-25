@@ -4,6 +4,21 @@ import { GoogleCallbackQuery, GoogleTokenResponse, GoogleUserInfo } from '../typ
 import { insertUser, getUser, getUserP, majLastlog } from '../db/user';
 import { RegisterInputSchema, LoginInputSchema } from '../types/zod/auth.zod';
 import { generateJwt, setAuthCookie, setStatusCookie, clearAuthCookies } from '../helpers/auth.helpers';
+import { JwtPayload } from '../types/jwt.types';
+
+async function ProcessAuth(app: FastifyInstance, user: JwtPayload, reply: FastifyReply)
+{
+	// const user = await getUser(null, userToGet);
+	// Création d'un token JWT qui sera utilisé par le frontend pour les requêtes authentifiées
+	// JWT = JSON Web Token = format pour transporter des informations de manière sécurisée entre deux parties, ici le frontend et le backend.
+	const token = generateJwt(app, {
+		id: user.id,
+		username: user.username,
+	});
+	setAuthCookie(reply, token);
+	setStatusCookie(reply);
+	await majLastlog(user.username);
+}
 
 export async function authRoutes(app: FastifyInstance) {
 	
@@ -20,20 +35,14 @@ export async function authRoutes(app: FastifyInstance) {
 			userToInsert.password = await bcrypt.hash(userToInsert.password, 10);
 	
 			const resultinsert = await insertUser(userToInsert, null);
-			if (resultinsert.statusCode === 201) {
+			if (resultinsert.statusCode === 200) {
 				const user = await getUser(null, userToInsert.email);
-				const token = generateJwt(app, {
-					id: user.id,
-					username: user.username,
-				});
-
-				await majLastlog(user.username);
-				setAuthCookie(reply, token);
-				setStatusCookie(reply);
+				ProcessAuth(app, user, reply);
 
 				return reply.status(200).send({
 					message: 'Inscription réussie',
-					user: { id: user.id, username: user.username }
+					user: { id: user.id, username: user.username},
+					statusCode: 200 // -> convention json pour donner toutes les infos au front
 				});
 			}
 			return reply.status(resultinsert.statusCode).send(resultinsert);
@@ -82,19 +91,12 @@ export async function authRoutes(app: FastifyInstance) {
 					errorMessage: 'Password does not match'
 				});
 			}
-
-			const token = generateJwt(app, {
-				id: validUser.id,
-				username: validUser.username,
-			});
-
-			await majLastlog(validUser.username);
-			setAuthCookie(reply, token);
-			setStatusCookie(reply);
+			ProcessAuth(app, validUser, reply);
 
 			return reply.status(200).send({
 				message: 'Connexion réussie',
-				user: { id: validUser.id, username: validUser.username }
+				user: { id: validUser.id, username: validUser.username },
+				statusCode: 200
 			});
 
 		} catch (err) {
@@ -188,23 +190,13 @@ export async function authRoutes(app: FastifyInstance) {
 			// TODO: Insère l'utilisateur seulement s'il n'existe pas en bdd
 			// TODO: Logique à améliorer, j'ai juste mis ça pour régler un probleme
 			if (!userGoogle) {
-				await insertUser({ email: userData.email, username: userData.given_name, avatar: userData.picture }, true);
+				const result = await insertUser({ email: userData.email, username: userData.given_name, avatar: userData.picture }, true);
 				userGoogle = await getUser(null, userData.email);
 				if (!userGoogle) {
 					return reply.status(500).send({ error: 'Impossible de récupérer l’utilisateur après insertion' });
 				}
 			}
-
-			// Création d'un token JWT qui sera utilisé par le frontend pour les requêtes authentifiées
-			// JWT = JSON Web Token = format pour transporter des informations de manière sécurisée entre deux parties, ici le frontend et le backend.
-			const token = generateJwt(app, {
-				id: userGoogle.id,
-				username: userGoogle.username,
-			});
-
-			await majLastlog(userGoogle.username);
-			setAuthCookie(reply, token);
-			setStatusCookie(reply);
+			ProcessAuth(app, userGoogle, reply);
 
 			// Redirection simple sans token dans l'URL
 			return reply.redirect(process.env.GOOGLE_REDIRECT_FRONTEND!);

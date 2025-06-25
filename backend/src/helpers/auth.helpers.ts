@@ -1,5 +1,22 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { JwtPayload } from '../types/jwt.types';
+// import { getUser } from '../db/user';
+// import { majLastlog } from '../db/user';
+
+
+
+// export function ProcessAuth(app: FastifyInstance, user: JwtPayload)
+// {
+// 	const token = generateJwt(app, {
+// 			id: user.id,
+// 			username: user.username,
+// 		});
+
+// 	await majLastlog(user.username);
+// 	setAuthCookie(reply, token);
+// 	setStatusCookie(reply);
+
+// }
 
 /**
  * Génère un token JWT pour un utilisateur donné

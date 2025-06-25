@@ -113,57 +113,67 @@ export async function getUserChat(userId1: number, userId2: number) {
 		other_user: other_user as UserWithAvatar 
 	};
 }
+
+// async function 
 	
 export async function insertUser(user: (RegisterInput | {username: string, email: string, avatar?: string}), is_google: (boolean | null)) {
-	const db = await getDb();
-	// if(await getUser(null, user.username))
-	// 	return {statusCode : 409, message : "username already used"};
+	try {
+		const db = await getDb();
+		// if(await getUser(null, user.username))
+		// 	return {statusCode : 409, message : "username already used"};
 		
-	// if (await getUser(null, user.email))
-	// 	return {statusCode: 409, message : "email already used"};
-
-	if (!is_google)
-	{
-		if(await getUser(null, user.username))
-			return {statusCode : 409, message : "username already used"};
+		// if (await getUser(null, user.email))
+		// 	return {statusCode: 409, message : "email already used"};
 		
-		if (await getUser(null, user.email))
-			return {statusCode: 409, message : "email already used"};
-		 const u = user as RegisterInput;
-		await db.run(`
-			INSERT INTO User (username, email, password, secret_question_number, secret_question_answer)
-			VALUES (?, ?, ?, ?, ?)
-			`,
-			[u.username, u.email, u.password, u.question, u.answer]
-		);
-	}
-	else 
-	{
-		if(await getUser(null, user.username))
+		if (!is_google)
 		{
-			const now = Date.now();
-			const digits = now.toString().split('');
-			const len = digits.length;
-			console.log( now + " " + digits + " " + len);
-
-			for (let i = 0; i < len; i++)
-			{
-				user.username = user.username + "_" + digits[i];
-				if (!await getUser(null, user.username))
-					break ;
-			}
+			if(await getUser(null, user.username))
+				return {statusCode : 409, message : "username already used"};
+			
+			if (await getUser(null, user.email))
+				return {statusCode: 409, message : "email already used"};
+			const u = user as RegisterInput;
+			await db.run(`
+				INSERT INTO User (username, email, password, secret_question_number, secret_question_answer)
+				VALUES (?, ?, ?, ?, ?)
+				`,
+				[u.username, u.email, u.password, u.question, u.answer]
+		);
 		}
-	
-		await db.run(`
-			INSERT INTO User (username, email, register_from)
-			VALUES (?, ?, ?)
-			`,
-			[user.username, user.email, 'google']
-		);	
-	}
-	return {statusCode : 201, message : 'user add'};
-}
+		else 
+		{
+			if(await getUser(null, user.username))
+			{
+				const now = Date.now();
+				const digits = now.toString().split('');
+				const len = digits.length;
+				console.log( now + " " + digits + " " + len);
+				
+				for (let i = 0; i < len; i++)
+				{
+					if (i === 0)
+						user.username += "_";
+					user.username += digits[i];
+					if (!await getUser(null, user.username))
+						break ;
+				}
+			}
+					
+			await db.run(`
+				INSERT INTO User (username, email, register_from)
+				VALUES (?, ?, ?)
+				`,
+				[user.username, user.email, 'google']
+			);	
+		}
+		return {statusCode : 200, message : 'user add'};
 
+	} catch (err) {
+		console.error("Erreur lors de l'insertion d'un utilisateur standard :", err);
+		return { statusCode: 500, message: "Erreur serveur : insertion utilisateur échouée." };
+	}	
+}
+		
 export async function majLastlog(username: string)
 {
 	const db = await getDb();
