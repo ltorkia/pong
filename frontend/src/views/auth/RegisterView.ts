@@ -6,7 +6,7 @@ export class RegisterView extends BaseView {
 		super(container, '/templates/auth/register.html');
 	}
 
-	protected attachListeners(): void {
+	protected bindEvents(): void {
 
 		// // WebSocket simple pour test
 		// const socket = new WebSocket('wss://localhost:8443/ws');

@@ -6,7 +6,7 @@ export class LoginView extends BaseView {
 		super(container, '/templates/auth/login.html');
 	}
 
-	protected attachListeners(): void {
+	protected bindEvents(): void {
 		const form: HTMLElement | null = document.getElementById('login-form');
 		if (!(form instanceof HTMLFormElement)) {
 			console.error('Formulaire non trouvé ou invalide');

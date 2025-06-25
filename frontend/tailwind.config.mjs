@@ -9,7 +9,7 @@ export default {
 		"./public/**/**/*.html",
 		"./src/**/*.{js,ts,jsx,tsx}",
 		"./src/**/**/*.{js,ts,jsx,tsx}",
-  		"./node_modules/@fortawesome/fontawesome-free/**/*.js"
+		"./node_modules/@fortawesome/fontawesome-free/**/*.js"
 	],
 	theme: {
 		extend: {

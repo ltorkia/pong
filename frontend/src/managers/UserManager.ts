@@ -15,18 +15,18 @@ export class UserManager {
 	 * le store, localStorage avec validation cote serveur,
 	 * et enfin l'api avec requête à /api/me
 	 */
-	public async loadUser(): Promise<void> {
+	public async loadUser(): Promise<User | null> {
 		// Vérification rapide avec le cookie compagnon
 		if (this.hasAuthCookie()) {
 			console.log('[UserManager] Cookie auth_status présent, chargement utilisateur...');
 			// Seulement dans ce cas on charge l'utilisateur
-			await this.loadOrRestoreUser();
-			return;
+			return await this.loadOrRestoreUser();
 		}
 		// Si pas de cookie:
 		console.log('[UserManager] Pas de cookie auth_status, démarrage sans utilisateur');
 		// Pas besoin d'appeler loadOrRestoreUser(), on sait déjà qu'il n'y a pas d'utilisateur
 		// Le router gérera les redirections si nécessaire
+		return null;
 	}
 
 	/**

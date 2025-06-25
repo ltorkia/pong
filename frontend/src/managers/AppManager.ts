@@ -38,7 +38,7 @@ export class AppManager {
 	 */
 	public async start(): Promise<void> {
 		console.log('=== DEMARRAGE APP ===');
-		await userManager.loadUser();
+		const user = await userManager.loadUser();
 		await this.tsParticlesInit();
 		await wait(100);
 		document.body.classList.remove('load');

@@ -1,11 +1,11 @@
-import { setupNavbar } from '../components/navbar';
-import { shouldShowNavbar } from '../utils/navbar.utils';
 import { UserController } from '../controllers/UserController';
+import { NavbarComponent } from '../components/common/NavbarComponent';
 
 export abstract class BaseView {
 	protected container: HTMLElement;			// Élément DOM dans lequel le contenu html sera injecté
 	protected templatePath: string;				// Chemin vers le template html à charger pour cette page
 	protected userController: UserController;	// Instance qui va gérer le parcourt d'authentification du current user
+	protected navbarComponent?: NavbarComponent;	// Navbar component
 
 	// Le constructeur reçoit le container DOM et le chemin du template
 	constructor(container: HTMLElement, templatePath: string) {
@@ -27,7 +27,7 @@ export abstract class BaseView {
 
 			// Chargement asynchrone du template html via fetch
 			// + injection html dans la div #app
-			const html = await this.loadTemplate(this.templatePath);
+			const html = await this.loadTemplate();
 			this.container.innerHTML = html;
 			
 			console.log(`${this.constructor.name}: HTML injecté`);
@@ -37,7 +37,7 @@ export abstract class BaseView {
 			console.log(`${this.constructor.name}: Page montée, rendu terminé`);
 			
 			// On attache les listeners relatifs à la page (ex gestion de clic LOGIN pour gérer la logique de connexion)
-			this.attachListeners();
+			this.bindEvents();
 			console.log(`${this.constructor.name}: Listeners attachés`);
 
 		} catch (error) {
@@ -51,51 +51,12 @@ export abstract class BaseView {
 	 * Pour generer le contenu de la navbar en fonction de si on est log ou pas
 	 */
 	protected async loadNavbar(): Promise<void> {
-
-		// On return si on est sur une page publique (login / register = pas de navbar)
-		// et on clean la navbar pour qu'elle ne reste pas sur la prochaine page
-		const navbar = document.getElementById('navbar');
-		const showNavbar = shouldShowNavbar(this.templatePath);
-		if (!showNavbar) {
-			if (navbar) {
-				navbar.innerHTML = '';
-			}
-			return;
-		}
-
-		// On ajoute un margin à la balise 'main' qui correspond à la hauteur de la navbar
-		const main = document.querySelector('main');
-		if (main) {
-			main.classList.add('mt-main');
-		}
-
-		// Injection de la navbar
-		const navbarPath = '/components/common/navbar.component.html';
-		const htmlNavbar = await this.loadTemplate(navbarPath);
-		navbar!.innerHTML = htmlNavbar;
-
-		try {
-			// Personnalisation de la navbar (lien profil avec l'ID utilisateur, notifs ?)
-			await setupNavbar();
-			
-			// Listener sur le bouton logout
-			await this.listenLogout();
-			
-		} catch (err) {
-			console.warn("Impossible de générer la navbar : ", err);
-		}
-	}
-
-	/**
-	 * Listener sur le bouton logout de la navbar
-	 */
-	protected async listenLogout(): Promise<void> {
-		const logoutLink = document.querySelector('a[href="/logout"]');
-		if (logoutLink) {
-			logoutLink.addEventListener('click', async (e) => {
-				e.preventDefault();
-				await this.userController.logoutController();
-			});
+		const navbarDiv = document.getElementById('navbar');
+		if (navbarDiv) {
+			this.navbarComponent = new NavbarComponent(navbarDiv, this.templatePath, this.userController);
+			await this.navbarComponent.mount();
+		} else {
+			console.warn('Container #navbar introuvable dans le DOM');
 		}
 	}
 
@@ -103,15 +64,15 @@ export abstract class BaseView {
 	 * Charge le template html via fetch.
 	 * Si une erreur arrive on renvoie un message d'erreur html.
 	 */
-	protected async loadTemplate(templatePath: string): Promise<string> {
+	protected async loadTemplate(): Promise<string> {
 		try {
-			const response = await fetch(templatePath);
+			const response = await fetch(this.templatePath);
 			if (!response.ok) {
 				throw new Error(`Erreur lors du chargement du template: ${response.statusText}`);
 			}
 			return await response.text();
 		} catch (error) {
-			console.error(`Erreur lors du chargement de ${templatePath}:`, error);
+			console.error(`Erreur lors du chargement de ${this.templatePath}:`, error);
 			return this.getErrorMessage();
 		}
 	}
@@ -120,7 +81,7 @@ export abstract class BaseView {
 	 * Méthode vide par défaut à surcharger dans les sous-classes
 	 * pour attacher les eventListeners() spécifiques de chaque page.
 	 */
-	protected attachListeners(): void {}
+	protected bindEvents(): void {}
 
 	/**
 	 * Méthode vide par défaut à surcharger dans les sous-classes
