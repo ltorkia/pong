@@ -1,3 +1,5 @@
+import { UserModel } from '../types/model.types';
+
 export class User {
 
 	constructor(
@@ -39,7 +41,7 @@ export class User {
 		return this.lastlog ? new Date(this.lastlog).toLocaleString() : 'Jamais connecté';
 	}
 
-	static fromJson(data: any): User {
+	static fromJson(data: UserModel): User {
 		return new User(
 			data.id,
 			data.username,

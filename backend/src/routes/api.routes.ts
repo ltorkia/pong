@@ -8,6 +8,7 @@ import { authRoutes } from './auth.routes';
 import { usersRoutes } from './users.routes';
 import { testsRoutes } from './tests.routes';
 import { apiMe } from './api.me';
+import { sessionRoutes } from './session.routes';
 
 // DB
 import { getUser } from '../db/user';
@@ -58,10 +59,11 @@ export async function apiRoutes(app: FastifyInstance) {
 				});
 			}
 
+			// Données user décodées du JWT (ici l'id et username du token)
+			// injectées dans l'objet 'request' en param de chaque requete.
+			// Ca permet aux routes d’accéder facilement à l’utilisateur authentifié
+			// via request.user sans devoir redécoder le token à chaque fois.
 			request.user = decoded;
-			// ou injecter directement l'objet user ??
-			// (request as any).user = user;
-			// a caster plus tard dans les handlers avec const user = request.user as UserForDashboard;
 
 		} catch (err) {
 			clearAuthCookies(reply);
@@ -87,4 +89,5 @@ export async function apiRoutes(app: FastifyInstance) {
 	await app.register(usersRoutes, { prefix: '/users' });
 	await app.register(testsRoutes, { prefix: '/tests' });
 	await app.register(apiMe, { prefix: '/me' });
+	await app.register(sessionRoutes, { prefix: '/validate-session' });
 }

@@ -1,5 +1,5 @@
 import { BaseView } from './BaseView';
-import { getUserById, getUserFriends } from '../api/users';
+import { userApi } from '../api/user.api';
 
 export class ProfileView extends BaseView {
 	private userId: number;
@@ -13,7 +13,7 @@ export class ProfileView extends BaseView {
 	
 	protected async mount(): Promise<void> {
 		try {
-			const user = await getUserById(this.userId);
+			const user = await userApi.getUserById(this.userId);
 			const profileSection = document.getElementById('profile-section') as HTMLDivElement;
 			const template = document.getElementById('user-template') as HTMLTemplateElement;
 			if (!profileSection || !template || !user) return;

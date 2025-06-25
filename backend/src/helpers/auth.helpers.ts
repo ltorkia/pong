@@ -5,9 +5,10 @@ import { JwtPayload } from '../types/jwt.types';
  * Génère un token JWT pour un utilisateur donné
  * @returns Token JWT signé valide 7 jours
  */
-export function generateJwt(app: FastifyInstance, user: { id: number; username: string }) {
+export function generateJwt(app: FastifyInstance, user: JwtPayload) {
 	return app.jwt.sign(user, { expiresIn: '7d' });
 }
+
 
 /**
  * Définit le cookie principal d'authentification (sécurisé, HttpOnly)
@@ -19,7 +20,7 @@ export function setAuthCookie(reply: FastifyReply, token: string) {
 		path: '/',
 		httpOnly: true,
 		sameSite: 'lax',
-		secure: false,
+		secure: true,
 		maxAge: 60 * 60 * 24 * 7,
 	});
 }
@@ -34,7 +35,7 @@ export function setStatusCookie(reply: FastifyReply) {
 		path: '/',
 		httpOnly: false,
 		sameSite: 'lax',
-		secure: false,
+		secure: true,
 		maxAge: 60 * 60 * 24 * 7, // 7 jours même durée que le cookie principal
 	});
 }
@@ -49,7 +50,7 @@ export function clearAuthCookies(reply: FastifyReply) {
 		path: '/',
 		httpOnly: true,
 		sameSite: 'lax',
-		secure: false,
+		secure: true,
 	});
 	
 	// le cookie compagnon (statut)
@@ -57,7 +58,7 @@ export function clearAuthCookies(reply: FastifyReply) {
 		path: '/',
 		httpOnly: false,
 		sameSite: 'lax',
-		secure: false,
+		secure: true,
 	});
 }
 

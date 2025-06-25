@@ -1,7 +1,6 @@
-export type User = {
-	id: number;
-	username: string;
-};
+import { User } from '../types/store.types';
+
+// TODO: Lier User de Models au UserStore (au lieu de joindre un type User random) ??
 
 export class UserStore {
 	private user: User | null = null;
@@ -25,7 +24,8 @@ export class UserStore {
 		console.log('[UserStore] Utilisateur supprimé');
 	}
 
-	public restoreFromStorage(): void {
+	public restoreFromStorage(): User | null {
+		this.user = null;
 		const userJSON = localStorage.getItem('currentUser');
 		if (userJSON) {
 			try {
@@ -37,6 +37,7 @@ export class UserStore {
 				localStorage.removeItem('currentUser');
 			}
 		}
+		return this.user;
 	}
 }
 

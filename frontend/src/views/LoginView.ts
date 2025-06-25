@@ -1,5 +1,4 @@
 import { BaseView } from './BaseView';
-import { UserController } from '../controllers/UserController';
 
 export class LoginView extends BaseView {
 

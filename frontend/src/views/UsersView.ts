@@ -1,5 +1,5 @@
 import { BaseView } from './BaseView';
-import { getUsers, getUserFriends } from '../api/users';
+import { userApi } from '../api/user.api';
 
 export class UsersView extends BaseView {
 
@@ -11,7 +11,7 @@ export class UsersView extends BaseView {
 
 	async mount() {
 		try {
-			const users = await getUsers();
+			const users = await userApi.getUsers();
 			const userList = document.getElementById('user-list') as HTMLTableElement;
 			const template = document.getElementById('users-template') as HTMLTemplateElement;
 			if (!userList || !template) return;

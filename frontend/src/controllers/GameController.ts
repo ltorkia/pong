@@ -19,7 +19,5 @@ export class GameController {
 		}
 		// Exemple de méthode pour gérer l'arrêt de la logique métier, WebSocket, timers etc...
 		this.gameManager.stop();
-		// Méthode existante dans router pour rediriger vers la page d’accueil
-		router.navigate('/');
 	}
 }

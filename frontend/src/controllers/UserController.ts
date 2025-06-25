@@ -1,5 +1,6 @@
 import { router } from '../router/router';
 import { userManager } from '../managers/UserManager';
+import { defaultRoute, authFallbackRoute } from '../config/navigation.config';
 import { showError } from '../utils/app.utils';
 import { REGISTERED_MSG } from '../config/messages';
 
@@ -25,7 +26,7 @@ export class UserController {
 			}
 			// Redirection home
 			alert(REGISTERED_MSG);
-			await router.redirectPublic('/');
+			await router.redirectPublic(defaultRoute);
 
 		} catch (err) {
 			console.error('Erreur réseau ou serveur', err);
@@ -49,7 +50,7 @@ export class UserController {
 			}
 			// Redirection home
 			console.log('Utilisateur connecté :', result);
-			await router.redirectPublic('/');
+			await router.redirectPublic(defaultRoute);
 
 		} catch (err) {
 			console.error('Erreur réseau ou serveur', err);
@@ -73,7 +74,7 @@ export class UserController {
 			}
 			// Redirection SPA vers login
 			console.log('Déconnexion réussie. Redirection /login');
-			await router.redirectPublic('/login');
+			await router.redirectPublic(authFallbackRoute);
 
 		} catch (err) {
 			console.error('Erreur réseau ou serveur', err);

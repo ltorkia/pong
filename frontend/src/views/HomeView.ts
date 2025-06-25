@@ -1,5 +1,5 @@
 import { BaseView } from './BaseView';
-import { getUserById } from '../api/users';
+import { userApi } from '../api/user.api';
 
 export class HomeView extends BaseView {
 	private userId: number;
@@ -13,11 +13,7 @@ export class HomeView extends BaseView {
 
 	protected async mount(): Promise<void> {
 		try {
-			if (!this?.userId) {
-				console.warn('[HomeView] Pas d\'ID utilisateur défini');
-				return;
-			}
-			const user = await getUserById(this.userId);
+			const user = await userApi.getUserById(this.userId);
 			const avatar = document.querySelector('.avatar') as HTMLElement;
 			const h1 = document.querySelector('.page-title') as HTMLElement;
 			if (!h1 || !avatar || !user) return;

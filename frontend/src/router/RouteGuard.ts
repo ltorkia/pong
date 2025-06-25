@@ -1,5 +1,6 @@
 import { userManager } from '../managers/UserManager';
 import { userStore } from '../store/UserStore';
+import { defaultRoute, authFallbackRoute } from '../config/navigation.config';
 import { isPublicRoute } from '../utils/navigation.utils';
 
 /**
@@ -33,7 +34,7 @@ export class RouteGuard {
 			if (!isPublic && !authCookieIsActive) {
 				userStore.clearCurrentUser();
 				console.log('[handleAuthRedirect] Non connecté -> redirection vers /login');
-				await this.router.redirect('/login');
+				await this.router.redirect(authFallbackRoute);
 				return true;
 			}
 
@@ -43,7 +44,7 @@ export class RouteGuard {
 				// Vérification dans le store d'abord
 				if (userStore.getCurrentUser()) {
 					console.log('[handleAuthRedirect] Utilisateur déjà en store -> redirection vers /');
-					await this.router.redirect('/');
+					await this.router.redirect(defaultRoute);
 					return true;
 				}
 				
@@ -52,30 +53,30 @@ export class RouteGuard {
 				const user = await userManager.loadOrRestoreUser();
 				if (user) {
 					console.log('[handleAuthRedirect] Utilisateur restauré -> redirection vers /');
-					await this.router.redirect('/');
+					await this.router.redirect(defaultRoute);
 					return true;
 				}
 				// Si pas d'utilisateur mais cookie présent: désynchronisation cookie/serveur
 			}
 
-			// Seulement pour les routes privées avec cookie présent, on charge le user avec requête API
+			// Pour les routes privées avec cookie présent, on restaure via localStorage puis fallback API
 			if (!isPublic && authCookieIsActive) {
 				const user = await userManager.loadOrRestoreUser();
 				if (!user) {
 					// Cookie présent mais pas d'utilisateur valide
 					// (cas de désynchronisation ou session expirée côté serveur)
 					console.log('[handleAuthRedirect] Cookie présent mais utilisateur invalide -> redirection vers /login');
-					await this.router.redirect('/login');
+					await this.router.redirect(authFallbackRoute);
 					return true;
 				}
+				// Désynchronisation cookie/serveur
 			}
-
 			return false;
 
 		} catch (err) {
 			console.error('[handleAuthRedirect] Erreur critique', err);
 			userStore.clearCurrentUser();
-			await this.router.redirect('/login');
+			await this.router.redirect(authFallbackRoute);
 			return true;
 		}
 	}

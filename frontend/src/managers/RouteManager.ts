@@ -9,8 +9,8 @@ import { router } from '../router/router';
 import { setActiveNavLink } from '../utils/navbar.utils';
 import { hasParams } from '../utils/router.utils';
 
-// CONFIG & TYPES
-import { routesConfig, authFallbackRoute } from '../config/navigation.config';
+// CONFIG / TYPES
+import { routesConfig } from '../config/navigation.config';
 import { RouteConfig, RouteParams } from '../types/navigation.types';
 
 export class RouteManager {
@@ -24,7 +24,8 @@ export class RouteManager {
 	 * - pageManager pour gérer le rendu et le nettoyage des pages,
 	 * - particlesManager pour gérer les effets visuels de particules.
 	 * 
-	 * Initialise les routes à partir de la configuration externe.
+	 * - Initialise les routes en appelant setupRoutes() qui enregistre
+	 * les différentes routes dans le router global (la map dans Router.ts).
 	 */
 	constructor(pageManager: PageManager, particlesManager: ParticlesManager) {
 		this.pageManager = pageManager;
@@ -35,9 +36,11 @@ export class RouteManager {
 	/**
 	 * Méthode publique pour démarrer la gestion des routes.
 	 * 
-	 * - Affiche dans la console la liste des routes enregistrées (utile pour debug)
-	 * - Appelle router.handleLocationPublic() qui va lire l'URL courante
-	 *   et déclencher le rendu de la page correspondante.
+	 * - Affiche dans la console la liste des routes enregistrées pour debug
+	 * - Appelle handleLocationPublic() du router qui va lire l'URL courante
+	 *   et déclencher le rendu de la page associée.
+	 * 
+	 * Cette méthode est appelée par AppManager lors du démarrage de l’application.
 	 */
 	public async start() {
 		console.log('Routes enregistrées:', Array.from(router.getRoutes().keys()));
@@ -45,9 +48,15 @@ export class RouteManager {
 	}
 
 	/**
-	 * Enregistre toutes les routes à partir de la configuration externe.
+	 * Enregistre les routes dans la map de RouterCore
+	 * en se basant sur routesConfig du fichier navigation.config.
+	 * 
+	 * Dans la map, on set un chemin (ex: /login) et une fonction handler
+	 * qui sera exécutée pour render cette page.
+	 * Le handler peut prendre un parametre (ex: id).
 	 */
-	private setupRoutes(): void {routesConfig.forEach(config => {
+	private setupRoutes(): void {
+		routesConfig.forEach(config => {
 			if (hasParams(config.path)) {
 				router.register(config.path, async (params?: RouteParams) => {
 					await this.handleParamRoute(config, params);
@@ -61,22 +70,39 @@ export class RouteManager {
 	}
 
 	/**
+	 * Exemple lineaire pour la route login (c'etait avant refactorisation
+	 * quand toutes les routes etaient declarees en dur) :
+	 */
+	// router.register('/login', async () => {
+	// 	console.log('Exec route: navigation vers Login');
+	// 	const appDiv = document.getElementById('app') as HTMLElement | null;
+	// 	if (!appDiv) {
+	// 		console.error("div #app introuvable");
+	// 		return;
+	// 	}
+	// 	console.log('div #app trouvée, création LoginPage');
+	// 	const loginPage = new LoginPage(appDiv) as LoginPage;
+	// 	await this.loadPage(loginPage);
+	// 	setActiveNavLink('/login');
+	// 	console.log('LoginPage rendue');
+	// });
+
+	/**
 	 * Gère les routes simples sans paramètres
 	 */
 	private async handleSimpleRoute(config: RouteConfig): Promise<void> {
 		console.log(`Exec route: navigation vers ${config.name}`);
 		
 		const appDiv = this.getAppDiv();
-		if (!appDiv) return;
-
-		// Vérification d'authentification
-		if (!config.isPublic && !(await this.checkAuthentication())) {
+		if (!appDiv) {
 			return;
 		}
 
 		// Création de l'instance de page
 		const pageInstance = await this.createPageInstance(config, appDiv);
-		if (!pageInstance) return;
+		if (!pageInstance) {
+			return
+		};
 
 		// Chargement et affichage de la page
 		await this.loadPage(pageInstance, config.enableParticles);
@@ -97,16 +123,15 @@ export class RouteManager {
 		console.log(`Exec route: navigation vers ${config.name} avec params:`, params);
 		
 		const appDiv = this.getAppDiv();
-		if (!appDiv) return;
-
-		// Vérification d'authentification
-		if (!config.isPublic && !(await this.checkAuthentication())) {
+		if (!appDiv) {
 			return;
 		}
 
 		// Création de l'instance avec paramètres
 		const pageInstance = await this.createPageInstance(config, appDiv, params);
-		if (!pageInstance) return;
+		if (!pageInstance) {
+			return;
+		}
 
 		// Chargement et affichage de la page
 		await this.loadPage(pageInstance, config.enableParticles);
@@ -116,35 +141,22 @@ export class RouteManager {
 	}
 
 	/**
-	 * Vérifie l'authentification de l'utilisateur
-	 */
-	private async checkAuthentication(): Promise<boolean> {
-		const currentUser = await userManager.loadOrRestoreUser();
-		if (!currentUser) {
-			console.log('Utilisateur non authentifié, redirection vers la page de connexion');
-			await router.redirectPublic(authFallbackRoute);
-			return false;
-		}
-		return true;
-	}
-
-	/**
 	 * Crée une instance de page avec ou sans paramètres
 	 */
 	private async createPageInstance(config: RouteConfig, appDiv: HTMLElement, params?: RouteParams): Promise<any> {
 		try {
-			// Cas spécial pour HomePage qui nécessite l'ID utilisateur
-			if (!config.isPublic && config.component.name === 'HomePage') {
+			// Cas spéciaux qui attendent l'id user en paramètre (comme HomeView)
+			if (!config.isPublic && config.idUserRequired) {
 				const currentUser = await userManager.loadOrRestoreUser();
-				return new config.component(appDiv, currentUser?.id);
+				return new config.component(appDiv, currentUser?.id);	// = ex: return new HomeView(id)
 			}
 
-			// Cas avec paramètres
+			// Cas avec paramètres dans le handler qu'il faut transmettre a la page
 			if (params) {
 				return this.createParamPageInstance(config, appDiv, params);
 			}
 
-			// Cas simple
+			// Cas classique
 			return new config.component(appDiv);
 		} catch (error) {
 			console.error(`Erreur lors de la création de l'instance de page pour ${config.name}:`, error);
@@ -156,15 +168,12 @@ export class RouteManager {
 	 * Crée une instance de page avec des paramètres spécifiques
 	 */
 	private createParamPageInstance(config: RouteConfig, appDiv: HTMLElement, params: RouteParams): any {
-		// ProfilePage attend un number pour l'ID
-		if (config.component.name === 'Profile' && params.id) {
-			return new config.component(appDiv, Number(params.id));
-		}
-		if (config.component.name === 'Home') {
+		// Cas qui attendent un id user en parametre qui est deja en param du handler (comme pour ProfileView)
+		if (config.idUserRequired && params.id) {
 			return new config.component(appDiv, Number(params.id));
 		}
 		
-		// Cas général - extensible pour d'autres composants
+		// Cas général avec params, a creuser pour d'autres composants ?
 		return new config.component(appDiv, params);
 	}
 
@@ -189,17 +198,6 @@ export class RouteManager {
 	}
 
 	/**
-	 * Récupère l'élément DOM principal de l'application
-	 */
-	private getAppDiv(): HTMLElement | null {
-		const appDiv = document.getElementById('app') as HTMLElement | null;
-		if (!appDiv) {
-			console.error("Élément #app introuvable dans le DOM");
-		}
-		return appDiv;
-	}
-
-	/**
 	 * Charge et affiche une page avec gestion des particules
 	 */
 	private async loadPage(pageInstance: any, enableParticles: boolean = true): Promise<void> {
@@ -219,27 +217,18 @@ export class RouteManager {
 	}
 
 	/**
-	 * Ajoute dynamiquement une nouvelle route
+	 * Récupère l'élément DOM principal de l'application
 	 */
-	public addRoute(config: RouteConfig): void {
-		try {
-			if (hasParams(config.path)) {
-				router.register(config.path, async (params?: RouteParams) => {
-					await this.handleParamRoute(config, params);
-				});
-			} else {
-				router.register(config.path, async () => {
-					await this.handleSimpleRoute(config);
-				});
-			}
-			console.log(`Route ${config.path} ajoutée dynamiquement`);
-		} catch (error) {
-			console.error(`Erreur lors de l'ajout de la route ${config.path}:`, error);
+	private getAppDiv(): HTMLElement | null {
+		const appDiv = document.getElementById('app') as HTMLElement | null;
+		if (!appDiv) {
+			console.error("Élément #app introuvable dans le DOM");
 		}
+		return appDiv;
 	}
 
 	/**
-	 * Getter public pour récupérer le router
+	 * Getter public router
 	 */
 	public getRouter(): RouterCore {
 		return router;

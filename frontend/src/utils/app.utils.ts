@@ -7,8 +7,8 @@ export async function secureFetch(url: string, options?: RequestInit) {
 	if (res.status === 401) {
 
 		// Token invalide/expiré → nettoyage local uniquement
+		// + redirection '/login'
 		userStore.clearCurrentUser();
-
 		console.warn('[secureFetch] Session expirée → aucun utilisateur connecté localement');
 		throw new Error('Session expirée');
 	}

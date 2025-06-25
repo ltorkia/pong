@@ -66,6 +66,14 @@ export async function authRoutes(app: FastifyInstance) {
 					errorMessage: 'Email invalid or unknown'
 				});
 			}
+
+			if(validUser && validUser.register_from == 'google')
+			{
+				return reply.status(402).send({
+					statusCode: 402,
+					errorMessage: 'Email already register from google'
+				});				
+			}
 			
 			const isPassValid = await bcrypt.compare(result.data.password, validUser.password);
 			if (!isPassValid) {
@@ -100,9 +108,8 @@ export async function authRoutes(app: FastifyInstance) {
 	// LOGOUT
 	app.post('/logout', async (request: FastifyRequest, reply: FastifyReply) => {
 		clearAuthCookies(reply);
-		reply.send({ message: 'Déconnecté' })});
-
-
+		reply.send({ message: 'Déconnecté' })
+	});
 
 	// LOGIN AVEC GOOGLE
 	// Route qui redirige vers la page d'autorisation de Google quand on clique sur "sign in with Google"
@@ -169,7 +176,14 @@ export async function authRoutes(app: FastifyInstance) {
 				return reply.status(400).send({error: 'Données utilisateur incomplètes' }); //retourne objet vec statuscode ? 
 			}
 
-			let userGoogle = await getUser(null, userData.email);
+			// if(!await (getUser(null,userData.email)))
+			// 	await insertUser(({email: userData.email, username: userData.given_name}), true);
+
+			// const userGoogle = await getUserP(userData.email)
+			// // console.log("usergoogle is :" + userGoogle.id);
+			// // console.log("userdata is :" + userData.given_name);
+
+			let userGoogle = await getUserP(userData.email);
 
 			// TODO: Insère l'utilisateur seulement s'il n'existe pas en bdd
 			// TODO: Logique à améliorer, j'ai juste mis ça pour régler un probleme
@@ -185,10 +199,10 @@ export async function authRoutes(app: FastifyInstance) {
 			// JWT = JSON Web Token = format pour transporter des informations de manière sécurisée entre deux parties, ici le frontend et le backend.
 			const token = generateJwt(app, {
 				id: userGoogle.id,
-				username: userData.given_name,
+				username: userGoogle.username,
 			});
 
-			await majLastlog(userData.given_name);
+			await majLastlog(userGoogle.username);
 			setAuthCookie(reply, token);
 			setStatusCookie(reply);
 

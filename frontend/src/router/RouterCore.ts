@@ -2,6 +2,7 @@ import { RouteGuard } from './RouteGuard';
 import { NavigationHandler } from './NavigationHandler';
 import { RouteHandler } from '../types/navigation.types';
 import { normalizePath, matchRoute } from '../utils/router.utils';
+import { defaultRoute } from '../config/navigation.config';
 
 /**
  * Gère l'ensemble du système de routage pour:
@@ -119,7 +120,7 @@ export class RouterCore {
 			await this.handleLocation();
 		} else {
 			console.warn(`Route ${normalizedPath} n'existe pas, redirection vers /`);
-			this.navigationHandler.pushState('/');
+			this.navigationHandler.pushState(defaultRoute);
 			await this.handleLocation();
 		}
 
@@ -175,9 +176,9 @@ export class RouterCore {
 				} catch (error) {
 					console.error(`Erreur lors de l'exécution de la route ${path}:`, error);
 
-					if (path !== '/') {
+					if (path !== defaultRoute) {
 						console.log('Redirection vers l\'accueil après erreur');
-						await this.navigate('/');
+						await this.navigate(defaultRoute);
 					}
 				}
 			} else {
@@ -186,7 +187,7 @@ export class RouterCore {
 		} else {
 			console.warn(`Aucune route trouvée pour: ${path}`);
 			console.log('Redirection automatique vers l\'accueil');
-			await this.redirect('/');
+			await this.redirect(defaultRoute);
 		}
 	}
 

@@ -72,7 +72,9 @@ export function matchRoute(path: string, routes: Map<string, RouteHandler>): { r
 			}
 		}
 
-		if (matched) return { route, params };
+		if (matched) {
+			return { route, params };
+		}
 	}
 	return null;
 }
