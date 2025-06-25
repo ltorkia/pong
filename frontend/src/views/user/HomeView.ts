@@ -2,6 +2,7 @@ import { BaseView } from '../BaseView';
 import { userApi } from '../../api/user.api';
 
 export class HomeView extends BaseView {
+	 // TODO: changer la logique pour injecter le user
 	private userId: number;
 
 	constructor(container: HTMLElement, userId: number) {

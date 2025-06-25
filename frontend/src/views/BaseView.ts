@@ -15,15 +15,20 @@ export abstract class BaseView {
 	}
 
 	/**
+	 * Méthodes de surcharge (protected) optionnellement remplies par les sous-classes.
+	 */	
+	protected async mount(): Promise<void> {}
+	protected attachListeners(): void {}
+
+	/**
 	 * Méthode principale de rendu.
 	 */
 	public async render(): Promise<void> {
 		try {
 			console.log(`${this.constructor.name}: Début du rendu...`);
 
-			// Chargement asynchrone de la navbar en fonction du statut log utilisateur
-			await this.loadNavbar();
-			console.log(`${this.constructor.name}: Navbar générée`);
+			// Chargement asynchrone des components relatifs à la page (ici navbar)
+			await this.loadComponents();
 
 			// Chargement asynchrone du template html via fetch
 			// + injection html dans la div #app
@@ -48,7 +53,16 @@ export abstract class BaseView {
 	}
 
 	/**
-	 * Pour generer le contenu de la navbar en fonction de si on est log ou pas
+	 * Génère les components relatifs à la page
+	 */
+	protected async loadComponents(): Promise<void> {
+		// Chargement asynchrone de la navbar en fonction du statut log utilisateur
+		await this.loadNavbar();
+		console.log(`${this.constructor.name}: Navbar générée`);
+	}
+
+	/**
+	 * Nouvelle instance de NavbarComponent
 	 */
 	protected async loadNavbar(): Promise<void> {
 		const navbarDiv = document.getElementById('navbar');
@@ -78,23 +92,6 @@ export abstract class BaseView {
 	}
 
 	/**
-	 * Méthode vide par défaut à surcharger dans les sous-classes
-	 * pour attacher les eventListeners() spécifiques de chaque page.
-	 */
-	protected attachListeners(): void {}
-
-	/**
-	 * Méthode vide par défaut à surcharger dans les sous-classes
-	 * pour generer les infos propres a chque page.
-	 */
-	protected async mount(): Promise<void> {}
-
-	// Error message à afficher dans le catch de la méthode render()
-	protected getErrorMessage(): string {
-		return '<div id="alert">Erreur de chargement de la page.</div>';
-	}
-
-	/**
 	 * Nettoyage de la page: vide le container #app.
 	 * Appelée dans PageManager.ts avant de rendre une nouvelle page.
 	 */
@@ -102,5 +99,10 @@ export abstract class BaseView {
 		console.log(`${this.constructor.name}: Nettoyage...`);
 		this.container.innerHTML = '';
 		console.log(`${this.constructor.name}: Nettoyage terminé`);
+	}
+
+	// Error message à afficher dans le catch de la méthode render()
+	protected getErrorMessage(): string {
+		return '<div id="alert">Erreur de chargement de la page.</div>';
 	}
 }

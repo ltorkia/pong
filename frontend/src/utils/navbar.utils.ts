@@ -22,15 +22,6 @@ export async function getProfilePath(): Promise<string | null> {
 }
 
 /**
- * Modifie dynamiquement le lien du profil dans la barre de navigation pour pointer vers la page de l'utilisateur connecté.
- * Récupère l'état de connexion de l'utilisateur via loadOrRestoreUser()
- */
-export async function setProfileLink(navbarComponent: string): Promise<string> {
-	const profilePath = await getProfilePath();
-	return navbarComponent.replace(/\{\{profilePath\}\}/g, profilePath ?? '#');
-}
-
-/**
  * Met à jour la navigation active sur la navbar.
  * 
  * - Sélectionne tous les liens avec l'attribut data-link.
@@ -50,21 +41,4 @@ export function setActiveNavLink(pathname: string): void {
 			anchor.classList.add('active');
 		}
 	});
-}
-
-export function toggleClass(el: Element | null, classA: string, classB: string, classC?: string): void {
-	if (!el) return;
-	if (el.classList.contains(classA)) {
-		el.classList.remove(classA);
-		el.classList.add(classB);
-		if (classC) {
-			el.classList.add(classC);
-		}
-	} else {
-		if (classC) {
-			el.classList.remove(classC);
-		}
-		el.classList.remove(classB);
-		el.classList.add(classA);
-	}
 }

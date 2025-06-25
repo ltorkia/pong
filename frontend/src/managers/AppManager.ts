@@ -48,7 +48,6 @@ export class AppManager {
 			console.error('Container #app introuvable dans le DOM');
 			return;
 		}
-		
 		console.log('Container #app trouvé:', appDiv);
 		console.log('Pathname actuel:', location.pathname);
 		
