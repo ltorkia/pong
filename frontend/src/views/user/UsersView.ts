@@ -1,12 +1,12 @@
-import { BaseView } from './BaseView';
-import { userApi } from '../api/user.api';
+import { BaseView } from '../BaseView';
+import { userApi } from '../../api/user.api';
 
 export class UsersView extends BaseView {
 
 	constructor(container: HTMLElement) {
 		// super() appelle le constructeur du parent BaseView
 		// avec le container et le chemin du template HTML pour la page home
-		super(container, '/templates/users.html');
+		super(container, '/templates/user/users.html');
 	}
 
 	async mount() {

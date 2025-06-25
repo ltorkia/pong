@@ -70,7 +70,7 @@ export abstract class BaseView {
 		}
 
 		// Injection de la navbar
-		const navbarPath = '/components/navbar.html';
+		const navbarPath = '/components/common/navbar.component.html';
 		const htmlNavbar = await this.loadTemplate(navbarPath);
 		navbar!.innerHTML = htmlNavbar;
 

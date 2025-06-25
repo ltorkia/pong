@@ -1,5 +1,5 @@
-import { BaseView } from './BaseView';
-import { GameController } from '../controllers/GameController';
+import { BaseView } from '../BaseView';
+import { GameController } from '../../controllers/GameController';
 
 /**
  * TODO: Suggestion d'orga pour Kiki pour rester cohérent avec notre structure existante
@@ -13,7 +13,7 @@ export class GameView extends BaseView {
 	constructor(container: HTMLElement) {
 		// super() appelle le constructeur du parent BaseView
 		// avec le container et le chemin du template HTML pour la page game
-		super(container, '/templates/game.html');
+		super(container, '/templates/game/game.html');
 		this.gameController = new GameController();
 	}
 

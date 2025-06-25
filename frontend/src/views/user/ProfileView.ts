@@ -1,5 +1,5 @@
-import { BaseView } from './BaseView';
-import { userApi } from '../api/user.api';
+import { BaseView } from '../BaseView';
+import { userApi } from '../../api/user.api';
 
 export class ProfileView extends BaseView {
 	private userId: number;
@@ -7,7 +7,7 @@ export class ProfileView extends BaseView {
 	constructor(container: HTMLElement, userId: number) {
 		// super() appelle le constructeur du parent BaseView
 		// avec le container et le chemin du template HTML pour la page profile
-		super(container, '/templates/profile.html');
+		super(container, '/templates/user/profile.html');
 		this.userId = userId;
 	}
 	

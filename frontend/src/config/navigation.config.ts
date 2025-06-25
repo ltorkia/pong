@@ -1,10 +1,10 @@
 // VIEWS
-import { HomeView } from '../views/HomeView';
-import { RegisterView } from '../views/RegisterView';
-import { LoginView } from '../views/LoginView';
-import { GameView } from '../views/GameView';
-import { UsersView } from '../views/UsersView';
-import { ProfileView } from '../views/ProfileView';
+import { HomeView } from '../views/user/HomeView';
+import { RegisterView } from '../views/auth/RegisterView';
+import { LoginView } from '../views/auth/LoginView';
+import { GameView } from '../views/game/GameView';
+import { UsersView } from '../views/user/UsersView';
+import { ProfileView } from '../views/user/ProfileView';
 
 // TYPES
 import { RouteConfig } from '../types/navigation.types';

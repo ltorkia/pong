@@ -1,9 +1,9 @@
-import { BaseView } from './BaseView';
+import { BaseView } from '../BaseView';
 
 export class LoginView extends BaseView {
 
 	constructor(container: HTMLElement) {
-		super(container, '/templates/login.html');
+		super(container, '/templates/auth/login.html');
 	}
 
 	protected attachListeners(): void {

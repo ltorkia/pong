@@ -22,9 +22,9 @@ export class RouteGuard {
 	 * 
 	 * Retourne true si une redirection a eu lieu, false sinon.
 	 */
-	private async handleAuthRedirect(matchedRoute: { route: string }): Promise<boolean> {
+	private async handleAuthRedirect(route: string): Promise<boolean> {
 		try {
-			const isPublic = isPublicRoute(matchedRoute.route);
+			const isPublic = isPublicRoute(route);
 
 			// Vérifie si un utilisateur est déjà chargé avec le cookie compagnon
 			const authCookieIsActive = userManager.hasAuthCookie();
@@ -84,7 +84,7 @@ export class RouteGuard {
 	/**
 	 * Méthode publique pour appeler handleAuthRedirect depuis RouterCore
 	 */
-	public async checkAuthRedirect(matchedRoute: { route: string }): Promise<boolean> {
-		return await this.handleAuthRedirect(matchedRoute);
+	public async checkAuthRedirect(route: string): Promise<boolean> {
+		return await this.handleAuthRedirect(route);
 	}
 }

@@ -163,7 +163,7 @@ export class RouterCore {
 			const routeHandler = this.routes.get(matchedRoute.route);
 
 			if (routeHandler) {
-				const redirected = await this.routeGuard.checkAuthRedirect(matchedRoute);
+				const redirected = await this.routeGuard.checkAuthRedirect(matchedRoute.route);
 				if (redirected) {
 					return;
 				}

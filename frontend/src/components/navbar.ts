@@ -1,5 +1,4 @@
 import { setProfileLink } from '../utils/navbar.utils';
-import { shouldShowNavbar } from '../utils/navbar.utils';
 
 export async function setupNavbar(): Promise<void> {
     await setProfileLink();
