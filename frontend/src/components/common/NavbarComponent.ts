@@ -18,39 +18,77 @@ export class NavbarComponent extends BaseComponent {
 		this.userController = userController;
 	}
 
-	async render(): Promise<void> {
+	// async render(): Promise<void> {
 
-		// On ajoute un margin à la balise 'main' qui correspond à la hauteur de la navbar
+	// 	// On ajoute un margin à la balise 'main' qui correspond à la hauteur de la navbar
+	// 	const main = document.querySelector('main');
+	// 	if (main) {
+	// 		main.classList.add('mt-main');
+	// 	}
+
+	// 	// Injection de la navbar
+	// 	let html = await this.loadComponent();
+
+	// 	// Personnalisation de la navbar (lien profil avec l'ID utilisateur, notifs ?)
+	// 	html = this.setProfileLink(html);
+	// 	this.container.innerHTML = html;
+	// }
+
+	// async mount(): Promise<void> {
+	// 	await this.loadUserData();
+
+	// 	// On return si on est sur une page publique:
+	// 	// si this.parentTemplate = login ou register -> pas de navbar.
+	// 	// On clean la navbar pour qu'elle ne reste pas sur la prochaine page.
+	// 	// Sinon on render et on attache les listeners
+	// 	const showNavbar = shouldShowNavbar(this.parentTemplate);
+	// 	if (!showNavbar) {
+	// 		this.cleanup();
+	// 	} else if (this.currentUser && showNavbar) {
+	// 		await this.render();
+	// 		this.bindEvents();
+	// 	}
+	// }
+
+	async render(): Promise<void> {
+		// si this.parentTemplate = page publique (login ou register) -> pas de navbar.
+		// On clean la navbar pour qu'elle ne reste pas sur la prochaine page
+		// et on return.
+		const showNavbar = shouldShowNavbar(this.parentTemplate);
+		if (!showNavbar) {
+			await this.cleanup();
+			return;
+		}
+
+		// De même si pas de current user: on clean la navbar.
+		await this.loadUserData();
+		if (!this.currentUser) {
+			await this.cleanup();
+			return;
+		}
+
+		// Sinon on render (charge et injecte le HTML),
+		// on mount et on attache les listeners.
+		let html = await this.loadComponent();
+		this.container.innerHTML = html;
+		await this.mount();
+		this.attachListeners();
+	}
+
+	protected async mount(): Promise<void> {
+
+		// On génère le lien du profil avec l'id du current user
+		this.setNavLink('a[href="/profile"]', '/user/{userId}');
+
+		// On ajoute un margin à la balise 'main'
+		// qui correspond à la hauteur de la navbar
 		const main = document.querySelector('main');
 		if (main) {
 			main.classList.add('mt-main');
 		}
-
-		// Injection de la navbar
-		let html = await this.loadComponent();
-
-		// Personnalisation de la navbar (lien profil avec l'ID utilisateur, notifs ?)
-		html = this.setProfileLink(html);
-		this.container.innerHTML = html;
 	}
 
-	async mount(): Promise<void> {
-		await this.loadUserData();
-
-		// On return si on est sur une page publique:
-		// si this.parentTemplate = login ou register -> pas de navbar.
-		// On clean la navbar pour qu'elle ne reste pas sur la prochaine page.
-		// Sinon on render et on attache les listeners
-		const showNavbar = shouldShowNavbar(this.parentTemplate);
-		if (!showNavbar) {
-			this.cleanup();
-		} else if (this.currentUser && showNavbar) {
-			await this.render();
-			this.bindEvents();
-		}
-	}
-
-	private bindEvents(): void {
+	protected attachListeners(): void {
 		const burgerBtn = this.container?.querySelector('#burger-btn') as HTMLElement | null;
 		if (!burgerBtn) {
 			console.warn('Bouton burger introuvable');
@@ -87,15 +125,22 @@ export class NavbarComponent extends BaseComponent {
 	 * Modifie dynamiquement le lien du profil dans la barre de navigation pour pointer vers la page de l'utilisateur connecté.
 	 * Récupère l'état de connexion de l'utilisateur via loadOrRestoreUser()
 	 */
-	private setProfileLink(navbarComponent: string): string {
-		const profilePath = this.currentUser ? `/user/${this.currentUser.id}` : '#';
-		return navbarComponent.replace(/\{\{profilePath\}\}/g, profilePath);
+	private setNavLink(selector: string, linkTemplate: string): void {
+		const navLink = this.container.querySelector(selector) as HTMLAnchorElement | null;
+		if (navLink) {
+			// Si le lien contient un placeholder {userId}, on le remplace par l'ID du currentUser
+			let link = linkTemplate;
+			if (this.currentUser && this.currentUser.id && linkTemplate.includes('{userId}')) {
+				link = linkTemplate.replace('{userId}', this.currentUser.id.toString());
+			}
+			navLink.href = link;
+		}
 	}
 
 	/**
 	 * Listener sur le bouton logout de la navbar
 	 */
-	protected async listenLogout(): Promise<void> {
+	private async listenLogout(): Promise<void> {
 		const logoutLink = document.querySelector('a[href="/logout"]');
 		if (logoutLink) {
 			logoutLink.addEventListener('click', async (e) => {

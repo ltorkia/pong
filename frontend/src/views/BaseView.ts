@@ -2,9 +2,9 @@ import { UserController } from '../controllers/UserController';
 import { NavbarComponent } from '../components/common/NavbarComponent';
 
 export abstract class BaseView {
-	protected container: HTMLElement;			// Élément DOM dans lequel le contenu html sera injecté
-	protected templatePath: string;				// Chemin vers le template html à charger pour cette page
-	protected userController: UserController;	// Instance qui va gérer le parcourt d'authentification du current user
+	protected container: HTMLElement;				// Élément DOM dans lequel le contenu html sera injecté
+	protected templatePath: string;					// Chemin vers le template html à charger pour cette page
+	protected userController: UserController;		// Instance qui va gérer le parcourt d'authentification du current user
 	protected navbarComponent?: NavbarComponent;	// Navbar component
 
 	// Le constructeur reçoit le container DOM et le chemin du template
@@ -37,7 +37,7 @@ export abstract class BaseView {
 			console.log(`${this.constructor.name}: Page montée, rendu terminé`);
 			
 			// On attache les listeners relatifs à la page (ex gestion de clic LOGIN pour gérer la logique de connexion)
-			this.bindEvents();
+			this.attachListeners();
 			console.log(`${this.constructor.name}: Listeners attachés`);
 
 		} catch (error) {
@@ -54,7 +54,7 @@ export abstract class BaseView {
 		const navbarDiv = document.getElementById('navbar');
 		if (navbarDiv) {
 			this.navbarComponent = new NavbarComponent(navbarDiv, this.templatePath, this.userController);
-			await this.navbarComponent.mount();
+			await this.navbarComponent.render();
 		} else {
 			console.warn('Container #navbar introuvable dans le DOM');
 		}
@@ -81,7 +81,7 @@ export abstract class BaseView {
 	 * Méthode vide par défaut à surcharger dans les sous-classes
 	 * pour attacher les eventListeners() spécifiques de chaque page.
 	 */
-	protected bindEvents(): void {}
+	protected attachListeners(): void {}
 
 	/**
 	 * Méthode vide par défaut à surcharger dans les sous-classes
@@ -91,7 +91,7 @@ export abstract class BaseView {
 
 	// Error message à afficher dans le catch de la méthode render()
 	protected getErrorMessage(): string {
-		return '<p>Erreur de chargement de la page.</p>';
+		return '<div id="alert">Erreur de chargement de la page.</div>';
 	}
 
 	/**
