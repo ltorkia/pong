@@ -70,8 +70,8 @@ export class RouteManager {
 	}
 
 	/**
-	 * Exemple lineaire pour la route login (c'etait avant refactorisation
-	 * quand toutes les routes etaient declarees en dur) :
+	 * !Exemple lineaire pour la route login (c'etait avant refactorisation
+	 * !quand toutes les routes etaient declarees en dur) :
 	 */
 	// router.register('/login', async () => {
 	// 	console.log('Exec route: navigation vers Login');
