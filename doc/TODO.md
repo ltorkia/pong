@@ -9,6 +9,7 @@ BACK
 COMMUN
 
 - Regrouper types back et front (doublons), peut-être faire dossier 'shared' ?
+- Simplifier tree (components css etc) ça commence à être long + raccorder les noms (miroirs)
 
 FRONT
 
@@ -20,3 +21,4 @@ FRONT
 - Enregistrer les champs formulaires en session au cas où crash
 - Mieux typer partout
 - Boucle login si erreur validate-session (load user dans start app manager à vérifier)
+- Etoffer RouteConfig avec les liens templates et components

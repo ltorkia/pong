@@ -141,7 +141,6 @@ export class UserManager {
 
 		const user = User.fromJSON(result.user!);
 		userStore.setCurrentUser(user);
-
 		return { user: user };
 	}
 	
