@@ -1,0 +1,37 @@
+# Étape 1: build (compilation TypeScript)
+FROM node:20-alpine AS backend-builder
+
+WORKDIR /app
+
+# Copier les fichiers de dépendances
+COPY package*.json ./
+
+# Installer toutes les dépendances (dev + prod) pour la compilation
+RUN npm install
+
+# Copier le code source
+COPY tsconfig.json ./
+COPY src ./src
+
+# Compiler le TypeScript selon le script build du package.json
+RUN npm run build
+
+# Étape 2: builder l'image finale
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Copier les fichiers de dépendances
+COPY package*.json ./
+
+# Installer uniquement les dépendances de production
+RUN npm install --omit=dev
+
+# Copier le dossier dist compilé en première étape
+COPY --from=backend-builder /app/dist ./dist
+
+# Copier le fichier SQL init
+COPY sql/init.sql ./sql/init.sql
+
+# Commande pour lancer le backend en prod selon package.json
+CMD ["npm", "start"]

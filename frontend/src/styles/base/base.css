@@ -1,0 +1,63 @@
+@layer base {
+
+	:root {
+		--navbar-height: 62px;
+		--footer-height: 34px;
+
+		/* Padding de la box principale / responsive */
+		--p: 0.5rem;
+		--p-tablet: 3rem;
+		--p-desktop: 3rem;
+		--p-wide: 3rem;
+		--p-extra-wide: 3rem;
+
+		/* A déduire de la taille de la box principale / responsive */
+		--minus: calc(var(--navbar-height) + var(--footer-height) + var(--p) + var(--p));
+		--minus-tablet: calc(var(--navbar-height) + var(--footer-height) + var(--p-tablet) + var(--p-tablet));
+		--minus-desktop: calc(var(--navbar-height) + var(--footer-height) + var(--p-desktop) + var(--p-desktop));
+		--minus-wide: calc(var(--navbar-height) + var(--footer-height) + var(--p-wide) + var(--p-wide));
+		--minus-extra-wide: calc(var(--navbar-height) + var(--footer-height) + var(--p-extra-wide) + var(--p-extra-wide));
+
+		/* Hauteur de la box principale / responsive */
+		--h: calc(100vh - var(--minus));
+		--h-tablet: calc(100vh - var(--minus-tablet));
+		--h-desktop: calc(100vh - var(--minus-desktop));
+		--h-wide: calc(100vh - var(--minus-wide));
+		--h-extra-wide: calc(100vh - var(--minus-extra-wide));
+	}
+	
+	*, ::before, ::after {
+		@apply box-border m-0 p-0;
+	}
+
+	html, body {
+		@apply h-screen;
+	}
+
+	body {
+		@apply flex flex-col overflow-x-hidden
+		bg-body-bg-color bg-body-bg-img bg-cover bg-center bg-no-repeat
+		font-home text-main-font-color;
+	}
+
+	nav {
+		@apply font-classic;
+	}
+
+	main {
+		@apply w-screen h-full py-[--p] px-[--p]
+		overflow-auto
+		
+		tablet:py-[--p-tablet] tablet:px-14
+		desktop:py-[--p-desktop] desktop:px-24
+		wide:py-[--p-wide] wide:px-24
+		extra-wide:py-[--p-extra-wide] extra-wide:px-48;
+	}
+
+	footer {
+		@apply w-screen flex items-center justify-center
+		font-classic text-xs bg-white/10 backdrop-blur-xl border border-white/20
+		shadow-md text-white text-center text-shadow-black
+		h-[--footer-height];
+	}
+}

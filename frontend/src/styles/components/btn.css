@@ -1,0 +1,31 @@
+@layer components {
+	.btn-container {
+		@apply flex items-center justify-center space-x-4 py-2;
+	}
+	.btn {
+		@apply min-w-64 px-6 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20
+		text-white tracking-widest font-semibold uppercase text-sm text-center shadow-md 
+		hover:bg-white/20 hover:shadow-lg transition duration-300
+		
+		mobile:min-w-80 mobile:text-lg;
+	}
+	.smaller-btn {
+		@apply min-w-24 text-xs px-0 mt-2 mb-7;
+	}
+	.form-btn {
+		@apply min-w-40 -mt-3;
+	}
+	.btn-icon {
+		@apply mt-5 text-5xl text-[#d5d5d5] text-opacity-80;
+	}
+	.btn-google-container {
+		@apply absolute bottom-0 left-0 w-full py-0.5 rounded-bl-[16px] rounded-br-[16px]
+		bg-btn-google-color;
+	}
+	.btn-google {
+		@apply font-classic w-full flex items-center text-[11px] justify-center text-gray-300;
+	}
+	.google-logo {
+		@apply w-3.5 h-3.5 mr-2;
+	}
+}

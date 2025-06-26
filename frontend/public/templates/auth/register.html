@@ -1,0 +1,77 @@
+			<div class="bloc-title">
+				<div class="page-title">Register</div>
+				<div class="under-title">
+					<span>Transcende and play</span>
+				</div>
+			</div>
+
+			<div class="section-box register-box">
+				<form class="form-box" id="register-form">
+
+					<div class="fields-container">
+
+						<!-- Username -->
+						<div class="field-box">
+							<label for="username">Username <span class="important-field">*</span> :</label>
+							<input type="text" id="username" name="username" placeholder="Unique username" required>
+						</div>
+
+						<!-- Email -->
+						<div class="field-box">
+							<label for="email">Email <span class="important-field">*</span> :</label>
+							<input type="email" id="email" name="email" placeholder="your@email.com" required>
+						</div>
+
+						<!-- Password -->
+						<div class="field-box">
+							<label for="password">Password <span class="important-field">*</span> :</label>
+							<input type="password" id="password" name="password" placeholder="*********" required>
+						</div>
+
+						<!-- Secret question -->
+						<div class="field-box">
+							<label for="question">Question <span class="important-field">*</span> :</label>
+							<select name="question" id="question" required>
+								<option value="">-- Select a secret question --</option>
+								<option value="1">Your mother's name</option>
+								<option value="2">Your pet's name</option>
+								<option value="3">Your favourite color</option>
+							</select>
+						</div>
+
+						<!-- Secret answer -->
+						<div class="field-box">
+							<label for="answer">Answer <span class="important-field">*</span> :</label>
+							<input type="text" id="answer" name="answer" placeholder="Your secret answer" required>
+						</div>
+
+						<!-- Avatar -->
+						<div class="field-box">
+							<label for="avatar">Avatar :</label>
+							<input type="file" id="avatar" name="avatar" class="avatar-field">
+						</div>
+					</div> 
+
+					<!-- Submit -->
+					<div class="btn-container">
+						<button type="submit" class="btn form-btn">
+							Sign up
+						</button>
+					</div>
+
+					<div id="alert" aria-live="assertive" class="hidden"></div>
+				</form>
+
+				<div class="btn-container btn-google-container">
+					<a href="/api/auth/google" class="btn-google " aria-label="Sign in with Google">
+						<img src="/img/design/google-icon.svg" alt="Google logo" class="google-logo" />
+						<span>Sign in with Google</span>
+					</a>
+				</div>
+			</div>
+
+			<div class="btn-container">
+				<a href="/login" class="btn-icon" data-link>
+					<i class="fa-regular fa-circle-left"></i>
+				</a>
+			</div>

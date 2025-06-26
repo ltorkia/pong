@@ -1,0 +1,32 @@
+services:
+
+  nginx:
+    container_name: nginx
+    build:
+      context: .
+      dockerfile: ./nginx/Dockerfile.prod
+    ports:
+      - "8443:443"
+    depends_on:
+      - backend
+    networks:
+      - transcendence
+
+  backend:
+    container_name: backend
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.prod
+    volumes:
+      - ./backend/data:/app/data
+    env_file:
+      - ./backend/.env
+    environment:
+      - NODE_ENV=production
+    networks:
+      - transcendence
+    restart: unless-stopped
+
+networks:
+  transcendence:
+    driver: bridge
