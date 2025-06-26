@@ -1,22 +1,27 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { JwtPayload } from '../types/jwt.types';
-// import { getUser } from '../db/user';
+import { getUser } from '../db/user';
 // import { majLastlog } from '../db/user';
 
 
 
-// export function ProcessAuth(app: FastifyInstance, user: JwtPayload)
-// {
-// 	const token = generateJwt(app, {
-// 			id: user.id,
-// 			username: user.username,
-// 		});
-
-// 	await majLastlog(user.username);
-// 	setAuthCookie(reply, token);
-// 	setStatusCookie(reply);
-
-// }
+/*propose un nouveau nom pour register*/
+export async function searchNewName(username: string) {
+	const now = Date.now();
+	const digits = now.toString().split('');
+	const len = digits.length;
+	console.log( now + " " + digits + " " + len);
+	
+	for (let i = 0; i < len; i++)
+	{
+		if (i === 0)
+			username += "_";
+		username += digits[i];
+		if (!await getUser(null, username))
+			break ;
+	}
+	return username;
+} 
 
 /**
  * Génère un token JWT pour un utilisateur donné

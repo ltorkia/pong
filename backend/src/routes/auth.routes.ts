@@ -1,10 +1,11 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import bcrypt from 'bcrypt';
 import { GoogleCallbackQuery, GoogleTokenResponse, GoogleUserInfo } from '../types/google.types';
-import { insertUser, getUser, getUserP, majLastlog } from '../db/user';
+import { insertUser, getUser, getUserP, majLastlog, eraseCode2FA, insertCode2FA } from '../db/user';
 import { RegisterInputSchema, LoginInputSchema } from '../types/zod/auth.zod';
 import { generateJwt, setAuthCookie, setStatusCookie, clearAuthCookies } from '../helpers/auth.helpers';
 import { JwtPayload } from '../types/jwt.types';
+// import nodemailer from 'nodemailer';
 
 async function ProcessAuth(app: FastifyInstance, user: JwtPayload, reply: FastifyReply)
 {
@@ -19,6 +20,47 @@ async function ProcessAuth(app: FastifyInstance, user: JwtPayload, reply: Fastif
 	setStatusCookie(reply);
 	await majLastlog(user.username);
 }
+
+
+
+// async function doubleAuth(app: FastifyInstance, user: JwtPayload, email: string, reply: FastifyReply)
+// {
+// 	app.post('/2FAsend', async (request: FastifyRequest, reply: FastifyReply) => {
+// 		try {
+// 			const code = Math.floor(100000 + Math.random() * 900000).toString().slice(0, length);
+// 			insertCode2FA(user.username, code);
+// 			const transporter = nodemailer.createTransport({	
+// 				service: 'yopmail', // ou autre SMTP
+// 				auth: {
+// 					user: `alt.vl-5ouy5ww2@yopmail.com`,
+// 					// pass: code,
+// 				}
+// 			});
+// 			await transporter.sendMail({
+// 				from: '"Sécurité" <no-reply@transcendance.com>',
+// 				to: email,
+// 				subject: 'Votre code de vérification',
+// 				text: `Votre code est : ${code}`,
+// 			});
+// 		} catch (err) {
+// 			request.log.error(err);
+// 			return reply.status(500).send({
+// 				errorMessage: 'Erreur serveur lors de l envoi 2FA',
+// 			});
+// 		}
+// 		return(reply.status(200).send("2FA ok"));
+// 	} );
+
+// 	app.post('/2FAreceive', async (request: FastifyRequest, reply: FastifyReply) => {
+// 	});
+
+// check date d expiratioquand reception du code. si obsolete recommencer operation a partir de redir du front + erase les infos
+// 
+
+			// await sendEmail(user.email, `Votre code de vérification : ${code}`);
+
+
+// }
 
 export async function authRoutes(app: FastifyInstance) {
 	
@@ -178,14 +220,19 @@ export async function authRoutes(app: FastifyInstance) {
 				return reply.status(400).send({error: 'Données utilisateur incomplètes' }); //retourne objet vec statuscode ? 
 			}
 
-			// if(!await (getUser(null,userData.email)))
-			// 	await insertUser(({email: userData.email, username: userData.given_name}), true);
-
-			// const userGoogle = await getUserP(userData.email)
-			// // console.log("usergoogle is :" + userGoogle.id);
-			// // console.log("userdata is :" + userData.given_name);
-
 			let userGoogle = await getUserP(userData.email);
+			if (userGoogle && userGoogle.password)
+			{
+				return reply.status(500).send({
+				errorMessage: 'Erreur serveur lors de la connexion',
+				});
+			// 	reply.status(410).send({
+			// 	   errorMessage: 'email already used in classic account, please login in local',
+			// 	   // needsRedirect: true,
+			// 	   // redirectTo: process.env.GOOGLE_REDIRECT_FRONTEND,
+			//    });
+				// return (reply.redirect(process.env.GOOGLE_REDIRECT_FRONTEND!));
+			}
 
 			// TODO: Insère l'utilisateur seulement s'il n'existe pas en bdd
 			// TODO: Logique à améliorer, j'ai juste mis ça pour régler un probleme

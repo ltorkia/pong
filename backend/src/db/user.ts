@@ -3,6 +3,7 @@ import { RegisterInput, RegisterInputSchema } from '../types/zod/auth.zod';
 import { UserBasic, UserForDashboard, UserWithAvatar, Friends } from '../types/user.types';
 import { Game } from '../types/game.types';
 import { ChatMessage } from '../types/chat.types';
+import { searchNewName } from '../helpers/auth.helpers';
 
 // retourne les infos d un user particulier - userId = le id de l user a afficher
 // a priori ? protegerait contre les insertions sql
@@ -113,22 +114,15 @@ export async function getUserChat(userId1: number, userId2: number) {
 		other_user: other_user as UserWithAvatar 
 	};
 }
-
-// async function 
 	
 export async function insertUser(user: (RegisterInput | {username: string, email: string, avatar?: string}), is_google: (boolean | null)) {
 	try {
 		const db = await getDb();
-		// if(await getUser(null, user.username))
-		// 	return {statusCode : 409, message : "username already used"};
-		
-		// if (await getUser(null, user.email))
-		// 	return {statusCode: 409, message : "email already used"};
 		
 		if (!is_google)
 		{
 			if(await getUser(null, user.username))
-				return {statusCode : 409, message : "username already used"};
+				return {statusCode : 409, message : "username already used, you can choose :" + await (searchNewName(user.username))};
 			
 			if (await getUser(null, user.email))
 				return {statusCode: 409, message : "email already used"};
@@ -143,21 +137,7 @@ export async function insertUser(user: (RegisterInput | {username: string, email
 		else 
 		{
 			if(await getUser(null, user.username))
-			{
-				const now = Date.now();
-				const digits = now.toString().split('');
-				const len = digits.length;
-				console.log( now + " " + digits + " " + len);
-				
-				for (let i = 0; i < len; i++)
-				{
-					if (i === 0)
-						user.username += "_";
-					user.username += digits[i];
-					if (!await getUser(null, user.username))
-						break ;
-				}
-			}
+				user.username = await (searchNewName(user.username));
 					
 			await db.run(`
 				INSERT INTO User (username, email, register_from)
@@ -183,4 +163,27 @@ export async function majLastlog(username: string)
 		WHERE (username = ?)
 		`,
 	[username]);
+}
+
+export async function insertCode2FA(username: string, code: string)
+{
+	const db = await getDb();
+	const end_time = Date.now() + 5 * 60 * 1000;
+	await db.run(`
+		UPDATE User
+		SET code_2FA = ?, code_2FA_expire_at = ?
+		WHERE (username = ?)
+		`,
+	[code, end_time , username]);
+}
+
+export async function eraseCode2FA(username: string)
+{
+	const db = await getDb();
+	await db.run(`
+		UPDATE User
+		DELETE code_2FA, code_2FA_expire_at
+		WHERE (username = ?)
+		`,
+	[username]);	
 }

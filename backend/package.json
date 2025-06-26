@@ -18,7 +18,8 @@
 		"sequelize": "^6.37.7",
 		"@fastify/websocket": "11.1.0",
 		"@fastify/jwt": "9.1.0",
-		"@fastify/cookie": "11.0.2"
+		"@fastify/cookie": "11.0.2",
+		"nodemailer": "7.0.3"
 	},
 	"devDependencies": {
 		"nodemon": "^3.1.10",
