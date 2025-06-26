@@ -6,14 +6,17 @@ BACK
 - gerer stockage des avatars dans frontend/public/img/avatars
 - Pourquoi param de majLastlog = username et pas id ?
 
+COMMUN
+
+- Regrouper types back et front (doublons), peut-être faire dossier 'shared' ?
+
 FRONT
 
-- Enregistrer les champs formulaires en session au cas où crash
-- Regrouper types back et front (doublons), peut-être faire dossier 'shared' ?
-- Mieux typer partout
-- Mettre les events Popstate dans navbar component ?
 - Faire migrer updateNavigation de RouteManager vers NavbarComponent avec setActiveLink et suppression de getProfilePath() maintenant qu'on utilise le userStore ??
-- Ajouter carré à cocher sur formulaire login pour "mémoriser les informations"
-- Faire components page profil / stats
-- Boucle login si erreur validate-session (load user dans start app manager à vérifier)
+- Mettre les events Popstate dans navbar component ?
 - Rajouter le nom du user connecté sur la navbar
+- Faire components page profil / stats
+- Ajouter carré à cocher sur formulaire login pour "mémoriser les informations"
+- Enregistrer les champs formulaires en session au cas où crash
+- Mieux typer partout
+- Boucle login si erreur validate-session (load user dans start app manager à vérifier)
