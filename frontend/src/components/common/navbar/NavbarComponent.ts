@@ -1,8 +1,8 @@
-import { BaseComponent } from '../BaseComponent';
-import { toggleClass } from '../../utils/dom.utils';
-import { shouldShowNavbar } from '../../utils/navbar.utils';
-import { UserController } from '../../controllers/UserController';
-import { OptionalUser } from '../../types/user.types';
+import { BaseComponent } from '../../BaseComponent';
+import { toggleClass } from '../../../utils/dom.utils';
+import { shouldShowNavbar } from '../../../utils/navbar.utils';
+import { UserController } from '../../../controllers/UserController';
+import { OptionalUser } from '../../../types/user.types';
 
 export class NavbarComponent extends BaseComponent {
 	private parentTemplate: string;

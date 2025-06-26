@@ -1,7 +1,7 @@
 import { userStore } from '../store/UserStore';
 import { UserController } from '../controllers/UserController';
 import { User } from '../models/User.model';
-import { NavbarComponent } from '../components/common/NavbarComponent';
+import { NavbarComponent } from '../components/common/navbar/NavbarComponent';
 import { templateCache } from '../utils/dom.utils';
 
 export abstract class BaseView {

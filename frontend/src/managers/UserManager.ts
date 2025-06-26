@@ -129,52 +129,6 @@ export class UserManager {
 	}
 
 	/**
-	 * Reception requête form Register
-	 * User stocké dans store + localStorage
-	 */
-	public async register(data: Record<string, string>): Promise<{ user?: User; errorMessage?: string }> {
-		const result = await userApi.registerUser(data);
-		if (result.errorMessage) {
-			return { errorMessage: result.errorMessage };
-		}
-		console.log('Utilisateur inscrit :', result);
-
-		const user = User.fromJSON(result.user!);
-		userStore.setCurrentUser(user);
-		return { user: user };
-	}
-	
-	/**
-	 * Reception requête form Login
-	 * User stocké dans store + localStorage
-	 */
-	public async login(data: Record<string, string>): Promise<{ user?: User; errorMessage?: string }> {
-		const result = await userApi.loginUser(data);
-		if (result.errorMessage) {
-			return { errorMessage: result.errorMessage };
-		}
-		console.log('Utilisateur connecté :', result);
-
-		const user = User.fromJSON(result.user!);
-		userStore.setCurrentUser(user);
-		return { user: user };
-	}
-
-	/**
-	 * Gestion Logout
-	 * User cleared de store + localStorage
-	 */
-	public async logout(): Promise<{ success: boolean; errorMessage?: string }> {
-		const result = await userApi.logoutUser();
-		if (result.errorMessage) {
-			return { success: false, errorMessage: result.errorMessage };
-		}
-		console.log('Utilisateur déconnecté :', result);
-		userStore.clearCurrentUser();
-		return { success: true };
-	}
-
-	/**
 	 * Getter current user in store
 	 */	
 	public getCurrentUser(): User | null {

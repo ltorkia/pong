@@ -1,7 +1,8 @@
 import { userManager } from '../managers/UserManager';
 import { userStore } from '../store/UserStore';
-import { defaultRoute, authFallbackRoute } from '../config/navigation.config';
+import { defaultRoute, authFallbackRoute } from '../config/routes.config';
 import { isPublicRoute } from '../utils/navigation.utils';
+import { Router } from './Router';
 
 /**
  * Gère la logique d'authentification pour redirections.
@@ -11,7 +12,11 @@ import { isPublicRoute } from '../utils/navigation.utils';
  * - Gére la restauration des sessions utilisateur
  */
 export class RouteGuard {
-	constructor(private router: any) {}
+	private router: Router;
+
+	constructor(router: Router) {
+		this.router = router;
+	}
 
 	/**
 	 * Gère les redirections d'authentification avant d'exécuter une route.
@@ -34,7 +39,7 @@ export class RouteGuard {
 			if (!isPublic && !authCookieIsActive) {
 				userStore.clearCurrentUser();
 				console.log('[handleAuthRedirect] Non connecté -> redirection vers /login');
-				await this.router.redirect(authFallbackRoute);
+				await this.router.redirectPublic(authFallbackRoute);
 				return true;
 			}
 
@@ -44,7 +49,7 @@ export class RouteGuard {
 				// Vérification dans le store d'abord
 				if (userStore.getCurrentUser()) {
 					console.log('[handleAuthRedirect] Utilisateur déjà en store -> redirection vers /');
-					await this.router.redirect(defaultRoute);
+					await this.router.redirectPublic(defaultRoute);
 					return true;
 				}
 				
@@ -53,7 +58,7 @@ export class RouteGuard {
 				const user = await userManager.loadOrRestoreUser();
 				if (user) {
 					console.log('[handleAuthRedirect] Utilisateur restauré -> redirection vers /');
-					await this.router.redirect(defaultRoute);
+					await this.router.redirectPublic(defaultRoute);
 					return true;
 				}
 				// Si pas d'utilisateur mais cookie présent: désynchronisation cookie/serveur
@@ -66,7 +71,7 @@ export class RouteGuard {
 					// Cookie présent mais pas d'utilisateur valide
 					// (cas de désynchronisation ou session expirée côté serveur)
 					console.log('[handleAuthRedirect] Cookie présent mais utilisateur invalide -> redirection vers /login');
-					await this.router.redirect(authFallbackRoute);
+					await this.router.redirectPublic(authFallbackRoute);
 					return true;
 				}
 				// Désynchronisation cookie/serveur
@@ -76,7 +81,7 @@ export class RouteGuard {
 		} catch (err) {
 			console.error('[handleAuthRedirect] Erreur critique', err);
 			userStore.clearCurrentUser();
-			await this.router.redirect(authFallbackRoute);
+			await this.router.redirectPublic(authFallbackRoute);
 			return true;
 		}
 	}

@@ -1,8 +1,7 @@
 import { RouteGuard } from './RouteGuard';
-import { NavigationHandler } from './NavigationHandler';
 import { RouteHandler } from '../types/navigation.types';
-import { normalizePath, matchRoute } from '../utils/router.utils';
-import { defaultRoute } from '../config/navigation.config';
+import { normalizePath, matchRoute } from './router.utils';
+import { defaultRoute } from '../config/routes.config';
 
 /**
  * Gère l'ensemble du système de routage pour:
@@ -12,11 +11,10 @@ import { defaultRoute } from '../config/navigation.config';
  * - exécution des handlers de routes
  * - navigation et les redirections
  */
-export class RouterCore {
+export class Router {
 	private routes: Map<string, RouteHandler> = new Map();
 	private isNavigating = false;
 	private routeGuard: RouteGuard;
-	private navigationHandler: NavigationHandler;
 
 	/**
 	 * Constructeur: initialise les écouteurs d'événements importants
@@ -32,7 +30,6 @@ export class RouterCore {
 	 */
 	constructor() {
 		this.routeGuard = new RouteGuard(this);
-		this.navigationHandler = new NavigationHandler();
 		
 		window.addEventListener('popstate', () => this.handleLocation());
 		document.addEventListener('click', (e) => {
@@ -116,11 +113,11 @@ export class RouterCore {
 		const matchedRoute = matchRoute(normalizedPath, this.routes);
 		if (matchedRoute) {
 			// On pousse l'URL dans l'historique
-			this.navigationHandler.pushState(normalizedPath);
+			window.history.pushState({}, '', normalizedPath);
 			await this.handleLocation();
 		} else {
 			console.warn(`Route ${normalizedPath} n'existe pas, redirection vers /`);
-			this.navigationHandler.pushState(defaultRoute);
+			window.history.pushState({}, '', defaultRoute);
 			await this.handleLocation();
 		}
 
@@ -149,7 +146,7 @@ export class RouterCore {
 		let path = window.location.pathname;
 		const normalizedPath = normalizePath(path);
 		if (normalizedPath !== path) {
-			this.navigationHandler.replaceState(normalizedPath);
+			window.history.replaceState({}, '', normalizedPath);
 			path = normalizedPath;
 		}
 
@@ -198,7 +195,7 @@ export class RouterCore {
 	 * pour éviter les doublons lors du retour arrière (précédent / suivant).
 	 */
 	private async redirect(path: string): Promise<void> {
-		this.navigationHandler.replaceState(path);
+		window.history.replaceState({}, '', path);
 		await this.handleLocation();
 	}
 
@@ -210,3 +207,8 @@ export class RouterCore {
 		return this.routes;
 	}
 }
+
+/**
+ * Instance principale / singleton du router
+ */
+export const router = new Router();

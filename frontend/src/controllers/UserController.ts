@@ -1,8 +1,10 @@
-import { router } from '../router/router';
-import { userManager } from '../managers/UserManager';
-import { defaultRoute, authFallbackRoute } from '../config/navigation.config';
+import { router } from '../router/Router';
+import { defaultRoute, authFallbackRoute } from '../config/routes.config';
 import { showError } from '../utils/app.utils';
 import { REGISTERED_MSG } from '../config/messages';
+import { userApi } from '../api/user.api';
+import { userStore } from '../store/UserStore';
+import { User } from '../models/User.model';
 
 /**
  * Gère les erreurs, les redirections, les feedbacks visuels
@@ -12,18 +14,21 @@ export class UserController {
 
 	/**
 	 * Gestion Register
-	 * UserManager s'occupe de faire la requête API
-	 * + stockage du user dans store + localStorage
-	 * Ici on redirige et on gère les erreurs
+	 * Fait directement la requête API + stockage + redirection
 	 */
-	public async registerController(data: Record<string, string>) {
+	public async registerController(data: Record<string, string>): Promise<void> {
 		try {
-			const result = await userManager.register(data);
+			const result = await userApi.registerUser(data);
 			if (result.errorMessage) {
-				console.error('Erreur d’inscription :', result);
+				console.error('Erreur d\'inscription :', result);
 				showError(result.errorMessage);
 				return;
 			}
+			
+			console.log('Utilisateur inscrit :', result);
+			const user = User.fromJSON(result.user!);
+			userStore.setCurrentUser(user);
+			
 			// Redirection home
 			alert(REGISTERED_MSG);
 			await router.redirectPublic(defaultRoute);
@@ -36,20 +41,22 @@ export class UserController {
 
 	/**
 	 * Gestion Login
-	 * UserManager s'occupe de faire la requête API
-	 * + stockage du user dans store + localStorage
-	 * Ici on redirige et on gère les erreurs
+	 * Fait directement la requête API + stockage + redirection
 	 */
-	public async loginController(data: Record<string, string>) {
+	public async loginController(data: Record<string, string>): Promise<void> {
 		try {
-			const result = await userManager.login(data);
+			const result = await userApi.loginUser(data);
 			if (result.errorMessage) {
-				console.error('Erreur d’authentification :', result);
+				console.error('Erreur d\'authentification :', result);
 				showError(result.errorMessage);
 				return;
 			}
-			// Redirection home
+			
 			console.log('Utilisateur connecté :', result);
+			const user = User.fromJSON(result.user!);
+			userStore.setCurrentUser(user);
+			
+			// Redirection home
 			await router.redirectPublic(defaultRoute);
 
 		} catch (err) {
@@ -60,18 +67,20 @@ export class UserController {
 
 	/**
 	 * Gestion Logout
-	 * UserManager s'occupe de faire la requête API
-	 * + update / clear du user dans store + localStorage
-	 * Ici on redirige et on gère les erreurs
+	 * Fait directement la requête API + clear store + redirection
 	 */
 	public async logoutController(): Promise<void> {
 		try {
-			const result = await userManager.logout();
+			const result = await userApi.logoutUser();
 			if (result.errorMessage) {
 				console.error('Erreur lors du logout :', result);
 				showError(result.errorMessage);
 				return;
 			}
+			
+			console.log('Utilisateur déconnecté :', result);
+			userStore.clearCurrentUser();
+			
 			// Redirection SPA vers login
 			console.log('Déconnexion réussie. Redirection /login');
 			await router.redirectPublic(authFallbackRoute);

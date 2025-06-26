@@ -2,7 +2,7 @@
 import { RouteConfig } from '../types/navigation.types';
 
 // CONFIG
-import { routesConfig } from '../config/navigation.config';
+import { routesConfig } from '../config/routes.config';
 
 /**
  * Fonction utilitaire pour vérifier si une route est publique

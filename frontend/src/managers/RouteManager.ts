@@ -2,15 +2,15 @@
 import { PageManager } from './PageManager';
 import { ParticlesManager } from './ParticlesManager';
 import { userManager } from './UserManager';
-import { RouterCore } from '../router/RouterCore';
+import { RouterCore } from '../router/Router';
 
 // ROUTER / OUTILS
 import { router } from '../router/router';
 import { setActiveNavLink } from '../utils/navbar.utils';
-import { hasParams } from '../utils/router.utils';
+import { hasParams } from '../router/router.utils';
 
 // CONFIG / TYPES
-import { routesConfig } from '../config/navigation.config';
+import { routesConfig } from '../config/routes.config';
 import { RouteConfig, RouteParams } from '../types/navigation.types';
 
 export class RouteManager {

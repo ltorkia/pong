@@ -1,5 +1,5 @@
 // ROUTER CLASS
-import { RouterCore } from '../router/RouterCore';
+import { RouterCore } from '../router/Router';
 
 // MANAGERS CLASS
 import { ParticlesManager } from './ParticlesManager';
