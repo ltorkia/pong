@@ -8,7 +8,7 @@ import { User } from '../models/User';
 
 /**
  * Gère les erreurs, les redirections, les feedbacks visuels
- * liés à l'authentification du current user.
+ * et requêtes API liés à l'authentification du current user.
  */
 export class UserController {
 

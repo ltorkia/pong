@@ -3,9 +3,9 @@ import { userStore } from '../stores/UserStore';
 import { User } from '../models/User';
 
 /**
- * Utilisée en singleton, class qui gère le userStore 
- * + user dans localStorage,
- * + réception des requêtes API liées à l'authentification.
+ * Utilisée en singleton, class qui gère la
+ * récupération / chargement du user via userStore,
+ * localStorage, requêtes API.
  */
 export class UserManager {
 
