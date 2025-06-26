@@ -20,6 +20,7 @@
 		"@fortawesome/fontawesome-free": "6.7.2",
 		"typescript": "^5.8.3",
 		"vite": "^6.3.5",
+  		"vite-plugin-static-copy": "^3.1.0",
 		"rollup": "^3.29.4"
 	}
 }

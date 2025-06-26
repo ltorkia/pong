@@ -1,8 +1,8 @@
-import { BaseView } from '../BaseView';
+import { BasePage } from '../BasePage';
 import { userApi } from '../../api/user.api';
 import { UserRowComponent } from '../../components/user/users/UserRowComponent';
 
-export class UsersView extends BaseView {
+export class UsersPage extends BasePage {
 	protected usersComponents = [];
 
 	constructor(container: HTMLElement) {

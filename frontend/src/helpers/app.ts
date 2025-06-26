@@ -1,4 +1,4 @@
-import { userStore } from '../store/UserStore';
+import { userStore } from '../stores/UserStore';
 
 // Vérifie qu'on ne tombe pas sur l'erreur 401 après chaque requête api.
 // Si oui l'utilisateur est déconnecté, alors on clear le local storage et on le déco totalement.

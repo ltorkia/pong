@@ -1,6 +1,6 @@
-import { BaseView } from '../BaseView';
+import { BasePage } from '../BasePage';
 
-export class LoginView extends BaseView {
+export class LoginPage extends BasePage {
 
 	constructor(container: HTMLElement) {
 		super(container, '/templates/auth/login.html');

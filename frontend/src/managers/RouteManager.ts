@@ -2,11 +2,11 @@
 import { PageManager } from './PageManager';
 import { ParticlesManager } from './ParticlesManager';
 import { userManager } from './UserManager';
-import { RouterCore } from '../router/Router';
+import { Router } from '../router/Router';
 
 // ROUTER / OUTILS
-import { router } from '../router/router';
-import { setActiveNavLink } from '../utils/navbar.utils';
+import { router } from '../router/Router';
+import { setActiveNavLink } from '../helpers/navbar';
 import { hasParams } from '../router/router.utils';
 
 // CONFIG / TYPES
@@ -48,7 +48,7 @@ export class RouteManager {
 	}
 
 	/**
-	 * Enregistre les routes dans la map de RouterCore
+	 * Enregistre les routes dans la map de Router
 	 * en se basant sur routesConfig du fichier navigation.config.
 	 * 
 	 * Dans la map, on set un chemin (ex: /login) et une fonction handler
@@ -162,7 +162,7 @@ export class RouteManager {
 	 * Crée une instance de page avec des paramètres spécifiques
 	 */
 	private createParamPageInstance(config: RouteConfig, appDiv: HTMLElement, params: RouteParams): any {
-		// Cas qui attendent un id user en parametre qui est deja en param du handler (comme pour ProfileView)
+		// Cas qui attendent un id user en parametre qui est deja en param du handler (comme pour ProfilePage)
 		if (params.id) {
 			return new config.component(appDiv, Number(params.id));
 		}
@@ -224,7 +224,7 @@ export class RouteManager {
 	/**
 	 * Getter public router
 	 */
-	public getRouter(): RouterCore {
+	public getRouter(): Router {
 		return router;
 	}
 }

@@ -1,6 +1,9 @@
+// Pour hot reload Vite
+import template from './navbar-component.html?raw'
+
 import { BaseComponent } from '../../BaseComponent';
-import { toggleClass } from '../../../utils/dom.utils';
-import { shouldShowNavbar } from '../../../utils/navbar.utils';
+import { toggleClass } from '../../../helpers/dom';
+import { shouldShowNavbar } from '../../../helpers/navbar';
 import { UserController } from '../../../controllers/UserController';
 import { OptionalUser } from '../../../types/user.types';
 
@@ -30,6 +33,9 @@ export class NavbarComponent extends BaseComponent {
 	}
 
 	protected async mount(): Promise<void> {
+		// Pour hot reload Vite
+    	this.container.innerHTML = template;
+
 		// On génère le lien du profil avec l'id du current user
 		this.setNavLink('a[href="/profile"]', '/user/{userId}');
 

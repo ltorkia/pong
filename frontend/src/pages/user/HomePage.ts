@@ -1,10 +1,10 @@
-import { BaseView } from '../BaseView';
+import { BasePage } from '../BasePage';
 
-export class HomeView extends BaseView {
+export class HomePage extends BasePage {
 	 // TODO: changer la logique pour injecter le user ??
 
 	constructor(container: HTMLElement) {
-		// super() appelle le constructeur du parent BaseView
+		// super() appelle le constructeur du parent BasePage
 		// avec le container et le chemin du template HTML pour la page home
 		super(container, '/templates/user/home.html');
 	}

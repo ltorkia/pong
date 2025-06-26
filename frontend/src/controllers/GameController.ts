@@ -1,5 +1,4 @@
 import { GameManager } from '../managers/GameManager';
-import { router } from '../router/router';
 
 export class GameController {
 	private gameManager: GameManager;

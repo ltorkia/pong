@@ -1,22 +1,22 @@
-// VIEWS
-import { HomeView } from '../views/user/HomeView';
-import { RegisterView } from '../views/auth/RegisterView';
-import { LoginView } from '../views/auth/LoginView';
-import { GameView } from '../views/game/GameView';
-import { UsersView } from '../views/user/UsersView';
-import { ProfileView } from '../views/user/ProfileView';
+// PageS
+import { HomePage } from '../pages/user/HomePage';
+import { RegisterPage } from '../pages/auth/RegisterPage';
+import { LoginPage } from '../pages/auth/LoginPage';
+import { GamePage } from '../pages/game/GamePage';
+import { UsersPage } from '../pages/user/UsersPage';
+import { ProfilePage } from '../pages/user/ProfilePage';
 
 // TYPES
 import { RouteConfig } from '../types/navigation.types';
 
 // UTILS
-import { getProfilePath } from '../utils/navbar.utils';
+import { getProfilePath } from '../helpers/navbar';
 
 /**
  * Configuration des routes de l'app
  * 
  * - path: Chemin de la route ('/', '/users', '/user/:id'...)
- * - component: Composant de la page à render (HomeView, GameView...)
+ * - component: Composant de la page à render (HomePage, GamePage...)
  * - name: Nom de la route pour logs et debug
  * - isPublic: Si true, la route est accessible sans être authentifié (login, register)
  * - enableParticles: Si true, active les particules sur cette page
@@ -25,42 +25,42 @@ import { getProfilePath } from '../utils/navbar.utils';
 export const routesConfig: RouteConfig[] = [
 	{
 		path: '/',
-		component: HomeView,
+		component: HomePage,
 		name: 'Home',
 		isPublic: false,
 		enableParticles: true
 	},
 	{
 		path: '/register',
-		component: RegisterView,
+		component: RegisterPage,
 		name: 'Register',
 		isPublic: true,
 		enableParticles: true
 	},
 	{
 		path: '/login',
-		component: LoginView,
+		component: LoginPage,
 		name: 'Login',
 		isPublic: true,
 		enableParticles: true
 	},
 	{
 		path: '/game',
-		component: GameView,
+		component: GamePage,
 		name: 'Game',
 		isPublic: false,
 		enableParticles: false
 	},
 	{
 		path: '/users',
-		component: UsersView,
+		component: UsersPage,
 		name: 'Users',
 		isPublic: false,
 		enableParticles: true
 	},
 	{
 		path: '/user/:id',
-		component: ProfileView,
+		component: ProfilePage,
 		name: 'Profile',
 		isPublic: false,
 		enableParticles: true,

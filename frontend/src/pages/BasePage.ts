@@ -1,10 +1,10 @@
-import { userStore } from '../store/UserStore';
+import { userStore } from '../stores/UserStore';
 import { UserController } from '../controllers/UserController';
-import { User } from '../models/User.model';
+import { User } from '../models/User';
 import { NavbarComponent } from '../components/common/navbar/NavbarComponent';
-import { templateCache } from '../utils/dom.utils';
+import { templateCache } from '../helpers/dom';
 
-export abstract class BaseView {
+export abstract class BasePage {
 	protected currentUser: User | null = null;
 	protected container: HTMLElement;				// Élément DOM dans lequel le contenu html sera injecté
 	protected templatePath: string;					// Chemin vers le template html à charger pour cette page

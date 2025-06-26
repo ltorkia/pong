@@ -1,5 +1,5 @@
 // ROUTER CLASS
-import { RouterCore } from '../router/Router';
+import { Router } from '../router/Router';
 
 // MANAGERS CLASS
 import { ParticlesManager } from './ParticlesManager';
@@ -12,7 +12,7 @@ import { userManager } from './UserManager';
 // UTILS
 import { tsParticles } from "@tsparticles/engine";
 import { loadFull } from "tsparticles";
-import { wait } from '../utils/app.utils';
+import { wait } from '../helpers/app';
 
 export class AppManager {
 	private particlesManager: ParticlesManager;		// Gestionnaire des particules d'arrière-plan
@@ -74,7 +74,7 @@ export class AppManager {
 	/**
 	 * Permet d'accéder au router pour debug
 	 */
-	public getRouter(): RouterCore {
+	public getRouter(): Router {
 		return this.routeManager.getRouter();
 	}
 }

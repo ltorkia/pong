@@ -1,4 +1,4 @@
-import { User } from '../models/User.model';
+import { User } from '../models/User';
 
 // Classe de gestion de l’utilisateur courant (singleton)
 export class UserStore {

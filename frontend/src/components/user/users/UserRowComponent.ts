@@ -1,3 +1,6 @@
+// Pour hot reload Vite
+import template from './user-row.html?raw'
+
 import { BaseComponent } from '../../BaseComponent';
 import { OptionalUser } from '../../../types/user.types';
 
@@ -8,6 +11,9 @@ export class UserRowComponent extends BaseComponent {
 	}
 
 	protected async mount(): Promise<void> {
+		// Pour hot reload Vite
+    	this.container.innerHTML = template;
+
 		const avatarImg = this.container.querySelector('.avatar-img') as HTMLImageElement;
 		const usernameLink = this.container.querySelector('.username-link') as HTMLAnchorElement;
 		const levelCell = this.container.querySelector('.level-cell') as HTMLElement;

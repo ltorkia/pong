@@ -1,10 +1,10 @@
 import { router } from '../router/Router';
 import { defaultRoute, authFallbackRoute } from '../config/routes.config';
-import { showError } from '../utils/app.utils';
+import { showError } from '../helpers/app';
 import { REGISTERED_MSG } from '../config/messages';
 import { userApi } from '../api/user.api';
-import { userStore } from '../store/UserStore';
-import { User } from '../models/User.model';
+import { userStore } from '../stores/UserStore';
+import { User } from '../models/User';
 
 /**
  * Gère les erreurs, les redirections, les feedbacks visuels

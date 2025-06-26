@@ -1,6 +1,6 @@
 import { userApi } from '../api/user.api';
-import { userStore } from '../store/UserStore';
-import { User } from '../models/User.model';
+import { userStore } from '../stores/UserStore';
+import { User } from '../models/User';
 
 /**
  * Utilisée en singleton, class qui gère le userStore 

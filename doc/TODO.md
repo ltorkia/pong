@@ -22,3 +22,12 @@ FRONT
 - Mieux typer partout
 - Boucle login si erreur validate-session (load user dans start app manager à vérifier)
 - Etoffer RouteConfig avec les liens templates et components
+
+- check MAJ package.json :
+ @tsparticles/engine         ^3.0.2  →   ^3.8.1
+ @types/node              ^22.15.24  →  ^24.0.4
+ postcss                     ^8.5.3  →   ^8.5.6
+ rollup                     ^3.29.4  →  ^4.44.1
+ tailwindcss                ^3.4.17  →  ^4.1.11
+ tsparticles                 ^3.0.2  →   ^3.8.1
+ vite                        ^6.3.5  →   ^7.0.0

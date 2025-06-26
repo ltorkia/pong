@@ -1,6 +1,6 @@
-import { userStore } from '../store/UserStore';
+import { userStore } from '../stores/UserStore';
 import { UserModel } from '../types/user.types';
-import { templateCache } from '../utils/dom.utils';
+import { templateCache } from '../helpers/dom';
 
 export abstract class BaseComponent {
 	protected currentUser: UserModel | null = null;

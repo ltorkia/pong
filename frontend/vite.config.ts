@@ -1,4 +1,5 @@
 import { defineConfig } from 'vite'
+import { viteStaticCopy } from 'vite-plugin-static-copy'
 
 export default defineConfig(({ command }: { command: string }) => {
 	const isProduction = command === 'build'
@@ -30,6 +31,28 @@ export default defineConfig(({ command }: { command: string }) => {
 					}
 				}
 			}
-		}
+		},
+		// plugins: [
+		// 	viteStaticCopy({
+		// 		targets: [
+		// 			{
+		// 				src: 'src/components/*.html',
+		// 				dest: 'components'
+		// 			}
+		// 		]
+		// 	})
+		// ]
+		plugins: [
+		...(isProduction
+			? [viteStaticCopy({
+				targets: [
+					{
+						src: 'src/components/**/*.html',
+						dest: 'components'
+					}
+				]
+			})]
+			: [])
+		]
 	}
 })

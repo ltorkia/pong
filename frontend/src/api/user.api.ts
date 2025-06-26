@@ -1,5 +1,5 @@
-import { User } from '../models/User.model';
-import { secureFetch } from '../utils/app.utils';
+import { User } from '../models/User';
+import { secureFetch } from '../helpers/app';
 import { AuthResponse, UpdateResponse } from '../types/api.types';
 
 export class UserApi {
