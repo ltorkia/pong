@@ -4,13 +4,13 @@ import { userStore } from '../store/UserStore';
 // Si oui l'utilisateur est déconnecté, alors on clear le local storage et on le déco totalement.
 export async function secureFetch(url: string, options?: RequestInit) {
 	const res = await fetch(url, { credentials: 'include', ...options });
-	if (res.status === 401) {
+	if (res.status === 401 || res.status === 403) {
 
 		// Token invalide/expiré → nettoyage local uniquement
 		// + redirection '/login'
 		userStore.clearCurrentUser();
-		console.warn('[secureFetch] Session expirée → aucun utilisateur connecté localement');
-		throw new Error('Session expirée');
+		console.warn(`[secureFetch] Session invalide (status ${res.status})`);
+		throw new Error('Session expirée ou non autorisée');
 	}
 	return res;
 }

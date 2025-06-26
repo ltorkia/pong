@@ -1,5 +1,5 @@
 import { BaseComponent } from '../../BaseComponent';
-import { OptionalUser } from '../../../types/model.types';
+import { OptionalUser } from '../../../types/user.types';
 
 export class UserRowComponent extends BaseComponent {
 	constructor(container: HTMLElement, currentUser: OptionalUser) {
@@ -19,7 +19,7 @@ export class UserRowComponent extends BaseComponent {
 			}
 
 			if (usernameLink) {
-				usernameLink.setAttribute('href', `/users/${this.currentUser.id}`);
+				usernameLink.setAttribute('href', `/user/${this.currentUser.id}`);
 				usernameLink.textContent = this.currentUser.username;
 			}
 

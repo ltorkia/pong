@@ -1,12 +1,11 @@
-import { userManager } from '../managers/UserManager';
-import { userApi } from '../api/user.api';
+import { userStore } from '../store/UserStore';
 import { UserController } from '../controllers/UserController';
-import { OptionalUser } from '../types/model.types';
+import { User } from '../models/User.model';
 import { NavbarComponent } from '../components/common/NavbarComponent';
 import { templateCache } from '../utils/dom.utils';
 
 export abstract class BaseView {
-	protected currentUser: OptionalUser | null = null;
+	protected currentUser: User | null = null;
 	protected container: HTMLElement;				// Élément DOM dans lequel le contenu html sera injecté
 	protected templatePath: string;					// Chemin vers le template html à charger pour cette page
 	protected userController: UserController;		// Instance qui va gérer le parcourt d'authentification du current user
@@ -17,6 +16,7 @@ export abstract class BaseView {
 		this.container = container;
 		this.templatePath = templatePath;
 		this.userController = new UserController();
+		this.currentUser = userStore.getCurrentUser();
 	}
 
 	/**
@@ -66,7 +66,6 @@ export abstract class BaseView {
 	 */
 	protected async loadComponents(): Promise<void> {
 		await this.loadNavbar();
-		console.log(`${this.constructor.name}: Navbar générée`);
 	}
 
 	/**
@@ -78,6 +77,7 @@ export abstract class BaseView {
 		if (navbarDiv) {
 			this.navbarComponent = new NavbarComponent(navbarDiv, this.templatePath, this.userController, this.currentUser);
 			await this.navbarComponent.render();
+			console.log(`${this.constructor.name}: Navbar générée`);
 		} else {
 			console.warn('Container #navbar introuvable dans le DOM');
 		}
@@ -108,25 +108,6 @@ export abstract class BaseView {
 		} catch (error) {
 			console.error(`Erreur lors du chargement de ${this.templatePath}:`, error);
 			return this.getErrorMessage();
-		}
-	}
-	
-	/**
-	 * Charge le current user
-	 */
-	// TODO: changer la logique pour injecter le user ??
-	protected async loadUserData(): Promise<void> {
-		try {
-			const user = await userManager.loadOrRestoreUser();
-			if (!user || !user.id) {
-				return;
-			}
-			this.currentUser = await userApi.getUserById(user.id);
-			if (!this.currentUser) {
-				return;
-			}
-		} catch (error) {
-			console.error('Error loading user data:', error);
 		}
 	}
 

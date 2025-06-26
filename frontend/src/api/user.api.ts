@@ -1,4 +1,4 @@
-import { User } from '../models/User';
+import { User } from '../models/User.model';
 import { secureFetch } from '../utils/app.utils';
 import { AuthResponse, UpdateResponse } from '../types/api.types';
 
@@ -62,21 +62,21 @@ export class UserApi {
 		const res = await secureFetch(`/api/users/${id}`, { method: 'GET' });
 		if (!res.ok) throw new Error('Erreur de l’API');
 		const data: User = await res.json();
-		return User.fromJson(data);
+		return User.fromJSON(data);
 	}
 
 	public async getUsers(): Promise<User[]> {
 		const res = await secureFetch('/api/users', { method: 'GET' });
 		if (!res.ok) throw new Error('Erreur de l’API');
 		const data: User[] = await res.json();
-		return data.map(User.fromJson);
+		return data.map(User.fromJSON);
 	}
 
 	public async getUserFriends(id: number | string): Promise<User[]> {
 		const res = await secureFetch(`/api/users/${id}/friends`, { method: 'GET' });
 		if (!res.ok) throw new Error('Erreur de l’API');
 		const data: User[] = await res.json();
-		return data.map(User.fromJson);
+		return data.map(User.fromJSON);
 	}
 
 	// UPDATE DB

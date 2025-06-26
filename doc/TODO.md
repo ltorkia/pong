@@ -1,12 +1,19 @@
-TODO / problemes rencontres / questions / pense-bete
+TODO / problèmes rencontrés / questions / pense-bête
 
 BACK
 
 - update BDD -> mettre status du current user a 1 quand il se connecte, a 0 quand il se deconnecte (= update status online/offline pour indication sur la liste des utilisateurs)
 - gerer stockage des avatars dans frontend/public/img/avatars
+- Pourquoi param de majLastlog = username et pas id ?
 
 FRONT
 
-- Lier type User de Models au UserStore (au lieu de joindre un type User random) ??
-Implique mise a jour des elements stockes dans token via api/me
+- Enregistrer les champs formulaires en session au cas où crash
+- Regrouper types back et front (doublons), peut-être faire dossier 'shared' ?
 - Mieux typer partout
+- Mettre les events Popstate dans navbar component ?
+- Faire migrer updateNavigation de RouteManager vers NavbarComponent avec setActiveLink et suppression de getProfilePath() maintenant qu'on utilise le userStore ??
+- Ajouter carré à cocher sur formulaire login pour "mémoriser les informations"
+- Faire components page profil / stats
+- Boucle login si erreur validate-session (load user dans start app manager à vérifier)
+- Rajouter le nom du user connecté sur la navbar

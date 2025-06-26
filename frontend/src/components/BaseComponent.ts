@@ -1,14 +1,17 @@
-import { OptionalUser } from '../types/model.types';
+import { userStore } from '../store/UserStore';
+import { UserModel } from '../types/user.types';
 import { templateCache } from '../utils/dom.utils';
 
 export abstract class BaseComponent {
-	protected currentUser: OptionalUser | null = null;
+	protected currentUser: UserModel | null = null;
 	protected container: HTMLElement;
 	protected componentPath: string;
+	protected shouldRender: boolean = true;
 
 	constructor(container: HTMLElement, componentPath: string) {
 		this.container = container;
 		this.componentPath = componentPath;
+		this.currentUser = userStore.getCurrentUser();
 	}
 
 	/**
@@ -27,6 +30,13 @@ export abstract class BaseComponent {
 		// ex pour navbar: vérifier si on est sur une page publique ou privée...
 		await this.beforeMount();
 
+		// Flag qui indique si, après vérification spéciale, le component
+		// doit se loader (ex: navbar sur page publique)
+		if (!this.shouldRender) {
+			await this.cleanup();
+			return;
+		}
+
 		// Charge et injecte le HTML, mount et attache les listeners.
 		let html = await this.loadComponent();
 		this.container.innerHTML = html;
@@ -37,7 +47,7 @@ export abstract class BaseComponent {
 	}
 
 	/**
-	 * Charge le html via fetch.
+	 * Charge le html via fetch ou cache.
 	 * Si une erreur arrive on renvoie un message html sur la page.
 	 */
 	protected async loadComponent(): Promise<string> {

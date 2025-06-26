@@ -28,7 +28,7 @@ export class AppManager {
 	/**
 	 * Méthode principale pour démarrer l'app.
 	 * 
-	 * - Charge ou restaure un utilisateur
+	 * - Charge ou restaure l'utilisateur connecté
 	 * - Initialise le moteur tsParticles
 	 * - Attend que le DOM soit prêt: wait (await new Promise())
 	 * - Supprime la class Load sur le body qui empêche les transitions au refresh
@@ -38,7 +38,7 @@ export class AppManager {
 	 */
 	public async start(): Promise<void> {
 		console.log('=== DEMARRAGE APP ===');
-		const user = await userManager.loadUser();
+		// await userManager.loadUser();
 		await this.tsParticlesInit();
 		await wait(100);
 		document.body.classList.remove('load');

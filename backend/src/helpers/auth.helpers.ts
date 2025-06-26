@@ -1,5 +1,6 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { JwtPayload } from '../types/jwt.types';
+import { UserForDashboard, PublicUser } from '../types/user.types';
 
 /**
  * Génère un token JWT pour un utilisateur donné
@@ -73,4 +74,20 @@ export function requireAuth(request: FastifyRequest, reply: FastifyReply): JwtPa
 		return undefined;
 	}
 	return user;
+}
+
+/**
+ * Définit les propriétés user safe à envoyer au front après login réussi
+ */
+export function setPublicUserInfos(user: UserForDashboard): PublicUser {
+	return {
+		id: user.id,
+		username: user.username,
+		avatar: user.avatar,
+		game_played: user.game_played,
+		game_win: user.game_win,
+		game_loose: user.game_loose,
+		time_played: user.time_played,
+		n_friends: user.n_friends
+	};
 }

@@ -1,6 +1,7 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { getUser } from '../db/user';
-import { requireAuth } from '../helpers/auth.helpers';
+import { requireAuth, setPublicUserInfos } from '../helpers/auth.helpers';
+import { PublicUser } from '../types/user.types';
 
 export async function apiMe(app: FastifyInstance) {
 
@@ -10,19 +11,16 @@ export async function apiMe(app: FastifyInstance) {
 		if (!jwtUser) {
 			return;
 		}
-		const userId = jwtUser.id;
 		
 		try {
-			const dbUser = await getUser(Number(userId));
+			const dbUser = await getUser(jwtUser.id);
 			if (!dbUser) {
 				return reply.status(404).send({ error: 'User not found' });
 			}
 
-			return reply.send({
-				id: dbUser.id,
-				username: dbUser.username
-			});
-			
+			const responseUser: PublicUser = setPublicUserInfos(dbUser);
+			return reply.send(responseUser);
+
 		} catch (err) {
 			request.log.error(err);
 			return reply.status(500).send({ error: 'Internal server error' });

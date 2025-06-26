@@ -145,12 +145,6 @@ export class RouteManager {
 	 */
 	private async createPageInstance(config: RouteConfig, appDiv: HTMLElement, params?: RouteParams): Promise<any> {
 		try {
-			// Cas spéciaux qui attendent l'id user en paramètre (comme HomeView)
-			if (!config.isPublic && config.idUserRequired) {
-				const currentUser = await userManager.loadOrRestoreUser();
-				return new config.component(appDiv, currentUser?.id);	// = ex: return new HomeView(id)
-			}
-
 			// Cas avec paramètres dans le handler qu'il faut transmettre a la page
 			if (params) {
 				return this.createParamPageInstance(config, appDiv, params);
@@ -169,7 +163,7 @@ export class RouteManager {
 	 */
 	private createParamPageInstance(config: RouteConfig, appDiv: HTMLElement, params: RouteParams): any {
 		// Cas qui attendent un id user en parametre qui est deja en param du handler (comme pour ProfileView)
-		if (config.idUserRequired && params.id) {
+		if (params.id) {
 			return new config.component(appDiv, Number(params.id));
 		}
 		

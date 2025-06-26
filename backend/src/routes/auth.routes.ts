@@ -3,7 +3,8 @@ import bcrypt from 'bcrypt';
 import { GoogleCallbackQuery, GoogleTokenResponse, GoogleUserInfo } from '../types/google.types';
 import { insertUser, getUser, getUserP, majLastlog } from '../db/user';
 import { RegisterInputSchema, LoginInputSchema } from '../types/zod/auth.zod';
-import { generateJwt, setAuthCookie, setStatusCookie, clearAuthCookies } from '../helpers/auth.helpers';
+import { generateJwt, setAuthCookie, setStatusCookie, clearAuthCookies, setPublicUserInfos } from '../helpers/auth.helpers';
+import { PublicUser } from '../types/user.types';
 
 export async function authRoutes(app: FastifyInstance) {
 	
@@ -23,17 +24,17 @@ export async function authRoutes(app: FastifyInstance) {
 			if (resultinsert.statusCode === 201) {
 				const user = await getUser(null, userToInsert.email);
 				const token = generateJwt(app, {
-					id: user.id,
-					username: user.username,
+					id: user.id
 				});
 
 				await majLastlog(user.username);
 				setAuthCookie(reply, token);
 				setStatusCookie(reply);
 
+				const responseUser: PublicUser = setPublicUserInfos(user);
 				return reply.status(200).send({
 					message: 'Inscription réussie',
-					user: { id: user.id, username: user.username }
+					user: responseUser
 				});
 			}
 			return reply.status(resultinsert.statusCode).send(resultinsert);
@@ -84,17 +85,18 @@ export async function authRoutes(app: FastifyInstance) {
 			}
 
 			const token = generateJwt(app, {
-				id: validUser.id,
-				username: validUser.username,
+				id: validUser.id
 			});
 
 			await majLastlog(validUser.username);
 			setAuthCookie(reply, token);
 			setStatusCookie(reply);
 
+			const user = await getUser(null, result.data.email);
+			const responseUser: PublicUser = setPublicUserInfos(user);
 			return reply.status(200).send({
 				message: 'Connexion réussie',
-				user: { id: validUser.id, username: validUser.username }
+				user: responseUser
 			});
 
 		} catch (err) {
@@ -198,8 +200,7 @@ export async function authRoutes(app: FastifyInstance) {
 			// Création d'un token JWT qui sera utilisé par le frontend pour les requêtes authentifiées
 			// JWT = JSON Web Token = format pour transporter des informations de manière sécurisée entre deux parties, ici le frontend et le backend.
 			const token = generateJwt(app, {
-				id: userGoogle.id,
-				username: userGoogle.username,
+				id: userGoogle.id
 			});
 
 			await majLastlog(userGoogle.username);

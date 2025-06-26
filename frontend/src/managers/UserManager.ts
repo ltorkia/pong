@@ -1,6 +1,6 @@
 import { userApi } from '../api/user.api';
 import { userStore } from '../store/UserStore';
-import { User } from '../types/store.types';
+import { User } from '../models/User.model';
 
 /**
  * Utilisée en singleton, class qui gère le userStore 
@@ -83,8 +83,9 @@ export class UserManager {
 			const apiUser = await userApi.getMe();
 			if (apiUser) {
 				console.log('[UserManager] Utilisateur chargé via API');
-				userStore.setCurrentUser(apiUser);
-				return apiUser;
+				const user = User.fromJSON(apiUser);
+				userStore.setCurrentUser(user);
+				return user;
 			}
 		} catch (err) {
 			console.warn('[UserManager] Impossible de charger depuis API:', err);
@@ -137,8 +138,11 @@ export class UserManager {
 			return { errorMessage: result.errorMessage };
 		}
 		console.log('Utilisateur inscrit :', result);
-		userStore.setCurrentUser(result.user!);
-		return { user: result.user };
+
+		const user = User.fromJSON(result.user!);
+		userStore.setCurrentUser(user);
+
+		return { user: user };
 	}
 	
 	/**
@@ -151,8 +155,10 @@ export class UserManager {
 			return { errorMessage: result.errorMessage };
 		}
 		console.log('Utilisateur connecté :', result);
-		userStore.setCurrentUser(result.user!);
-		return { user: result.user };
+
+		const user = User.fromJSON(result.user!);
+		userStore.setCurrentUser(user);
+		return { user: user };
 	}
 
 	/**

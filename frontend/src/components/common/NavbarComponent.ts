@@ -2,7 +2,7 @@ import { BaseComponent } from '../BaseComponent';
 import { toggleClass } from '../../utils/dom.utils';
 import { shouldShowNavbar } from '../../utils/navbar.utils';
 import { UserController } from '../../controllers/UserController';
-import { OptionalUser } from '../../types/model.types';
+import { OptionalUser } from '../../types/user.types';
 
 export class NavbarComponent extends BaseComponent {
 	private parentTemplate: string;
@@ -25,8 +25,7 @@ export class NavbarComponent extends BaseComponent {
 		// et on return.
 		const showNavbar = shouldShowNavbar(this.parentTemplate);
 		if (!showNavbar) {
-			await this.cleanup();
-			return;
+			this.shouldRender = false;
 		}
 	}
 

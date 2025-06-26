@@ -1,5 +1,5 @@
 import { getDb } from './index.db';
-import { RegisterInput, RegisterInputSchema } from '../types/zod/auth.zod';
+import { RegisterInput } from '../types/zod/auth.zod';
 import { UserBasic, UserForDashboard, UserWithAvatar, Friends } from '../types/user.types';
 import { Game } from '../types/game.types';
 import { ChatMessage } from '../types/chat.types';

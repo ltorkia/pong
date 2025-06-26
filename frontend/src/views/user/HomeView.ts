@@ -2,13 +2,11 @@ import { BaseView } from '../BaseView';
 
 export class HomeView extends BaseView {
 	 // TODO: changer la logique pour injecter le user ??
-	private userId: number;
 
-	constructor(container: HTMLElement, userId: number) {
+	constructor(container: HTMLElement) {
 		// super() appelle le constructeur du parent BaseView
 		// avec le container et le chemin du template HTML pour la page home
 		super(container, '/templates/user/home.html');
-		this.userId = userId;
 	}
 
 	protected async mount(): Promise<void> {
@@ -18,15 +16,6 @@ export class HomeView extends BaseView {
 
 		} catch (err) {
 			console.error('Erreur lors de la récupération du user', err);
-		}
-	}
-	
-	protected async beforeMount(): Promise<void> {
-		// On load le current user.
-		// Si introuvable on return pour catch une erreur qui sera affichée sur la page.
-		await this.loadUserData();
-		if (!this.currentUser) {
-			return;
 		}
 	}
 

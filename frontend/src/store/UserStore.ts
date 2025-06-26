@@ -1,43 +1,40 @@
-import { User } from '../types/store.types';
+import { User } from '../models/User.model';
 
-// TODO: Lier User de Models au UserStore (au lieu de joindre un type User random) ??
-
+// Classe de gestion de l’utilisateur courant (singleton)
 export class UserStore {
-	private user: User | null = null;
+	private currentUser: User | null = null;
 
 	public getCurrentUser(): User | null {
-		return this.user;
+		return this.currentUser;
 	}
 
 	public setCurrentUser(user: User) {
-		this.user = user;
-		localStorage.setItem('currentUser', JSON.stringify(user));
+		this.currentUser = user;
+		localStorage.setItem('currentUser', JSON.stringify(user.toPublicJSON()));
 		console.log('[UserStore] Utilisateur stocké :', user.id);
 	}
 
 	public clearCurrentUser() {
-		if (!this.user) {
-			return;
-		}
-		this.user = null;
+		if (!this.currentUser) return;
+		this.currentUser = null;
 		localStorage.removeItem('currentUser');
 		console.log('[UserStore] Utilisateur supprimé');
 	}
 
 	public restoreFromStorage(): User | null {
-		this.user = null;
+		this.currentUser = null;
 		const userJSON = localStorage.getItem('currentUser');
 		if (userJSON) {
 			try {
-				const user: User = JSON.parse(userJSON);
-				this.user = user;
-				console.log('[UserStore] User restauré :', user.id);
+				const raw = JSON.parse(userJSON);
+				this.currentUser = User.fromJSON(raw);
+				console.log('[UserStore] User restauré :', this.currentUser.id);
 			} catch {
 				console.warn('[UserStore] JSON invalide dans localStorage');
 				localStorage.removeItem('currentUser');
 			}
 		}
-		return this.user;
+		return this.currentUser;
 	}
 }
 

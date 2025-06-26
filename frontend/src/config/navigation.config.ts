@@ -19,7 +19,6 @@ import { getProfilePath } from '../utils/navbar.utils';
  * - component: Composant de la page à render (HomeView, GameView...)
  * - name: Nom de la route pour logs et debug
  * - isPublic: Si true, la route est accessible sans être authentifié (login, register)
- * - idUserRequired: Si true, l'id du user actuellement connecté est attendu en param de la view a instancier
  * - enableParticles: Si true, active les particules sur cette page
  * - getNavPath: Fonction pour récupérer le lien actif dans la navbar
  */
@@ -29,7 +28,6 @@ export const routesConfig: RouteConfig[] = [
 		component: HomeView,
 		name: 'Home',
 		isPublic: false,
-		idUserRequired: true,
 		enableParticles: true
 	},
 	{
@@ -37,7 +35,6 @@ export const routesConfig: RouteConfig[] = [
 		component: RegisterView,
 		name: 'Register',
 		isPublic: true,
-		idUserRequired: false,
 		enableParticles: true
 	},
 	{
@@ -45,7 +42,6 @@ export const routesConfig: RouteConfig[] = [
 		component: LoginView,
 		name: 'Login',
 		isPublic: true,
-		idUserRequired: false,
 		enableParticles: true
 	},
 	{
@@ -53,7 +49,6 @@ export const routesConfig: RouteConfig[] = [
 		component: GameView,
 		name: 'Game',
 		isPublic: false,
-		idUserRequired: false,
 		enableParticles: false
 	},
 	{
@@ -61,7 +56,6 @@ export const routesConfig: RouteConfig[] = [
 		component: UsersView,
 		name: 'Users',
 		isPublic: false,
-		idUserRequired: false,
 		enableParticles: true
 	},
 	{
@@ -69,7 +63,6 @@ export const routesConfig: RouteConfig[] = [
 		component: ProfileView,
 		name: 'Profile',
 		isPublic: false,
-		idUserRequired: true,
 		enableParticles: true,
 		getNavPath: getProfilePath
 	}

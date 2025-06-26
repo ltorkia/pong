@@ -1,3 +1,14 @@
+export interface PublicUser {
+	id: number;
+	username: string;
+	avatar: string;
+	game_played: number;
+	game_win: number;
+	game_loose: number;
+	time_played: number;
+	n_friends: number;
+}
+
 export interface UserBasic {
 	id:number;
 	username : string;
