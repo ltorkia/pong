@@ -16,7 +16,7 @@ export class NavbarComponent extends BaseComponent {
 	constructor(container: HTMLElement, parentTemplate: string, userController: UserController, currentUser: OptionalUser) {
 		// super() appelle le constructeur du parent BaseComponent
 		// avec le container et le chemin du component HTML pour la navbar
-		super(container, '/components/common/navbar.component.html');
+		super(container, '/components/common/navbar-component.html');
 		this.parentTemplate = parentTemplate;
 		this.userController = userController;
 		this.currentUser = currentUser;
@@ -33,8 +33,15 @@ export class NavbarComponent extends BaseComponent {
 	}
 
 	protected async mount(): Promise<void> {
+		if (import.meta.env.VITE_IS_DEV === true) {
+			// code exécuté uniquement en dev pour le hot reload Vite
+			// des fichiers HTML qui sont dans src au lieu de public
+			this.container.innerHTML = template;
+			console.log('[NavbarComponent] Hot-reload actif');
+		}
+
 		// Pour hot reload Vite
-    	this.container.innerHTML = template;
+		this.container.innerHTML = template;
 
 		// On génère le lien du profil avec l'id du current user
 		this.setNavLink('a[href="/profile"]', '/user/{userId}');

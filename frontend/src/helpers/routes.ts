@@ -1,5 +1,5 @@
 // TYPES
-import { RouteConfig } from '../types/navigation.types';
+import { RouteConfig } from '../types/routes.types';
 
 // CONFIG
 import { routesConfig } from '../config/routes.config';

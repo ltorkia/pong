@@ -40,6 +40,7 @@ export abstract class BaseComponent {
 		// Charge et injecte le HTML, mount et attache les listeners.
 		let html = await this.loadComponent();
 		this.container.innerHTML = html;
+		console.log(html);
 
 		// On genere les infos propres à chaque component
 		await this.mount();

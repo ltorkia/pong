@@ -1,4 +1,4 @@
-import { RouteHandler } from '../types/navigation.types';
+import { RouteHandler } from '../types/routes.types';
 
 /**
  * Vérifie si une route contient des paramètres (ex: /user/:id)

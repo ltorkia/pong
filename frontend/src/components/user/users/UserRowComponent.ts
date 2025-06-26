@@ -1,18 +1,22 @@
 // Pour hot reload Vite
-import template from './user-row.html?raw'
+import template from './user-row-component.html?raw'
 
 import { BaseComponent } from '../../BaseComponent';
 import { OptionalUser } from '../../../types/user.types';
 
 export class UserRowComponent extends BaseComponent {
 	constructor(container: HTMLElement, currentUser: OptionalUser) {
-		super(container, '/components/user/users/user-row.html');
+		super(container, '/components/user/users/user-row-component.html');
 		this.currentUser = currentUser;
 	}
 
 	protected async mount(): Promise<void> {
-		// Pour hot reload Vite
-    	this.container.innerHTML = template;
+		if (import.meta.env.VITE_IS_DEV === true) {
+			// code exécuté uniquement en dev pour le hot reload Vite
+			// des fichiers HTML qui sont dans src au lieu de public
+			this.container.innerHTML = template;
+			console.log('[UserRowComponent] Hot-reload actif');
+		}
 
 		const avatarImg = this.container.querySelector('.avatar-img') as HTMLImageElement;
 		const usernameLink = this.container.querySelector('.username-link') as HTMLAnchorElement;

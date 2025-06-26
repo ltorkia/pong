@@ -22,7 +22,7 @@ services:
     env_file:
       - ./backend/.env
     environment:
-      - NODE_ENV=production
+      - VITE_IS_DEV=false
     networks:
       - transcendence
     restart: unless-stopped

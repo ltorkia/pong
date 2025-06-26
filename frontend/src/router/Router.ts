@@ -1,5 +1,5 @@
 import { RouteGuard } from './RouteGuard';
-import { RouteHandler } from '../types/navigation.types';
+import { RouteHandler } from '../types/routes.types';
 import { normalizePath, matchRoute } from './router.utils';
 import { defaultRoute } from '../config/routes.config';
 

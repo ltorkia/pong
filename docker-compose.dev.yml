@@ -40,6 +40,8 @@ services:
     volumes:
       - ./frontend:/app
       - /app/node_modules
+    environment:
+      - VITE_IS_DEV=true
     networks:
       - transcendence
     restart: unless-stopped

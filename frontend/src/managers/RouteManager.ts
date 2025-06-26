@@ -11,7 +11,7 @@ import { hasParams } from '../router/router.utils';
 
 // CONFIG / TYPES
 import { routesConfig } from '../config/routes.config';
-import { RouteConfig, RouteParams } from '../types/navigation.types';
+import { RouteConfig, RouteParams } from '../types/routes.types';
 
 export class RouteManager {
 	private pageManager: PageManager;

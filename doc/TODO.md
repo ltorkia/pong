@@ -13,11 +13,16 @@ COMMUN
 
 FRONT
 
+- Bug affichage component (user-row) a reparer
 - Faire migrer updateNavigation de RouteManager vers NavbarComponent avec setActiveLink et suppression de getProfilePath() maintenant qu'on utilise le userStore ??
 - Mettre les events Popstate dans navbar component ?
 - Rajouter le nom du user connecté sur la navbar
+- Gerer frequence validation session dans les routes
 - Faire components page profil / stats
 - Ajouter carré à cocher sur formulaire login pour "mémoriser les informations"
+- Ajouter "Mot de passe oublie ?" avec gestion question secrete
+- Intercepter l'erreur backend dans l'url si authentification google echoue
+- Gerer HTML 2FA
 - Enregistrer les champs formulaires en session au cas où crash
 - Mieux typer partout
 - Boucle login si erreur validate-session (load user dans start app manager à vérifier)

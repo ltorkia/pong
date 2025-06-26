@@ -7,7 +7,7 @@ import { UsersPage } from '../pages/user/UsersPage';
 import { ProfilePage } from '../pages/user/ProfilePage';
 
 // TYPES
-import { RouteConfig } from '../types/navigation.types';
+import { RouteConfig } from '../types/routes.types';
 
 // UTILS
 import { getProfilePath } from '../helpers/navbar';
