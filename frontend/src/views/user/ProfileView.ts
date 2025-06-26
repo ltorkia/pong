@@ -11,6 +11,7 @@ export class ProfileView extends BaseView {
 		this.userId = userId;
 	}
 	
+	// TODO: Tout virer et créer des components
 	protected async mount(): Promise<void> {
 		try {
 			const user = await userApi.getUserById(this.userId);

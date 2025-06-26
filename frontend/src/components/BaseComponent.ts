@@ -1,8 +1,8 @@
-import { userManager } from '../managers/UserManager';
-import { User } from '../types/store.types';
+import { OptionalUser } from '../types/model.types';
+import { templateCache } from '../utils/dom.utils';
 
 export abstract class BaseComponent {
-	protected currentUser: User | null = null;
+	protected currentUser: OptionalUser | null = null;
 	protected container: HTMLElement;
 	protected componentPath: string;
 
@@ -25,44 +25,42 @@ export abstract class BaseComponent {
 	public async render(): Promise<void> {
 		// Etapes avant de render
 		// ex pour navbar: vérifier si on est sur une page publique ou privée...
-		this.beforeMount;
+		await this.beforeMount();
 
 		// Charge et injecte le HTML, mount et attache les listeners.
 		let html = await this.loadComponent();
 		this.container.innerHTML = html;
+
+		// On genere les infos propres à chaque component
 		await this.mount();
 		this.attachListeners();
 	}
 
 	/**
 	 * Charge le html via fetch.
-	 * Si une erreur arrive on renvoie un message d'erreur html.
+	 * Si une erreur arrive on renvoie un message html sur la page.
 	 */
 	protected async loadComponent(): Promise<string> {
+
+		// On regarde d'abord si on n'a pas stocké le template en cache
+		// pour éviter des requêtes réseau inutiles
+		if (templateCache.has(this.componentPath)) {
+			return templateCache.get(this.componentPath)!;
+		}
+
+		// Sinon on fetch le template
 		try {
 			const response = await fetch(this.componentPath);
 			if (!response.ok) {
 				throw new Error(`Erreur lors du chargement du component: ${response.statusText}`);
 			}
-			return await response.text();
+			const html = await response.text();
+			templateCache.set(this.componentPath, html);
+			return html;
+
 		} catch (error) {
 			console.error(`Erreur lors du chargement de ${this.componentPath}:`, error);
 			return this.getErrorMessage();
-		}
-	}
-
-	/**
-	 * Charge le current user
-	 */
-	 // TODO: changer la logique pour injecter le user ??
-	protected async loadUserData(): Promise<void> {
-		try {
-			this.currentUser = await userManager.loadOrRestoreUser();
-			if (!this.currentUser || !this.currentUser.id) {
-				return;
-			}
-		} catch (error) {
-			console.error('Error loading user data:', error);
 		}
 	}
 

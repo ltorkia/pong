@@ -15,3 +15,6 @@ export interface UserModel {
 	is_deleted: boolean;
 	register_from: 'local' | 'google';
 }
+
+// Type alias pour un utilisateur ou null
+export type OptionalUser = UserModel | null;

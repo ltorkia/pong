@@ -1,7 +1,12 @@
+import { userManager } from '../managers/UserManager';
+import { userApi } from '../api/user.api';
 import { UserController } from '../controllers/UserController';
+import { OptionalUser } from '../types/model.types';
 import { NavbarComponent } from '../components/common/NavbarComponent';
+import { templateCache } from '../utils/dom.utils';
 
 export abstract class BaseView {
+	protected currentUser: OptionalUser | null = null;
 	protected container: HTMLElement;				// Élément DOM dans lequel le contenu html sera injecté
 	protected templatePath: string;					// Chemin vers le template html à charger pour cette page
 	protected userController: UserController;		// Instance qui va gérer le parcourt d'authentification du current user
@@ -17,6 +22,7 @@ export abstract class BaseView {
 	/**
 	 * Méthodes de surcharge (protected) optionnellement remplies par les sous-classes.
 	 */	
+	protected async beforeMount(): Promise<void> {}
 	protected async mount(): Promise<void> {}
 	protected attachListeners(): void {}
 
@@ -27,8 +33,7 @@ export abstract class BaseView {
 		try {
 			console.log(`${this.constructor.name}: Début du rendu...`);
 
-			// Chargement asynchrone des components relatifs à la page (ici navbar)
-			await this.loadComponents();
+			await this.beforeMount();
 
 			// Chargement asynchrone du template html via fetch
 			// + injection html dans la div #app
@@ -36,6 +41,10 @@ export abstract class BaseView {
 			this.container.innerHTML = html;
 			
 			console.log(`${this.constructor.name}: HTML injecté`);
+
+			// Génère les components relatifs à la page
+			// (ici navbar selon le statut log du user)
+			await this.loadComponents();
 
 			// On genere les infos propres a chaque page
 			await this.mount();
@@ -56,18 +65,18 @@ export abstract class BaseView {
 	 * Génère les components relatifs à la page
 	 */
 	protected async loadComponents(): Promise<void> {
-		// Chargement asynchrone de la navbar en fonction du statut log utilisateur
 		await this.loadNavbar();
 		console.log(`${this.constructor.name}: Navbar générée`);
 	}
 
 	/**
 	 * Nouvelle instance de NavbarComponent
+	 * S'affiche en fonction du statut log utilisateur
 	 */
 	protected async loadNavbar(): Promise<void> {
 		const navbarDiv = document.getElementById('navbar');
 		if (navbarDiv) {
-			this.navbarComponent = new NavbarComponent(navbarDiv, this.templatePath, this.userController);
+			this.navbarComponent = new NavbarComponent(navbarDiv, this.templatePath, this.userController, this.currentUser);
 			await this.navbarComponent.render();
 		} else {
 			console.warn('Container #navbar introuvable dans le DOM');
@@ -75,19 +84,49 @@ export abstract class BaseView {
 	}
 
 	/**
-	 * Charge le template html via fetch.
-	 * Si une erreur arrive on renvoie un message d'erreur html.
+	 * Charge le template html via fetch ou cache.
+	 * Si une erreur arrive on renvoie un message html sur la page.
 	 */
 	protected async loadTemplate(): Promise<string> {
+
+		// On regarde d'abord si on n'a pas stocké le template en cache
+		// pour éviter des requêtes réseau inutiles
+		if (templateCache.has(this.templatePath)) {
+			return templateCache.get(this.templatePath)!;
+		}
+
+		// Sinon on fetch le template
 		try {
 			const response = await fetch(this.templatePath);
 			if (!response.ok) {
 				throw new Error(`Erreur lors du chargement du template: ${response.statusText}`);
 			}
-			return await response.text();
+			const html = await response.text();
+			templateCache.set(this.templatePath, html);
+			return html;
+
 		} catch (error) {
 			console.error(`Erreur lors du chargement de ${this.templatePath}:`, error);
 			return this.getErrorMessage();
+		}
+	}
+	
+	/**
+	 * Charge le current user
+	 */
+	// TODO: changer la logique pour injecter le user ??
+	protected async loadUserData(): Promise<void> {
+		try {
+			const user = await userManager.loadOrRestoreUser();
+			if (!user || !user.id) {
+				return;
+			}
+			this.currentUser = await userApi.getUserById(user.id);
+			if (!this.currentUser) {
+				return;
+			}
+		} catch (error) {
+			console.error('Error loading user data:', error);
 		}
 	}
 

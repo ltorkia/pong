@@ -2,6 +2,7 @@ import { BaseComponent } from '../BaseComponent';
 import { toggleClass } from '../../utils/dom.utils';
 import { shouldShowNavbar } from '../../utils/navbar.utils';
 import { UserController } from '../../controllers/UserController';
+import { OptionalUser } from '../../types/model.types';
 
 export class NavbarComponent extends BaseComponent {
 	private parentTemplate: string;
@@ -9,12 +10,13 @@ export class NavbarComponent extends BaseComponent {
 
 	// TODO: Ajouter les listeners popstate ici ???
 
-	constructor(container: HTMLElement, parentTemplate: string, userController: UserController) {
+	constructor(container: HTMLElement, parentTemplate: string, userController: UserController, currentUser: OptionalUser) {
 		// super() appelle le constructeur du parent BaseComponent
 		// avec le container et le chemin du component HTML pour la navbar
 		super(container, '/components/common/navbar.component.html');
 		this.parentTemplate = parentTemplate;
 		this.userController = userController;
+		this.currentUser = currentUser;
 	}
 
 	protected async beforeMount(): Promise<void> {
@@ -23,13 +25,6 @@ export class NavbarComponent extends BaseComponent {
 		// et on return.
 		const showNavbar = shouldShowNavbar(this.parentTemplate);
 		if (!showNavbar) {
-			await this.cleanup();
-			return;
-		}
-
-		// De même si pas de current user: on clean la navbar.
-		await this.loadUserData();
-		if (!this.currentUser) {
 			await this.cleanup();
 			return;
 		}
