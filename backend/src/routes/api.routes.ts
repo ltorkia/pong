@@ -22,6 +22,8 @@ export async function apiRoutes(app: FastifyInstance) {
 			'/api/auth/register',
 			'/api/auth/google',
 			'/api/auth/google/callback',
+			'/api/auth/2FAsend',
+			'/api/auth//2FAreceive',
 			'/api/health',
 		];
 

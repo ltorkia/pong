@@ -43,6 +43,18 @@ export async function getUserP(email: string) {
 	);
 	return user;
 }
+
+export async function getUser2FA(email: string) {
+	const db = await getDb();
+	const user = await db.get(`
+		SELECT id, username, email, code_2FA, code_2FA_expire_at, register_from
+		FROM User 
+		WHERE email = ?
+		`,
+		[email]
+	);
+	return user;
+}
 	
 // pour choper les friends, mais implique qu un element chat soit forcement cree des qu on devient ami
 //  -> comment ajouter un ami ? nouvelle page ?
@@ -165,7 +177,7 @@ export async function majLastlog(username: string)
 	[username]);
 }
 
-export async function insertCode2FA(username: string, code: string)
+export async function insertCode2FA(email: string, code: string)
 {
 	const db = await getDb();
 	const end_time = Date.now() + 5 * 60 * 1000;
@@ -174,16 +186,16 @@ export async function insertCode2FA(username: string, code: string)
 		SET code_2FA = ?, code_2FA_expire_at = ?
 		WHERE (username = ?)
 		`,
-	[code, end_time , username]);
+	[code, end_time , email]);
 }
 
-export async function eraseCode2FA(username: string)
+export async function eraseCode2FA(email: string)
 {
 	const db = await getDb();
 	await db.run(`
 		UPDATE User
 		DELETE code_2FA, code_2FA_expire_at
-		WHERE (username = ?)
+		WHERE (email = ?)
 		`,
-	[username]);	
+	[email]);	
 }

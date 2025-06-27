@@ -1,11 +1,11 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import bcrypt from 'bcrypt';
 import { GoogleCallbackQuery, GoogleTokenResponse, GoogleUserInfo } from '../types/google.types';
-import { insertUser, getUser, getUserP, majLastlog, eraseCode2FA, insertCode2FA } from '../db/user';
+import { insertUser, getUser, getUserP, majLastlog, eraseCode2FA, insertCode2FA, getUser2FA } from '../db/user';
 import { RegisterInputSchema, LoginInputSchema } from '../types/zod/auth.zod';
 import { generateJwt, setAuthCookie, setStatusCookie, clearAuthCookies } from '../helpers/auth.helpers';
 import { JwtPayload } from '../types/jwt.types';
-// import nodemailer from 'nodemailer';
+import nodemailer from 'nodemailer';
 
 async function ProcessAuth(app: FastifyInstance, user: JwtPayload, reply: FastifyReply)
 {
@@ -22,45 +22,67 @@ async function ProcessAuth(app: FastifyInstance, user: JwtPayload, reply: Fastif
 }
 
 
-
-// async function doubleAuth(app: FastifyInstance, user: JwtPayload, email: string, reply: FastifyReply)
-// {
-// 	app.post('/2FAsend', async (request: FastifyRequest, reply: FastifyReply) => {
-// 		try {
-// 			const code = Math.floor(100000 + Math.random() * 900000).toString().slice(0, length);
-// 			insertCode2FA(user.username, code);
-// 			const transporter = nodemailer.createTransport({	
-// 				service: 'yopmail', // ou autre SMTP
-// 				auth: {
-// 					user: `alt.vl-5ouy5ww2@yopmail.com`,
-// 					// pass: code,
-// 				}
-// 			});
-// 			await transporter.sendMail({
-// 				from: '"Sécurité" <no-reply@transcendance.com>',
-// 				to: email,
-// 				subject: 'Votre code de vérification',
-// 				text: `Votre code est : ${code}`,
-// 			});
-// 		} catch (err) {
-// 			request.log.error(err);
-// 			return reply.status(500).send({
-// 				errorMessage: 'Erreur serveur lors de l envoi 2FA',
-// 			});
-// 		}
-// 		return(reply.status(200).send("2FA ok"));
-// 	} );
-
-// 	app.post('/2FAreceive', async (request: FastifyRequest, reply: FastifyReply) => {
-// 	});
-
-// check date d expiratioquand reception du code. si obsolete recommencer operation a partir de redir du front + erase les infos
-// 
-
-			// await sendEmail(user.email, `Votre code de vérification : ${code}`);
+	const PORT = 3001;
 
 
-// }
+async function doubleAuth(app: FastifyInstance)
+{
+	app.post('/2FAsend', async (request: FastifyRequest, reply: FastifyReply) => {
+		const user = await LoginInputSchema.safeParse(request.body);
+		if (!user.success) {
+			const error = user.error.errors[0];
+			console.log(error);
+			return reply.status(400).send({statusCode: 400, errorMessage: error.message + " in " + error.path });
+		}
+		try {
+			const code = Math.floor(100000 + Math.random() * 900000).toString();
+			const resInsert = await insertCode2FA(user.data.email, code);
+			const transporter = nodemailer.createTransport({
+				service: 'gmail',
+				auth: {
+					user: process.env.EMAIL_2FA,
+					pass: process.env.PASS_EMAIL,
+				},
+			});
+			
+			console.log(process.env.PASS_EMAIL);
+			await transporter.sendMail({
+				from: '"Sécurité" <no-reply@transcendance.com>',
+				to: user.data.email,
+				subject: 'Votre code de vérification',
+				text: `Votre code est : ${code}`,
+			});
+		} catch (err) {
+			console.log(err)
+			request.log.error(err);
+			return reply.status(500).send({
+				errorMessage: 'Erreur serveur lors de l envoi 2FA',
+			});
+		}
+		return(reply.status(200).send("2FA send"));
+	} );
+//redirect sur la page login ? 
+	app.post('/2FAreceive', async (request: FastifyRequest, reply: FastifyReply) => {
+		const result = LoginInputSchema.safeParse(request.body); //c est le meme format que pour login input avec les memes checks
+		if (!result.success) {
+			const error = result.error.errors[0];
+			return reply.status(400).send({
+				statusCode : 400,
+				errorMessage: error.message + " in " + error.path
+			});
+		}
+		const checkUser = await getUser2FA(result.data.email);
+		if (!checkUser )
+			return (reply.status(400).send("email doesn t exist"));
+		eraseCode2FA(checkUser.email);
+		if (checkUser.code_2FA_expire_at > Date.now())
+			return(reply.status(400).send("timeout, send new mail ?"));
+		if (result.data.password != checkUser.code_2FA)
+			return(reply.status(400).send("2FA not confirmed, try again"));
+		ProcessAuth(app, checkUser, reply);
+		return(reply.status(200).send("2FA confirmed"));
+	});
+}
 
 export async function authRoutes(app: FastifyInstance) {
 	
@@ -133,7 +155,7 @@ export async function authRoutes(app: FastifyInstance) {
 					errorMessage: 'Password does not match'
 				});
 			}
-			ProcessAuth(app, validUser, reply);
+			// ProcessAuth(app, validUser, reply);
 
 			return reply.status(200).send({
 				message: 'Connexion réussie',
@@ -148,6 +170,8 @@ export async function authRoutes(app: FastifyInstance) {
 			});
 		}
 	});
+
+	doubleAuth(app);
 
 	// LOGOUT
 	app.post('/logout', async (request: FastifyRequest, reply: FastifyReply) => {
@@ -242,4 +266,6 @@ export async function authRoutes(app: FastifyInstance) {
 			return reply.status(500).send({ error: 'Erreur serveur' });
 		}
 	});
+
+	//login -> status a 1 ou status a 0
 }
