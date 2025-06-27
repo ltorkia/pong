@@ -222,17 +222,7 @@ export async function authRoutes(app: FastifyInstance) {
 
 			let userGoogle = await getUserP(userData.email);
 			if (userGoogle && userGoogle.password)
-			{
-				return reply.status(500).send({
-				errorMessage: 'Erreur serveur lors de la connexion',
-				});
-			// 	reply.status(410).send({
-			// 	   errorMessage: 'email already used in classic account, please login in local',
-			// 	   // needsRedirect: true,
-			// 	   // redirectTo: process.env.GOOGLE_REDIRECT_FRONTEND,
-			//    });
-				// return (reply.redirect(process.env.GOOGLE_REDIRECT_FRONTEND!));
-			}
+				return (reply.redirect(process.env.GOOGLE_REDIRECT_FRONTEND! + "?autherror=1"));
 
 			// TODO: Insère l'utilisateur seulement s'il n'existe pas en bdd
 			// TODO: Logique à améliorer, j'ai juste mis ça pour régler un probleme
