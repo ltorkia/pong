@@ -37,12 +37,20 @@ export abstract class BaseComponent {
 			return;
 		}
 
-		// Charge et injecte le HTML, mount et attache les listeners.
-		let html = await this.loadComponent();
-		this.container.innerHTML = html;
-		console.log(html);
+		// Charge et injecte le HTML.
+		if (import.meta.env.VITE_IS_DEV === 'false') {
+			// code exécuté uniquement en prod pour fetch les components
+			// (hot reload Vite inactif)
+			// En dev on importe directement le template dans le fichier
+			// (voir NavbarComponent pour ex)
+			let html = await this.loadComponent();
+			this.container.innerHTML = html;
+			// console.log(this.componentPath, this.container.innerHTML);
+			console.log('[UserRowComponent] Hot-reload inactif');
+		}
 
 		// On genere les infos propres à chaque component
+		// et on attach les event listeners
 		await this.mount();
 		this.attachListeners();
 	}

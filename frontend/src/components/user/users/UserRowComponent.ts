@@ -11,10 +11,11 @@ export class UserRowComponent extends BaseComponent {
 	}
 
 	protected async mount(): Promise<void> {
-		if (import.meta.env.VITE_IS_DEV === true) {
+		if (import.meta.env.VITE_IS_DEV === 'true') {
 			// code exécuté uniquement en dev pour le hot reload Vite
 			// des fichiers HTML qui sont dans src au lieu de public
 			this.container.innerHTML = template;
+			// console.log(this.componentPath, this.container.innerHTML);
 			console.log('[UserRowComponent] Hot-reload actif');
 		}
 
