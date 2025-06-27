@@ -5,6 +5,7 @@ BACK
 - update BDD -> mettre status du current user a 1 quand il se connecte, a 0 quand il se deconnecte (= update status online/offline pour indication sur la liste des utilisateurs)
 - gerer stockage des avatars dans frontend/public/img/avatars
 - Pourquoi param de majLastlog = username et pas id ?
+- first log, last log ou booleen ? A mediter
 
 COMMUN
 
