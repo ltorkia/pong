@@ -9,7 +9,7 @@ export class LoginPage extends BasePage {
 	protected attachListeners(): void {
 		const form: HTMLElement | null = document.getElementById('login-form');
 		if (!(form instanceof HTMLFormElement)) {
-			console.error('Formulaire non trouvé ou invalide');
+			console.error(`[${this.constructor.name}] Formulaire non trouvé ou invalide`);
 			return;
 		}
 

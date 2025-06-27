@@ -43,7 +43,7 @@ export class RouteManager {
 	 * Cette méthode est appelée par AppManager lors du démarrage de l’application.
 	 */
 	public async start() {
-		console.log('Routes enregistrées:', Array.from(router.getRoutes().keys()));
+		console.log(`[${this.constructor.name}] Routes enregistrées:`, Array.from(router.getRoutes().keys()));
 		await router.handleLocationPublic();
 	}
 
@@ -91,7 +91,7 @@ export class RouteManager {
 	 * Gère les routes simples sans paramètres
 	 */
 	private async handleSimpleRoute(config: RouteConfig): Promise<void> {
-		console.log(`Exec route: navigation vers ${config.name}`);
+		console.log(`[${this.constructor.name}] Exec route -> navigation vers ${config.name}`);
 		
 		const appDiv = this.getAppDiv();
 		if (!appDiv) {
@@ -108,7 +108,7 @@ export class RouteManager {
 		await this.loadPage(pageInstance, config.enableParticles);
 		await this.updateNavigation(config);
 		
-		console.log(`${config.name} rendue`);
+		console.log(`[${this.constructor.name}] ${config.name} rendue`);
 	}
 
 	/**
@@ -116,11 +116,11 @@ export class RouteManager {
 	 */
 	private async handleParamRoute(config: RouteConfig, params?: RouteParams): Promise<void> {
 		if (!params || Object.keys(params).length === 0) {
-			console.error(`Paramètres manquants pour la route ${config.path}`);
+			console.error(`[${this.constructor.name}] Paramètres manquants pour la route ${config.path}`);
 			return;
 		}
 
-		console.log(`Exec route: navigation vers ${config.name} avec params:`, params);
+		console.log(`[${this.constructor.name}] Exec route -> navigation vers ${config.name} avec params:`, params);
 		
 		const appDiv = this.getAppDiv();
 		if (!appDiv) {
@@ -137,7 +137,7 @@ export class RouteManager {
 		await this.loadPage(pageInstance, config.enableParticles);
 		await this.updateNavigation(config);
 		
-		console.log(`${config.name} rendue`);
+		console.log(`[${this.constructor.name}] ${config.name} rendue`);
 	}
 
 	/**
@@ -153,7 +153,7 @@ export class RouteManager {
 			// Cas classique
 			return new config.component(appDiv);
 		} catch (error) {
-			console.error(`Erreur lors de la création de l'instance de page pour ${config.name}:`, error);
+			console.error(`[${this.constructor.name}] Erreur lors de la création de l'instance de page pour ${config.name}:`, error);
 			return null;
 		}
 	}

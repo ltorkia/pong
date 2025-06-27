@@ -38,7 +38,7 @@ export class NavbarComponent extends BaseComponent {
 			// des fichiers HTML qui sont dans src au lieu de public
 			this.container.innerHTML = template;
 			// console.log(this.componentPath, this.container.innerHTML);
-			console.log('[NavbarComponent] Hot-reload actif');
+			console.log(`[${this.constructor.name}] Hot-reload actif`);
 		}
 
 		// Pour hot reload Vite

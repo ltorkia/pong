@@ -18,12 +18,12 @@ export class UserManager {
 	public async loadUser(): Promise<User | null> {
 		// Vérification rapide avec le cookie compagnon
 		if (this.hasAuthCookie()) {
-			console.log('[UserManager] Cookie auth_status présent, chargement utilisateur...');
+			console.log('[${this.constructor.name}] Cookie auth_status présent, chargement utilisateur...');
 			// Seulement dans ce cas on charge l'utilisateur
 			return await this.loadOrRestoreUser();
 		}
 		// Si pas de cookie:
-		console.log('[UserManager] Pas de cookie auth_status, démarrage sans utilisateur');
+		console.log('[${this.constructor.name}] Pas de cookie auth_status, démarrage sans utilisateur');
 		// Pas besoin d'appeler loadOrRestoreUser(), on sait déjà qu'il n'y a pas d'utilisateur
 		// Le router gérera les redirections si nécessaire
 		return null;
@@ -34,7 +34,7 @@ export class UserManager {
 	 * sans faire d'appel API ni accéder au store
 	 */
 	public hasAuthCookie(): boolean {
-		return document.cookie.includes('auth_status=active');
+		return document.cookie.includes('auth-status=active');
 	}
 
 	/**
@@ -48,7 +48,7 @@ export class UserManager {
 		// Pas de cookie = pas connecté
 		if (!hasCookie) {
 			if (storedUser) {
-				console.log('[UserManager] Cookie supprimé, nettoyage store');
+				console.log(`[${this.constructor.name}] Cookie supprimé, nettoyage store`);
 				userStore.clearCurrentUser();
 			}
 			return null;
@@ -58,7 +58,7 @@ export class UserManager {
 		if (storedUser) {
 			// Utilisateur en store + cookie présent,
 			// on vérifie la validité de la session user cote back
-			console.log('[UserManager] Utilisateur en store, validation serveur en cours...');
+			console.log(`[${this.constructor.name}] Utilisateur en store, validation serveur en cours...`);
 			return await this.validateAndReturn(storedUser);
 		}
 
@@ -74,7 +74,7 @@ export class UserManager {
 		// Essayer localStorage d'abord
 		const user = userStore.restoreFromStorage();
 		if (user) {
-			console.log('[UserManager] Utilisateur localStorage trouvé, validation serveur en cours...');
+			console.log(`[${this.constructor.name}] Utilisateur localStorage trouvé, validation serveur en cours...`);
 			return await this.validateAndReturn(user);
 		}
 
@@ -82,13 +82,13 @@ export class UserManager {
 		try {
 			const apiUser = await userApi.getMe();
 			if (apiUser) {
-				console.log('[UserManager] Utilisateur chargé via API');
+				console.log(`[${this.constructor.name}] Utilisateur chargé via API`);
 				const user = User.fromJSON(apiUser);
 				userStore.setCurrentUser(user);
 				return user;
 			}
 		} catch (err) {
-			console.warn('[UserManager] Impossible de charger depuis API:', err);
+			console.warn(`[${this.constructor.name}] Impossible de charger depuis API:`, err);
 		}
 
 		return null;
@@ -105,17 +105,17 @@ export class UserManager {
 			const isValid = await this.validateUserSession(user.id);
 			
 			if (isValid) {
-				console.log('[UserManager] Session validée côté serveur');
+				console.log(`[${this.constructor.name}] Session validée côté serveur`);
 				return user;
 			} else {
 				// Si la validation échoue, c'est que l'utilisateur
 				// n'est plus authentifié côté serveur.
-				console.log('[UserManager] Session expirée côté serveur → nettoyage');
+				console.log(`[${this.constructor.name}] Session expirée côté serveur → nettoyage`);
 				userStore.clearCurrentUser();
 				return null;
 			}
 		} catch (err) {
-			console.warn('[UserManager] Erreur validation serveur:', err);
+			console.warn(`[${this.constructor.name}] Erreur validation serveur:`, err);
 			return user;
 		}
 	}

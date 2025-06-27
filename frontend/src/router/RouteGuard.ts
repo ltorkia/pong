@@ -38,7 +38,7 @@ export class RouteGuard {
 			// Si route privée et user pas authentifié, redirection vers /login
 			if (!isPublic && !authCookieIsActive) {
 				userStore.clearCurrentUser();
-				console.log('[handleAuthRedirect] Non connecté -> redirection vers /login');
+				console.log(`[${this.constructor.name}] Non connecté -> redirection vers /login`);
 				await this.router.redirectPublic(authFallbackRoute);
 				return true;
 			}
@@ -48,7 +48,7 @@ export class RouteGuard {
 
 				// Vérification dans le store d'abord
 				if (userStore.getCurrentUser()) {
-					console.log('[handleAuthRedirect] Utilisateur déjà en store -> redirection vers /');
+					console.log(`[${this.constructor.name}] Utilisateur déjà en store -> redirection vers /`);
 					await this.router.redirectPublic(defaultRoute);
 					return true;
 				}
@@ -57,7 +57,7 @@ export class RouteGuard {
 				// via localStorage puis fallback API
 				const user = await userManager.loadOrRestoreUser();
 				if (user) {
-					console.log('[handleAuthRedirect] Utilisateur restauré -> redirection vers /');
+					console.log(`[${this.constructor.name}] Utilisateur restauré -> redirection vers /`);
 					await this.router.redirectPublic(defaultRoute);
 					return true;
 				}
@@ -70,7 +70,7 @@ export class RouteGuard {
 				if (!user) {
 					// Cookie présent mais pas d'utilisateur valide
 					// (cas de désynchronisation ou session expirée côté serveur)
-					console.log('[handleAuthRedirect] Cookie présent mais utilisateur invalide -> redirection vers /login');
+					console.log(`[${this.constructor.name}] Cookie présent mais utilisateur invalide -> redirection vers /login`);
 					await this.router.redirectPublic(authFallbackRoute);
 					return true;
 				}
@@ -79,7 +79,7 @@ export class RouteGuard {
 			return false;
 
 		} catch (err) {
-			console.error('[handleAuthRedirect] Erreur critique', err);
+			console.error(`[${this.constructor.name}] Erreur critique`, err);
 			userStore.clearCurrentUser();
 			await this.router.redirectPublic(authFallbackRoute);
 			return true;

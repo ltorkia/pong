@@ -10,10 +10,10 @@ export class ParticlesManager {
 	public async load(): Promise<void> {
 		const particlesElement = document.getElementById('tsparticles');
 		if (particlesElement) {
-			console.log('Initialisation de tsParticles...');
+			console.log(`[${this.constructor.name}] Initialisation de tsParticles...`);
 			await this.initParticles();
 		} else {
-			console.warn('Élément #tsparticles introuvable');
+			console.warn(`[${this.constructor.name}] Élément #tsparticles introuvable`);
 		}
 	}
 
@@ -23,11 +23,11 @@ export class ParticlesManager {
 	public async enable(): Promise<void> {
 		const particlesElement = document.getElementById('tsparticles');
 		if (!particlesElement) {
-			console.warn('Élément #tsparticles introuvable');
+			console.warn(`[${this.constructor.name}] Élément #tsparticles introuvable`);
 			return;
 		}
 		particlesElement.style.opacity = '1';
-		console.log('Particules présentes et visibles');
+		console.log(`[${this.constructor.name}] Particules présentes et visibles`);
 	}
 
 	/**
@@ -36,11 +36,11 @@ export class ParticlesManager {
 	public async disable(): Promise<void> {
 		const particlesElement = document.getElementById('tsparticles');
 		if (!particlesElement) {
-			console.warn('Élément #tsparticles introuvable');
+			console.warn(`[${this.constructor.name}] Élément #tsparticles introuvable`);
 			return;
 		}
 		particlesElement.style.opacity = '0';
-		console.log('Particules désactivées');
+		console.log(`[${this.constructor.name}] Particules désactivées`);
 	}
 
 	/**
@@ -222,10 +222,10 @@ export class ParticlesManager {
 					]
 				}
 			});
-			console.log('Particules chargées');
+			console.log(`[${this.constructor.name}] Particules chargées`);
 			
 		} catch (error) {
-			console.error('Erreur de chargement des particules:', error);
+			console.error(`[${this.constructor.name}] Erreur de chargement des particules:`, error);
 		}
 	}
 }

@@ -46,7 +46,7 @@ export abstract class BaseComponent {
 			let html = await this.loadComponent();
 			this.container.innerHTML = html;
 			// console.log(this.componentPath, this.container.innerHTML);
-			console.log('[UserRowComponent] Hot-reload inactif');
+			console.log(`[${this.constructor.name}] Hot-reload inactif`);
 		}
 
 		// On genere les infos propres à chaque component

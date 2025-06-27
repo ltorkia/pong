@@ -31,7 +31,7 @@ export abstract class BasePage {
 	 */
 	public async render(): Promise<void> {
 		try {
-			console.log(`${this.constructor.name}: Début du rendu...`);
+			console.log(`[${this.constructor.name}] Début du rendu...`);
 
 			await this.beforeMount();
 
@@ -40,7 +40,7 @@ export abstract class BasePage {
 			const html = await this.loadTemplate();
 			this.container.innerHTML = html;
 			
-			console.log(`${this.constructor.name}: HTML injecté`);
+			console.log(`[${this.constructor.name}] HTML injecté`);
 
 			// Génère les components relatifs à la page
 			// (ici navbar selon le statut log du user)
@@ -48,11 +48,11 @@ export abstract class BasePage {
 
 			// On genere les infos propres a chaque page
 			await this.mount();
-			console.log(`${this.constructor.name}: Page montée, rendu terminé`);
+			console.log(`[${this.constructor.name}] Page montée, rendu terminé`);
 			
 			// On attache les listeners relatifs à la page (ex gestion de clic LOGIN pour gérer la logique de connexion)
 			this.attachListeners();
-			console.log(`${this.constructor.name}: Listeners attachés`);
+			console.log(`[${this.constructor.name}] Listeners attachés`);
 
 		} catch (error) {
 			// En cas d'erreur (ex fetch qui échoue) afficher un message d'erreur dans le container
@@ -77,7 +77,7 @@ export abstract class BasePage {
 		if (navbarDiv) {
 			this.navbarComponent = new NavbarComponent(navbarDiv, this.templatePath, this.userController, this.currentUser);
 			await this.navbarComponent.render();
-			console.log(`${this.constructor.name}: Navbar générée`);
+			console.log(`[${this.constructor.name}] Navbar générée`);
 		} else {
 			console.warn('Container #navbar introuvable dans le DOM');
 		}
@@ -116,9 +116,9 @@ export abstract class BasePage {
 	 * Appelée dans PageManager.ts avant de rendre une nouvelle page.
 	 */
 	public async cleanup(): Promise<void> {
-		console.log(`${this.constructor.name}: Nettoyage...`);
+		console.log(`[${this.constructor.name}] Nettoyage...`);
 		this.container.innerHTML = '';
-		console.log(`${this.constructor.name}: Nettoyage terminé`);
+		console.log(`[${this.constructor.name}] Nettoyage terminé`);
 	}
 
 	// Error message à afficher dans le catch de la méthode render()

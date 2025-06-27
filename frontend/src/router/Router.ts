@@ -116,7 +116,7 @@ export class Router {
 			window.history.pushState({}, '', normalizedPath);
 			await this.handleLocation();
 		} else {
-			console.warn(`Route ${normalizedPath} n'existe pas, redirection vers /`);
+			console.warn(`[${this.constructor.name}] Route ${normalizedPath} n'existe pas, redirection vers /`);
 			window.history.pushState({}, '', defaultRoute);
 			await this.handleLocation();
 		}
@@ -150,8 +150,8 @@ export class Router {
 			path = normalizedPath;
 		}
 
-		console.log(`Tentative de navigation vers: ${path}`);
-		console.log('Routes disponibles:', Array.from(this.routes.keys()));
+		console.log(`[${this.constructor.name}] Tentative de navigation vers: ${path}`);
+		console.log(`[${this.constructor.name}] Routes disponibles:`, Array.from(this.routes.keys()));
 
 		// Recherche la route qui matche (statique ou dynamique)
 		const matchedRoute = matchRoute(path, this.routes);
@@ -165,25 +165,25 @@ export class Router {
 					return;
 				}
 
-				console.log(`Route trouvée pour ${path} (correspond à ${matchedRoute.route}), exécution...`);
+				console.log(`[${this.constructor.name}] Route trouvée pour ${path} (correspond à ${matchedRoute.route}), exécution...`);
 				try {
 					// Passe les params au handler s'il attend des arguments
 					await routeHandler(matchedRoute.params);
-					console.log(`Route ${path} exécutée`);
+					console.log(`[${this.constructor.name}] Route ${path} exécutée`);
 				} catch (error) {
-					console.error(`Erreur lors de l'exécution de la route ${path}:`, error);
+					console.error(`[${this.constructor.name}] Erreur lors de l'exécution de la route ${path}:`, error);
 
 					if (path !== defaultRoute) {
-						console.log('Redirection vers l\'accueil après erreur');
+						console.log(`[${this.constructor.name}] Redirection vers l\'accueil après erreur`);
 						await this.navigate(defaultRoute);
 					}
 				}
 			} else {
-				console.warn(`Handler introuvable pour la route ${matchedRoute.route}`);
+				console.warn(`[${this.constructor.name}] Handler introuvable pour la route ${matchedRoute.route}`);
 			}
 		} else {
-			console.warn(`Aucune route trouvée pour: ${path}`);
-			console.log('Redirection automatique vers l\'accueil');
+			console.warn(`[${this.constructor.name}] Aucune route trouvée pour: ${path}`);
+			console.log(`[${this.constructor.name}] Redirection automatique vers l\'accueil`);
 			await this.redirect(defaultRoute);
 		}
 	}

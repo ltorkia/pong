@@ -45,11 +45,11 @@ export class AppManager {
 		
 		const appDiv = document.getElementById('app');
 		if (!appDiv) {
-			console.error('Container #app introuvable dans le DOM');
+			console.error(`[${this.constructor.name}] Container #app introuvable dans le DOM`);
 			return;
 		}
-		console.log('Container #app trouvé:', appDiv);
-		console.log('Pathname actuel:', location.pathname);
+		console.log(`[${this.constructor.name}] Container #app trouvé:`, appDiv);
+		console.log(`[${this.constructor.name}] Pathname actuel:`, location.pathname);
 		
 		await this.particlesManager.load();
 		await this.routeManager.start();
@@ -65,9 +65,9 @@ export class AppManager {
 	private async tsParticlesInit(): Promise<void> {
 		try {
 			await loadFull(tsParticles);
-			console.log('tsParticles initialisé');
+			console.log(`[${this.constructor.name}] tsParticles initialisé`);
 		} catch (error) {
-			console.error('Error init tsParticles:', error);
+			console.error(`[${this.constructor.name}] Error init tsParticles:`, error);
 		}
 	}
 

@@ -32,7 +32,7 @@ export function setAuthCookie(reply: FastifyReply, token: string) {
  * Il ne contient aucune information sensible, juste un indicateur booléen.
  */
 export function setStatusCookie(reply: FastifyReply) {
-	reply.setCookie('auth_status', 'active', {
+	reply.setCookie('auth-status', 'active', {
 		path: '/',
 		httpOnly: false,
 		sameSite: 'lax',
@@ -55,7 +55,7 @@ export function clearAuthCookies(reply: FastifyReply) {
 	});
 	
 	// le cookie compagnon (statut)
-	reply.clearCookie('auth_status', {
+	reply.clearCookie('auth-status', {
 		path: '/',
 		httpOnly: false,
 		sameSite: 'lax',
