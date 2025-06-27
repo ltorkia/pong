@@ -1,6 +1,8 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { JwtPayload } from '../types/jwt.types';
 import { UserForDashboard, PublicUser } from '../types/user.types';
+// import { cookiesConst } from '../../../shared/config/constants';
+import { cookiesConst } from '@shared/config/constants'; // en rouge car dossier local != dossier du conteneur
 
 /**
  * Génère un token JWT pour un utilisateur donné
@@ -10,14 +12,13 @@ export function generateJwt(app: FastifyInstance, user: JwtPayload) {
 	return app.jwt.sign(user, { expiresIn: '7d' });
 }
 
-
 /**
  * Définit le cookie principal d'authentification (sécurisé, HttpOnly)
  * Ce cookie contient le vrai token JWT et n'est pas accessible en JavaScript
  * Personne ne peut s'emparer de la session d'un utilisateur.
  */
 export function setAuthCookie(reply: FastifyReply, token: string) {
-	reply.setCookie('auth_token', token, {
+	reply.setCookie(cookiesConst.authTokenKey, token, {
 		path: '/',
 		httpOnly: true,
 		sameSite: 'lax',
@@ -32,7 +33,7 @@ export function setAuthCookie(reply: FastifyReply, token: string) {
  * Il ne contient aucune information sensible, juste un indicateur booléen.
  */
 export function setStatusCookie(reply: FastifyReply) {
-	reply.setCookie('auth-status', 'active', {
+	reply.setCookie(cookiesConst.authStatusKey, 'active', {
 		path: '/',
 		httpOnly: false,
 		sameSite: 'lax',
@@ -47,7 +48,7 @@ export function setStatusCookie(reply: FastifyReply) {
  */
 export function clearAuthCookies(reply: FastifyReply) {
 	// le cookie principal (token JWT)
-	reply.clearCookie('auth_token', {
+	reply.clearCookie(cookiesConst.authTokenKey, {
 		path: '/',
 		httpOnly: true,
 		sameSite: 'lax',
@@ -55,7 +56,7 @@ export function clearAuthCookies(reply: FastifyReply) {
 	});
 	
 	// le cookie compagnon (statut)
-	reply.clearCookie('auth-status', {
+	reply.clearCookie(cookiesConst.authStatusKey, {
 		path: '/',
 		httpOnly: false,
 		sameSite: 'lax',

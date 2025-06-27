@@ -1,3 +1,7 @@
+# Shared dirs
+frontend/src/shared/
+backend/src/shared/
+
 # Dependencies
 node_modules/
 npm-debug.log*

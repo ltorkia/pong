@@ -1,7 +1,7 @@
 # # Étape 1: builder le frontend
 # FROM node:20-alpine AS frontend-builder
 
-# WORKDIR /app
+# WORKDIR /app/frontend
 
 # # Copier les fichiers de dépendances
 # COPY frontend/package*.json ./
@@ -19,6 +19,7 @@
 # COPY frontend/index.html ./
 # COPY frontend/src ./src
 # COPY frontend/public ./public
+# COPY shared /app/shared
 
 # RUN npm run build
 
@@ -44,7 +45,7 @@
 # Étape 1: builder le frontend
 FROM node:20-alpine AS frontend-builder
 
-WORKDIR /app
+WORKDIR /app/frontend
 
 # Copier les fichiers de dépendances
 COPY frontend/package*.json ./
@@ -59,6 +60,7 @@ COPY frontend/tailwind.config.mjs ./
 # Copier le code source
 COPY frontend/index.html ./
 COPY frontend/src ./src
+COPY shared ./src
 COPY frontend/public ./public
 
 RUN npm run build

@@ -6,7 +6,7 @@ export default {
 	content: [
 		"./index.html",
 		"./public/**/*.html",
-		"./src/**/*.{js,ts,jsx,tsx,html}",
+		"./src/**/*.{js,ts,html}",
 		"./node_modules/@fortawesome/fontawesome-free/**/*.js"
 	],
 	theme: {

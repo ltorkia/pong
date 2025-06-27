@@ -1,17 +1,21 @@
 {
 	"compilerOptions": {
-		"target": "ES2020",                        // Génère du JavaScript compatible avec ES2020 (async/await...)
-		"module": "commonjs",                      // Utilise le système de modules CommonJS (comme dans Node.js)
-		"outDir": "dist",                          // Dossier de sortie des fichiers compilés
-		"rootDir": "src",                          // Dossier racine de notre code source TypeScript
-		"strict": true,                            // Active toutes les vérifications strictes pour plus de sécurité
-		"noImplicitAny": true,                     // Oblige à typer les variables (évite les "any" implicites)
-		"esModuleInterop": true,                   // Permet d'importer des modules CommonJS avec `import`
-		"moduleResolution": "node",                // Résout les modules comme le fait Node.js (avec extensions .ts, .js, .json…)
-		"forceConsistentCasingInFileNames": true,  // Évite les problèmes de casse dans les noms de fichiers (cross-platform)
-		"skipLibCheck": true,                      // Ignore les erreurs dans les fichiers `.d.ts` des dépendances
-		"types": ["node"],                         // Charge les types Node.js pour utiliser des APIs comme `fs`, `path`, etc.
+		"rootDir": ".",								// Dossier racine de notre code source TypeScript (backend)
+		"outDir": "dist",							// Dossier de sortie des fichiers compilés
+		"baseUrl": "./src",							// Base pour les chemins relatifs dans les imports = dossier backend en cours
+		"target": "ES2020",							// Génère du JavaScript compatible avec ES2020 (async/await...)
+		"module": "commonjs",						// Utilise le système de modules CommonJS (comme dans Node.js)
+		"strict": true,								// Active toutes les vérifications strictes pour plus de sécurité
+		"noImplicitAny": true,						// Oblige à typer les variables (évite les "any" implicites)
+		"esModuleInterop": true,					// Permet d'importer des modules CommonJS avec `import`
+		"moduleResolution": "node",					// Résout les modules comme le fait Node.js (avec extensions .ts, .js, .json…)
+		"forceConsistentCasingInFileNames": true,	// Évite les problèmes de casse dans les noms de fichiers (cross-platform)
+		"skipLibCheck": true,						// Ignore les erreurs dans les fichiers `.d.ts` des dépendances
+		"types": ["node"],							// Charge les types Node.js pour utiliser des APIs comme `fs`, `path`, etc.
+ 		"paths": {
+			"@shared/*": ["src/shared/*"]			// Alias path pour le dossier 'shared' present dans src/ dans le conteneur
+		}
 	},
-	"include": ["src"],                            // Fichiers/dossiers à inclure pour la compilation
-	"exclude": ["node_modules", "dist"]            // Dossiers ignorés (ne pas compiler ce qui est déjà généré)
+	"include": ["src"],								// Fichiers/dossiers à inclure pour la compilation
+	"exclude": ["node_modules", "dist"]				// Dossiers ignorés (ne pas compiler ce qui est déjà généré)
 }

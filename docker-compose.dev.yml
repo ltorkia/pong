@@ -18,10 +18,11 @@ services:
   backend:
     container_name: backend
     build:
-      context: ./backend
-      dockerfile: Dockerfile.dev
+      context: .
+      dockerfile: backend/Dockerfile.dev
     volumes:
       - ./backend:/app
+      - ./shared:/app/src/shared
       - /app/node_modules
       - ./backend/data:/app/data
     env_file:
@@ -35,10 +36,11 @@ services:
   frontend:
     container_name: frontend
     build:
-      context: ./frontend
-      dockerfile: Dockerfile.dev
+      context: .
+      dockerfile: frontend/Dockerfile.dev
     volumes:
       - ./frontend:/app
+      - ./shared:/app/src/shared
       - /app/node_modules
     environment:
       - VITE_IS_DEV=true

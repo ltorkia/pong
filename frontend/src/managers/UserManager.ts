@@ -1,6 +1,7 @@
 import { userApi } from '../api/user.api';
 import { userStore } from '../stores/UserStore';
 import { User } from '../models/User';
+import { cookiesConst } from '@shared/config/constants'; // en rouge car dossier local != dossier du conteneur
 
 /**
  * Utilisée en singleton, class qui gère la
@@ -34,7 +35,7 @@ export class UserManager {
 	 * sans faire d'appel API ni accéder au store
 	 */
 	public hasAuthCookie(): boolean {
-		return document.cookie.includes('auth-status=active');
+		return document.cookie.includes(`${cookiesConst.authStatusKey}=${cookiesConst.authStatusValue}`);
 	}
 
 	/**
