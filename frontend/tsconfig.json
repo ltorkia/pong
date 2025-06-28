@@ -1,7 +1,8 @@
 {
 	"compilerOptions": {
-		"rootDir": ".",									// Dossier racine de notre code source TypeScript
+		"rootDir": "src",								// Dossier racine de notre code source TypeScript (frontend)
 		"outDir": "dist",								// Dossier de sortie des fichiers compilés
+		"baseUrl": ".",									// Base pour les chemins relatifs dans les imports = app/
 		"target": "ES2020",								// Version JavaScript ciblée (pour async/await...)
 		"lib": ["DOM", "dom.iterable", "ESNext"],		// Parce qu'on utilise fetch, le DOM
 		"module": "ESNext",								// Utilise les modules ECMAScript (import/export modernes)
@@ -12,14 +13,10 @@
 		"jsx": "preserve",								// Ne transforme pas le JSX (utile parce qu'on n'utilise pas React ici)
 		"types": ["vite/client", "node"],				// Ajoute les types spéciaux de Vite (ex: import.meta.env) et node
 		"allowSyntheticDefaultImports": true,			// Autorise l'import par défaut même si le module ne l'exporte pas
-		"baseUrl": "./src",								// Base pour les chemins relatifs dans les imports = dossier src en cours
 		"allowJs": true,								// Autorise les fichiers JavaScript (utile pour intégrer des libs JS)
 		"skipLibCheck": true,							// Ignore les erreurs dans les fichiers de types des dépendances
-		"checkJs": false,								// Ne pas vérifier les fichiers JavaScript (on se concentre sur TypeScript)
- 		"paths": {
-			"@shared/*": ["src/shared/*"]				// Alias path pour le dossier 'shared' present dans src/ dans le conteneur
-		}
+		"checkJs": false								// Ne pas vérifier les fichiers JavaScript (on se concentre sur TypeScript)
 	},
-	"include": ["src", "vite.config.ts"],				// Dossiers/fichiers à inclure dans la compilation
+	"include": ["src"],									// Dossiers/fichiers à inclure dans la compilation
 	"exclude": ["node_modules", "dist"]					// Dossiers à exclure de la compilation
 }

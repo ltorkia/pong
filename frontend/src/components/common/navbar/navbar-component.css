@@ -49,6 +49,9 @@
 		@apply translate-x-0 pointer-events-auto;
 	}
 
+	.sharp-edges {
+		clip-path: polygon(5% 0%, 100% 0%, 95% 100%, 0% 100%);
+	}
 	.navbar-pos {
 		@apply w-screen h-[--navbar-height]
 

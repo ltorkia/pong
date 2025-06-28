@@ -1,8 +1,7 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { JwtPayload } from '../types/jwt.types';
 import { UserForDashboard, PublicUser } from '../types/user.types';
-// import { cookiesConst } from '../../../shared/config/constants';
-import { cookiesConst } from '@shared/config/constants'; // en rouge car dossier local != dossier du conteneur
+import { cookiesConst } from '../shared/config/constants'; // en rouge car dossier local != dossier du conteneur
 
 /**
  * Génère un token JWT pour un utilisateur donné

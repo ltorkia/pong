@@ -1,12 +1,11 @@
 /** @type {import('tailwindcss').Config} */
 
-import { fonts, colorsTheme1, images } from './src/styles/theme/theme'
+import { fonts, colorsTheme1, images } from './src/config/theme'
 
 export default {
 	content: [
-		"./index.html",
 		"./public/**/*.html",
-		"./src/**/*.{js,ts,html}",
+		"./src/**/*.{js,ts,html,css}",
 		"./node_modules/@fortawesome/fontawesome-free/**/*.js"
 	],
 	theme: {

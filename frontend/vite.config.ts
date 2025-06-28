@@ -1,6 +1,5 @@
 import { defineConfig } from 'vite';
 import { viteStaticCopy } from 'vite-plugin-static-copy';
-import path from 'path';
 
 export default defineConfig(({ command }: { command: string }) => {
 	const isProduction = command === 'build'
@@ -18,8 +17,8 @@ export default defineConfig(({ command }: { command: string }) => {
 			outDir: 'dist',
 			sourcemap: true,
 			base: isProduction ? './' : '/',
-			// minify: isProduction ? 'esbuild' : false,
-			minify: false,
+			minify: isProduction ? 'esbuild' : false,
+			// minify: false,
 			rollupOptions: {
 				output: {
 					entryFileNames: 'assets/js/[name].js',
@@ -39,16 +38,15 @@ export default defineConfig(({ command }: { command: string }) => {
 				targets: [
 					{
 						src: 'src/components/**/*.html',
-						dest: 'components'
+						dest: '.',
+						rename: (name, extension, fullPath) => {
+							const relativePath = fullPath.replace(/^.*src\//, '');
+							return relativePath;
+						}
 					}
 				]
 			})]
 			: [])
-		],
-		resolve: {
-			alias: {
-				'@shared': path.resolve('src/shared')
-			},
-		},
+		]
 	}
 })

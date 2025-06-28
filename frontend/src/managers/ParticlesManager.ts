@@ -1,5 +1,5 @@
 import { tsParticles } from "@tsparticles/engine";
-import { particleColors, colorsTheme1 } from '../styles/theme/theme';
+import { particleColors, colorsTheme1 } from '../config/theme';
 
 export class ParticlesManager {
 

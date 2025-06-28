@@ -1,6 +1,6 @@
 import { userStore } from '../stores/UserStore';
 import { UserModel } from '../types/user.types';
-import { templateCache } from '../helpers/dom';
+import { templateCache } from '../helpers/dom.helper';
 
 export abstract class BaseComponent {
 	protected currentUser: UserModel | null = null;
@@ -38,7 +38,8 @@ export abstract class BaseComponent {
 		}
 
 		// Charge et injecte le HTML.
-		if (import.meta.env.VITE_IS_DEV === 'false') {
+		if (import.meta.env.PROD === true) {
+			console.log(this.componentPath);
 			// code exécuté uniquement en prod pour fetch les components
 			// (hot reload Vite inactif)
 			// En dev on importe directement le template dans le fichier

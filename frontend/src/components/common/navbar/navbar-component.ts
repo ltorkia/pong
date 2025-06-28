@@ -1,9 +1,9 @@
 // Pour hot reload Vite
 import template from './navbar-component.html?raw'
 
-import { BaseComponent } from '../../BaseComponent';
-import { toggleClass } from '../../../helpers/dom';
-import { shouldShowNavbar } from '../../../helpers/navbar';
+import { BaseComponent } from '../../base-component';
+import { toggleClass } from '../../../helpers/dom.helper';
+import { shouldShowNavbar } from '../../../helpers/navbar.helper';
 import { UserController } from '../../../controllers/UserController';
 import { OptionalUser } from '../../../types/user.types';
 
@@ -33,7 +33,7 @@ export class NavbarComponent extends BaseComponent {
 	}
 
 	protected async mount(): Promise<void> {
-		if (import.meta.env.VITE_IS_DEV === 'true') {
+		if (import.meta.env.DEV === true) {
 			// code exécuté uniquement en dev pour le hot reload Vite
 			// des fichiers HTML qui sont dans src au lieu de public
 			this.container.innerHTML = template;

@@ -4,8 +4,8 @@
 	"description": "Frontend for Transcendence Pong game",
 	"type": "module",
 	"scripts": {
-		"dev": "vite --host 0.0.0.0 --port 3000",
-		"build": "tsc && vite build"
+		"dev": "vite --host 0.0.0.0 --port 3000 --mode development",
+		"build": "tsc && vite build --mode production"
 	},
 	"dependencies": {
 		"socket.io-client": "^4.8.1",

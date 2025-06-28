@@ -1,6 +1,6 @@
 import { BasePage } from '../BasePage';
 import { userApi } from '../../api/user.api';
-import { UserRowComponent } from '../../components/user/users/UserRowComponent';
+import { UserRowComponent } from '../../components/user/users/user-row-component';
 
 export class UsersPage extends BasePage {
 	protected usersComponents = [];

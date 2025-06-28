@@ -10,7 +10,7 @@ import { ProfilePage } from '../pages/user/ProfilePage';
 import { RouteConfig } from '../types/routes.types';
 
 // UTILS
-import { getProfilePath } from '../helpers/navbar';
+import { getProfilePath } from '../helpers/navbar.helper';
 
 /**
  * Configuration des routes de l'app

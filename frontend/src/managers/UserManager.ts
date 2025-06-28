@@ -1,8 +1,10 @@
 import { userApi } from '../api/user.api';
 import { userStore } from '../stores/UserStore';
-import { User } from '../models/User';
-import { cookiesConst } from '@shared/config/constants'; // en rouge car dossier local != dossier du conteneur
+import { User } from '../models/user.model';
+import { cookiesConst } from '../shared/config/constants'; // en rouge car dossier local != dossier du conteneur
 
+// import path from 'path';
+// const dbPath = path.resolve('../shared/config/constants');
 /**
  * Utilisée en singleton, class qui gère la
  * récupération / chargement du user via userStore,
@@ -24,7 +26,7 @@ export class UserManager {
 			return await this.loadOrRestoreUser();
 		}
 		// Si pas de cookie:
-		console.log('[${this.constructor.name}] Pas de cookie auth_status, démarrage sans utilisateur');
+		console.log(`[${this.constructor.name}] Pas de cookie auth_status, démarrage sans utilisateur`);
 		// Pas besoin d'appeler loadOrRestoreUser(), on sait déjà qu'il n'y a pas d'utilisateur
 		// Le router gérera les redirections si nécessaire
 		return null;

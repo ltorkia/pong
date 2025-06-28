@@ -1,8 +1,8 @@
 import { userStore } from '../stores/UserStore';
 import { UserController } from '../controllers/UserController';
-import { User } from '../models/User';
-import { NavbarComponent } from '../components/common/navbar/NavbarComponent';
-import { templateCache } from '../helpers/dom';
+import { User } from '../models/user.model';
+import { NavbarComponent } from '../components/common/navbar/navbar-component';
+import { templateCache } from '../helpers/dom.helper';
 
 export abstract class BasePage {
 	protected currentUser: User | null = null;

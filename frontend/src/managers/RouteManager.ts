@@ -6,7 +6,7 @@ import { Router } from '../router/Router';
 
 // ROUTER / OUTILS
 import { router } from '../router/Router';
-import { setActiveNavLink } from '../helpers/navbar';
+import { setActiveNavLink } from '../helpers/navbar.helper';
 import { hasParams } from '../router/router.utils';
 
 // CONFIG / TYPES

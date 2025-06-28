@@ -12,7 +12,7 @@ import { userManager } from './UserManager';
 // UTILS
 import { tsParticles } from "@tsparticles/engine";
 import { loadFull } from "tsparticles";
-import { wait } from '../helpers/app';
+import { wait } from '../helpers/app.helper';
 
 export class AppManager {
 	private particlesManager: ParticlesManager;		// Gestionnaire des particules d'arrière-plan

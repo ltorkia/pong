@@ -10,7 +10,7 @@ RUN npm install
 
 # Copier le code source
 COPY backend/src ./src
-COPY shared ./src
+COPY shared ./src/shared
 
 # Commande de développement avec nodemon pour le hot reload
 CMD ["npm", "run", "dev"]

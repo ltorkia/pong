@@ -1,5 +1,5 @@
 import { userManager } from '../managers/UserManager';
-import { isPublicTemplate } from './routes';
+import { isPublicTemplate } from './routes.helper';
 
 /**
  * Fonction utilitaire pour déterminer si la navbar doit être affichée

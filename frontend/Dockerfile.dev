@@ -10,7 +10,7 @@ RUN npm install
 
 # Copier le code source
 COPY frontend/src ./src
-COPY shared ./src
+COPY shared ./src/shared
 
 # Commande de développement avec Vite
 CMD ["npm", "run", "dev"]
