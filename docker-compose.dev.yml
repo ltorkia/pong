@@ -7,6 +7,7 @@ services:
       dockerfile: Dockerfile.dev
     ports:
       - "8443:443"
+      - "8080:80"
     depends_on:
       - backend
       - frontend
@@ -42,8 +43,6 @@ services:
       - ./frontend:/app
       - ./shared:/app/src/shared
       - /app/node_modules
-    environment:
-      - VITE_IS_DEV=true
     networks:
       - transcendence
     restart: unless-stopped

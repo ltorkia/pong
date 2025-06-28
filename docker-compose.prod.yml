@@ -7,6 +7,7 @@ services:
       dockerfile: nginx/Dockerfile.prod
     ports:
       - "8443:443"
+      - "8080:80"
     depends_on:
       - backend
     networks:
@@ -15,14 +16,12 @@ services:
   backend:
     container_name: backend
     build:
-      context: ./backend
+      context: .
       dockerfile: backend/Dockerfile.prod
     volumes:
       - ./backend/data:/app/data
     env_file:
       - ./backend/.env
-    environment:
-      - VITE_IS_DEV=false
     networks:
       - transcendence
     restart: unless-stopped
