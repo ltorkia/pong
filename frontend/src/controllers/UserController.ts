@@ -3,8 +3,9 @@ import { defaultRoute, authFallbackRoute } from '../config/routes.config';
 import { showError } from '../helpers/app.helper';
 import { REGISTERED_MSG } from '../config/messages';
 import { userApi } from '../api/user.api';
-import { userStore } from '../stores/UserStore';
+import { userStore } from '../stores/user-store';
 import { User } from '../models/user.model';
+import { uiStore } from '../stores/ui-store';
 
 /**
  * Gère les erreurs, les redirections, les feedbacks visuels
@@ -28,6 +29,7 @@ export class UserController {
 			console.log('Utilisateur inscrit :', result);
 			const user = User.fromJSON(result.user!);
 			userStore.setCurrentUser(user);
+			uiStore.animateNavbar = true;
 			
 			// Redirection home
 			alert(REGISTERED_MSG);
@@ -55,6 +57,7 @@ export class UserController {
 			console.log('Utilisateur connecté :', result);
 			const user = User.fromJSON(result.user!);
 			userStore.setCurrentUser(user);
+			uiStore.animateNavbar = true;
 			
 			// Redirection home
 			await router.redirectPublic(defaultRoute);
@@ -80,6 +83,7 @@ export class UserController {
 			
 			console.log('Utilisateur déconnecté :', result);
 			userStore.clearCurrentUser();
+			uiStore.animateNavbar = true;
 			
 			// Redirection SPA vers login
 			console.log('Déconnexion réussie. Redirection /login');

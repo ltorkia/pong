@@ -2,11 +2,14 @@
 import template from './user-row-component.html?raw'
 
 import { BaseComponent } from '../../base-component';
-import { OptionalUser } from '../../../types/user.types';
+import { User } from '../../../models/user.model';
+import { UserController } from '../../../controllers/UserController';
+import { RouteConfig } from '../../../types/routes.types';
+import { ComponentConfig } from '../../../types/components.types';
 
 export class UserRowComponent extends BaseComponent {
-	constructor(container: HTMLElement, currentUser: OptionalUser) {
-		super(container, '/components/user/users/user-row-component.html');
+	constructor(routeConfig: RouteConfig, componentConfig: ComponentConfig, container: HTMLElement, user: User | null, currentUser: User | null, userController: UserController) {
+		super(routeConfig, componentConfig, container, user, currentUser, userController);
 		this.currentUser = currentUser;
 	}
 
@@ -23,20 +26,20 @@ export class UserRowComponent extends BaseComponent {
 		const usernameLink = this.container.querySelector('.username-link') as HTMLAnchorElement;
 		const levelCell = this.container.querySelector('.level-cell') as HTMLElement;
 
-		if (this.currentUser) {
+		if (this.user) {
 			if (avatarImg) {
-				avatarImg.setAttribute('src', `/img/avatars/${this.currentUser.avatar}`);
-				avatarImg.setAttribute('alt', `${this.currentUser.username}'s avatar`);
+				avatarImg.setAttribute('src', `/img/avatars/${this.user.avatar}`);
+				avatarImg.setAttribute('alt', `${this.user.username}'s avatar`);
 			}
 
 			if (usernameLink) {
-				usernameLink.setAttribute('href', `/user/${this.currentUser.id}`);
-				usernameLink.textContent = this.currentUser.username;
+				usernameLink.setAttribute('href', `/user/${this.user.id}`);
+				usernameLink.textContent = this.user.username;
 			}
 
 			if (levelCell) {
-				if ('winRate' in this.currentUser && this.currentUser.winRate !== undefined) {
-					levelCell.textContent = `Win rate: ${this.currentUser.winRate}%`;
+				if ('winRate' in this.user && this.user.winRate !== undefined) {
+					levelCell.textContent = `Win rate: ${this.user.winRate}%`;
 				} else {
 					levelCell.textContent = 'No stats';
 				}

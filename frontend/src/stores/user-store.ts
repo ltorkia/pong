@@ -11,14 +11,14 @@ export class UserStore {
 	public setCurrentUser(user: User) {
 		this.currentUser = user;
 		localStorage.setItem('currentUser', JSON.stringify(user.toPublicJSON()));
-		console.log('[UserStore] Utilisateur stocké :', user.id);
+		console.log(`[${this.constructor.name}] Utilisateur stocké :`, user.id);
 	}
 
 	public clearCurrentUser() {
 		if (!this.currentUser) return;
 		this.currentUser = null;
 		localStorage.removeItem('currentUser');
-		console.log('[UserStore] Utilisateur supprimé');
+		console.log(`[${this.constructor.name}] Utilisateur supprimé`);
 	}
 
 	public restoreFromStorage(): User | null {
@@ -28,9 +28,9 @@ export class UserStore {
 			try {
 				const raw = JSON.parse(userJSON);
 				this.currentUser = User.fromJSON(raw);
-				console.log('[UserStore] User restauré :', this.currentUser.id);
+				console.log(`[${this.constructor.name}] User restauré :`, this.currentUser.id);
 			} catch {
-				console.warn('[UserStore] JSON invalide dans localStorage');
+				console.warn(`[${this.constructor.name}] JSON invalide dans localStorage`);
 				localStorage.removeItem('currentUser');
 			}
 		}

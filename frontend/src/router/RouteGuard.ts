@@ -1,5 +1,5 @@
 import { userManager } from '../managers/UserManager';
-import { userStore } from '../stores/UserStore';
+import { userStore } from '../stores/user-store';
 import { defaultRoute, authFallbackRoute } from '../config/routes.config';
 import { isPublicRoute } from '../helpers/routes.helper';
 import { Router } from './Router';

@@ -1,4 +1,5 @@
-import { userStore } from '../stores/UserStore';
+import { userStore } from '../stores/user-store';
+import { getHTMLElementById } from '../helpers/dom.helper';
 
 // Vérifie qu'on ne tombe pas sur l'erreur 401 après chaque requête api.
 // Si oui l'utilisateur est déconnecté, alors on clear le local storage et on le déco totalement.
@@ -25,10 +26,8 @@ export function wait(ms: number): Promise<void> {
  * Wrapper pour styliser les messages d'erreur sur les pages
  */
 export function showError(message: string) {
-	const alertDiv = document.getElementById('alert');
-	if (alertDiv) {
-		const cautionIcon = '<i class="fa-solid fa-circle-exclamation"></i> ';
-		alertDiv.innerHTML = cautionIcon + message;
-		alertDiv.classList.remove('hidden');
-	}
+	const alertDiv = getHTMLElementById('alert');
+	const cautionIcon = '<i class="fa-solid fa-circle-exclamation"></i> ';
+	alertDiv.innerHTML = cautionIcon + message;
+	alertDiv.classList.remove('hidden');
 }

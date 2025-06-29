@@ -24,20 +24,3 @@ export const particleColors = {
 export const images = {
 	forestWallpaper: "url('/img/design/forest-bg.jpg')"
 } as const;
-
-/**
- * Types pour les clés des objets à utiliser dans le code pour typage TS et autocomplétion vscode
- */
-// 'arial' | 'cinzel' | 'garamond'
-export type FontName = keyof typeof fonts;
-
-// 'vdarkBlue' | 'darkBlue' | ... | 'black'
-export type ThemeColor = keyof typeof colorsTheme1;
-
-// 'forestGold' | 'forestLight' | ...
-export type ParticleColor = keyof typeof particleColors;
-
-// 'forestWallpaper' | 'avatarDefault'
-export type ImageName = keyof typeof images;
-
-export default { fonts, colorsTheme1, particleColors, images };

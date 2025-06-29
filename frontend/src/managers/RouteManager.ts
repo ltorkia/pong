@@ -1,17 +1,22 @@
+// CURRENT USER
+import { userStore } from '../stores/user-store';
+
 // MANAGERS
 import { PageManager } from './PageManager';
 import { ParticlesManager } from './ParticlesManager';
-import { userManager } from './UserManager';
 import { Router } from '../router/Router';
 
 // ROUTER / OUTILS
 import { router } from '../router/Router';
-import { setActiveNavLink } from '../helpers/navbar.helper';
 import { hasParams } from '../router/router.utils';
 
 // CONFIG / TYPES
+import { User } from '../models/user.model';
 import { routesConfig } from '../config/routes.config';
 import { RouteConfig, RouteParams } from '../types/routes.types';
+import { HTMLContainers } from '../config/constants';
+import { showError } from '../helpers/app.helper';
+import { getHTMLElementById } from '../helpers/dom.helper';
 
 export class RouteManager {
 	private pageManager: PageManager;
@@ -56,22 +61,33 @@ export class RouteManager {
 	 * Le handler peut prendre un parametre (ex: id).
 	 */
 	private setupRoutes(): void {
-		routesConfig.forEach(config => {
-			if (hasParams(config.path)) {
-				router.register(config.path, async (params?: RouteParams) => {
-					await this.handleParamRoute(config, params);
-				});
+		try {
+			routesConfig.forEach(config => {
+				const appDiv = getHTMLElementById(HTMLContainers.appId);
+
+				if (hasParams(config.path)) {
+					router.register(config.path, async (params?: RouteParams) => {
+						await this.handleParamRoute(config, appDiv, userStore.getCurrentUser(), params);
+					});
+				} else {
+					router.register(config.path, async () => {
+						await this.handleSimpleRoute(config, appDiv, userStore.getCurrentUser());
+					});
+				}
+			});
+		} catch(error) {
+			if (error instanceof Error) {
+				console.error(`[${this.constructor.name}] ${error.message}`);
 			} else {
-				router.register(config.path, async () => {
-					await this.handleSimpleRoute(config);
-				});
+				console.error(`[${this.constructor.name}] Erreur lors de la configuration des routes`);
 			}
-		});
+			showError('Erreur de routage');
+		}
 	}
 
 	/**
-	 * !Exemple lineaire pour la route login (c'etait avant refactorisation
-	 * !quand toutes les routes etaient declarees en dur) :
+	 * ! Exemple lineaire pour la route login (c'etait avant refactorisation
+	 * ! quand toutes les routes etaient declarees en dur) :
 	 */
 	// router.register('/login', async () => {
 	// 	console.log('Exec route: navigation vers Login');
@@ -90,23 +106,18 @@ export class RouteManager {
 	/**
 	 * Gère les routes simples sans paramètres
 	 */
-	private async handleSimpleRoute(config: RouteConfig): Promise<void> {
+	private async handleSimpleRoute(config: RouteConfig, appDiv: HTMLElement, currentUser: User | null): Promise<void> {
 		console.log(`[${this.constructor.name}] Exec route -> navigation vers ${config.name}`);
-		
-		const appDiv = this.getAppDiv();
-		if (!appDiv) {
-			return;
-		}
 
 		// Création de l'instance de page
-		const pageInstance = await this.createPageInstance(config, appDiv);
+		const pageInstance = await this.createPageInstance(config, appDiv, currentUser);
 		if (!pageInstance) {
 			return
 		};
 
 		// Chargement et affichage de la page
 		await this.loadPage(pageInstance, config.enableParticles);
-		await this.updateNavigation(config);
+		// await this.updateNavigation(config);
 		
 		console.log(`[${this.constructor.name}] ${config.name} rendue`);
 	}
@@ -114,28 +125,23 @@ export class RouteManager {
 	/**
 	 * Gère les routes avec paramètres
 	 */
-	private async handleParamRoute(config: RouteConfig, params?: RouteParams): Promise<void> {
+	private async handleParamRoute(config: RouteConfig, appDiv: HTMLElement, currentUser: User | null, params?: RouteParams): Promise<void> {
 		if (!params || Object.keys(params).length === 0) {
 			console.error(`[${this.constructor.name}] Paramètres manquants pour la route ${config.path}`);
 			return;
 		}
 
 		console.log(`[${this.constructor.name}] Exec route -> navigation vers ${config.name} avec params:`, params);
-		
-		const appDiv = this.getAppDiv();
-		if (!appDiv) {
-			return;
-		}
 
 		// Création de l'instance avec paramètres
-		const pageInstance = await this.createPageInstance(config, appDiv, params);
+		const pageInstance = await this.createPageInstance(config, appDiv, currentUser, params);
 		if (!pageInstance) {
 			return;
 		}
 
 		// Chargement et affichage de la page
 		await this.loadPage(pageInstance, config.enableParticles);
-		await this.updateNavigation(config);
+		// await this.updateNavigation(config);
 		
 		console.log(`[${this.constructor.name}] ${config.name} rendue`);
 	}
@@ -143,15 +149,16 @@ export class RouteManager {
 	/**
 	 * Crée une instance de page avec ou sans paramètres
 	 */
-	private async createPageInstance(config: RouteConfig, appDiv: HTMLElement, params?: RouteParams): Promise<any> {
+	private async createPageInstance(config: RouteConfig, appDiv: HTMLElement, currentUser: User | null, params?: RouteParams): Promise<any> {
 		try {
 			// Cas avec paramètres dans le handler qu'il faut transmettre a la page
 			if (params) {
-				return this.createParamPageInstance(config, appDiv, params);
+				return this.createParamPageInstance(config, appDiv, currentUser, params);
 			}
 
 			// Cas classique
-			return new config.component(appDiv);
+			console.log(config.path);
+			return new config.pageClass(config, appDiv, currentUser);
 		} catch (error) {
 			console.error(`[${this.constructor.name}] Erreur lors de la création de l'instance de page pour ${config.name}:`, error);
 			return null;
@@ -161,35 +168,35 @@ export class RouteManager {
 	/**
 	 * Crée une instance de page avec des paramètres spécifiques
 	 */
-	private createParamPageInstance(config: RouteConfig, appDiv: HTMLElement, params: RouteParams): any {
+	private createParamPageInstance(config: RouteConfig, appDiv: HTMLElement, currentUser: User | null, params: RouteParams): any {
 		// Cas qui attendent un id user en parametre qui est deja en param du handler (comme pour ProfilePage)
 		if (params.id) {
-			return new config.component(appDiv, Number(params.id));
+			return new config.pageClass(config, appDiv, currentUser, Number(params.id));
 		}
 		
 		// Cas général avec params, a creuser pour d'autres composants ?
-		return new config.component(appDiv, params);
+		return new config.pageClass(config, appDiv, currentUser, params);
 	}
 
-	/**
-	 * Met à jour la navigation et le lien actif dans la navbar
-	 */
-	private async updateNavigation(config: RouteConfig): Promise<void> {
-		try {
-			if (config.getNavPath) {
-				const navPath = await config.getNavPath();
-				if (navPath) {
-					setActiveNavLink(navPath);
-				} else {
-					console.warn(`Impossible de déterminer le chemin de navigation pour ${config.name}`);
-				}
-			} else {
-				setActiveNavLink(config.path);
-			}
-		} catch (error) {
-			console.error(`Erreur lors de la mise à jour de la navigation pour ${config.name}:`, error);
-		}
-	}
+	// /**
+	//  * Met à jour la navigation et le lien actif dans la navbar
+	//  */
+	// private async updateNavigation(config: RouteConfig): Promise<void> {
+	// 	try {
+	// 		if (config.getNavPath) {
+	// 			const navPath = await config.getNavPath();
+	// 			if (navPath) {
+	// 				setActiveNavLink(navPath);
+	// 			} else {
+	// 				console.warn(`Impossible de déterminer le chemin de navigation pour ${config.name}`);
+	// 			}
+	// 		} else {
+	// 			setActiveNavLink(config.path);
+	// 		}
+	// 	} catch (error) {
+	// 		console.error(`Erreur lors de la mise à jour de la navigation pour ${config.name}:`, error);
+	// 	}
+	// }
 
 	/**
 	 * Charge et affiche une page avec gestion des particules
@@ -208,17 +215,6 @@ export class RouteManager {
 		} catch (error) {
 			console.error('Erreur lors du chargement de la page:', error);
 		}
-	}
-
-	/**
-	 * Récupère l'élément DOM principal de l'application
-	 */
-	private getAppDiv(): HTMLElement | null {
-		const appDiv = document.getElementById('app') as HTMLElement | null;
-		if (!appDiv) {
-			console.error("Élément #app introuvable dans le DOM");
-		}
-		return appDiv;
 	}
 
 	/**

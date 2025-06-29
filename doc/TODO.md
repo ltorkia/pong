@@ -28,6 +28,7 @@ FRONT
 - Mieux typer partout
 - Boucle login si erreur validate-session (load user dans start app manager à vérifier)
 - Etoffer RouteConfig avec les liens templates et components
+- Gérer shared files (types, constants)
 
 - check MAJ package.json :
  @tsparticles/engine         ^3.0.2  →   ^3.8.1

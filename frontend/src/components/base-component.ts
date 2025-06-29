@@ -1,17 +1,26 @@
-import { userStore } from '../stores/UserStore';
-import { UserModel } from '../types/user.types';
-import { templateCache } from '../helpers/dom.helper';
+import { loadTemplate } from '../helpers/dom.helper';
+import { User } from '../models/user.model';
+import { UserController } from '../controllers/UserController';
+import { RouteConfig } from '../types/routes.types';
+import { ComponentConfig } from '../types/components.types';
 
 export abstract class BaseComponent {
-	protected currentUser: UserModel | null = null;
+	protected routeConfig: RouteConfig;
+	protected componentConfig: ComponentConfig;
 	protected container: HTMLElement;
-	protected componentPath: string;
-	protected shouldRender: boolean = true;
+	protected user: User | null = null;
+	protected currentUser: User | null = null;
+	protected userController: UserController;
+	protected templatePath: string;
 
-	constructor(container: HTMLElement, componentPath: string) {
+	constructor(routeConfig: RouteConfig, componentConfig: ComponentConfig, container: HTMLElement, user: User | null, currentUser: User | null, userController: UserController) {
+		this.routeConfig = routeConfig;
+		this.componentConfig = componentConfig;
 		this.container = container;
-		this.componentPath = componentPath;
-		this.currentUser = userStore.getCurrentUser();
+		this.user = user;
+		this.currentUser = currentUser;
+		this.userController = userController;
+		this.templatePath = this.componentConfig.templatePath;
 	}
 
 	/**
@@ -30,23 +39,16 @@ export abstract class BaseComponent {
 		// ex pour navbar: vérifier si on est sur une page publique ou privée...
 		await this.beforeMount();
 
-		// Flag qui indique si, après vérification spéciale, le component
-		// doit se loader (ex: navbar sur page publique)
-		if (!this.shouldRender) {
-			await this.cleanup();
-			return;
-		}
-
 		// Charge et injecte le HTML.
 		if (import.meta.env.PROD === true) {
-			console.log(this.componentPath);
+			console.log(this.templatePath);
 			// code exécuté uniquement en prod pour fetch les components
 			// (hot reload Vite inactif)
 			// En dev on importe directement le template dans le fichier
 			// (voir NavbarComponent pour ex)
-			let html = await this.loadComponent();
+			let html = await loadTemplate(this.templatePath);
 			this.container.innerHTML = html;
-			// console.log(this.componentPath, this.container.innerHTML);
+			// console.log(this.templatePath, this.container.innerHTML);
 			console.log(`[${this.constructor.name}] Hot-reload inactif`);
 		}
 
@@ -57,44 +59,11 @@ export abstract class BaseComponent {
 	}
 
 	/**
-	 * Charge le html via fetch ou cache.
-	 * Si une erreur arrive on renvoie un message html sur la page.
-	 */
-	protected async loadComponent(): Promise<string> {
-
-		// On regarde d'abord si on n'a pas stocké le template en cache
-		// pour éviter des requêtes réseau inutiles
-		if (templateCache.has(this.componentPath)) {
-			return templateCache.get(this.componentPath)!;
-		}
-
-		// Sinon on fetch le template
-		try {
-			const response = await fetch(this.componentPath);
-			if (!response.ok) {
-				throw new Error(`Erreur lors du chargement du component: ${response.statusText}`);
-			}
-			const html = await response.text();
-			templateCache.set(this.componentPath, html);
-			return html;
-
-		} catch (error) {
-			console.error(`Erreur lors du chargement de ${this.componentPath}:`, error);
-			return this.getErrorMessage();
-		}
-	}
-
-	/**
 	 * Nettoyage de la page: vide le container.
 	 */
 	protected async cleanup(): Promise<void> {
 		if (this.container) {
 			this.container.innerHTML = '';
 		}
-	}
-
-	// Error message à afficher dans le catch de la méthode render()
-	protected getErrorMessage(): string {
-		return '<div id="alert">Erreur de chargement du component.</div>';
 	}
 }

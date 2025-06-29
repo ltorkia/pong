@@ -5,17 +5,54 @@ export const templateCache = new Map<string, string>();
  * Si le template a déjà été chargé, retourne la version mise en cache
  * pour éviter des requêtes fetch répétées et améliorer les perfs.
  */
-export async function loadCachedTemplate(path: string): Promise<string> {
+export async function loadTemplate(path: string): Promise<string> {
 	if (templateCache.has(path)) {
 		return templateCache.get(path)!;
 	}
-	const res = await fetch(path);
-	if (!res.ok) {
-		throw new Error(`Erreur chargement template: ${path}`);
+	const response = await fetch(path);
+	if (!response.ok) {
+		throw new Error(`Le template '${path}' n'a pas pu être chargé`);
 	}
-	const html = await res.text();
+	const html = await response.text();
 	templateCache.set(path, html);
 	return html;
+}
+
+/**
+ * Récupère un élément du DOM par son id.
+ * Throw une erreur si introuvable.
+ */
+export function getHTMLElementById(elementId: string): HTMLElement {
+	const element = document.getElementById(elementId);
+	if (!(element instanceof HTMLElement)) {
+		throw new Error(`Elément #${elementId} introuvable dans le DOM`);
+	}
+	return element;
+}
+
+/**
+ * Récupère un élément du DOM par sa classe.
+ * Throw une erreur si introuvable.
+ */
+export function getHTMLElementByClass(elementClass: string): HTMLElement {
+	const element = document.querySelector(`.${elementClass}`);
+	if (!(element instanceof HTMLElement)) {
+		throw new Error(`Elément .${elementClass} introuvable dans le DOM`);
+	}
+	return element;
+}
+
+/**
+ * Récupère un élément HTML de type <a> (lien) à partir d'un sélecteur CSS,
+ * dans un conteneur donné (document par défaut).
+ * Throw une erreur si introuvable.
+ */
+export function getHTMLAnchorElement(elementSelector: string, container: Document | ParentNode = document): HTMLAnchorElement {
+	const element = container.querySelector(elementSelector);
+	if (!(element instanceof HTMLAnchorElement)) {
+		throw new Error(`Elément ${elementSelector} introuvable dans le DOM`);
+	}
+	return element;
 }
 
 /**

@@ -1,39 +1,34 @@
 import { BasePage } from '../BasePage';
+import { RouteConfig } from '../../types/routes.types';
+import { User } from '../../models/user.model';
+import { getHTMLElementByClass } from '../../helpers/dom.helper';
 
 export class HomePage extends BasePage {
-	 // TODO: changer la logique pour injecter le user ??
 
-	constructor(container: HTMLElement) {
+	constructor(config: RouteConfig, container: HTMLElement, currentUser: User | null) {
 		// super() appelle le constructeur du parent BasePage
 		// avec le container et le chemin du template HTML pour la page home
-		super(container, '/templates/user/home.html');
+		super(config, container, currentUser);
 	}
 
 	protected async mount(): Promise<void> {
-		try {
-			this.loadAvatar();
-			this.welcomeUser();
-
-		} catch (err) {
-			console.error('Erreur lors de la récupération du user', err);
-		}
+		this.loadAvatar();
+		this.welcomeUser();
 	}
 
 	private welcomeUser() {
-		const h1 = this.container.querySelector('.page-title') as HTMLElement;
+		const h1 = getHTMLElementByClass('page-title');
 		if (this.currentUser && h1) {
 			h1.textContent = `Hi ${this.currentUser.username} !`;
 		}
 	}
 
 	private loadAvatar() {
-		const avatar = this.container.querySelector('.avatar') as HTMLElement;
-		if (this.currentUser && avatar) {
-			Object.assign(avatar.style, {
-				backgroundImage: `url('/img/avatars/${this.currentUser.avatar}')`,
-				backgroundSize: "cover",
-				backgroundPosition: "center"
-			});
-		}
+		const avatar = getHTMLElementByClass('avatar');
+		Object.assign(avatar.style, {
+			backgroundImage: `url('/img/avatars/${this.currentUser!.avatar}')`,
+			backgroundSize: "cover",
+			backgroundPosition: "center"
+		});
 	}
 }

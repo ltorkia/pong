@@ -1,18 +1,16 @@
 import { BasePage } from '../BasePage';
+import { RouteConfig } from '../../types/routes.types';
+import { User } from '../../models/user.model';
+import { getHTMLElementById } from '../../helpers/dom.helper';
 
 export class LoginPage extends BasePage {
 
-	constructor(container: HTMLElement) {
-		super(container, '/templates/auth/login.html');
+	constructor(config: RouteConfig, container: HTMLElement, currentUser: User | null) {
+		super(config, container, currentUser);
 	}
 
 	protected attachListeners(): void {
-		const form: HTMLElement | null = document.getElementById('login-form');
-		if (!(form instanceof HTMLFormElement)) {
-			console.error(`[${this.constructor.name}] Formulaire non trouvé ou invalide`);
-			return;
-		}
-
+		const form = getHTMLElementById('login-form') as HTMLFormElement;
 		form.addEventListener('submit', async (event) => {
 			event.preventDefault();
 			const formData = new FormData(form);

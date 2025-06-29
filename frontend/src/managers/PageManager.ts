@@ -1,3 +1,7 @@
+import { getHTMLElementById } from '../helpers/dom.helper';
+import { uiStore } from '../stores/ui-store';
+import { HTMLContainers } from '../config/constants';
+
 export class PageManager {
 	private currentPage: { render: () => Promise<void>; cleanup?: () => Promise<void> } | null = null;
 
@@ -5,6 +9,7 @@ export class PageManager {
 	 * Méthode principale pour afficher une nouvelle page.
 	 * 
 	 * - On ajoute une petite animation zoom-out / zoom-in au changement de page
+	 *  + transition navbar (slide-up / slide-down) à la connexion / déconnexion.
 	 * - On stocke la nouvelle page en cours dans currentPage.
 	 * - On appelle la méthode render() qui doit être async - pour ne pas bloquer le fil 
 	 *   principal du navigateur et faire tout le rendu HTML + logique).
@@ -13,23 +18,58 @@ export class PageManager {
 	 */
 	public async renderPage(page: { render: () => Promise<void>; cleanup?: () => Promise<void> }) {
 
-		const app = document.getElementById('app');
-		if (app) {
-			app.classList.add('transition-transform', 'duration-200');
-			app.classList.add('scale-90'); // dezoom léger
-			await new Promise(resolve => setTimeout(resolve, 120));
+		const appDiv = getHTMLElementById(HTMLContainers.appId);
+		await this.pageTransitionOut(appDiv);
+
+		const navbarDiv = getHTMLElementById(HTMLContainers.navbarId);
+		if (uiStore.animateNavbar === true) {
+			await this.navbarTransitionOut(navbarDiv);
 		}
 
 		await this.cleanup();
-
-		if (app) {
-			app.classList.remove('scale-90');
-			app.classList.add('scale-100'); // zoom-in léger
-			setTimeout(() => app.classList.remove('scale-100'), 200);
-		}
-
 		this.currentPage = page;
-		await page.render();
+
+		await this.pageTransitionIn(appDiv);
+		await this.currentPage.render();
+
+		if (uiStore.animateNavbar === true) {
+			await this.navbarTransitionIn(navbarDiv);
+		}
+	}
+
+	/**
+	 * Transitions page au changement de page:
+	 * - entrée -> zoom-in léger
+	 * - sortie -> zoom-out léger
+	 */
+	private async pageTransitionIn(container: HTMLElement): Promise<void> {
+		container.classList.remove('scale-90');
+		container.classList.add('scale-100');
+		setTimeout(() => container.classList.remove('scale-100'), 300);
+	}
+	private async pageTransitionOut(container: HTMLElement): Promise<void> {
+		container.classList.add('scale-90');
+		setTimeout(() => container.classList.remove('scale-90'), 300);
+		await new Promise(resolve => setTimeout(resolve, 120));
+	}
+
+	/**
+	 * Transitions navbar au changement de page:
+	 * - entrée -> slide-down
+	 * - sortie -> slide-up
+	 */
+	private async navbarTransitionIn(container: HTMLElement): Promise<void> {
+		// Entrée navbar (slide down)
+		container.classList.remove('-translate-y-[--navbar-height]');
+		container.classList.add('translate-y-0');
+		setTimeout(() => container.classList.remove('translate-y-0'), 300);
+		uiStore.animateNavbar = false;
+	}
+	private async navbarTransitionOut(container: HTMLElement): Promise<void> {
+		container.classList.remove('translate-y-0');
+		container.classList.add('-translate-y-[--navbar-height]');
+		setTimeout(() => container.classList.remove('-translate-y-[--navbar-height]'), 300);
+		await new Promise(resolve => setTimeout(resolve, 200));
 	}
 
 	/**
@@ -50,9 +90,5 @@ export class PageManager {
 	
 	public getCurrentPage() {
 		return this.currentPage;
-	}
-
-	public hasCurrentPage(): boolean {
-		return this.currentPage !== null;
 	}
 }

@@ -3,33 +3,21 @@ import template from './navbar-component.html?raw'
 
 import { BaseComponent } from '../../base-component';
 import { toggleClass } from '../../../helpers/dom.helper';
-import { shouldShowNavbar } from '../../../helpers/navbar.helper';
 import { UserController } from '../../../controllers/UserController';
-import { OptionalUser } from '../../../types/user.types';
+import { RouteConfig } from '../../../types/routes.types';
+import { ComponentConfig } from '../../../types/components.types';
+import { User } from '../../../models/user.model';
+import { getHTMLAnchorElement } from '../../../helpers/dom.helper';
 
 export class NavbarComponent extends BaseComponent {
-	private parentTemplate: string;
-	private userController: UserController;
+	protected profileLink?: string;
 
 	// TODO: Ajouter les listeners popstate ici ???
 
-	constructor(container: HTMLElement, parentTemplate: string, userController: UserController, currentUser: OptionalUser) {
+	constructor(routeConfig: RouteConfig, componentConfig: ComponentConfig, container: HTMLElement, user: User | null, currentUser: User | null, userController: UserController) {
 		// super() appelle le constructeur du parent BaseComponent
 		// avec le container et le chemin du component HTML pour la navbar
-		super(container, '/components/common/navbar/navbar-component.html');
-		this.parentTemplate = parentTemplate;
-		this.userController = userController;
-		this.currentUser = currentUser;
-	}
-
-	protected async beforeMount(): Promise<void> {
-		// si this.parentTemplate = page publique (login ou register) -> pas de navbar.
-		// On clean la navbar pour qu'elle ne reste pas sur la prochaine page
-		// et on return.
-		const showNavbar = shouldShowNavbar(this.parentTemplate);
-		if (!showNavbar) {
-			this.shouldRender = false;
-		}
+		super(routeConfig, componentConfig, container, user, currentUser, userController);
 	}
 
 	protected async mount(): Promise<void> {
@@ -41,11 +29,13 @@ export class NavbarComponent extends BaseComponent {
 			console.log(`[${this.constructor.name}] Hot-reload actif`);
 		}
 
-		// Pour hot reload Vite
-		this.container.innerHTML = template;
-
 		// On génère le lien du profil avec l'id du current user
-		this.setNavLink('a[href="/profile"]', '/user/{userId}');
+		this.profileLink = this.setNavLink('a[href="/profile"]', '/user/{userId}');
+
+		// On met à jour le lien actif
+		// const currentRoute = getRouteFromPath(this.parentTemplate);
+		const currentRoute = this.routeConfig.path;
+		this.updateNavigation(currentRoute);
 
 		// On ajoute un margin à la balise 'main'
 		// qui correspond à la hauteur de la navbar
@@ -53,6 +43,29 @@ export class NavbarComponent extends BaseComponent {
 		if (main) {
 			main.classList.add('mt-main');
 		}
+	}
+
+	/**
+	 * Met à jour la navigation active sur la navbar.
+	 * 
+	 * - Sélectionne tous les liens avec l'attribut data-link.
+	 * - Supprime la classe active de tous les liens.
+	 * - Compare leur pathname avec celui passé en paramètre.
+	 * - Ajoute la classe active au lien correspondant.
+	 * 
+	 * Permet de styliser le lien actif dans la navbar.
+	 */
+	protected updateNavigation(route: string): void {
+		const navLinks = document.querySelectorAll('.navbar-content a[data-link]') as NodeListOf<HTMLElement>;
+		navLinks.forEach(link => {
+			const anchor = link as HTMLAnchorElement;
+			anchor.classList.remove('active');
+			const linkPath = new URL(anchor.href).pathname;
+			if (linkPath === route
+				|| route === '/user/:id' && linkPath === this.profileLink) {
+				anchor.classList.add('active');
+			}
+		});
 	}
 
 	protected attachListeners(): void {
@@ -65,7 +78,7 @@ export class NavbarComponent extends BaseComponent {
 		this.listenLogout();
 	}
 
-	private handleBurgerMenu(burgerBtn: HTMLElement): void {
+	protected handleBurgerMenu(burgerBtn: HTMLElement): void {
 		burgerBtn.addEventListener('click', () => {
 			const navbarMenu = document.getElementById('navbar-menu') as HTMLElement;
 			const icon = burgerBtn.querySelector('i');
@@ -78,31 +91,32 @@ export class NavbarComponent extends BaseComponent {
 	}
 
 	/**
+	 * Modifie dynamiquement des liens dans la barre de navigation.
+	 * Modifie par exemple le lien du profil (/profile) dans la barre de navigation pour pointer vers la page de l'utilisateur connecté (/user/id).
+	 * On utilise un placeholder {userId} qui va être remplacé par le vrai id de l'utilisateur.
+	 */
+	protected setNavLink(selector: string, linkTemplate: string): string {
+		const navLink = getHTMLAnchorElement(selector, this.container);
+
+		// Si le lien contient un placeholder {userId}, on le remplace par l'ID du currentUser
+		let link = linkTemplate;
+		if (this.currentUser && this.currentUser.id && linkTemplate.includes('{userId}')) {
+			link = linkTemplate.replace('{userId}', this.currentUser.id.toString());
+		}
+		navLink.href = link;
+		return link;
+	}
+
+	/**
 	 * Listener sur le bouton logout de la navbar
 	 */
-	private async listenLogout(): Promise<void> {
+	protected async listenLogout(): Promise<void> {
 		const logoutLink = document.querySelector('a[href="/logout"]');
 		if (logoutLink) {
 			logoutLink.addEventListener('click', async (e) => {
 				e.preventDefault();
 				await this.userController.logoutController();
 			});
-		}
-	}
-
-	/**
-	 * Modifie dynamiquement le lien du profil dans la barre de navigation pour pointer vers la page de l'utilisateur connecté.
-	 * Récupère l'état de connexion de l'utilisateur via loadOrRestoreUser()
-	 */
-	private setNavLink(selector: string, linkTemplate: string): void {
-		const navLink = this.container.querySelector(selector) as HTMLAnchorElement | null;
-		if (navLink) {
-			// Si le lien contient un placeholder {userId}, on le remplace par l'ID du currentUser
-			let link = linkTemplate;
-			if (this.currentUser && this.currentUser.id && linkTemplate.includes('{userId}')) {
-				link = linkTemplate.replace('{userId}', this.currentUser.id.toString());
-			}
-			navLink.href = link;
 		}
 	}
 }

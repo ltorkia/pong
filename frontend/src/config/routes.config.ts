@@ -1,4 +1,4 @@
-// PageS
+// PAGES
 import { HomePage } from '../pages/user/HomePage';
 import { RegisterPage } from '../pages/auth/RegisterPage';
 import { LoginPage } from '../pages/auth/LoginPage';
@@ -10,61 +10,84 @@ import { ProfilePage } from '../pages/user/ProfilePage';
 import { RouteConfig } from '../types/routes.types';
 
 // UTILS
-import { getProfilePath } from '../helpers/navbar.helper';
+import { pageNames, componentNames } from '../config/constants';
+import { getComponentConfig } from '../helpers/config.helper';
 
 /**
  * Configuration des routes de l'app
  * 
  * - path: Chemin de la route ('/', '/users', '/user/:id'...)
- * - component: Composant de la page à render (HomePage, GamePage...)
  * - name: Nom de la route pour logs et debug
- * - isPublic: Si true, la route est accessible sans être authentifié (login, register)
+ * - pageClass: Classe de la page à instancier / render (HomePage, GamePage...)
+ * - templatePath: Chemin du template HTML associé à la page
+ * - components: Config des composants spécifiques à cette page
+ * - isPublic: Si true, la route est accessible sans être authentifié uniquement (login, register)
  * - enableParticles: Si true, active les particules sur cette page
  * - getNavPath: Fonction pour récupérer le lien actif dans la navbar
  */
 export const routesConfig: RouteConfig[] = [
 	{
 		path: '/',
-		component: HomePage,
-		name: 'Home',
+		name: pageNames.home,
+		pageClass: HomePage,
+		templatePath: '/templates/user/home.html',
+		components: {
+			[componentNames.navbar]: getComponentConfig(componentNames.navbar)
+		},
 		isPublic: false,
 		enableParticles: true
 	},
 	{
 		path: '/register',
-		component: RegisterPage,
-		name: 'Register',
+		name: pageNames.register,
+		pageClass: RegisterPage,
+		templatePath: '/templates/auth/register.html',
+		components: {},
 		isPublic: true,
 		enableParticles: true
 	},
 	{
 		path: '/login',
-		component: LoginPage,
-		name: 'Login',
+		name: pageNames.login,
+		pageClass: LoginPage,
+		templatePath: '/templates/auth/login.html',
+		components: {},
 		isPublic: true,
 		enableParticles: true
 	},
 	{
 		path: '/game',
-		component: GamePage,
-		name: 'Game',
+		name: pageNames.game,
+		pageClass: GamePage,
+		templatePath: '/templates/game/game.html',
+		components: {
+			[componentNames.navbar]: getComponentConfig(componentNames.navbar)
+		},
 		isPublic: false,
 		enableParticles: false
 	},
 	{
 		path: '/users',
-		component: UsersPage,
-		name: 'Users',
+		name: pageNames.users,
+		pageClass: UsersPage,
+		templatePath: '/templates/user/users.html',
+		components: {
+			[componentNames.navbar]: getComponentConfig(componentNames.navbar),
+			[componentNames.userRow]: getComponentConfig(componentNames.userRow)
+		},
 		isPublic: false,
 		enableParticles: true
 	},
 	{
 		path: '/user/:id',
-		component: ProfilePage,
-		name: 'Profile',
+		name: pageNames.profile,
+		pageClass: ProfilePage,
+		templatePath: '/templates/user/profile.html',
+		components: {
+			[componentNames.navbar]: getComponentConfig(componentNames.navbar)
+		},
 		isPublic: false,
-		enableParticles: true,
-		getNavPath: getProfilePath
+		enableParticles: true
 	}
 ];
 

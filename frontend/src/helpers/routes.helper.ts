@@ -1,6 +1,3 @@
-// TYPES
-import { RouteConfig } from '../types/routes.types';
-
 // CONFIG
 import { routesConfig } from '../config/routes.config';
 
@@ -22,21 +19,15 @@ export const isPublicRoute = (route: string | null): boolean => {
  */
 export const isPublicTemplate = (templatePath: string): boolean => {
 	// Récupérer le nom du fichier sans extension pour reconstituer la route
-	const fileName = templatePath.split('/').pop()?.replace('.html', '') ?? '';
-	return isPublicRoute('/' + fileName);
+	const fileName = getRouteFromPath(templatePath);
+	return isPublicRoute(fileName);
 };
 
 /**
- * Fonction utilitaire pour récupérer une configuration de route par son path
+ * Fonction utilitaire pour vérifier si un template correspond à une page publique
  */
-export const getRouteConfig = (path: string): RouteConfig | undefined => {
-	return routesConfig.find(route => route.path === path);
+export const getRouteFromPath = (path: string): string => {
+	// Récupérer le nom de la page sans extension pour reconstituer la route
+	const pageName = path.split('/').pop()?.replace('.html', '') ?? '';
+	return '/' + pageName;
 };
-
-/**
- * Fonction utilitaire pour obtenir la liste des routes configurées
- * (retourne une copie pour éviter les modifications)
- */
-export function getRoutesConfig(): RouteConfig[] {
-	return [...routesConfig];
-}

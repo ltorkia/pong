@@ -1,5 +1,5 @@
 import { userApi } from '../api/user.api';
-import { userStore } from '../stores/UserStore';
+import { userStore } from '../stores/user-store';
 import { User } from '../models/user.model';
 import { cookiesConst } from '../shared/config/constants'; // en rouge car dossier local != dossier du conteneur
 
@@ -46,7 +46,7 @@ export class UserManager {
 	 */
 	public async loadOrRestoreUser(): Promise<User | null> {
 		const hasCookie = this.hasAuthCookie();
-		const storedUser = this.getCurrentUser();
+		const storedUser = userStore.getCurrentUser();
 
 		// Pas de cookie = pas connecté
 		if (!hasCookie) {
@@ -129,13 +129,6 @@ export class UserManager {
 		} catch {
 			return false;
 		}
-	}
-
-	/**
-	 * Getter current user in store
-	 */	
-	public getCurrentUser(): User | null {
-		return userStore.getCurrentUser();
 	}
 }  
 
