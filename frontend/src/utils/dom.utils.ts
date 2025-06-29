@@ -1,0 +1,120 @@
+/**
+ * Un objet Map qui contient les templates HTML chargés.
+ * Les clés sont les chemins des templates (par exemple, "src/templates/page.html"),
+ * et les valeurs sont le contenu HTML des templates.
+ */
+export const templateCache = new Map<string, string>();
+
+// ===========================================
+// DOM UTILS
+// ===========================================
+/**
+ * Ce fichier contient des fonctions utilitaires pour manipuler le DOM.
+ * 
+ * Les fonctions sont conçues pour être utilisées de manière générique et
+ * ne sont pas liées à un contexte spécifique.
+ */
+
+/**
+ * Charge un template HTML depuis un chemin spécifié et le met en cache.
+ * Si le template est déjà présent dans le cache, retourne la version mise en cache.
+ * Sinon, effectue une requête pour récupérer le template et le stocke dans le cache.
+ *
+ * @export
+ * @param {string} path - Chemin du fichier template HTML à charger.
+ * @return {Promise<string>} - Promise résolvant avec le contenu HTML du template.
+ * @throws {Error} - Lance une erreur si la requête échoue.
+ */
+
+export async function loadTemplate(path: string): Promise<string> {
+	if (templateCache.has(path)) {
+		return templateCache.get(path)!;
+	}
+	const response = await fetch(path);
+	if (!response.ok) {
+		throw new Error(`Le template '${path}' n'a pas pu être chargé`);
+	}
+	const html = await response.text();
+	templateCache.set(path, html);
+	return html;
+}
+
+/**
+ * Renvoie l'élément HTML portant l'identifiant (id) passé en paramètre.
+ * Si l'élément n'est pas trouvé, lance une erreur.
+ *
+ * @export
+ * @param {string} elementId - Identifiant (id) de l'élément à chercher.
+ * @return {HTMLElement} - L'élément HTML portant l'identifiant (id) demandé.
+ * @throws {Error} - Si l'élément n'est pas trouvé dans le DOM.
+ */
+export function getHTMLElementById(elementId: string): HTMLElement {
+	const element = document.getElementById(elementId);
+	if (!(element instanceof HTMLElement)) {
+		throw new Error(`Elément #${elementId} introuvable dans le DOM`);
+	}
+	return element;
+}
+
+/**
+ * Renvoie l'élément HTML portant la classe CSS passée en paramètre.
+ * Si l'élément n'est pas trouvé, lance une erreur.
+ *
+ * @export
+ * @param {string} elementClass - Nom de la classe CSS de l'élément à chercher.
+ * @return {HTMLElement} - L'élément HTML portant la classe CSS demandée.
+ * @throws {Error} - Si l'élément n'est pas trouvé dans le DOM.
+ */
+export function getHTMLElementByClass(elementClass: string): HTMLElement {
+	const element = document.querySelector(`.${elementClass}`);
+	if (!(element instanceof HTMLElement)) {
+		throw new Error(`Elément .${elementClass} introuvable dans le DOM`);
+	}
+	return element;
+}
+
+/**
+ * Retourne un élément HTML de type <a> (lien) à partir d'un sélecteur CSS, dans le conteneur
+ * passé en paramètre (par défaut, c'est le document courant).
+ * Si l'élément n'existe pas, lance une erreur.
+ *
+ * @export
+ * @param {string} elementSelector - Sélecteur CSS de l'élément <a> à chercher.
+ * @param {(Document | ParentNode)} [container=document] - Conteneur dans lequel chercher l'élément.
+ * @return {HTMLAnchorElement} - L'élément <a> trouvé.
+ * @throws {Error} - Si l'élément n'est pas trouvé.
+ */
+export function getHTMLAnchorElement(elementSelector: string, container: Document | ParentNode = document): HTMLAnchorElement {
+	const element = container.querySelector(elementSelector);
+	if (!(element instanceof HTMLAnchorElement)) {
+		throw new Error(`Elément ${elementSelector} introuvable dans le DOM`);
+	}
+	return element;
+}
+
+/**
+ * Alterne entre deux classes CSS sur un élément, avec une classe optionnelle.
+ * Si l'élément a la classe `classA`, elle est remplacée par `classB` (et `classC` ajoutée si fournie).
+ * Sinon, `classB` (et `classC`) sont retirées, et `classA` ajoutée.
+ *
+ * @param {(Element | null)} el - Élément HTML à modifier.
+ * @param {string} classA - Première classe CSS à alterner.
+ * @param {string} classB - Deuxième classe CSS à alterner.
+ * @param {string} [classC] - Classe CSS optionnelle à ajouter si l'élément a `classA`.
+ */
+export function toggleClass(el: Element | null, classA: string, classB: string, classC?: string): void {
+	if (!el) return;
+	if (el.classList.contains(classA)) {
+		el.classList.remove(classA);
+		el.classList.add(classB);
+		if (classC) {
+			el.classList.add(classC);
+		}
+	} else {
+		if (classC) {
+			el.classList.remove(classC);
+		}
+		el.classList.remove(classB);
+		el.classList.add(classA);
+	}
+}
