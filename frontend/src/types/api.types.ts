@@ -22,8 +22,6 @@ import { UserModel } from '../shared/types/user.types';	// en rouge car dossier 
  * un code de statut `statusCode` qui indique le code de statut de la requête,
  * un message `errorMessage` qui contient l'erreur si la requête a échoué,
  * un message `message` qui contient le message de confirmation si la requête a réussi,
- * 
- * @export
  */
 export type BasicResponse = {
 	success?: boolean;
@@ -40,8 +38,6 @@ export type BasicResponse = {
  * un message `errorMessage` qui contient l'erreur si la requête a échoué,
  * un message `message` qui contient le message de confirmation si la requête a réussi,
  * et un objet `user` qui contient l'utilisateur connecté (avec email) si la requête a réussi.
- * 
- * @export
  */
 export type AuthResponse = BasicResponse & {
 	user?: UserModel;

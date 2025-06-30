@@ -23,8 +23,6 @@ import { User } from '../models/user.model';
  * et qui est configurée avec un nom unique, un chemin de template, un id d'élément cible,
  * un booléen pour définir si le composant est public ou non, et un booléen pour définir
  * si le composant est commun à plusieurs pages ou non.
- * 
- * @export
  */
 export interface ComponentConfig {
 	name: string;						// Nom unique du composant (ex: 'navbar', 'user-row')
@@ -44,8 +42,6 @@ export interface ComponentConfig {
  * - componentConfig: configuration du composant (de type ComponentConfig)
  * - container: élément HTML dans lequel injecter le contenu du composant
  * - user: utilisateur à afficher dans le composant (facultatif)
- * 
- * @export
  */
 export type ComponentClass = new (
 	routeConfig: RouteConfig,			// Configuration complète de la route

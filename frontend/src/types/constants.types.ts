@@ -18,7 +18,6 @@ import { pageNames, componentNames, HTMLContainers } from '../config/constants.c
  * 
  * `PageNamesMap` représente le type des noms de pages définis dans `pageNames`.
  * `PageName` représente une des valeurs possibles des noms de pages.
- * @export
  */
 export type PageNamesMap = typeof pageNames;
 
@@ -27,7 +26,6 @@ export type PageNamesMap = typeof pageNames;
  * 
  * `PageName` représente une des valeurs possibles des noms de pages.
  * Par exemple, si `pageNames` contient l'entrée `"home": "home"`, alors `PageName` peut valoir `"home"`.
- * @export
  */
 export type PageName = PageNamesMap[keyof PageNamesMap];
 
@@ -36,7 +34,6 @@ export type PageName = PageNamesMap[keyof PageNamesMap];
  * 
  * `ComponentNamesMap` représente le type des noms de composants définis dans `componentNames`.
  * `ComponentName` représente une des valeurs possibles des noms de composants.
- * @export
  */
 export type ComponentNamesMap = typeof componentNames;
 
@@ -46,7 +43,6 @@ export type ComponentNamesMap = typeof componentNames;
  * 
  * `ComponentName` représente une des valeurs possibles des noms de composants.
  * Par exemple, si `componentNames` contient l'entrée `"navbar": "navbar"`, alors `ComponentName` peut valoir `"navbar"`.
- * @export
  */
 export type ComponentName = ComponentNamesMap[keyof ComponentNamesMap];
 
@@ -55,7 +51,6 @@ export type ComponentName = ComponentNamesMap[keyof ComponentNamesMap];
  * 
  * `HTMLContainersMap` représente le type des identifiants de conteneurs HTML définis dans `HTMLContainers`.
  * `HTMLContainer` représente une des valeurs possibles des identifiants de conteneurs HTML.
- * @export
  */
 export type HTMLContainersMap = typeof HTMLContainers;
 
@@ -64,7 +59,6 @@ export type HTMLContainersMap = typeof HTMLContainers;
  * 
  * `HTMLContainer` représente une des valeurs possibles des identifiants de conteneurs HTML.
  * Par exemple, si `HTMLContainers` contient l'entrée `"root": "#root"`, alors `HTMLContainer` peut valoir `"#root"`.
- * @export
  */
 export type HTMLContainer = HTMLContainersMap[keyof HTMLContainersMap];
 

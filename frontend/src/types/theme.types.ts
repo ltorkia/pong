@@ -16,24 +16,20 @@ import { fonts, colorsTheme1, particleColors, images } from '../config/theme.con
 
 /**
  * Type représentant les noms de polices disponibles dans le thème.
- * @export
  */
 export type FontName = keyof typeof fonts;
 
 /**
  * Type représentant les noms de couleurs du thème.
- * @export
  */
 export type ThemeColor = keyof typeof colorsTheme1;
 
 /**
  * Type représentant les noms de couleurs des particules.
- * @export
  */
 export type ParticleColor = keyof typeof particleColors;
 
 /**
  * Type représentant les noms d'images disponibles dans le thème.
- * @export
  */
 export type ImageName = keyof typeof images;
