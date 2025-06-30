@@ -1,5 +1,23 @@
 import { SafeUserModel, UserModel, PublicUser } from '../../../shared/types/user.types';
 
+// ===========================================
+// USER MODEL
+// ===========================================
+/**
+ * Classe représentant un utilisateur dans l'application.
+ * 
+ * Cette classe encapsule toutes les informations et comportements
+ * associés à un utilisateur, y compris les détails personnels,
+ * les statistiques de jeu, et les fonctions utilitaires pour
+ * manipuler ces données.
+ * 
+ * Lors des requêtes API, l'utilisateur
+ * est temporairement stocké en mémoire vive, puis ses données
+ * sont conservées sans l'email dans le localStorage pour un accès
+ * ultérieur.
+ * 
+ * @export
+ */
 export class User {
 
 	constructor(
@@ -21,10 +39,8 @@ export class User {
 	) {}
 
 	// ============================================================================
-	// GETTERS ET MÉTHODES UTILITAIRES
+	// GETTERS POUR L'AFFICHAGE
 	// ============================================================================
-
-	// TODO: A développer
 	
 	get winRate(): number {
 		if (!this.game_played || this.game_played === 0) return 0;
@@ -54,14 +70,16 @@ export class User {
 	}
 
 	// ============================================================================
-	// MÉTHODES DE SÉRIALISATION / DÉSÉRIALISATION
+	// MÉTHODES DE SÉRIALISATION (OBJECT → JSON)
 	// ============================================================================
 
 	/**
 	 * Sérialise vers un objet PublicUser pour l'affichage public.
 	 * Contient uniquement les informations non-sensibles visibles par d'autres utilisateurs.
 	 * Utilisé pour: listes d'utilisateurs, classements, profils publics.
+	 * 
 	 * @returns {PublicUser} - Version publique sans données sensibles
+	 * @memberof User
 	 */
 	toPublicJSON(): PublicUser {
 		return {
@@ -80,7 +98,9 @@ export class User {
 	 * Sérialise vers un objet SafeUserModel pour les opérations internes.
 	 * Contient toutes les informations excepté l'email.
 	 * Utilisé pour: opérations internes où l'email n'est pas nécessaire.
+	 * 
 	 * @returns {SafeUserModel} - Version complète sans email
+	 * @memberof User
 	 */
 	toSafeJSON(): SafeUserModel {
 		return {
@@ -105,7 +125,9 @@ export class User {
 	 * Sérialise vers un objet UserModel complet pour l'API.
 	 * Contient toutes les informations, y compris les données sensibles (email).
 	 * Utilisé pour: communications avec l'API, gestion complète du profil.
+	 * 
 	 * @returns {UserModel} - Version complète avec email
+	 * @memberof User
 	 */
 	toFullJSON(): UserModel {
 		return {
@@ -127,12 +149,18 @@ export class User {
 		};
 	}
 
+	// ============================================================================
+	// MÉTHODES DE DÉSÉRIALISATION (JSON → OBJECT)
+	// ============================================================================
+
 	/**
 	 * Désérialise un objet UserModel vers une instance de User.
 	 * Crée une instance complète avec toutes les méthodes disponibles.
 	 * Utilisé pour: récupération depuis l'API, restauration depuis stockage.
+	 * 
 	 * @param data - Données partielles de l'utilisateur
 	 * @returns {User} - Instance de User avec toutes ses méthodes
+	 * @memberof User
 	 */
 	static fromJSON(data: Partial<UserModel>): User {
 
@@ -162,8 +190,10 @@ export class User {
 	/**
 	 * Crée une instance User à partir de données SafeUserModel.
 	 * Utilisé quand on a des données sans email.
+	 * 
 	 * @param data - Données SafeUserModel
 	 * @returns {User} - Instance de User (avec email vide)
+	 * @memberof User
 	 */
 	static fromSafeJSON(data: Partial<SafeUserModel>): User {
 		return this.fromJSON({ ...data, email: '' });
@@ -172,8 +202,10 @@ export class User {
 	/**
 	 * Crée une instance User à partir de données PublicUser.
 	 * Utilisé pour afficher des utilisateurs publics avec fonctionnalités limitées.
+	 * 
 	 * @param data - Données PublicUser
 	 * @returns {User} - Instance de User (avec données minimales)
+	 * @memberof User
 	 */
 	static fromPublicJSON(data: PublicUser): User {
 		if (!data.id || !data.username) {
@@ -200,13 +232,15 @@ export class User {
 	}
 
 	// ============================================================================
-	// MÉTHODES UTILITAIRES POUR RÉCUPÉRER ET MANIPULER LES UTILISATEURS
+	// MÉTHODES STATIQUES SUR TABLEAUX D'UTILISATEURS
 	// ============================================================================
 
 	/**
 	 * Convertit un tableau d'objets UserModel en tableau d'instances User.
+	 * 
 	 * @param users - Tableau d'objets UserModel
 	 * @returns {User[]} - Tableau d'instances User
+	 * @memberof User
 	 */
 	static fromJSONArray(users: Partial<UserModel>[]): User[] {
 		return users.map(user => this.fromJSON(user));
@@ -214,8 +248,10 @@ export class User {
 
 	/**
 	 * Convertit un tableau d'objets SafeUserModel en tableau d'instances User.
+	 * 
 	 * @param users - Tableau d'objets SafeUserModel
 	 * @returns {User[]} - Tableau d'instances User
+	 * @memberof User
 	 */
 	static fromSafeJSONArray(users: Partial<SafeUserModel>[]): User[] {
 		return users.map(user => this.fromSafeJSON(user));
@@ -223,8 +259,10 @@ export class User {
 
 	/**
 	 * Convertit un tableau d'objets PublicUser en tableau d'instances User.
+	 * 
 	 * @param users - Tableau d'objets PublicUser
 	 * @returns {User[]} - Tableau d'instances User
+	 * @memberof User
 	 */
 	static fromPublicJSONArray(users: PublicUser[]): User[] {
 		return users.map(user => this.fromPublicJSON(user));
@@ -232,8 +270,10 @@ export class User {
 
 	/**
 	 * Convertit un tableau d'instances User en tableau d'objets PublicUser.
+	 * 
 	 * @param users - Tableau d'instances User
 	 * @returns {PublicUser[]} - Tableau d'objets PublicUser
+	 * @memberof User
 	 */
 	static toPublicJSONArray(users: User[]): PublicUser[] {
 		return users.map(user => user.toPublicJSON());
@@ -241,8 +281,10 @@ export class User {
 
 	/**
 	 * Convertit un tableau d'instances User en tableau d'objets SafeUserModel.
+	 * 
 	 * @param users - Tableau d'instances User
 	 * @returns {SafeUserModel[]} - Tableau d'objets SafeUserModel
+	 * @memberof User
 	 */
 	static toSafeJSONArray(users: User[]): SafeUserModel[] {
 		return users.map(user => user.toSafeJSON());
@@ -250,17 +292,25 @@ export class User {
 
 	/**
 	 * Convertit un tableau d'instances User en tableau d'objets UserModel.
+	 * 
 	 * @param users - Tableau d'instances User
 	 * @returns {UserModel[]} - Tableau d'objets UserModel
+	 * @memberof User
 	 */
 	static toFullJSONArray(users: User[]): UserModel[] {
 		return users.map(user => user.toFullJSON());
 	}
 
+	// ============================================================================
+	// FILTRES & RECHERCHE DANS UN TABLEAU
+	// ============================================================================
+
 	/**
 	 * Filtre les utilisateurs actifs (non supprimés).
+	 * 
 	 * @param users - Tableau d'instances User
 	 * @returns {User[]} - Tableau d'utilisateurs actifs
+	 * @memberof User
 	 */
 	static getActiveUsers(users: User[]): User[] {
 		return users.filter(user => user.isActive);
@@ -268,8 +318,10 @@ export class User {
 
 	/**
 	 * Filtre les utilisateurs en ligne.
+	 * 
 	 * @param users - Tableau d'instances User
 	 * @returns {User[]} - Tableau d'utilisateurs en ligne
+	 * @memberof User
 	 */
 	static getOnlineUsers(users: User[]): User[] {
 		return users.filter(user => user.isOnline());
@@ -277,18 +329,26 @@ export class User {
 
 	/**
 	 * Filtre les utilisateurs par statut.
+	 * 
 	 * @param users - Tableau d'instances User
 	 * @param status - Statut à filtrer
 	 * @returns {User[]} - Tableau d'utilisateurs avec le statut spécifié
+	 * @memberof User
 	 */
 	static getUsersByStatus(users: User[], status: 'online' | 'offline' | 'in-game'): User[] {
 		return users.filter(user => user.status === status);
 	}
 
+	// ============================================================================
+	// STATISTIQUES & TRI
+	// ============================================================================
+
 	/**
 	 * Trie les utilisateurs par taux de victoire décroissant.
+	 * 
 	 * @param users - Tableau d'instances User
 	 * @returns {User[]} - Tableau d'utilisateurs triés par winRate
+	 * @memberof User
 	 */
 	static sortByWinRate(users: User[]): User[] {
 		return [...users].sort((a, b) => b.winRate - a.winRate);
@@ -296,8 +356,10 @@ export class User {
 
 	/**
 	 * Trie les utilisateurs par nombre de parties jouées décroissant.
+	 * 
 	 * @param users - Tableau d'instances User
 	 * @returns {User[]} - Tableau d'utilisateurs triés par game_played
+	 * @memberof User
 	 */
 	static sortByGamesPlayed(users: User[]): User[] {
 		return [...users].sort((a, b) => b.game_played - a.game_played);
@@ -305,8 +367,10 @@ export class User {
 
 	/**
 	 * Trie les utilisateurs par temps de jeu décroissant.
+	 * 
 	 * @param users - Tableau d'instances User
 	 * @returns {User[]} - Tableau d'utilisateurs triés par time_played
+	 * @memberof User
 	 */
 	static sortByTimePlayed(users: User[]): User[] {
 		return [...users].sort((a, b) => b.time_played - a.time_played);
@@ -314,9 +378,11 @@ export class User {
 
 	/**
 	 * Recherche un utilisateur par ID dans un tableau.
+	 * 
 	 * @param users - Tableau d'instances User
 	 * @param id - ID de l'utilisateur à rechercher
 	 * @returns {User | undefined} - Utilisateur trouvé ou undefined
+	 * @memberof User
 	 */
 	static findById(users: User[], id: number): User | undefined {
 		return users.find(user => user.id === id);
@@ -324,9 +390,11 @@ export class User {
 
 	/**
 	 * Recherche un utilisateur par nom d'utilisateur dans un tableau.
+	 * 
 	 * @param users - Tableau d'instances User
 	 * @param username - Nom d'utilisateur à rechercher
 	 * @returns {User | undefined} - Utilisateur trouvé ou undefined
+	 * @memberof User
 	 */
 	static findByUsername(users: User[], username: string): User | undefined {
 		return users.find(user => user.username.toLowerCase() === username.toLowerCase());
@@ -334,9 +402,11 @@ export class User {
 
 	/**
 	 * Recherche des utilisateurs par nom d'utilisateur partiel.
+	 * 
 	 * @param users - Tableau d'instances User
 	 * @param searchTerm - Terme de recherche
 	 * @returns {User[]} - Tableau d'utilisateurs correspondants
+	 * @memberof User
 	 */
 	static searchByUsername(users: User[], searchTerm: string): User[] {
 		const term = searchTerm.toLowerCase();
@@ -345,8 +415,10 @@ export class User {
 
 	/**
 	 * Obtient les statistiques globales d'un groupe d'utilisateurs.
+	 * 
 	 * @param users - Tableau d'instances User
 	 * @returns {Object} - Statistiques globales
+	 * @memberof User
 	 */
 	static getGlobalStats(users: User[]): {
 		totalUsers: number;
@@ -375,9 +447,15 @@ export class User {
 		};
 	}
 
+	// ============================================================================
+	// MÉTHODES D’INSTANCE POUR MANIPULATION
+	// ============================================================================
+
 	/**
 	 * Clone une instance User.
+	 * 
 	 * @returns {User} - Nouvelle instance User identique
+	 * @memberof User
 	 */
 	clone(): User {
 		return User.fromJSON(this.toFullJSON());
@@ -385,8 +463,10 @@ export class User {
 
 	/**
 	 * Met à jour les propriétés de l'utilisateur avec de nouvelles données.
+	 * 
 	 * @param updates - Objet contenant les propriétés à mettre à jour
 	 * @returns {User} - Instance mise à jour (pour chaînage)
+	 * @memberof User
 	 */
 	update(updates: Partial<UserModel>): User {
 		Object.assign(this, updates);
@@ -395,8 +475,10 @@ export class User {
 
 	/**
 	 * Vérifie si deux utilisateurs sont identiques (même ID).
+	 * 
 	 * @param other - Autre utilisateur à comparer
 	 * @returns {boolean} - True si les utilisateurs sont identiques
+	 * @memberof User
 	 */
 	equals(other: User): boolean {
 		return this.id === other.id;
@@ -404,9 +486,11 @@ export class User {
 
 	/**
 	 * Compare deux utilisateurs pour le tri.
+	 * 
 	 * @param other - Autre utilisateur à comparer
 	 * @param sortBy - Critère de tri ('username', 'winRate', 'gamesPlayed', 'timePlayed')
 	 * @returns {number} - Résultat de la comparaison (-1, 0, 1)
+	 * @memberof User
 	 */
 	compareTo(other: User, sortBy: 'username' | 'winRate' | 'gamesPlayed' | 'timePlayed' = 'username'): number {
 		switch (sortBy) {

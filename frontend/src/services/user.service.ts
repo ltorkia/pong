@@ -224,7 +224,7 @@ export class UserService {
 			
 			// Redirection home
 			alert(REGISTERED_MSG);
-			await router.redirectPublic(defaultRoute);
+			await router.redirect(defaultRoute);
 
 		} catch (err) {
 			console.error(`[${this.constructor.name}] Erreur réseau ou serveur`, err);
@@ -258,7 +258,7 @@ export class UserService {
 			uiStore.animateNavbar = true;
 			
 			// Redirection home
-			await router.redirectPublic(defaultRoute);
+			await router.redirect(defaultRoute);
 
 		} catch (err) {
 			console.error(`[${this.constructor.name}] Erreur réseau ou serveur`, err);
@@ -291,7 +291,7 @@ export class UserService {
 			
 			// Redirection SPA vers login
 			console.log(`[${this.constructor.name}] Déconnexion réussie. Redirection /login`);
-			await router.redirectPublic(authFallbackRoute);
+			await router.redirect(authFallbackRoute);
 
 		} catch (err) {
 			console.error(`[${this.constructor.name}] Erreur réseau ou serveur`, err);

@@ -13,17 +13,42 @@ import { RouteConfig } from '../types/routes.types';
 import { pageNames, componentNames } from './constants.config';
 import { getComponentConfig } from '../utils/config.utils';
 
+// ===========================================
+// ROUTES CONFIG
+// ===========================================
 /**
- * Configuration des routes de l'app
+ * Ce fichier exporte un tableau de configurations de routes.
+ * Il est utilisé par le routeur pour enregistrer les routes
+ * et par les composants qui ont besoin de connaître les routes de l'application.
+ */
+
+/**
+ * Route par défaut pour les redirections
  * 
- * - path: Chemin de la route ('/', '/users', '/user/:id'...)
- * - name: Nom de la route pour logs et debug
- * - pageClass: Classe de la page à instancier / render (HomePage, GamePage...)
+ * @export
+ */
+export const defaultRoute = '/';
+
+/**
+ * Route de fallback en cas d'erreur d'authentification
+ * 
+ * @export
+ */
+export const authFallbackRoute = '/login';
+
+/**
+ * Configuration des routes de l'application.
+ * 
+ * Chaque route est définie par un objet contenant:
+ * - path: Chemin de la route (ex: '/', '/users', '/user/:id')
+ * - name: Nom de la route pour les logs et le debug
+ * - pageClass: Classe de la page à instancier/rendre (ex: HomePage, GamePage)
  * - templatePath: Chemin du template HTML associé à la page
- * - components: Config des composants spécifiques à cette page
- * - isPublic: Si true, la route est accessible sans être authentifié uniquement (login, register)
+ * - components: Configuration des composants spécifiques à cette page
+ * - isPublic: Si true, la route est accessible sans authentification
  * - enableParticles: Si true, active les particules sur cette page
- * - getNavPath: Fonction pour récupérer le lien actif dans la navbar
+ * 
+ * @exports
  */
 export const routesConfig: RouteConfig[] = [
 	{
@@ -93,6 +118,8 @@ export const routesConfig: RouteConfig[] = [
 
 /**
  * Routes publiques (accessibles sans authentification / inaccessibles si authentifié)
+ * 
+ * @export
  */
 export const publicRoutes = routesConfig
 	.filter(route => route.isPublic)
@@ -100,17 +127,9 @@ export const publicRoutes = routesConfig
 
 /**
  * Routes protégées (accessibles authentifié / inaccessibles sans authentification)
+ * 
+ * @export
  */
 export const protectedRoutes = routesConfig
 	.filter(route => !route.isPublic)
 	.map(route => route.path);
-
-/**
- * Route par défaut pour les redirections
- */
-export const defaultRoute = '/';
-
-/**
- * Route de fallback en cas d'erreur d'authentification
- */
-export const authFallbackRoute = '/login';

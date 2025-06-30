@@ -1,7 +1,21 @@
 import { RouteHandler } from '../types/routes.types';
 
+// ===========================================
+// ROUTER HELPER
+// ===========================================
 /**
- * Vérifie si une route contient des paramètres (ex: /user/:id)
+ * Ce fichier contient des fonctions utilitaires pour faciliter la gestion des routes.
+ * 
+ * Les fonctions exportées sont utilisées par le routeur et dans les parties de
+ * l'application qui ont besoin de gérer les routes.
+ */
+
+/**
+ * Vérifie si une route contient des param tres (ex: /user/:id)
+ * 
+ * @export
+ * @param {string} path - Le chemin de la route  v rifier
+ * @returns {boolean} true si le chemin contient des param tres, false sinon
  */
 export function hasParams(path: string): boolean {
 	return path.includes(':');
@@ -14,6 +28,16 @@ export function hasParams(path: string): boolean {
  * - Supprime le slash final sauf pour la racine (ex: '/login/' -> '/login').
  * 
  * Permet d'éviter les doublons dans la map des routes et facilite la gestion des chemins.
+ * 
+ * @example
+ * normalizePath('') => '/'
+ * normalizePath('/index.html') => '/'
+ * normalizePath('/login/') => '/login'
+ * normalizePath('/login') => '/login'
+ * 
+ * @export
+ * @param {string} path - Le chemin  normaliser
+ * @returns {string} Le chemin normalisé
  */
 export function normalizePath(path: string): string {
 	if (!path || path === '' || path === '/index.html') {
@@ -26,30 +50,25 @@ export function normalizePath(path: string): string {
 }
 
 /**
- * Permet de rechercher une route enregistrée qui correspond au chemin donné.
- * Elle gère les routes dynamiques avec paramètres, par exemple "/users/:id".
+ * Cherche une route enregistrée qui correspond au chemin donné.
+ * Gère les routes statiques et dynamiques (avec des paramètres), par exemple "/users/:id".
  * 
- * - On boucle sur toutes les routes enregistrées dans routes.
- * - Pour chaque route, on la découpe en segments séparés par "/" ("/users/:id" -> ["", "users", ":id"]).
- * - On découpe aussi le chemin passé en paramètre de la même façon ("/users/42" -> ["", "users", "42"]).
- * - Si le nombre de segments diffère entre la route et le chemin, on passe à la route suivante (pas de correspondance possible).
- * - On initialise un objet params vide pour stocker les paramètres extraits ({ id: "42" }).
- * - On initialise une variable matched à true qui servira à valider si la route correspond.
- * - On parcourt chaque segment des deux tableaux simultanément :
- *    - Si le segment de la route commence par ":", c'est un paramètre dynamique.  
- *      On extrait le nom du paramètre (ex : ":id" -> "id") et on associe sa valeur depuis le chemin ("42").
- *    - Sinon, on compare directement les segments.  
- *      Si ils ne sont pas égaux, la route ne correspond pas, on met matched à false et on sort de la boucle.
- * - Après la boucle, si matched est toujours true, ca veut dire que la route correspond bien au chemin donné.
- *    On retourne un objet contenant la route correspondante et les paramètres extraits.
- * - Si aucune route ne correspond, on retourne null.
+ * - Boucle à travers toutes les routes enregistrées dans la map.
+ * - Découpe chaque route et le chemin en segments séparés par "/".
+ * - Si le nombre de segments diffère, passe à la route suivante.
+ * - Initialise un objet vide params pour stocker les paramètres extraits.
+ * - Parcourt chaque segment des deux tableaux simultanément :
+ *   - Si le segment de la route commence par ":", c'est un paramètre dynamique.
+ *     Extrait le nom du paramètre et associe sa valeur depuis le chemin.
+ *   - Sinon, compare directement les segments. Si différents, la route ne correspond pas.
+ * - Si tous les segments correspondent, retourne un objet contenant la route et les paramètres extraits.
+ * - Retourne null si aucune route ne correspond.
  * 
- *  Record<string, string> pour dire objet avec des clés string, valeurs string, qu'on ne connait pas a l'avance.
- * 
- * @param path Le chemin à tester, ex: "/users/42"
- * @param routes Map des routes enregistrées
- * @returns Un objet { route, params } si une route correspond, sinon null
-*/
+ * @export
+ * @param {string} path - Chemin  tester, ex: "/users/42"
+ * @param {Map<string, RouteHandler>} routes - Map des routes enregistrées
+ * @returns {{ route: string; params: Record<string, string> } | null} - Objet { route, params } si une route correspond, sinon null
+ */
 export function matchRoute(path: string, routes: Map<string, RouteHandler>): { route: string; params: Record<string, string> } | null {
 	for (const [route, _] of routes) {
 		const routeParts = route.split('/');

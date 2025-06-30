@@ -3,13 +3,22 @@ import { RouteHandler } from '../types/routes.types';
 import { normalizePath, matchRoute } from './router.helper';
 import { defaultRoute } from '../config/routes.config';
 
+// ===========================================
+// ROUTER
+// ===========================================
 /**
- * Gère l'ensemble du système de routage pour:
+ * La classe Router est le coeur du système de routage.
+ * Elle enregistre les routes, gère les événements de navigation
+ * et redirige vers les bonnes pages.
+ * 
+ * Reponsabilités:
  * - enregistrement et gestion des routes de l'app
  * - interception des événements de navigation (clics, popstate)
- * - coordination entre les différents composants (RouteGuard, NavigationHandler, utils)
+ * - coordination entre les différents composants (RouteGuard, utils, etc.)
  * - exécution des handlers de routes
  * - navigation et les redirections
+ * 
+ * @export
  */
 export class Router {
 	private routes: Map<string, RouteHandler> = new Map();
@@ -43,36 +52,31 @@ export class Router {
 	}
 
 	/**
-	 * Méthode publique pour gérer la route au démarrage de l'app.
+	 * Gère la route courante au démarrage de l'app.
+	 * Identique à handleLocation() mais sans attendre que la route soit chargée.
 	 * Utile si on recharge la page ou arrive directement sur une URL précise.
-	 * Appelle la méthode privée handleLocation().
-	 * Utilisée dans RouteManager (méthode start()), elle-même appelée
-	 * par AppManager (méthode start()).
+	 * 
+	 * @returns {Promise<void>} Une promesse qui se résout lorsque la route a été gérée.
+	 * @memberof Router
 	 */
 	public async handleLocationPublic(): Promise<void> {
 		await this.handleLocation();
 	}
 
 	/**
-	 * Méthode publique pour gérer les redirections forcées
-	 * sans ajouter de nouvelle entrée dans l'historique navigateur
-	 */
-	public async redirectPublic(path: string): Promise<void> {
-		await this.redirect(path);
-	}
-
-	/**
-	 * Enregistre une nouvelle route dans la map déclarée plus haut.
-	 * 
-	 * Reçoit en paramètres un chemin (ex: /login) et une fonction handler
-	 * qui sera exécutée pour render la page quand on ira vers cette route.
+	 * Enregistre une nouvelle route dans la map des routes.
 	 * 
 	 * Elle normalise le chemin via normalizePath() pour s'assurer que
 	 * toutes les routes n'ont pas de / à la fin.
 	 * 
-	 * Cette méthode est appelée pour chaque route dans RouteManager.ts
+	 * Les routes sont enregistrées avec le chemin normalisé et le handler
+	 * qui sera exécuté pour render la page correspondante.
+	 * 
+	 * @param {string} path Chemin de la route à enregistrer.
+	 * @param {RouteHandler} handler Fonction handler qui sera exécutée pour render la page.
+	 * @memberof Router
 	 */
-	public register(path: string, handler: RouteHandler) {
+	public register(path: string, handler: RouteHandler): void {
 		const normalizedPath = normalizePath(path);
 		this.routes.set(normalizedPath, handler);
 	}
@@ -81,10 +85,10 @@ export class Router {
 	 * Méthode principale pour demander une navigation vers une route donnée.
 	 * 
 	 * - Ignore la demande si une navigation est déjà en cours (isNavigating).
-	 * - Normalise le chemin donné ("/login/" -> "/login").
+	 * - Normalise le chemin donné.
 	 * - Si on est déjà sur ce chemin, ne fait rien.
 	 * - Utilise matchRoute() pour trouver une route enregistrée qui correspond
-	 *   au chemin donné, y compris avec paramètres dynamiques ("/users/42" pour profil utilisateur).
+	 *   au chemin donné, y compris avec paramètres dynamiques.
 	 * - Si une route correspond :
 	 *   - Ajoute l'URL à l'historique avec history.pushState().
 	 *   - Appelle handleLocation() pour exécuter le handler correspondant.
@@ -95,8 +99,12 @@ export class Router {
 	 * Peut être déclenchée par :
 	 * - Un clic sur un lien intercepté.
 	 * - Une redirection suite à une erreur.
+	 * 
+	 * @param {string} path Chemin de la route demandée.
+	 * @returns {Promise<void>} Une promesse qui se résout lorsque la navigation a été gérée.
+	 * @memberof Router
 	 */
-	public async navigate(path: string) {
+	public async navigate(path: string): Promise<void> {
 		if (this.isNavigating) return;
 
 		const normalizedPath = normalizePath(path);
@@ -138,6 +146,9 @@ export class Router {
 	 * - D'un événement popstate (navigation navigateur).
 	 * - Après un navigate().
 	 * - Au démarrage de l'application.
+	 * 
+	 * @private
+	 * @memberof Router
 	 */
 	private async handleLocation() {
 		let path = window.location.pathname;
@@ -190,16 +201,24 @@ export class Router {
 	 * 
 	 * Utilisé notamment pour les redirections forcées (auth, erreurs, etc.),
 	 * pour éviter les doublons lors du retour arrière (précédent / suivant).
+	 * 
+	 * @param {string} path Chemin de la route vers laquelle rediriger.
+	 * @returns {Promise<void>} Une promesse qui se résout lorsque la redirection a été gérée.
+	 * @memberof Router
 	 */
-	private async redirect(path: string): Promise<void> {
+	public async redirect(path: string): Promise<void> {
 		window.history.replaceState({}, '', path);
 		await this.handleLocation();
 	}
 
 	/**
-	 * Getter public pour récupérer la liste des routes enregistrées.
-	 * Pour debug dans AppManager, méthode start().
+	 * Récupère la liste des routes enregistrées dans le router.
+	 * 
+	 * @returns {Map<string, RouteHandler>} Une map contenant les chemins de route
+	 * et leurs handlers correspondants.
+	 * @memberof Router
 	 */
+
 	public getRoutes(): Map<string, RouteHandler> {
 		return this.routes;
 	}
@@ -207,5 +226,10 @@ export class Router {
 
 /**
  * Instance principale / singleton du router
+ * 
+ * Cette instance est utilisée pour gérer toutes les opérations de routage
+ * au sein de l'application, incluant l'enregistrement des routes, la gestion
+ * des événements de navigation, et la redirection des utilisateurs vers les
+ * bonnes pages selon la logique définie dans la classe Router.
  */
 export const router = new Router();

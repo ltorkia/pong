@@ -8,17 +8,23 @@ import { ComponentConfig } from '../types/components.types';
 // UTILS
 import { componentNames, HTMLContainers } from './constants.config';
 
+// ===========================================
+// COMPONENTS CONFIG
+// ===========================================
 /**
- * Tableau contenant la configuration de tous les composants réutilisables
- * de l’application.
+ * Exporte un tableau de configurations de composants.
  * 
- * Chaque élément décrit un composant avec:
- * - un nom unique permettant de l’identifier et de le référencer dans les routes,
+ * Chaque élément de ce tableau décrit un composant réutilisable de l'application.
+ * 
+ * Un composant est décrit par:
+ * - son nom unique (permet de l'identifier et de le référencer dans les routes),
  * - la classe du composant (pour instancier le composant dynamiquement),
- * - le chemin vers son template HTML (pour charger le rendu visuel associé).
- * - l'id de l'élément HTML où insérer le composant
+ * - le chemin vers son template HTML (pour charger le rendu visuel associé),
+ * - l'id de l'élément HTML où insérer le composant,
  * - Si isPublic = true, le component doit s'afficher sur les pages publiques uniquement (login, register)
  * - Si isCommon = true, le composant est commun à plusieurs pages, si false il est relatif à une seule page
+ * 
+ * @export
  */
 export const componentsConfig: ComponentConfig[] = [
 	{
