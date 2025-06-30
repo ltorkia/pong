@@ -1,6 +1,6 @@
-import { User } from '../models/user.model';
-import { SafeUserModel, PublicUser } from '../shared/types/user.types';	// en rouge car dossier local 'shared' != dossier conteneur
-import { secureFetch } from '../utils/app.utils';
+import { User } from '../../models/user.model';
+import { SafeUserModel, PublicUser } from '../../shared/types/user.types';	// en rouge car dossier local 'shared' != dossier conteneur
+import { secureFetch } from '../../utils/app.utils';
 import { BasicResponse } from 'src/types/api.types';
 
 // ===========================================

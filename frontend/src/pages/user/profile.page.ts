@@ -1,6 +1,6 @@
 import { BasePage } from '../base/base.page';
 import { RouteConfig, RouteParams } from '../../types/routes.types';
-import { userApi } from '../../api/user-crud.api';
+import { userCrudApi } from '../../api/user/user.api';	
 
 export class ProfilePage extends BasePage {
 	protected userId?: number | RouteParams;
@@ -17,7 +17,7 @@ export class ProfilePage extends BasePage {
 		if (typeof this.userId !== 'number') {
 			throw new Error('User ID invalide ou manquant');
 		}
-		const user = await userApi.getUserById(this.userId);
+		const user = await userCrudApi.getUserById(this.userId);
 		const profileSection = document.getElementById('profile-section') as HTMLDivElement;
 		const template = document.getElementById('user-template') as HTMLTemplateElement;
 		if (!profileSection || !template || !user) return;

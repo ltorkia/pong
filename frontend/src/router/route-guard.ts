@@ -103,4 +103,8 @@ export class RouteGuard {
 	}
 }
 
+/**
+ * Instance de la classe RouteGuard.
+ * Cette instance est utilisée par le routeur pour gérer les redirections d'authentification.
+ */
 export const routeGuard = new RouteGuard();

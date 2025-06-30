@@ -1,8 +1,8 @@
-import { User } from '../models/user.model';
-import { UserModel } from '../shared/types/user.types';	// en rouge car dossier local 'shared' != dossier conteneur
-import { userStore } from '../stores/user.store';
-import { BasicResponse, AuthResponse } from '../types/api.types';
-import { secureFetch } from '../utils/app.utils';
+import { User } from '../../models/user.model';
+import { UserModel } from '../../shared/types/user.types';	// en rouge car dossier local 'shared' != dossier conteneur
+import { userStore } from '../../stores/user.store';
+import { BasicResponse, AuthResponse } from '../../types/api.types';
+import { secureFetch } from '../../utils/app.utils';
 
 // ===========================================
 // USER AUTH API

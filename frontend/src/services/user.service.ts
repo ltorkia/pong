@@ -7,9 +7,9 @@ import { showError } from '../utils/dom.utils';
 import { REGISTERED_MSG } from '../config/messages.config';
 
 // USER
-import { userApi } from '../api/user-crud.api';
-import { userStore } from '../stores/user.store';
 import { User } from '../models/user.model';
+import { userStore } from '../stores/user.store';
+import { userAuthApi } from '../api/user/user.api';
 import { AuthResponse, BasicResponse } from '../types/api.types';
 
 // UI
@@ -123,7 +123,7 @@ export class UserService {
 
 		// Fallback API (met à jour le store + storage)
 		try {
-			const apiUser = await userApi.getMe();
+			const apiUser = await userAuthApi.getMe();
 			if (apiUser) {
 				const user = userStore.getCurrentUser();
 				console.log(`[${this.constructor.name}] Utilisateur chargé via API`);
@@ -181,7 +181,7 @@ export class UserService {
 
 	private async validateUserSession(userId: number): Promise<boolean> {
 		try {
-			const response = await userApi.validateSession(userId);
+			const response = await userAuthApi.validateSession(userId);
 			return response.valid;
 		} catch {
 			return false;
@@ -205,7 +205,7 @@ export class UserService {
 	 */
 	public async registerUser(data: Record<string, string>): Promise<void> {
 		try {
-			const result: AuthResponse = await userApi.registerUser(data);
+			const result: AuthResponse = await userAuthApi.registerUser(data);
 			if (result.errorMessage) {
 				console.error(`[${this.constructor.name}] Erreur d\'inscription :`, result);
 				showError(result.errorMessage);
@@ -239,7 +239,7 @@ export class UserService {
 	 */
 	public async loginUser(data: Record<string, string>): Promise<void> {
 		try {
-			const result: AuthResponse = await userApi.loginUser(data);
+			const result: AuthResponse = await userAuthApi.loginUser(data);
 			if (result.errorMessage) {
 				console.error(`[${this.constructor.name}] Erreur d'authentification :`, result);
 				showError(result.errorMessage);
@@ -270,7 +270,7 @@ export class UserService {
 	 */
 	public async logoutUser(): Promise<void> {
 		try {
-			const result: BasicResponse = await userApi.logoutUser();
+			const result: BasicResponse = await userAuthApi.logoutUser();
 			if (result.errorMessage) {
 				console.error(`[${this.constructor.name}] Erreur lors du logout :`, result);
 				showError(result.errorMessage);

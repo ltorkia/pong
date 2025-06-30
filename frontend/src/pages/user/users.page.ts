@@ -1,5 +1,5 @@
 import { BasePage } from '../base/base.page';
-import { userApi } from '../../api/user-crud.api';
+import { userCrudApi } from '../../api/user/user.api';
 import { UserRowComponent } from '../../components/user-row/user-row.component';
 import { getHTMLElementById } from '../../utils/dom.utils';
 import { componentNames, HTMLContainers } from '../../config/constants.config';
@@ -33,7 +33,7 @@ export class UsersPage extends BasePage {
 			throw new Error(`Configuration du composant '${componentNames.userRow}' invalide`);
 		}
 
-		const users = await userApi.getUsers();
+		const users = await userCrudApi.getUsers();
 		const userList = getHTMLElementById(HTMLContainers.userListId);
 
 		for (const user of users) {
