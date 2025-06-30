@@ -46,8 +46,3 @@ export type BasicResponse = {
 export type AuthResponse = BasicResponse & {
 	user?: UserModel;
 };
-
-// export interface RegisterResponse  {
-// 	user?: User;
-// 	response?: BasicResponse;
-// };

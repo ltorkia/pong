@@ -3,7 +3,7 @@ import { router } from '../router/router';
 import { defaultRoute, authFallbackRoute } from '../config/routes.config';
 
 // MESSAGES
-import { showError } from '../utils/app.utils';
+import { showError } from '../utils/dom.utils';
 import { REGISTERED_MSG } from '../config/messages.config';
 
 // USER
@@ -74,7 +74,8 @@ export class UserService {
 	 * 
 	 * - Si pas de cookie, efface l'utilisateur actuel du store et renvoie null.
 	 * - Si cookie et utilisateur en store, valide la session avec le serveur.
-	 * - Si cookie mais pas d'utilisateur en store, essaie de restaurer l'utilisateur depuis le localStorage, puis fait fallback sur l'API si nécessaire.
+	 * - Si cookie mais pas d'utilisateur en store, essaie de restaurer l'utilisateur depuis le localStorage,
+	 *   puis fait fallback sur l'API si nécessaire.
 	 * 
 	 * @returns {Promise<User | null>} L'utilisateur validé ou restauré, ou null si pas d'authentification possible.
 	 * @memberof UserService
@@ -143,7 +144,7 @@ export class UserService {
 	 * Valide la session user côté serveur, et renvoie l'utilisateur validé ou null si la session a expiré.
 	 * 
 	 * - Si la validation échoue, l'utilisateur est supprimé du store.
-	 * - Si une erreur survient, l'utilisateur est quand même renvoyé.
+	 * - Si une erreur survient, l'utilisateur est quand même renvoyé 'null'.
 	 *
 	 * @private
 	 * @param {User} user Utilisateur à valider
@@ -201,8 +202,8 @@ export class UserService {
 	 * Inscription d'un utilisateur
 	 * 
 	 * Fait une requête API pour inscrire un utilisateur.
-	 * Si la requête réussit, stocke l'utilisateur dans le store et
-	 * redirige vers la page d'accueil.
+	 * Si la requête réussit, stocke l'utilisateur dans le store et le localStorage (dans users.api)
+	 * et redirige vers la page d'accueil.
 	 * 
 	 * @param {Record<string, string>} data Informations de l'utilisateur à inscrire.
 	 * @return {Promise<void>} Promesse qui se résout lorsque l'opération est terminée.
@@ -236,7 +237,8 @@ export class UserService {
 	 * 
 	 * Effectue une requête API pour connecter un utilisateur avec ses
 	 * informations d'identification. Si la connexion réussit, stocke 
-	 * l'utilisateur dans le store et redirige vers la page d'accueil.
+	 * l'utilisateur dans le store et le localStorage (dans users.api)
+	 * et redirige vers la page d'accueil.
 	 * 
 	 * @param {Record<string, string>} data Informations de l'utilisateur à connecter.
 	 * @return {Promise<void>} Promesse qui se résout lorsque l'opération est terminée.
@@ -268,7 +270,8 @@ export class UserService {
 	 * Déconnecte un utilisateur.
 	 * 
 	 * Effectue une requête API pour déconnecter l'utilisateur. 
-	 * Si la déconnexion réussit, vide le store et redirige vers la page de login.
+	 * Si la déconnexion réussit, vide le store et le localStorage
+	 * et redirige vers la page de login.
 	 * 
 	 * @return {Promise<void>} Promesse qui se résout lorsque l'opération est terminée.
 	 * @throws {Error} Si la requête échoue ou en cas d'erreur réseau.

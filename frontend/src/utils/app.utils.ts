@@ -1,5 +1,4 @@
 import { userStore } from '../stores/user.store';
-import { getHTMLElementById } from './dom.utils';
 
 // ===========================================
 // APP UTILS
@@ -8,8 +7,8 @@ import { getHTMLElementById } from './dom.utils';
  * Ce fichier contient des fonctions utilitaires qui
  * fournissent des fonctionnalités réutilisables pour
  * diverses parties de l'application frontend. Cela inclut
- * des méthodes pour manipuler le DOM, gérer les requêtes
- * HTTP sécurisées, et afficher des messages d'erreur.
+ * des méthodes pour gérer les requêtes
+ * HTTP sécurisées, paramétrer des promesses, etc.
  */
 
 /**
@@ -52,20 +51,4 @@ export async function secureFetch(url: string, options?: RequestInit): Promise<R
 export function wait(ms: number): Promise<void> {
 	// On retourne une nouvelle promesse qui se résout automatiquement après ms millisecondes
 	return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-/**
- * Affiche un message d'erreur sur la page actuelle.
- *
- * Récupère l'élément HTML <div id="alert"> et y injecte le message d'erreur
- * préfixé d'un icône de triangle d'avertissement.
- *
- * @export
- * @param {string} message - Le message d'erreur à afficher.
- */
-export function showError(message: string): void {
-	const alertDiv = getHTMLElementById('alert');
-	const cautionIcon = '<i class="fa-solid fa-circle-exclamation"></i> ';
-	alertDiv.innerHTML = cautionIcon + message;
-	alertDiv.classList.remove('hidden');
 }

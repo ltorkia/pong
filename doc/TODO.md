@@ -15,6 +15,8 @@ COMMUN
 
 FRONT
 
+- user.store: Prévoir le cas où le user est restauré sans email dans la mémoire vive (fallback api)
+- Faire un hook à wrapper dans chaque fonction qui impliquent de checker si le user est connecté
 - Rajouter le nom du user connecté sur la navbar
 - Gerer frequence validation session dans les routes
 - Faire components page profil / stats

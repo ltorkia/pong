@@ -1,14 +1,54 @@
 import { User } from '../models/user.model';
 import { UserModel, SafeUserModel } from '../../../shared/types/user.types';
 
-// Classe de gestion de l’utilisateur courant (singleton)
+// ===========================================
+// USER STORE
+// ===========================================
+/**
+ * Classe de gestion de l'utilisateur courant (singleton).
+ *
+ * Stocke l'utilisateur courant en mémoire vive (this.currentUser)
+ * et en local storage (sans email).
+ * Permet de récupérer l'utilisateur courant, de l'initialiser
+ * et de le mettre à jour.
+ *
+ * L'utilisateur courant est stocké en local storage
+ * sous forme de JSON avec les propriétés de l'utilisateur
+ * sauf l'email. Cela permet de récupérer l'utilisateur
+ * même après fermeture du navigateur.
+ *
+ * La méthode setCurrentUserFromServer met à jour l'utilisateur
+ * courant avec les données complètes du serveur (y compris l'email)
+ * mais n'enregistre que les données sans email en local storage.
+ */
 export class UserStore {
+	
+	/**
+	 * L'utilisateur courant en mémoire vive.
+	 * Stocke l'utilisateur connecté ou null si pas d'utilisateur connecté.
+	 */
 	private currentUser: User | null = null;
 
+	/**
+	 * Renvoie l'utilisateur courant en mémoire vive.
+	 *
+	 * @return {User | null} L'utilisateur courant, ou null si pas d'utilisateur connecté.
+	 * @memberof UserStore
+	 */
 	public getCurrentUser(): User | null {
 		return this.currentUser;
 	}
 
+	/**
+	 * Définit l'utilisateur courant en mémoire vive et le stocke dans le localStorage.
+	 * 
+	 * - Met à jour l'utilisateur courant avec les données fournies.
+	 * - Sérialise l'utilisateur en un objet SafeUserModel (sans email) pour le stockage local.
+	 * - Enregistre les données sérialisées dans le localStorage sous le nom "currentUser".
+	 * 
+	 * @param {User} user L'utilisateur à définir comme utilisateur courant.
+	 * @memberof UserStore
+	 */
 	public setCurrentUser(user: User) {
 		this.currentUser = user;
 
@@ -19,8 +59,13 @@ export class UserStore {
 	}
 
 	/**
-	 * Met à jour l'utilisateur courant avec les données complètes du serveur
-	 * L'email reste en mémoire mais n'est pas sauvegardé
+	 * Met à jour l'utilisateur courant avec les données complètes du serveur (y compris l'email).
+	 * 
+	 * - Crée l'instance de l'utilisateur courant avec l'email (en mémoire).
+	 * - Sauvegarde un objet SafeUserModel (sans email) dans le localStorage sous le nom "currentUser".
+	 * 
+	 * @param {UserModel} userData Les données de l'utilisateur courant fournies par le serveur.
+	 * @memberof UserStore
 	 */
 	public setCurrentUserFromServer(userData: UserModel): void {
 		// Crée l'instance avec email (en mémoire)
@@ -32,10 +77,16 @@ export class UserStore {
 		console.log(`[${this.constructor.name}] Utilisateur mis à jour depuis serveur (email en mémoire uniquement)`);
 	}
 
-
 	/**
-	 * Met à jour l'utilisateur courant et le sauvegarde automatiquement
-	 * L'email reste en mémoire mais n'est pas sauvegardé
+	 * Met à jour l'utilisateur courant avec les données fournies.
+	 * Si l'utilisateur courant n'existe pas, renvoie null.
+	 * 
+	 * - Met à jour l'instance de l'utilisateur courant en mémoire avec les données fournies.
+	 * - Sauvegarde l'utilisateur courant sans email dans le localStorage.
+	 * 
+	 * @param {Partial<UserModel>} updates Les données à mettre à jour.
+	 * @returns {User | null} L'utilisateur mis à jour, ou null si l'utilisateur courant n'existe pas.
+	 * @memberof UserStore
 	 */
 	public updateCurrentUser(updates: Partial<UserModel>): User | null {
 		if (!this.currentUser) {
@@ -45,7 +96,15 @@ export class UserStore {
 		this.setCurrentUser(this.currentUser);
 		return this.currentUser;
 	}
-	
+
+	/**
+	 * Supprime l'utilisateur courant du store et du localStorage.
+	 * 
+	 * - Met l'utilisateur courant à null.
+	 * - Supprime l'entrée "currentUser" du localStorage.
+	 * 
+	 * @memberof UserStore
+	 */
 	public clearCurrentUser() {
 		if (!this.currentUser) {
 			return;
@@ -55,6 +114,17 @@ export class UserStore {
 		console.log(`[${this.constructor.name}] Utilisateur supprimé`);
 	}
 
+	/**
+	 * Restaure l'utilisateur courant stocké en local storage.
+	 * 
+	 * - Tente de restaurer l'utilisateur stocké localement.
+	 * - Si un utilisateur est trouvé, il est dé-sérialisé vers une instance de User.
+	 * - Si aucun utilisateur n'est trouvé, l'utilisateur courant est laissé à null.
+	 * 
+	 * @return {User | null} L'utilisateur restauré, ou null si la restaurtion a échoué.
+	 * @memberof UserStore
+	 */
+	// TODO: Prévoir le cas où le user est restauré sans email dans la mémoire vive (fallback api)
 	public restoreFromStorage(): User | null {
 		this.currentUser = null;
 		const userJSON = localStorage.getItem('currentUser');
@@ -67,7 +137,10 @@ export class UserStore {
 	}
 
 	/**
-	 * Vérifie si un utilisateur connecté existe
+	 * Vérifie si l'utilisateur courant existe.
+	 * 
+	 * @returns {boolean} true si l'utilisateur courant existe, false sinon.
+	 * @memberof UserStore
 	 */
 	public hasCurrentUser(): boolean {
 		return this.currentUser !== null;
@@ -77,6 +150,7 @@ export class UserStore {
 	 * Remplace l'utilisateur courant par une nouvelle instance
 	 * Utile après une re-synchronisation avec le serveur
 	 */
+	
 	public replaceCurrentUser(user: User): void {
 		this.setCurrentUser(user);
 	}

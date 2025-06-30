@@ -1,10 +1,3 @@
-/**
- * Un objet Map qui contient les templates HTML chargés.
- * Les clés sont les chemins des templates (par exemple, "src/templates/page.html"),
- * et les valeurs sont le contenu HTML des templates.
- */
-export const templateCache = new Map<string, string>();
-
 // ===========================================
 // DOM UTILS
 // ===========================================
@@ -14,6 +7,13 @@ export const templateCache = new Map<string, string>();
  * Les fonctions sont conçues pour être utilisées de manière générique et
  * ne sont pas liées à un contexte spécifique.
  */
+
+/**
+ * Un objet Map qui contient les templates HTML chargés.
+ * Les clés sont les chemins des templates (par exemple, "src/templates/page.html"),
+ * et les valeurs sont le contenu HTML des templates.
+ */
+export const templateCache = new Map<string, string>();
 
 /**
  * Charge un template HTML depuis un chemin spécifié et le met en cache.
@@ -117,4 +117,20 @@ export function toggleClass(el: Element | null, classA: string, classB: string, 
 		el.classList.remove(classB);
 		el.classList.add(classA);
 	}
+}
+
+/**
+ * Affiche un message d'erreur sur la page actuelle.
+ *
+ * Récupère l'élément HTML <div id="alert"> et y injecte le message d'erreur
+ * préfixé d'un icône de triangle d'avertissement.
+ *
+ * @export
+ * @param {string} message - Le message d'erreur à afficher.
+ */
+export function showError(message: string): void {
+	const alertDiv = getHTMLElementById('alert');
+	const cautionIcon = '<i class="fa-solid fa-circle-exclamation"></i> ';
+	alertDiv.innerHTML = cautionIcon + message;
+	alertDiv.classList.remove('hidden');
 }
