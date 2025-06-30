@@ -1,9 +1,9 @@
-import { BasePage } from '../base/base.page';
-import { userCrudApi } from '../../api/user/user.api';
-import { UserRowComponent } from '../../components/user-row/user-row.component';
-import { getHTMLElementById } from '../../utils/dom.utils';
-import { componentNames, componentContainers } from '../../config/components.config';
-import { RouteConfig } from '../../types/routes.types';
+import { BasePage } from './base.page';
+import { userCrudApi } from '../api/user/user.api';
+import { UserRowComponent } from '../components/user-row/user-row.component';
+import { getHTMLElementById } from '../utils/dom.utils';
+import { componentNames, componentContainers } from '../config/components.config';
+import { RouteConfig } from '../types/routes.types';
 
 // ===========================================
 // USERS PAGE

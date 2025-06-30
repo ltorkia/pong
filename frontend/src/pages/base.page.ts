@@ -1,11 +1,11 @@
-import { RouteConfig } from '../../types/routes.types';
-import { ComponentName, ComponentConfig } from '../../types/components.types';
-import { User } from '../../models/user.model';
-import { userStore } from '../../stores/user.store';
+import { RouteConfig } from '../types/routes.types';
+import { ComponentName, ComponentConfig } from '../types/components.types';
+import { User } from '../models/user.model';
+import { userStore } from '../stores/user.store';
 import { BaseComponent } from 'src/components/base/base.component';
-import { loadTemplate, getHTMLElementById } from '../../utils/dom.utils';
-import { appId } from '../../config/routes.config';
-import { LOADING_PAGE_ERR } from '../../config/messages.config';
+import { loadTemplate, getHTMLElementById } from '../utils/dom.utils';
+import { appId } from '../config/routes.config';
+import { LOADING_PAGE_ERR } from '../config/messages.config';
 
 // ===========================================
 // BASE PAGE

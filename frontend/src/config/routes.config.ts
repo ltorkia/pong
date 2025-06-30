@@ -1,9 +1,9 @@
-import { HomePage } from '../pages/user/home.page';
-import { RegisterPage } from '../pages/auth/register.page';
-import { LoginPage } from '../pages/auth/login.page';
-import { GamePage } from '../pages/game/game.page';
-import { UsersPage } from '../pages/user/users.page';
-import { ProfilePage } from '../pages/user/profile.page';
+import { HomePage } from '../pages/home.page';
+import { RegisterPage } from '../pages/register.page';
+import { LoginPage } from '../pages/login.page';
+import { GamePage } from '../pages/game.page';
+import { UsersPage } from '../pages/users.page';
+import { ProfilePage } from '../pages/profile.page';
 
 import { RouteConfig } from '../types/routes.types';
 import { componentNames } from './components.config';
@@ -79,12 +79,12 @@ export const routePaths = {
  * La valeur associée à chaque clé est le chemin de template correspondant.
  */
 export const templatePaths = {
-	home: '/templates/user/home.html',
-	register: '/templates/auth/register.html',
-	login: '/templates/auth/login.html',
-	game: '/templates/game/game.html',
-	users: '/templates/user/users.html',
-	profile: '/templates/user/profile.html',
+	home: '/templates/home.html',
+	register: '/templates/register.html',
+	login: '/templates/login.html',
+	game: '/templates/game.html',
+	users: '/templates/users.html',
+	profile: '/templates/profile.html',
 } as const;
 
 /**

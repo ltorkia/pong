@@ -1,7 +1,7 @@
-import { BasePage } from '../base/base.page';
-import { RouteConfig } from '../../types/routes.types';
-import { userService } from '../../services/services';
-import { getHTMLElementById } from '../../utils/dom.utils';
+import { BasePage } from './base.page';
+import { RouteConfig } from '../types/routes.types';
+import { userService } from '../services/services';
+import { getHTMLElementById } from '../utils/dom.utils';
 
 // ===========================================
 // REGISTER PAGE

@@ -1,5 +1,5 @@
-import { BasePage } from '../base/base.page';
-import { RouteConfig } from '../../types/routes.types';
+import { BasePage } from './base.page';
+import { RouteConfig } from '../types/routes.types';
 
 // ===========================================
 // GAME PAGE
@@ -19,14 +19,14 @@ import { RouteConfig } from '../../types/routes.types';
  * Fichiers utiles pour faire ta petite popote:
  * -> GameService: frontend/src/services/game.service.ts
  * -> game.css: frontend/src/styles/pages/game.css (class Tailwind dans feuille de style ou HTML directement, comme tu préfères)
- * -> game.html: frontend/public/templates/game/game.html = le template qui sera injecté dans index.html (mais ça pas besoin de t'en occuper).
+ * -> game.html: frontend/public/templates/game.html = le template qui sera injecté dans index.html (mais ça pas besoin de t'en occuper).
  * 
  * -> config de la route: frontend/src/config/routes.config.ts
  * 		Actuellement pour la page Game:	
  *			path: routePaths.game,					= '/game'
- *			name: pageNames.game, 					= '/templates/game/game.html'
+ *			name: pageNames.game, 					= '/templates/game.html'
  *			pageClass: GamePage, 					= pour new GamePage() dans routing.service.ts
- *			templatePath: templatePaths.game, 		= '/templates/game/game.html'
+ *			templatePath: templatePaths.game, 		= '/templates/game.html'
  *			components: {
  *				[componentNames.navbar]: getComponentConfig(componentNames.navbar) = composant de la navbar
  *			},
@@ -46,7 +46,7 @@ import { RouteConfig } from '../../types/routes.types';
 export class GamePage extends BasePage {
 
 	/**
-	 * GamePage hérite de BasePage (frontend/src/pages/base/base.page.ts) qui:
+	 * GamePage hérite de BasePage (frontend/src/pages/base.page.ts) qui:
 	 * - injecte le template HTML dans la div #app
 	 * - ajoute l'utilisateur connecté aux propriétés de la classe
 	 * - ajoute le composant navbar ...
@@ -62,7 +62,7 @@ export class GamePage extends BasePage {
 
 	// méthode mount() = Ce qu'on injecte dynamiquement dans la page après avoir injecté le template HTML dans la div #app.
 	// Tout est configuré. Il restera éventuellement des composants à rajouter si besoin,
-	// mais le canvas / jeu dans frontend/public/templates/game/game.html devrait suffire ?
+	// mais le canvas / jeu dans frontend/public/templates/game.html devrait suffire ?
 	protected async mount(): Promise<void> {}
 
 	// Les potentiels events de la page ?

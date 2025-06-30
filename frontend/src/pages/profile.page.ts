@@ -1,6 +1,6 @@
-import { BasePage } from '../base/base.page';
-import { RouteConfig, RouteParams } from '../../types/routes.types';
-import { userCrudApi } from '../../api/user/user.api';
+import { BasePage } from './base.page';
+import { RouteConfig, RouteParams } from '../types/routes.types';
+import { userCrudApi } from '../api/user/user.api';
 
 // ===========================================
 // PROFILE PAGE

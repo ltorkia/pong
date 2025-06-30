@@ -1,6 +1,6 @@
-import { BasePage } from '../base/base.page';
-import { RouteConfig } from '../../types/routes.types';
-import { getHTMLElementByClass } from '../../utils/dom.utils';
+import { BasePage } from './base.page';
+import { RouteConfig } from '../types/routes.types';
+import { getHTMLElementByClass } from '../utils/dom.utils';
 
 // ===========================================
 // HOME PAGE
