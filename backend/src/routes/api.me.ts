@@ -1,7 +1,7 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { getUser } from '../db/user';
-import { requireAuth, setPublicUserInfos } from '../helpers/auth.helpers';
-import { PublicUser } from '../types/user.types';
+import { requireAuth } from '../helpers/auth.helpers';
+import { UserModel } from '../shared/types/user.types'; // en rouge car dossier local 'shared' != dossier conteneur
 
 export async function apiMe(app: FastifyInstance) {
 
@@ -13,13 +13,11 @@ export async function apiMe(app: FastifyInstance) {
 		}
 		
 		try {
-			const dbUser = await getUser(jwtUser.id);
+			const dbUser: UserModel = await getUser(jwtUser.id);
 			if (!dbUser) {
 				return reply.status(404).send({ error: 'User not found' });
 			}
-
-			const responseUser: PublicUser = setPublicUserInfos(dbUser);
-			return reply.send(responseUser);
+			return reply.send(dbUser);
 
 		} catch (err) {
 			request.log.error(err);

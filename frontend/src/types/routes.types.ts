@@ -1,9 +1,25 @@
-import { BasePage } from '../pages/BasePage';
-import { User } from '../models/user.model';
+import { BasePage } from '../pages/base/base.page';
 import { ComponentConfig } from './components.types';
 
+// ===========================================
+// ROUTES TYPES
+// ===========================================
 /**
- * Interface pour la configuration d'une route
+ * Ce fichier contient les types de données liés aux routes du projet.
+ *
+ * Les routes sont définies dans le fichier routes.config.ts et sont stockées
+ * dans un tableau de type RouteConfig[]. Les types définis dans ce fichier
+ * servent à définir la structure des données qui configurent les routes.
+ *
+ * Les types de routes sont exportés pour être utilisés dans les parties de
+ * l'application qui en ont besoin.
+ */
+
+/**
+ * Interface de configuration d'une route.
+ *
+ * Chaque route correspond à une URL, une classe de page et peut avoir
+ * des composants spécifiques, des restrictions d'accès, ou des effets visuels.
  */
 export interface RouteConfig {
 	path: string;									// Chemin de la route ('/', '/users', '/user/:id'...)
@@ -17,28 +33,42 @@ export interface RouteConfig {
 
 /**
  * Type représentant une classe de page instanciable.
- * 
- * Chaque page doit hériter de BasePage et avoir un constructeur avec ces paramètres :
- * - container: élément HTML dans lequel injecter le contenu
- * - templatePath: chemin vers le template HTML de la page
+ *
+ * Chaque page doit hériter de BasePage et avoir un constructeur avec ces paramètres:
  * - routeConfig: configuration complète de la route (de type RouteConfig)
+ * - container: élément HTML dans lequel injecter le contenu
  * - param: paramètre optionnel associé à la route (ex: ID dans /user/:id)
  */
 export type PageClass = new (
 	routeConfig: RouteConfig,
-	container: HTMLElement,
-	currentUser: User | null,
 	param?: number | RouteParams
 ) => BasePage;
 
 /**
- * Type pour les handlers de route
+ * Type représentant une fonction handler de route.
+ *
+ * C'est une fonction appelée lorsqu'une route est visitée.
+ * Elle reçoit en option les paramètres extraits de l'URL (RouteParams).
+ * ex: id pour profil utilisateur
  */
 export type RouteHandler = (params?: RouteParams) => Promise<void>;
 
 /**
- * Interface pour les paramètres de route dans handlers
+ * Interface représentant les paramètres extraits dynamiquement d'une URL.
+ * Ex: pour /user/42 = { id: '42' }
  */
 export interface RouteParams {
 	[key: string]: string;
+}
+
+/**
+ * Interface représentant une page en cours d'affichage dans PageService.
+ *
+ * Regroupe les éléments nécessaires à l'affichage dynamique:
+ * - render: fonction de rendu HTML
+ * - cleanup: fonction de nettoyage avant de changer de page
+ */
+export interface PageInstance {
+	render: () => Promise<void>;
+	cleanup?: () => Promise<void>;
 }

@@ -173,7 +173,7 @@ export class PageService {
 	/**
 	 * Retourne la page courante (instance de Page) ou null si pas de page courante.
 	 *
-	 * @returns {PageInstance|null} La page courante ou null.
+	 * @returns {PageInstance | null} La page courante ou null.
 	 * @memberof PageService
 	 */
 	public getCurrentPage(): PageInstance | null {

@@ -1,15 +1,14 @@
-import { BasePage } from '../BasePage';
+import { BasePage } from '../base/base.page';
 import { RouteConfig, RouteParams } from '../../types/routes.types';
-import { User } from '../../models/user.model';
 import { userApi } from '../../api/user.api';
 
 export class ProfilePage extends BasePage {
 	protected userId?: number | RouteParams;
 
-	constructor(config: RouteConfig, container: HTMLElement, currentUser: User | null, userId?: number | RouteParams) {
+	constructor(config: RouteConfig, userId?: number | RouteParams) {
 		// super() appelle le constructeur du parent BasePage
 		// avec le container et le chemin du template HTML pour la page profile
-		super(config, container, currentUser);
+		super(config);
 		this.userId = userId;
 	}
 	

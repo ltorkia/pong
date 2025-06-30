@@ -1,23 +1,27 @@
 // Pour hot reload Vite
-import template from './navbar-component.html?raw'
+import template from './navbar.component.html?raw'
 
-import { BaseComponent } from '../../base-component';
-import { toggleClass } from '../../../helpers/dom.helper';
-import { UserController } from '../../../controllers/UserController';
-import { RouteConfig } from '../../../types/routes.types';
-import { ComponentConfig } from '../../../types/components.types';
-import { User } from '../../../models/user.model';
-import { getHTMLAnchorElement } from '../../../helpers/dom.helper';
+import { BaseComponent } from '../base/base.component';
+import { toggleClass } from '../../utils/dom.utils';
+import { userService } from '../../services/user.service';
+import { RouteConfig } from '../../types/routes.types';
+import { ComponentConfig } from '../../types/components.types';
+import { User } from '../../models/user.model';
+import { userStore } from '../../stores/user.store';
+import { getHTMLAnchorElement } from '../../utils/dom.utils';
 
 export class NavbarComponent extends BaseComponent {
+	protected routeConfig: RouteConfig;
+	protected currentUser: User | null = null;
 	protected profileLink?: string;
 
-	// TODO: Ajouter les listeners popstate ici ???
-
-	constructor(routeConfig: RouteConfig, componentConfig: ComponentConfig, container: HTMLElement, user: User | null, currentUser: User | null, userController: UserController) {
+	constructor(routeConfig: RouteConfig, componentConfig: ComponentConfig, container: HTMLElement) {
 		// super() appelle le constructeur du parent BaseComponent
 		// avec le container et le chemin du component HTML pour la navbar
-		super(routeConfig, componentConfig, container, user, currentUser, userController);
+		super(componentConfig, container);
+		
+		this.routeConfig = routeConfig;
+		this.currentUser = userStore.getCurrentUser();
 	}
 
 	protected async mount(): Promise<void> {
@@ -115,7 +119,7 @@ export class NavbarComponent extends BaseComponent {
 		if (logoutLink) {
 			logoutLink.addEventListener('click', async (e) => {
 				e.preventDefault();
-				await this.userController.logoutController();
+				await userService.logoutUser();
 			});
 		}
 	}

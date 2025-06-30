@@ -1,6 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 
-import { fonts, colorsTheme1, images } from './src/config/theme'
+import { fonts, colorsTheme1, images } from './src/config/theme.config'
 
 export default {
 	content: [

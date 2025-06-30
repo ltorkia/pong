@@ -4,7 +4,8 @@ import { GoogleCallbackQuery, GoogleTokenResponse, GoogleUserInfo } from '../typ
 import { insertUser, getUser, getUserP, majLastlog } from '../db/user';
 import { RegisterInputSchema, LoginInputSchema } from '../types/zod/auth.zod';
 import { generateJwt, setAuthCookie, setStatusCookie, clearAuthCookies, setPublicUserInfos } from '../helpers/auth.helpers';
-import { PublicUser } from '../types/user.types';
+import { UserModel } from '../shared/types/user.types'; // en rouge car dossier local 'shared' != dossier conteneur
+import { UserPassword } from 'src/types/user.types';
 
 export async function authRoutes(app: FastifyInstance) {
 	
@@ -22,7 +23,7 @@ export async function authRoutes(app: FastifyInstance) {
 	
 			const resultinsert = await insertUser(userToInsert, null);
 			if (resultinsert.statusCode === 201) {
-				const user = await getUser(null, userToInsert.email);
+				const user: UserModel = await getUser(null, userToInsert.email);
 				const token = generateJwt(app, {
 					id: user.id
 				});
@@ -31,10 +32,9 @@ export async function authRoutes(app: FastifyInstance) {
 				setAuthCookie(reply, token);
 				setStatusCookie(reply);
 
-				const responseUser: PublicUser = setPublicUserInfos(user);
 				return reply.status(200).send({
-					message: 'Inscription réussie',
-					user: responseUser
+					message: 'Successful registration.',
+					user: user
 				});
 			}
 			return reply.status(resultinsert.statusCode).send(resultinsert);
@@ -60,11 +60,11 @@ export async function authRoutes(app: FastifyInstance) {
 				});
 			}
 
-			const validUser = await getUserP(result.data.email);
+			const validUser: UserPassword | null = await getUserP(result.data.email);
 			if (!validUser) {
 				return reply.status(401).send({
 					statusCode: 401,
-					errorMessage: 'Email invalid or unknown'
+					errorMessage: 'Email invalid or unknown.'
 				});
 			}
 
@@ -72,7 +72,7 @@ export async function authRoutes(app: FastifyInstance) {
 			{
 				return reply.status(402).send({
 					statusCode: 402,
-					errorMessage: 'Email already register from google'
+					errorMessage: 'Email already register from Google.'
 				});				
 			}
 			
@@ -80,7 +80,7 @@ export async function authRoutes(app: FastifyInstance) {
 			if (!isPassValid) {
 				return reply.status(401).send({
 					statusCode: 401,
-					errorMessage: 'Password does not match'
+					errorMessage: 'Password does not match.'
 				});
 			}
 
@@ -92,11 +92,15 @@ export async function authRoutes(app: FastifyInstance) {
 			setAuthCookie(reply, token);
 			setStatusCookie(reply);
 
-			const user = await getUser(null, result.data.email);
-			const responseUser: PublicUser = setPublicUserInfos(user);
+			const user: UserModel | null = await getUser(null, result.data.email);
+			if (!user) {
+				return reply.status(500).send({
+					errorMessage: 'Impossible de récupérer l’utilisateur après insertion',
+				});
+			}
 			return reply.status(200).send({
-				message: 'Connexion réussie',
-				user: responseUser
+				message: 'Successfully logged in.',
+				user: user
 			});
 
 		} catch (err) {
@@ -110,7 +114,7 @@ export async function authRoutes(app: FastifyInstance) {
 	// LOGOUT
 	app.post('/logout', async (request: FastifyRequest, reply: FastifyReply) => {
 		clearAuthCookies(reply);
-		reply.send({ message: 'Déconnecté' })
+		return reply.status(200).send({ message: 'Déconnecté' });
 	});
 
 	// LOGIN AVEC GOOGLE
@@ -185,7 +189,7 @@ export async function authRoutes(app: FastifyInstance) {
 			// // console.log("usergoogle is :" + userGoogle.id);
 			// // console.log("userdata is :" + userData.given_name);
 
-			let userGoogle = await getUserP(userData.email);
+			let userGoogle: UserModel | null = await getUser(null, userData.email);
 
 			// TODO: Insère l'utilisateur seulement s'il n'existe pas en bdd
 			// TODO: Logique à améliorer, j'ai juste mis ça pour régler un probleme
@@ -193,7 +197,9 @@ export async function authRoutes(app: FastifyInstance) {
 				await insertUser({ email: userData.email, username: userData.given_name, avatar: userData.picture }, true);
 				userGoogle = await getUser(null, userData.email);
 				if (!userGoogle) {
-					return reply.status(500).send({ error: 'Impossible de récupérer l’utilisateur après insertion' });
+					return reply.status(500).send({
+						errorMessage: 'Impossible de récupérer l’utilisateur après insertion',
+					});
 				}
 			}
 

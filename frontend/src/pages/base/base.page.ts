@@ -1,29 +1,25 @@
-import { RouteConfig } from '../types/routes.types';
-import { ComponentConfig } from '../types/components.types';
-import { User } from '../models/user.model';
-import { UserController } from '../controllers/UserController';
-import { loadTemplate, getHTMLElementById } from '../helpers/dom.helper';
-import { LOADING_PAGE_ERR } from '../config/messages';
+import { RouteConfig } from '../../types/routes.types';
+import { ComponentConfig } from '../../types/components.types';
+import { User } from '../../models/user.model';
+import { userStore } from '../../stores/user.store';
+import { loadTemplate, getHTMLElementById } from '../../utils/dom.utils';
+import { HTMLContainers } from '../../config/constants.config';
+import { LOADING_PAGE_ERR } from '../../config/messages.config';
 
 export abstract class BasePage {
 	protected config: RouteConfig;								// Propriétés de la route liée à la page
 	protected container: HTMLElement;							// Élément DOM dans lequel le contenu html sera injecté
 	protected currentUser: User | null = null;					// Utilisateur actuellement connecté s'il existe
-	
 	protected templatePath: string;								// Chemin vers le template html à charger pour cette page
 	protected components?: Record<string, ComponentConfig>;		// Les configs des composants associés à la page
-	protected userController: UserController;					// Instance qui va gérer le parcourt d'authentification du current user
 
 	// Le constructeur reçoit le container DOM et le chemin du template
-	constructor(config: RouteConfig, container: HTMLElement, currentUser: User | null) {
+	constructor(config: RouteConfig) {
 		this.config = config;
-		this.container = container;
-		this.currentUser = currentUser;
-
+		this.container = this.getContainerApp();
+		this.currentUser = userStore.getCurrentUser();
 		this.templatePath = this.config.templatePath;
 		this.components = this.config.components;
-
-		this.userController = new UserController();
 	}
 
 	/**
@@ -74,16 +70,6 @@ export abstract class BasePage {
 	}
 
 	/**
-	 * Vérifie qu'un utilisateur est bien authentifié si la page est privée (Login, Register...).
-	 * Throw une erreur si l'utilisateur est introuvable.
-	 */
-	protected checkUserLogged(): void {
-		if (!this.config.isPublic && !this.currentUser) {
-			throw new Error(`La récupération du user a échoué`);
-		}
-	}
-
-	/**
 	 * Génère les composants communs à plusieurs pages (isCommon = true)
 	 * NB: un composant avec la propriété isPublic à true ne s'affichera que sur les page publiques (Login, Register...)
 	 * de même pour les composants privés affichés uniquement sur les pages privées (après authentification uniquement).
@@ -100,7 +86,7 @@ export abstract class BasePage {
 			}
 			
 			const componentContainer = getHTMLElementById(componentConfig.containerId);
-			const component = new componentConfig.componentClass(this.config, componentConfig, componentContainer, null, this.currentUser, this.userController);
+			const component = new componentConfig.componentClass(this.config, componentConfig, componentContainer);
 			await component.render();
 			
 			console.log(`[${this.constructor.name}] Composant '${componentConfig.name}' généré`);
@@ -131,6 +117,20 @@ export abstract class BasePage {
 	}
 
 	/**
+	 * Vérifie qu'un utilisateur est bien authentifié si la page est privée (Login, Register...).
+	 * Throw une erreur si l'utilisateur est introuvable.
+	 */
+	protected checkUserLogged(): void {
+		if (!this.config.isPublic && !this.currentUser) {
+			throw new Error(`La récupération du user a échoué`);
+		}
+	}
+
+	protected getContainerApp(): HTMLElement {
+		return getHTMLElementById(HTMLContainers.appId);
+	}
+
+	/**
 	 * Nettoyage de la page: vide le container #app et les composants.
 	 * Appelée dans PageManager.ts avant de rendre une nouvelle page.
 	 */
@@ -138,7 +138,7 @@ export abstract class BasePage {
 		console.log(`[${this.constructor.name}] Nettoyage...`);
 		this.cleanupComponents();
 		this.container.innerHTML = '';
-		console.log(`[${this.constructor.name}] Container principal #${this.container} nettoyé`);
+		console.log(`[${this.constructor.name}] Container principal #${HTMLContainers.appId} nettoyé`);
 		console.log(`[${this.constructor.name}] Nettoyage terminé`);
 	}
 

@@ -1,12 +1,12 @@
 // COMPONENTS
-import { NavbarComponent } from '../components/common/navbar/navbar-component';
-import { UserRowComponent } from '../components/user/users/user-row-component';
+import { NavbarComponent } from '../components/navbar/navbar.component';
+import { UserRowComponent } from '../components/user-row/user-row.component';
 
 // TYPES
 import { ComponentConfig } from '../types/components.types';
 
 // UTILS
-import { componentNames, HTMLContainers } from '../config/constants';
+import { componentNames, HTMLContainers } from './constants.config';
 
 /**
  * Tableau contenant la configuration de tous les composants réutilisables

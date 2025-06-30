@@ -1,17 +1,17 @@
 // PAGES
-import { HomePage } from '../pages/user/HomePage';
-import { RegisterPage } from '../pages/auth/RegisterPage';
-import { LoginPage } from '../pages/auth/LoginPage';
-import { GamePage } from '../pages/game/GamePage';
-import { UsersPage } from '../pages/user/UsersPage';
-import { ProfilePage } from '../pages/user/ProfilePage';
+import { HomePage } from '../pages/user/home.page';
+import { RegisterPage } from '../pages/auth/register.page';
+import { LoginPage } from '../pages/auth/login.page';
+import { GamePage } from '../pages/game/game.page';
+import { UsersPage } from '../pages/user/users.page';
+import { ProfilePage } from '../pages/user/profile.page';
 
 // TYPES
 import { RouteConfig } from '../types/routes.types';
 
 // UTILS
-import { pageNames, componentNames } from '../config/constants';
-import { getComponentConfig } from '../helpers/config.helper';
+import { pageNames, componentNames } from './constants.config';
+import { getComponentConfig } from '../utils/config.utils';
 
 /**
  * Configuration des routes de l'app

@@ -1,15 +1,14 @@
-import { BasePage } from '../BasePage';
+import { BasePage } from '../base/base.page';
 import { userApi } from '../../api/user.api';
-import { UserRowComponent } from '../../components/user/users/user-row-component';
-import { getHTMLElementById } from '../../helpers/dom.helper';
-import { componentNames, HTMLContainers } from '../../config/constants';
+import { UserRowComponent } from '../../components/user-row/user-row.component';
+import { getHTMLElementById } from '../../utils/dom.utils';
+import { componentNames, HTMLContainers } from '../../config/constants.config';
 import { RouteConfig } from '../../types/routes.types';
-import { User } from '../../models/user.model';
 
 export class UsersPage extends BasePage {
 
-	constructor(config: RouteConfig, container: HTMLElement, currentUser: User | null) {
-		super(config, container, currentUser);
+	constructor(config: RouteConfig) {
+		super(config);
 	}
 
 	protected async mount() {
@@ -39,7 +38,7 @@ export class UsersPage extends BasePage {
 
 		for (const user of users) {
 			let tempContainer = document.createElement('tbody');
-			const rowComponent = new UserRowComponent(this.config, componentConfig, tempContainer, user, this.currentUser, this.userController);
+			const rowComponent = new UserRowComponent(this.config, componentConfig, tempContainer, user);
 			await rowComponent.render();
 
 			const tr = tempContainer.querySelector('tr');

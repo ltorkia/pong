@@ -1,14 +1,13 @@
-import { BasePage } from '../BasePage';
+import { BasePage } from '../base/base.page';
 import { RouteConfig } from '../../types/routes.types';
-import { User } from '../../models/user.model';
-import { getHTMLElementByClass } from '../../helpers/dom.helper';
+import { getHTMLElementByClass } from '../../utils/dom.utils';
 
 export class HomePage extends BasePage {
 
-	constructor(config: RouteConfig, container: HTMLElement, currentUser: User | null) {
+	constructor(config: RouteConfig) {
 		// super() appelle le constructeur du parent BasePage
 		// avec le container et le chemin du template HTML pour la page home
-		super(config, container, currentUser);
+		super(config);
 	}
 
 	protected async mount(): Promise<void> {

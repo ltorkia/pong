@@ -10,6 +10,7 @@ import { REGISTERED_MSG } from '../config/messages.config';
 import { userApi } from '../api/user.api';
 import { userStore } from '../stores/user.store';
 import { User } from '../models/user.model';
+import { AuthResponse, BasicResponse } from '../types/api.types';
 
 // UI
 import { uiStore } from '../stores/ui.store';
@@ -45,7 +46,7 @@ export class UserService {
 	public async loadUser(): Promise<User | null> {
 		// Vérification rapide avec le cookie compagnon
 		if (this.hasAuthCookie()) {
-			console.log('[${this.constructor.name}] Cookie auth_status présent, chargement utilisateur...');
+			console.log(`[${this.constructor.name}] Cookie auth_status présent, chargement utilisateur...`);
 			// Seulement dans ce cas on charge l'utilisateur
 			return await this.loadOrRestoreUser();
 		}
@@ -123,13 +124,12 @@ export class UserService {
 			return await this.validateAndReturn(user);
 		}
 
-		// Fallback API
+		// Fallback API (met à jour le store + storage)
 		try {
 			const apiUser = await userApi.getMe();
 			if (apiUser) {
+				const user = userStore.getCurrentUser();
 				console.log(`[${this.constructor.name}] Utilisateur chargé via API`);
-				const user = User.fromJSON(apiUser);
-				userStore.setCurrentUser(user);
 				return user;
 			}
 		} catch (err) {
@@ -211,16 +211,14 @@ export class UserService {
 	 */
 	public async registerUser(data: Record<string, string>): Promise<void> {
 		try {
-			const result = await userApi.registerUser(data);
+			const result: AuthResponse = await userApi.registerUser(data);
 			if (result.errorMessage) {
-				console.error('Erreur d\'inscription :', result);
+				console.error(`[${this.constructor.name}] Erreur d\'inscription :`, result);
 				showError(result.errorMessage);
 				return;
 			}
 			
-			console.log('Utilisateur inscrit :', result);
-			const user = User.fromJSON(result.user!);
-			userStore.setCurrentUser(user);
+			console.log(`[${this.constructor.name}] Utilisateur inscrit :`, result);
 			uiStore.animateNavbar = true;
 			
 			// Redirection home
@@ -228,7 +226,7 @@ export class UserService {
 			await router.redirectPublic(defaultRoute);
 
 		} catch (err) {
-			console.error('Erreur réseau ou serveur', err);
+			console.error(`[${this.constructor.name}] Erreur réseau ou serveur`, err);
 			showError('Erreur réseau');
 		}
 	}
@@ -247,23 +245,21 @@ export class UserService {
 	 */
 	public async loginUser(data: Record<string, string>): Promise<void> {
 		try {
-			const result = await userApi.loginUser(data);
+			const result: AuthResponse = await userApi.loginUser(data);
 			if (result.errorMessage) {
-				console.error('Erreur d\'authentification :', result);
+				console.error(`[${this.constructor.name}] Erreur d'authentification :`, result);
 				showError(result.errorMessage);
 				return;
 			}
 			
-			console.log('Utilisateur connecté :', result);
-			const user = User.fromJSON(result.user!);
-			userStore.setCurrentUser(user);
+			console.log(`[${this.constructor.name}] Utilisateur connecté :`, result);
 			uiStore.animateNavbar = true;
 			
 			// Redirection home
 			await router.redirectPublic(defaultRoute);
 
 		} catch (err) {
-			console.error('Erreur réseau ou serveur', err);
+			console.error(`[${this.constructor.name}] Erreur réseau ou serveur`, err);
 			showError('Erreur réseau');
 		}
 	}
@@ -280,23 +276,22 @@ export class UserService {
 	 */
 	public async logoutUser(): Promise<void> {
 		try {
-			const result = await userApi.logoutUser();
+			const result: BasicResponse = await userApi.logoutUser();
 			if (result.errorMessage) {
-				console.error('Erreur lors du logout :', result);
+				console.error(`[${this.constructor.name}] Erreur lors du logout :`, result);
 				showError(result.errorMessage);
 				return;
 			}
 			
-			console.log('Utilisateur déconnecté :', result);
-			userStore.clearCurrentUser();
+			console.log(`[${this.constructor.name}] Utilisateur déconnecté :`, result);
 			uiStore.animateNavbar = true;
 			
 			// Redirection SPA vers login
-			console.log('Déconnexion réussie. Redirection /login');
+			console.log(`[${this.constructor.name}] Déconnexion réussie. Redirection /login`);
 			await router.redirectPublic(authFallbackRoute);
 
 		} catch (err) {
-			console.error('Erreur réseau ou serveur', err);
+			console.error(`[${this.constructor.name}] Erreur réseau ou serveur`, err);
 			showError('Erreur réseau');
 		}
 	}

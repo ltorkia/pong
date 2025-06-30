@@ -1,12 +1,12 @@
-import { BasePage } from '../BasePage';
+import { BasePage } from '../base/base.page';
 import { RouteConfig } from '../../types/routes.types';
-import { User } from '../../models/user.model';
-import { getHTMLElementById } from '../../helpers/dom.helper';
+import { getHTMLElementById } from '../../utils/dom.utils';
+import { userService } from '../../services/user.service';
 
 export class LoginPage extends BasePage {
 
-	constructor(config: RouteConfig, container: HTMLElement, currentUser: User | null) {
-		super(config, container, currentUser);
+	constructor(config: RouteConfig) {
+		super(config);
 	}
 
 	protected attachListeners(): void {
@@ -15,7 +15,7 @@ export class LoginPage extends BasePage {
 			event.preventDefault();
 			const formData = new FormData(form);
 			const data = Object.fromEntries(formData.entries()) as Record<string, string>;
-			await this.userController.loginController(data);
+			await userService.loginUser(data);
 		});
 	}
 }

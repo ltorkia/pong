@@ -1,16 +1,23 @@
 // Pour hot reload Vite
-import template from './user-row-component.html?raw'
+import template from './user-row.component.html?raw'
 
-import { BaseComponent } from '../../base-component';
-import { User } from '../../../models/user.model';
-import { UserController } from '../../../controllers/UserController';
-import { RouteConfig } from '../../../types/routes.types';
-import { ComponentConfig } from '../../../types/components.types';
+import { BaseComponent } from '../base/base.component';
+import { User } from '../../models/user.model';
+import { userStore } from '../../stores/user.store';
+import { RouteConfig } from '../../types/routes.types';
+import { ComponentConfig } from '../../types/components.types';
 
 export class UserRowComponent extends BaseComponent {
-	constructor(routeConfig: RouteConfig, componentConfig: ComponentConfig, container: HTMLElement, user: User | null, currentUser: User | null, userController: UserController) {
-		super(routeConfig, componentConfig, container, user, currentUser, userController);
-		this.currentUser = currentUser;
+	protected routeConfig: RouteConfig;
+	protected user?: User | null = null;
+	protected currentUser: User | null = null;
+
+	constructor(routeConfig: RouteConfig, componentConfig: ComponentConfig, container: HTMLElement, user?: User | null) {
+		super(componentConfig, container);
+				
+		this.routeConfig = routeConfig;
+		this.user = user;
+		this.currentUser = userStore.getCurrentUser();
 	}
 
 	protected async mount(): Promise<void> {

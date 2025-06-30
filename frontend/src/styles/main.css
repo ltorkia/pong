@@ -6,10 +6,11 @@
 @import './global/common.css';
 @import './global/layout.css';
 
-@import '../components/common/navbar/navbar-component.css';
-@import '../components/common/form/form-component.css';
-@import '../components/common/button/button-component.css';
-@import '../components/user/users/user-row-component.css';
+@import './components/form.css';
+@import './components/button.css';
+
+@import '../components/navbar/navbar.component.css';
+@import '../components/user-row/user-row.component.css';
 
 @import './pages/auth.css';
 @import './pages/home.css';

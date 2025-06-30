@@ -1,25 +1,14 @@
-import { loadTemplate } from '../helpers/dom.helper';
-import { User } from '../models/user.model';
-import { UserController } from '../controllers/UserController';
-import { RouteConfig } from '../types/routes.types';
-import { ComponentConfig } from '../types/components.types';
+import { loadTemplate } from '../../utils/dom.utils';
+import { ComponentConfig } from '../../types/components.types';
 
 export abstract class BaseComponent {
-	protected routeConfig: RouteConfig;
 	protected componentConfig: ComponentConfig;
 	protected container: HTMLElement;
-	protected user: User | null = null;
-	protected currentUser: User | null = null;
-	protected userController: UserController;
 	protected templatePath: string;
 
-	constructor(routeConfig: RouteConfig, componentConfig: ComponentConfig, container: HTMLElement, user: User | null, currentUser: User | null, userController: UserController) {
-		this.routeConfig = routeConfig;
+	constructor(componentConfig: ComponentConfig, container: HTMLElement) {
 		this.componentConfig = componentConfig;
 		this.container = container;
-		this.user = user;
-		this.currentUser = currentUser;
-		this.userController = userController;
 		this.templatePath = this.componentConfig.templatePath;
 	}
 

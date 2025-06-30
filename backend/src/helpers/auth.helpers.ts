@@ -1,7 +1,7 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { JwtPayload } from '../types/jwt.types';
-import { UserForDashboard, PublicUser } from '../types/user.types';
-import { cookiesConst } from '../shared/config/constants'; // en rouge car dossier local != dossier du conteneur
+import { UserModel, PublicUser } from '../shared/types/user.types'; // en rouge car dossier local 'shared' != dossier conteneur
+import { cookiesConst } from '../shared/config/constants'; // en rouge car dossier local 'shared' != dossier conteneur
 
 /**
  * Génère un token JWT pour un utilisateur donné
@@ -79,7 +79,7 @@ export function requireAuth(request: FastifyRequest, reply: FastifyReply): JwtPa
 /**
  * Définit les propriétés user safe à envoyer au front après login réussi
  */
-export function setPublicUserInfos(user: UserForDashboard): PublicUser {
+export function setPublicUserInfos(user: UserModel): PublicUser {
 	return {
 		id: user.id,
 		username: user.username,

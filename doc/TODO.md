@@ -6,6 +6,7 @@ BACK
 - gerer stockage des avatars dans frontend/public/img/avatars
 - Pourquoi param de majLastlog = username et pas id ?
 - first log, last log ou booleen ? A mediter
+- créer un cookie pour sauvegarder l'email de l'utilisateur (à afficher sur form de connexion si l'utilisateur a cliqué sur "se souvenir de moi")
 
 COMMUN
 
@@ -14,9 +15,6 @@ COMMUN
 
 FRONT
 
-- Bug affichage component (user-row) a reparer
-- Faire migrer updateNavigation de RouteManager vers NavbarComponent avec setActiveLink et suppression de getProfilePath() maintenant qu'on utilise le userStore ??
-- Mettre les events Popstate dans navbar component ?
 - Rajouter le nom du user connecté sur la navbar
 - Gerer frequence validation session dans les routes
 - Faire components page profil / stats
@@ -27,7 +25,6 @@ FRONT
 - Enregistrer les champs formulaires en session au cas où crash
 - Mieux typer partout
 - Boucle login si erreur validate-session (load user dans start app manager à vérifier)
-- Etoffer RouteConfig avec les liens templates et components
 - Gérer shared files (types, constants)
 
 - check MAJ package.json :

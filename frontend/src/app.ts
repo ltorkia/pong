@@ -1,8 +1,11 @@
 import './styles/main.css';
-import { AppManager } from './managers/AppManager';
+import { AppService } from './services/app.service';
 
 /**
  * Point d'entrée principal de l'app.
+ * Fonction fléchée asynchrone, syntaxe ES6, qui permet d'utiliser await au niveau racine.
  */
-const appManager = new AppManager();
-appManager.start();
+(async () => {
+	const appService = new AppService();
+	await appService.start();
+})();

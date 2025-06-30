@@ -1,8 +1,9 @@
 import { getDb } from './index.db';
 import { RegisterInput } from '../types/zod/auth.zod';
-import { UserBasic, UserForDashboard, UserWithAvatar, Friends } from '../types/user.types';
 import { Game } from '../types/game.types';
 import { ChatMessage } from '../types/chat.types';
+import { UserPassword } from '../types/user.types';
+import { UserModel, UserBasic, UserWithAvatar, Friends } from '../shared/types/user.types'; // en rouge car dossier local 'shared' != dossier conteneur
 
 // retourne les infos d un user particulier - userId = le id de l user a afficher
 // a priori ? protegerait contre les insertions sql
@@ -17,7 +18,7 @@ export async function getUser(userId : number | null = null, search : string | n
 		`,
 		[userId, search, search]
 	);
-	return user as UserForDashboard;
+	return user as UserModel;
 }
 
 // retourne les infos de tous les users pour l authentification 
@@ -40,7 +41,7 @@ export async function getUserP(email: string) {
 		`,
 		[email]
 	);
-	return user;
+	return user as UserPassword;
 }
 	
 // pour choper les friends, mais implique qu un element chat soit forcement cree des qu on devient ami

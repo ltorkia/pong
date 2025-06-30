@@ -1,6 +1,6 @@
-import { RouteGuard } from './RouteGuard';
+import { routeGuard } from './route-guard';
 import { RouteHandler } from '../types/routes.types';
-import { normalizePath, matchRoute } from './router.utils';
+import { normalizePath, matchRoute } from './router.helper';
 import { defaultRoute } from '../config/routes.config';
 
 /**
@@ -14,7 +14,6 @@ import { defaultRoute } from '../config/routes.config';
 export class Router {
 	private routes: Map<string, RouteHandler> = new Map();
 	private isNavigating = false;
-	private routeGuard: RouteGuard;
 
 	/**
 	 * Constructeur: initialise les écouteurs d'événements importants
@@ -29,8 +28,6 @@ export class Router {
 	 *   et en redirigeant vers la bonne page.
 	 */
 	constructor() {
-		this.routeGuard = new RouteGuard(this);
-		
 		window.addEventListener('popstate', () => this.handleLocation());
 		document.addEventListener('click', (e) => {
 			const target = e.target as HTMLElement;
@@ -160,7 +157,7 @@ export class Router {
 			const routeHandler = this.routes.get(matchedRoute.route);
 
 			if (routeHandler) {
-				const redirected = await this.routeGuard.checkAuthRedirect(matchedRoute.route);
+				const redirected = await routeGuard.checkAuthRedirect(matchedRoute.route);
 				if (redirected) {
 					return;
 				}

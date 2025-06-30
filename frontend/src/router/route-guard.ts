@@ -1,23 +1,19 @@
-import { userManager } from '../managers/UserManager';
-import { userStore } from '../stores/user-store';
+import { userService } from '../services/user.service';
+import { userStore } from '../stores/user.store';
 import { defaultRoute, authFallbackRoute } from '../config/routes.config';
-import { isPublicRoute } from '../helpers/routes.helper';
-import { Router } from './Router';
+import { isPublicRoute } from '../utils/routes.utils';
+import { router } from './router';
 
 /**
+ * Classe RouteGuard
+ * 
  * Gère la logique d'authentification pour redirections.
- * - Vérifie l'état d'authentification du user (cookies, store, localStorage)
- * - Redirige les non authentifiés vers /login pour les routes privées
- * - Redirige les authentifiés vers / s'ils vont sur les pages publiques
- * - Gére la restauration des sessions utilisateur
+ * - Vérifie l'état d'authentification de l'utilisateur (cookies, store, localStorage)
+ * - Redirige les utilisateurs non authentifiés vers /login pour les routes privées
+ * - Redirige les utilisateurs authentifiés vers / s'ils essaient d'accéder aux pages publiques
+ * - Gère la restauration des sessions utilisateur
  */
 export class RouteGuard {
-	private router: Router;
-
-	constructor(router: Router) {
-		this.router = router;
-	}
-
 	/**
 	 * Gère les redirections d'authentification avant d'exécuter une route.
 	 * 
@@ -26,20 +22,24 @@ export class RouteGuard {
 	 * - Redirige vers / si l'utilisateur authentifié tente d'accéder à une page publique (/login, /register).
 	 * 
 	 * Retourne true si une redirection a eu lieu, false sinon.
+	 * 
+	 * @private
+	 * @param {string} route Chemin de la route à protéger
+	 * @return {Promise<boolean>} true si une redirection a eu lieu, false sinon
 	 */
 	private async handleAuthRedirect(route: string): Promise<boolean> {
 		try {
 			const isPublic = isPublicRoute(route);
 
 			// Vérifie si un utilisateur est déjà chargé avec le cookie compagnon
-			const authCookieIsActive = userManager.hasAuthCookie();
+			const authCookieIsActive = userService.hasAuthCookie();
 			
 			// LOGIQUE DE REDIRECTION
 			// Si route privée et user pas authentifié, redirection vers /login
 			if (!isPublic && !authCookieIsActive) {
 				userStore.clearCurrentUser();
 				console.log(`[${this.constructor.name}] Non connecté -> redirection vers /login`);
-				await this.router.redirectPublic(authFallbackRoute);
+				await router.redirectPublic(authFallbackRoute);
 				return true;
 			}
 
@@ -49,16 +49,16 @@ export class RouteGuard {
 				// Vérification dans le store d'abord
 				if (userStore.getCurrentUser()) {
 					console.log(`[${this.constructor.name}] Utilisateur déjà en store -> redirection vers /`);
-					await this.router.redirectPublic(defaultRoute);
+					await router.redirectPublic(defaultRoute);
 					return true;
 				}
 				
 				// Si pas en store mais cookie présent, essayer de restaurer
 				// via localStorage puis fallback API
-				const user = await userManager.loadOrRestoreUser();
+				const user = await userService.loadOrRestoreUser();
 				if (user) {
 					console.log(`[${this.constructor.name}] Utilisateur restauré -> redirection vers /`);
-					await this.router.redirectPublic(defaultRoute);
+					await router.redirectPublic(defaultRoute);
 					return true;
 				}
 				// Si pas d'utilisateur mais cookie présent: désynchronisation cookie/serveur
@@ -66,12 +66,12 @@ export class RouteGuard {
 
 			// Pour les routes privées avec cookie présent, on restaure via localStorage puis fallback API
 			if (!isPublic && authCookieIsActive) {
-				const user = await userManager.loadOrRestoreUser();
+				const user = await userService.loadOrRestoreUser();
 				if (!user) {
 					// Cookie présent mais pas d'utilisateur valide
 					// (cas de désynchronisation ou session expirée côté serveur)
 					console.log(`[${this.constructor.name}] Cookie présent mais utilisateur invalide -> redirection vers /login`);
-					await this.router.redirectPublic(authFallbackRoute);
+					await router.redirectPublic(authFallbackRoute);
 					return true;
 				}
 				// Désynchronisation cookie/serveur
@@ -81,15 +81,23 @@ export class RouteGuard {
 		} catch (err) {
 			console.error(`[${this.constructor.name}] Erreur critique`, err);
 			userStore.clearCurrentUser();
-			await this.router.redirectPublic(authFallbackRoute);
+			await router.redirectPublic(authFallbackRoute);
 			return true;
 		}
 	}
-
+	
 	/**
-	 * Méthode publique pour appeler handleAuthRedirect depuis RouterCore
+	 * Méthode publique pour gérer les redirections d'authentification en fonction
+	 * de la route demandée et de l'état de l'utilisateur.
+	 * 
+	 * Appelée par router.ts pour gérer les redirections d'authentification.
+	 * 
+	 * @param {string} route Chemin de la route que l'on essaye de charger.
+	 * @returns {Promise<boolean>} true si une redirection a eu lieu, false sinon.
 	 */
 	public async checkAuthRedirect(route: string): Promise<boolean> {
 		return await this.handleAuthRedirect(route);
 	}
 }
+
+export const routeGuard = new RouteGuard();
