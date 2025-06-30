@@ -1,14 +1,20 @@
 @import '@fortawesome/fontawesome-free/css/all.min.css';
-@import './theme/fonts.css';
-
+@import './base/fonts.css';
+@import './base/variables.css';
 @import './base/base.css';
-@import './components/common.css';
-@import './components/navbar.css';
+
+@import './global/common.css';
+@import './global/layout.css';
+
 @import './components/form.css';
-@import './components/btn.css';
-@import './components/auth.css';
-@import './components/users.css';
-@import './components/game.css';
+@import './components/button.css';
+
+@import '../components/navbar/navbar.component.css';
+@import '../components/user-row/user-row.component.css';
+
+@import './pages/auth.css';
+@import './pages/home.css';
+
 @import './utilities/custom.css';
 
 @tailwind base;

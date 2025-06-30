@@ -1,4 +1,8 @@
 @layer utilities {
+	.mt-main {
+		@apply mt-[--navbar-height];
+	}
+	
 	.text-shadow-black {
 		text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.445);
 	}

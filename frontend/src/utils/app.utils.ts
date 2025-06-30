@@ -1,8 +1,28 @@
-import { userStore } from '../store/UserStore';
+import { userStore } from '../stores/user.store';
 
-// Vérifie qu'on ne tombe pas sur l'erreur 401 après chaque requête api.
-// Si oui l'utilisateur est déconnecté, alors on clear le local storage et on le déco totalement.
-export async function secureFetch(url: string, options?: RequestInit) {
+// ===========================================
+// APP UTILS
+// ===========================================
+/**
+ * Ce fichier contient des fonctions utilitaires qui
+ * fournissent des fonctionnalités réutilisables pour
+ * diverses parties de l'application frontend. Cela inclut
+ * des méthodes pour gérer les requêtes
+ * HTTP sécurisées, paramétrer des promesses, etc.
+ */
+
+/**
+ * Wrapper sur la fonction native fetch() qui vérifie si l'utilisateur est connecté
+ * avant de lancer la requête. Si la session est expirée ou non autorisée,
+ * l'utilisateur est déconnecté et une erreur est levée.
+ *
+ * @param {string} url
+ * @param {RequestInit} [options]
+ * @returns {Promise<Response | never>} Une promesse qui se résout avec l'objet Response
+ * ou qui lance une erreur si la session est expirée ou non autorisée
+ * @throws {Error} Si la session est expirée ou non autorisée
+ */
+export async function secureFetch(url: string, options?: RequestInit): Promise<Response | never> {
 	const res = await fetch(url, { credentials: 'include', ...options });
 	if (res.status === 401 || res.status === 403) {
 
@@ -15,20 +35,18 @@ export async function secureFetch(url: string, options?: RequestInit) {
 	return res;
 }
 
-// Crée une pause asynchrone avant de passer à la suite du code
+/**
+ * Crée une pause asynchrone pour une durée spécifiée.
+ *
+ * Renvoie une promesse qui se résout après le nombre spécifié
+ * de millisecondes, retardant ainsi la poursuite de l'exécution
+ * du code suivant.
+ *
+ * @param {number} ms - La durée de la pause en millisecondes.
+ * @returns {Promise<void>} Une promesse qui se résout automatiquement
+ * après ms millisecondes sans valeur.
+ */
 export function wait(ms: number): Promise<void> {
 	// On retourne une nouvelle promesse qui se résout automatiquement après ms millisecondes
 	return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-/**
- * Wrapper pour styliser les messages d'erreur sur les pages
- */
-export function showError(message: string) {
-	const alertDiv = document.getElementById('alert');
-	if (alertDiv) {
-		const cautionIcon = '<i class="fa-solid fa-circle-exclamation"></i> ';
-		alertDiv.innerHTML = cautionIcon + message;
-		alertDiv.classList.remove('hidden');
-	}
 }

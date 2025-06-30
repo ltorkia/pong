@@ -7,6 +7,7 @@ services:
       dockerfile: Dockerfile.dev
     ports:
       - "8443:443"
+      - "8080:80"
     depends_on:
       - backend
       - frontend
@@ -18,10 +19,11 @@ services:
   backend:
     container_name: backend
     build:
-      context: ./backend
-      dockerfile: Dockerfile.dev
+      context: .
+      dockerfile: backend/Dockerfile.dev
     volumes:
       - ./backend:/app
+      - ./shared:/app/src/shared
       - /app/node_modules
       - ./backend/data:/app/data
     env_file:
@@ -35,10 +37,11 @@ services:
   frontend:
     container_name: frontend
     build:
-      context: ./frontend
-      dockerfile: Dockerfile.dev
+      context: .
+      dockerfile: frontend/Dockerfile.dev
     volumes:
       - ./frontend:/app
+      - ./shared:/app/src/shared
       - /app/node_modules
     networks:
       - transcendence

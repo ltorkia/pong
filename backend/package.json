@@ -5,7 +5,7 @@
 	"main": "src/index.ts",
 	"scripts": {
 		"start": "node dist/index.js",
-		"dev": "nodemon --watch 'src/**/*.ts' --exec 'ts-node' src/index.ts",
+		"dev": "nodemon --watch tsconfig.json --watch 'src/**/*.ts' --exec 'ts-node' src/index.ts",
 		"build": "tsc"
 	},
 	"dependencies": {

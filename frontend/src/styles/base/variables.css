@@ -1,0 +1,28 @@
+@layer base {
+
+	:root {
+		--navbar-height: 62px;
+		--footer-height: 34px;
+
+		/* Padding de la box principale / responsive */
+		--p: 0.5rem;
+		--p-tablet: 3rem;
+		--p-desktop: 3rem;
+		--p-wide: 3rem;
+		--p-extra-wide: 3rem;
+
+		/* A déduire de la taille de la box principale / responsive */
+		--minus: calc(var(--navbar-height) + var(--footer-height) + var(--p) + var(--p));
+		--minus-tablet: calc(var(--navbar-height) + var(--footer-height) + var(--p-tablet) + var(--p-tablet));
+		--minus-desktop: calc(var(--navbar-height) + var(--footer-height) + var(--p-desktop) + var(--p-desktop));
+		--minus-wide: calc(var(--navbar-height) + var(--footer-height) + var(--p-wide) + var(--p-wide));
+		--minus-extra-wide: calc(var(--navbar-height) + var(--footer-height) + var(--p-extra-wide) + var(--p-extra-wide));
+
+		/* Hauteur de la box principale / responsive */
+		--h: calc(100vh - var(--minus));
+		--h-tablet: calc(100vh - var(--minus-tablet));
+		--h-desktop: calc(100vh - var(--minus-desktop));
+		--h-wide: calc(100vh - var(--minus-wide));
+		--h-extra-wide: calc(100vh - var(--minus-extra-wide));
+	}
+}

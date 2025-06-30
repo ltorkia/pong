@@ -55,11 +55,11 @@ copy-local: # Copie locale des fichiers statiques pour avoir un visuel en mode p
 
 build: # Construit les images Docker
 	@echo "$(GREEN)Construction des images Docker...$(NC)"
-	docker compose -f $(COMPOSE_FILE) build --no-cache
+	COMPOSE_BAKE=true docker compose -f $(COMPOSE_FILE) build --no-cache
 
 up: check_env # Lance les services
 	@echo "$(GREEN)Lancement des services...$(NC)"
-	docker compose -f $(COMPOSE_FILE) up -d
+	docker compose -f $(COMPOSE_FILE) up -d --remove-orphans
 	@echo "$(GREEN)App: $(APP_URL)$(NC)"
 	@$(MAKE) status
 
@@ -89,6 +89,7 @@ fclean: clean # Nettoyage profond: volumes, images et données persistantes et s
 	@echo "${YELLOW}Suppression des images...${NC}"
 	docker rmi -f $$(docker images -q) 2>/dev/null || true
 	@echo "${RED}Nettoyage des données persistantes locales...${NC}"
+	rm -rf frontend/src/shared backend/src/shared
 	rm -rf frontend/node_modules backend/node_modules
 	rm -rf backend/data backend/dist nginx/dist .mode
 	find frontend/public/img/avatars/ -type f ! -name 'default.png' -delete
@@ -99,10 +100,10 @@ prune: fclean # Nettoyage complet y compris le système Docker global
 	@echo "$(GREEN)Système Docker nettoyé avec succès!${NC}"
 
 re: clean up
-
 rebuild: fclean build up
+re-full: prune build up
 
 status: # Affiche le statut des services
 	docker compose -f $(COMPOSE_FILE) ps
 
-.PHONY: dev prod check_env copy-local build build-frontend up down logs exec-frontend exec-backend exec-nginx clean fclean prune re rebuild status
+.PHONY: dev prod check_env copy-local build build-frontend up down logs exec-frontend exec-backend exec-nginx clean fclean prune re rebuild re-full status
