@@ -20,7 +20,6 @@ export const templateCache = new Map<string, string>();
  * Si le template est déjà présent dans le cache, retourne la version mise en cache.
  * Sinon, effectue une requête pour récupérer le template et le stocke dans le cache.
  *
- * @export
  * @param {string} path - Chemin du fichier template HTML à charger.
  * @return {Promise<string>} - Promise résolvant avec le contenu HTML du template.
  * @throws {Error} - Lance une erreur si la requête échoue.
@@ -43,7 +42,6 @@ export async function loadTemplate(path: string): Promise<string> {
  * Renvoie l'élément HTML portant l'identifiant (id) passé en paramètre.
  * Si l'élément n'est pas trouvé, lance une erreur.
  *
- * @export
  * @param {string} elementId - Identifiant (id) de l'élément à chercher.
  * @return {HTMLElement} - L'élément HTML portant l'identifiant (id) demandé.
  * @throws {Error} - Si l'élément n'est pas trouvé dans le DOM.
@@ -60,7 +58,6 @@ export function getHTMLElementById(elementId: string): HTMLElement {
  * Renvoie l'élément HTML portant la classe CSS passée en paramètre.
  * Si l'élément n'est pas trouvé, lance une erreur.
  *
- * @export
  * @param {string} elementClass - Nom de la classe CSS de l'élément à chercher.
  * @return {HTMLElement} - L'élément HTML portant la classe CSS demandée.
  * @throws {Error} - Si l'élément n'est pas trouvé dans le DOM.
@@ -78,7 +75,6 @@ export function getHTMLElementByClass(elementClass: string): HTMLElement {
  * passé en paramètre (par défaut, c'est le document courant).
  * Si l'élément n'existe pas, lance une erreur.
  *
- * @export
  * @param {string} elementSelector - Sélecteur CSS de l'élément <a> à chercher.
  * @param {(Document | ParentNode)} [container=document] - Conteneur dans lequel chercher l'élément.
  * @return {HTMLAnchorElement} - L'élément <a> trouvé.
@@ -125,7 +121,6 @@ export function toggleClass(el: Element | null, classA: string, classB: string, 
  * Récupère l'élément HTML <div id="alert"> et y injecte le message d'erreur
  * préfixé d'un icône de triangle d'avertissement.
  *
- * @export
  * @param {string} message - Le message d'erreur à afficher.
  */
 export function showError(message: string): void {

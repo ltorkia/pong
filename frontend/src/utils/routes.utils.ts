@@ -14,7 +14,6 @@ import { routesConfig } from '../config/routes.config';
 /**
  * Vérifie si une route est publique (accessible sans authentification).
  * 
- * @export
  * @param {string | null} route Chemin de la route  v rifier
  * @return {boolean} true si la route est publique, false sinon
  */
@@ -34,7 +33,6 @@ export const isPublicRoute = (route: string | null): boolean => {
  * Cette fonction extrait la route du chemin de modèle fourni
  * et détermine si elle est une route publique.
  *
- * @export
  * @param {string} templatePath - Le chemin du fichier de modèle.
  * @return {boolean} true si le modèle correspond à une page publique, false sinon.
  */
@@ -51,7 +49,6 @@ export const isPublicTemplate = (templatePath: string): boolean => {
  * Exemple: si le chemin de fichier est "src/templates/page.html", la fonction
  * retourne "/page".
  *
- * @export
  * @param {string} path - Le chemin du fichier de mod le.
  * @return {string} - Le nom de la page (chemin de la route) associ .
  */

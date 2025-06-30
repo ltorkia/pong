@@ -100,10 +100,10 @@ prune: fclean # Nettoyage complet y compris le système Docker global
 	@echo "$(GREEN)Système Docker nettoyé avec succès!${NC}"
 
 re: clean up
-
 rebuild: fclean build up
+re-full: prune build up
 
 status: # Affiche le statut des services
 	docker compose -f $(COMPOSE_FILE) ps
 
-.PHONY: dev prod check_env copy-local build build-frontend up down logs exec-frontend exec-backend exec-nginx clean fclean prune re rebuild status
+.PHONY: dev prod check_env copy-local build build-frontend up down logs exec-frontend exec-backend exec-nginx clean fclean prune re rebuild re-full status

@@ -1,4 +1,4 @@
-import { UserModel } from '../../../shared/types/user.types';
+import { UserModel } from '../shared/types/user.types';	// en rouge car dossier local 'shared' != dossier conteneur
 
 // ===========================================
 // API TYPES

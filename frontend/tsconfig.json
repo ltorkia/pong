@@ -17,6 +17,6 @@
 		"skipLibCheck": true,							// Ignore les erreurs dans les fichiers de types des dépendances
 		"checkJs": false								// Ne pas vérifier les fichiers JavaScript (on se concentre sur TypeScript)
 	},
-	"include": ["src", "../shared/types/user.types.ts"],									// Dossiers/fichiers à inclure dans la compilation
+	"include": ["src/**/*"],							// Dossiers/fichiers à inclure dans la compilation
 	"exclude": ["node_modules", "dist"]					// Dossiers à exclure de la compilation
 }

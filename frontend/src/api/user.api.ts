@@ -1,5 +1,5 @@
 import { User } from '../models/user.model';
-import { SafeUserModel, UserModel, PublicUser } from '../../../shared/types/user.types';
+import { SafeUserModel, UserModel, PublicUser } from '../shared/types/user.types';	// en rouge car dossier local 'shared' != dossier conteneur
 import { userStore } from '../stores/user.store';
 import { BasicResponse, AuthResponse } from '../types/api.types';
 import { secureFetch } from '../utils/app.utils';

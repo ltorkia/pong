@@ -5,7 +5,8 @@
 	"type": "module",
 	"scripts": {
 		"dev": "vite --host 0.0.0.0 --port 3000 --mode development",
-		"build": "tsc && vite build --mode production"
+		"build": "tsc && vite build --mode production",
+  		"doc": "typedoc --tsconfig tsconfig.json --out docs --entryPointStrategy expand src"
 	},
 	"dependencies": {
 		"socket.io-client": "^4.8.1",

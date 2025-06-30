@@ -16,7 +16,6 @@ import { userStore } from '../stores/user.store';
  * avant de lancer la requête. Si la session est expirée ou non autorisée,
  * l'utilisateur est déconnecté et une erreur est levée.
  *
- * @export
  * @param {string} url
  * @param {RequestInit} [options]
  * @return {Promise<Response | never>} Une promesse qui se résout avec l'objet Response
@@ -43,7 +42,6 @@ export async function secureFetch(url: string, options?: RequestInit): Promise<R
  * de millisecondes, retardant ainsi la poursuite de l'exécution
  * du code suivant.
  *
- * @export
  * @param {number} ms - La durée de la pause en millisecondes.
  * @return {Promise<void>} Une promesse qui se résout automatiquement
  * après ms millisecondes sans valeur.

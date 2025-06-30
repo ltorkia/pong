@@ -28,6 +28,8 @@ FRONT
 - Mieux typer partout
 - Boucle login si erreur validate-session (load user dans start app manager à vérifier)
 - Gérer shared files (types, constants)
+- Générer docType: "npm install -g typedoc" puis "npx typedoc --tsconfig tsconfig.json --out docs src/*"
+	(script ajouté dans package.json, faire "npm run doc" dans conteneur frontend)
 
 - check MAJ package.json :
  @tsparticles/engine         ^3.0.2  →   ^3.8.1

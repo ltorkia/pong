@@ -17,6 +17,10 @@ yarn-error.log*
 backend/.env
 frontend/.env
 
+# Doc temp perso frontend
+frontend/docs
+frontend/jsdoc.conf.json
+
 # Build outputs
 dist/
 build/
@@ -64,5 +68,9 @@ pids/
 *.seed
 *.pid.lock
 
-# Ne pas ignorer package-lock.json
-!package-lock.json
+# Ignore package.json et package-lock.json à la racine uniquement
+/package.json
+/package-lock.json
+
+# Ne pas ignorer package-lock.json dans les sous-dossiers
+!*/package-lock.json

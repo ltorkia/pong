@@ -22,7 +22,6 @@ import { ComponentConfig } from '../types/components.types';
  * Fonction utilitaire pour obtenir la liste des routes configurées
  * (retourne une copie pour éviter les modifications).
  * 
- * @export
  * @return {RouteConfig[]} La liste des routes configurées.
  */
 export function getRoutesConfig(): RouteConfig[] {
@@ -32,7 +31,6 @@ export function getRoutesConfig(): RouteConfig[] {
 /**
  * Fonction utilitaire pour trouver une configuration de route par une propriété donnée (par défaut 'name').
  *
- * @export
  * @param {string} value Valeur de la propriété à chercher
  * @param {keyof RouteConfig} [key='name'] Nom de la propriété à chercher
  * @return {(RouteConfig | undefined)} La configuration de route trouvée, ou undefined si pas trouvée
@@ -45,7 +43,6 @@ export function findRouteConfig(value: string, key: keyof RouteConfig = 'name'):
  * Fonction utilitaire pour récupérer une configuration de route par une propriété donnée
  * (par défaut 'name') et lever une erreur si aucune correspondance n'est trouvée.
  * 
- * @export
  * @param {string} value Valeur de la propriété à chercher
  * @param {keyof RouteConfig} [key='name'] Nom de la propriété à chercher
  * @return {RouteConfig} La configuration de route trouvée.
@@ -63,7 +60,6 @@ export function getRouteConfig(value: string, key: keyof RouteConfig = 'name'): 
  * Fonction utilitaire pour obtenir la liste des components configurés
  * (retourne une copie pour éviter les modifications)
  *
- * @export
  * @return {ComponentConfig[]}
  */
 export function getComponentsConfig(): ComponentConfig[] {
@@ -73,7 +69,6 @@ export function getComponentsConfig(): ComponentConfig[] {
 /**
  * Fonction utilitaire pour trouver une configuration de composant par l'une de ses propriétés (par défaut 'name').
  *
- * @export
  * @param {string} value Valeur de la propriété à chercher
  * @param {keyof ComponentConfig} [key='name'] Nom de la propriété à chercher
  * @return {(ComponentConfig | undefined)} La configuration de composant trouvée, ou undefined si pas trouvée
@@ -86,7 +81,6 @@ export const findComponentConfig = (value: string, key: keyof ComponentConfig = 
  * Fonction utilitaire pour récupérer une configuration de composant par une propriété donnée
  * (par défaut 'name') et lever une erreur si aucune correspondance n'est trouvée.
  *
- * @export
  * @param {string} value Valeur de la propriété à chercher
  * @param {keyof ComponentConfig} [key='name'] Nom de la propriété à chercher
  * @return {ComponentConfig} La configuration de composant trouvée

@@ -1,5 +1,5 @@
 import { User } from '../models/user.model';
-import { UserModel, SafeUserModel } from '../../../shared/types/user.types';
+import { UserModel, SafeUserModel } from '../shared/types/user.types';	// en rouge car dossier local 'shared' != dossier conteneur
 
 // ===========================================
 // USER STORE
@@ -20,6 +20,8 @@ import { UserModel, SafeUserModel } from '../../../shared/types/user.types';
  * La méthode setCurrentUserFromServer met à jour l'utilisateur
  * courant avec les données complètes du serveur (y compris l'email)
  * mais n'enregistre que les données sans email en local storage.
+ * 
+ * @export
  */
 export class UserStore {
 	
@@ -147,10 +149,13 @@ export class UserStore {
 	}
 
 	/**
-	 * Remplace l'utilisateur courant par une nouvelle instance
-	 * Utile après une re-synchronisation avec le serveur
+	 * Remplace l'utilisateur courant par une nouvelle instance.
+	 * 
+	 * Utile après une re-synchronisation avec le serveur.
+	 * 
+	 * @param {User} user La nouvelle instance de User à utiliser comme utilisateur courant.
+	 * @memberof UserStore
 	 */
-	
 	public replaceCurrentUser(user: User): void {
 		this.setCurrentUser(user);
 	}
@@ -160,40 +165,63 @@ export class UserStore {
 	// ============================================================================
 
 	/**
-	 * Proxy vers currentUser.isOnline() avec vérification null
+	 * Indique si l'utilisateur courant est connecté (en ligne).
+	 * Renvoie false si l'utilisateur courant n'existe pas.
+	 * @returns {boolean} true si l'utilisateur courant est connecté, false sinon.
+	 * @memberof UserStore
 	 */
 	public get isCurrentUserOnline(): boolean {
 		return this.currentUser?.isOnline() ?? false;
 	}
 
 	/**
-	 * Proxy vers currentUser.winRate avec vérification null
+	 * Renvoie le taux de victoire de l'utilisateur courant.
+	 * Renvoie 0 si l'utilisateur courant n'existe pas.
+	 * @returns {number} Taux de victoire de l'utilisateur courant, ou 0 si l'utilisateur n'existe pas.
+	 * @memberof UserStore
 	 */
 	public get currentUserWinRate(): number {
 		return this.currentUser?.winRate ?? 0;
 	}
 
 	/**
-	 * Proxy vers currentUser.displayName avec vérification null
+	 * Proxy vers currentUser.displayName avec vérification null.
+	 * Renvoie le nom d'affichage de l'utilisateur courant, ou une string vide si l'utilisateur n'existe pas.
+	 * @returns {string} Le nom d'affichage de l'utilisateur courant, ou une string vide si l'utilisateur n'existe pas.
+	 * @memberof UserStore
 	 */
 	public get currentUserDisplayName(): string {
 		return this.currentUser?.displayName ?? '';
 	}
 
 	/**
-	 * Proxy vers currentUser.formattedTimePlayed avec vérification null
+	 * Proxy vers currentUser.formattedTimePlayed avec vérification null.
+	 * Renvoie le temps total de jeu formaté en heures et minutes, ou "0h 0m" si l'utilisateur courant n'existe pas.
+	 * @returns {string} Le temps total de jeu formaté, ou "0h 0m" si l'utilisateur n'existe pas.
+	 * @memberof UserStore
 	 */
 	public get currentUserFormattedTimePlayed(): string {
 		return this.currentUser?.formattedTimePlayed ?? '0h 0m';
 	}
 
 	/**
-	 * Accès sécurisé à l'email - uniquement disponible en mémoire
-	 * Renvoie une string vide si l'utilisateur a été restauré depuis localStorage
+	 * Accès sécurisé à l'email de l'utilisateur courant.
+	 * L'email est stockée en mémoire vive uniquement, et non en localStorage.
+	 * Si l'utilisateur courant n'existe pas, renvoie une string vide.
+	 * @returns {string} L'email de l'utilisateur courant, ou une string vide si l'utilisateur n'existe pas.
+	 * @memberof UserStore
 	 */
 	public get currentUserEmail(): string {
 		return this.currentUser?.email ?? '';
 	}
 }
 
+/**
+ * Instance unique du store d'etat de l'utilisateur.
+ * 
+ * Stocke l'utilisateur courant en mémoire vive et en local storage.
+ * 
+ * Permet de gérer la connexion et la déconnexion de l'utilisateur,
+ * ainsi que la mise à jour de l'utilisateur courant.
+ */
 export const userStore = new UserStore();
