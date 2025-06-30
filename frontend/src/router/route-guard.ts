@@ -7,7 +7,6 @@ import { router } from './router';
 // ===========================================
 // ROUTE GUARD
 // ===========================================
-
 /**
  * Classe RouteGuard
  * 
@@ -16,8 +15,6 @@ import { router } from './router';
  * - Redirige les utilisateurs non authentifiés vers /login pour les routes privées
  * - Redirige les utilisateurs authentifiés vers / s'ils essaient d'accéder aux pages publiques
  * - Gère la restauration des sessions utilisateur
- * 
- * @export
  */
 export class RouteGuard {
 	/**
@@ -31,7 +28,7 @@ export class RouteGuard {
 	 * 
 	 * @private
 	 * @param {string} route Chemin de la route à protéger
-	 * @return {Promise<boolean>} true si une redirection a eu lieu, false sinon
+	 * @returns {Promise<boolean>} true si une redirection a eu lieu, false sinon
 	 */
 	private async handleAuthRedirect(route: string): Promise<boolean> {
 		try {

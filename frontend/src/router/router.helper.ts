@@ -13,7 +13,6 @@ import { RouteHandler } from '../types/routes.types';
 /**
  * Vérifie si une route contient des param tres (ex: /user/:id)
  * 
- * @export
  * @param {string} path - Le chemin de la route  v rifier
  * @returns {boolean} true si le chemin contient des param tres, false sinon
  */
@@ -35,7 +34,6 @@ export function hasParams(path: string): boolean {
  * normalizePath('/login/') => '/login'
  * normalizePath('/login') => '/login'
  * 
- * @export
  * @param {string} path - Le chemin  normaliser
  * @returns {string} Le chemin normalisé
  */
@@ -64,7 +62,6 @@ export function normalizePath(path: string): string {
  * - Si tous les segments correspondent, retourne un objet contenant la route et les paramètres extraits.
  * - Retourne null si aucune route ne correspond.
  * 
- * @export
  * @param {string} path - Chemin  tester, ex: "/users/42"
  * @param {Map<string, RouteHandler>} routes - Map des routes enregistrées
  * @returns {{ route: string; params: Record<string, string> } | null} - Objet { route, params } si une route correspond, sinon null

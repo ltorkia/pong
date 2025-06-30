@@ -17,8 +17,6 @@ import { defaultRoute } from '../config/routes.config';
  * - coordination entre les différents composants (RouteGuard, utils, etc.)
  * - exécution des handlers de routes
  * - navigation et les redirections
- * 
- * @export
  */
 export class Router {
 	private routes: Map<string, RouteHandler> = new Map();
@@ -57,7 +55,6 @@ export class Router {
 	 * Utile si on recharge la page ou arrive directement sur une URL précise.
 	 * 
 	 * @returns {Promise<void>} Une promesse qui se résout lorsque la route a été gérée.
-	 * @memberof Router
 	 */
 	public async handleLocationPublic(): Promise<void> {
 		await this.handleLocation();
@@ -74,7 +71,6 @@ export class Router {
 	 * 
 	 * @param {string} path Chemin de la route à enregistrer.
 	 * @param {RouteHandler} handler Fonction handler qui sera exécutée pour render la page.
-	 * @memberof Router
 	 */
 	public register(path: string, handler: RouteHandler): void {
 		const normalizedPath = normalizePath(path);
@@ -102,7 +98,6 @@ export class Router {
 	 * 
 	 * @param {string} path Chemin de la route demandée.
 	 * @returns {Promise<void>} Une promesse qui se résout lorsque la navigation a été gérée.
-	 * @memberof Router
 	 */
 	public async navigate(path: string): Promise<void> {
 		if (this.isNavigating) return;
@@ -148,7 +143,6 @@ export class Router {
 	 * - Au démarrage de l'application.
 	 * 
 	 * @private
-	 * @memberof Router
 	 */
 	private async handleLocation() {
 		let path = window.location.pathname;
@@ -204,7 +198,6 @@ export class Router {
 	 * 
 	 * @param {string} path Chemin de la route vers laquelle rediriger.
 	 * @returns {Promise<void>} Une promesse qui se résout lorsque la redirection a été gérée.
-	 * @memberof Router
 	 */
 	public async redirect(path: string): Promise<void> {
 		window.history.replaceState({}, '', path);
@@ -216,7 +209,6 @@ export class Router {
 	 * 
 	 * @returns {Map<string, RouteHandler>} Une map contenant les chemins de route
 	 * et leurs handlers correspondants.
-	 * @memberof Router
 	 */
 
 	public getRoutes(): Map<string, RouteHandler> {
