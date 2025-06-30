@@ -40,8 +40,6 @@ export class NavbarComponent extends BaseComponent {
 	 * @param {HTMLElement} container L'élément HTML qui sera utilisé comme conteneur pour le composant.
 	 */
 	constructor(routeConfig: RouteConfig, componentConfig: ComponentConfig, container: HTMLElement) {
-		// super() appelle le constructeur du parent BaseComponent
-		// avec le container et le chemin du component HTML pour la navbar
 		super(componentConfig, container);
 		
 		this.routeConfig = routeConfig;
@@ -65,23 +63,14 @@ export class NavbarComponent extends BaseComponent {
 	 */
 	protected async mount(): Promise<void> {
 		if (import.meta.env.DEV === true) {
-			// code exécuté uniquement en dev pour le hot reload Vite
-			// des fichiers HTML qui sont dans src au lieu de public
 			this.container.innerHTML = template;
-			// console.log(this.componentPath, this.container.innerHTML);
 			console.log(`[${this.constructor.name}] Hot-reload actif`);
 		}
-
-		// On génère le lien du profil avec l'id du current user
 		this.profileLink = this.setNavLink('a[href="/profile"]', '/user/{userId}');
 
-		// On met à jour le lien actif
-		// const currentRoute = getRouteFromPath(this.parentTemplate);
 		const currentRoute = this.routeConfig.path;
 		this.updateNavigation(currentRoute);
 
-		// On ajoute un margin à la balise 'main'
-		// qui correspond à la hauteur de la navbar
 		const main = document.querySelector('main');
 		if (main) {
 			main.classList.add('mt-main');
@@ -137,10 +126,7 @@ export class NavbarComponent extends BaseComponent {
 		burgerBtn.addEventListener('click', () => {
 			const navbarMenu = document.getElementById('navbar-menu') as HTMLElement;
 			const icon = burgerBtn.querySelector('i');
-
-			// On transforme les trois barres en X
 			toggleClass(icon, 'fa-bars', 'fa-xmark', 'text-blue-300');
-			// On affiche ou on cache le menu (responsive)
 			toggleClass(navbarMenu, 'show', 'hide');
 		});
 	}
@@ -157,8 +143,6 @@ export class NavbarComponent extends BaseComponent {
 	 */
 	protected setNavLink(selector: string, linkTemplate: string): string {
 		const navLink = getHTMLAnchorElement(selector, this.container);
-
-		// Si le lien contient un placeholder {userId}, on le remplace par l'ID du currentUser
 		let link = linkTemplate;
 		if (this.currentUser && this.currentUser.id && linkTemplate.includes('{userId}')) {
 			link = linkTemplate.replace('{userId}', this.currentUser.id.toString());
