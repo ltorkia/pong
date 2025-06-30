@@ -3,7 +3,7 @@ import { ComponentConfig } from '../../types/components.types';
 import { User } from '../../models/user.model';
 import { userStore } from '../../stores/user.store';
 import { loadTemplate, getHTMLElementById } from '../../utils/dom.utils';
-import { HTMLContainers } from '../../config/constants.config';
+import { appId } from '../../config/routes.config';
 import { LOADING_PAGE_ERR } from '../../config/messages.config';
 
 export abstract class BasePage {
@@ -79,12 +79,10 @@ export abstract class BasePage {
 		if (!this.components) {
 			return;
 		}
-
 		for (const componentConfig of Object.values(this.components)) {
 			if (!this.isValidConfig(componentConfig)) {
 				continue;
 			}
-			
 			const componentContainer = getHTMLElementById(componentConfig.containerId);
 			const component = new componentConfig.componentClass(this.config, componentConfig, componentContainer);
 			await component.render();
@@ -127,7 +125,7 @@ export abstract class BasePage {
 	}
 
 	protected getContainerApp(): HTMLElement {
-		return getHTMLElementById(HTMLContainers.appId);
+		return getHTMLElementById(appId);
 	}
 
 	/**
@@ -138,7 +136,7 @@ export abstract class BasePage {
 		console.log(`[${this.constructor.name}] Nettoyage...`);
 		this.cleanupComponents();
 		this.container.innerHTML = '';
-		console.log(`[${this.constructor.name}] Container principal #${HTMLContainers.appId} nettoyé`);
+		console.log(`[${this.constructor.name}] Container principal #${appId} nettoyé`);
 		console.log(`[${this.constructor.name}] Nettoyage terminé`);
 	}
 

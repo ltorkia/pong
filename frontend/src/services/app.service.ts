@@ -40,9 +40,6 @@ export class AppService {
 		await this.tsParticlesInit();
 		await wait(100);
 		document.body.classList.remove('load');
-		
-		const appDiv = getHTMLElementById('app');
-		console.log(`[${this.constructor.name}] Container #app trouvé:`, appDiv);
 		console.log(`[${this.constructor.name}] Pathname actuel:`, location.pathname);
 		
 		await particlesService.load();

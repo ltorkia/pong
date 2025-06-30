@@ -2,7 +2,7 @@ import { BasePage } from '../base/base.page';
 import { userCrudApi } from '../../api/user/user.api';
 import { UserRowComponent } from '../../components/user-row/user-row.component';
 import { getHTMLElementById } from '../../utils/dom.utils';
-import { componentNames, HTMLContainers } from '../../config/constants.config';
+import { componentNames, componentContainers } from '../../config/components.config';
 import { RouteConfig } from '../../types/routes.types';
 
 export class UsersPage extends BasePage {
@@ -34,7 +34,7 @@ export class UsersPage extends BasePage {
 		}
 
 		const users = await userCrudApi.getUsers();
-		const userList = getHTMLElementById(HTMLContainers.userListId);
+		const userList = getHTMLElementById(componentContainers.userListId);
 
 		for (const user of users) {
 			let tempContainer = document.createElement('tbody');

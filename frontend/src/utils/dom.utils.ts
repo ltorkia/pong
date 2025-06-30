@@ -75,19 +75,37 @@ export function getHTMLElementByClass(elementClass: string, container: Document 
 }
 
 /**
- * Retourne un élément HTML de type <a> (lien) à partir d'un sélecteur CSS, dans le conteneur
+ * Renvoie l'élément HTML portant la balise HTML passée en paramètre, dans le conteneur
  * passé en paramètre (par défaut, c'est le document courant).
+ * Si l'élément n'est pas trouvé, lance une erreur.
+ *
+ * @param {string} elementTag - Nom de la balise HTML de l'élément à chercher.
+ * @param {Document | ParentNode} [container=document] - Conteneur dans lequel chercher l'élément.
+ * @returns {HTMLElement} - L'élément HTML portant la balise HTML demandée.
+ * @throws {Error} - Si l'élément n'est pas trouvé dans le DOM.
+ */
+export function getHTMLElementByTagName(elementTag: string, container: Document | ParentNode = document): HTMLElement {
+	const element = container.querySelector(`${elementTag}`);
+	if (!(element instanceof HTMLElement)) {
+		throw new Error(`Elément ${elementTag} introuvable dans le DOM`);
+	}
+	return element;
+}
+
+/**
+ * Retourne un élément HTML de type <a> ayant l'attribut href donné, dans le conteneur
+ * passé en paramètre (par défaut, le document).
  * Si l'élément n'existe pas, lance une erreur.
  *
- * @param {string} elementSelector - Sélecteur CSS de l'élément <a> à chercher.
+ * @param {string} hrefValue - Valeur de l'attribut href du lien à chercher (ex: "/logout").
  * @param {(Document | ParentNode)} [container=document] - Conteneur dans lequel chercher l'élément.
  * @returns {HTMLAnchorElement} - L'élément <a> trouvé.
  * @throws {Error} - Si l'élément n'est pas trouvé.
  */
-export function getHTMLAnchorElement(elementSelector: string, container: Document | ParentNode = document): HTMLAnchorElement {
-	const element = container.querySelector(elementSelector);
+export function getHTMLAnchorElement(hrefValue: string, container: Document | ParentNode = document): HTMLAnchorElement {
+	const element = container.querySelector(`a[href="${hrefValue}"]`);
 	if (!(element instanceof HTMLAnchorElement)) {
-		throw new Error(`Elément ${elementSelector} introuvable dans le DOM`);
+		throw new Error(`Elément a[href="${hrefValue}"] introuvable dans le DOM`);
 	}
 	return element;
 }

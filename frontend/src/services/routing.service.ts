@@ -180,7 +180,6 @@ export class RoutingService {
 			}
 
 			// Cas classique
-			console.log(config.path);
 			return new config.pageClass(config);
 		} catch (error) {
 			console.error(`[${this.constructor.name}] Erreur lors de la création de l'instance de page pour ${config.name}:`, error);

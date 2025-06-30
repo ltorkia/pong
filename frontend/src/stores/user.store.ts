@@ -53,7 +53,7 @@ export class UserStore {
 		// Stockage complet avec email pour l'utilisateur connecté
 		const userData: SafeUserModel = user.toSafeJSON();
 		localStorage.setItem('currentUser', JSON.stringify(userData));
-		console.log(`[${this.constructor.name}] Utilisateur stocké :`, user.id);
+		console.log(`[${this.constructor.name}] Utilisateur stocké :`, this.currentUser);
 	}
 
 	/**
@@ -71,7 +71,7 @@ export class UserStore {
 		// Mais sauvegarde sans email (localStorage)
 		const safeUserData: SafeUserModel = this.currentUser.toSafeJSON();
 		localStorage.setItem('currentUser', JSON.stringify(safeUserData));
-		console.log(`[${this.constructor.name}] Utilisateur mis à jour depuis serveur (email en mémoire uniquement)`);
+		console.log(`[${this.constructor.name}] Utilisateur mis à jour depuis serveur (email en mémoire uniquement):`, this.currentUser);
 	}
 
 	/**
@@ -125,7 +125,7 @@ export class UserStore {
 		if (userJSON) {
 			const userData: SafeUserModel = JSON.parse(userJSON);
 			this.currentUser = User.fromSafeJSON(userData);
-			console.log(`[${this.constructor.name}] User restauré :`, this.currentUser.id);
+			console.log(`[${this.constructor.name}] User restauré:`, this.currentUser);
 		}
 		return this.currentUser;
 	}

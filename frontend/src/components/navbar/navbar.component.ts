@@ -2,13 +2,14 @@
 import template from './navbar.component.html?raw'
 
 import { BaseComponent } from '../base/base.component';
+import { routePaths, profileHTMLAnchor } from '../../config/routes.config';
 import { RouteConfig } from '../../types/routes.types';
 import { ComponentConfig } from '../../types/components.types';
 import { User } from '../../models/user.model';
 import { userStore } from '../../stores/user.store';
 import { userService } from '../../services/services';
 import { toggleClass } from '../../utils/dom.utils';
-import { getHTMLElementById, getHTMLAnchorElement } from '../../utils/dom.utils';
+import { getHTMLElementById, getHTMLAnchorElement, getHTMLElementByTagName } from '../../utils/dom.utils';
 
 // ===========================================
 // NAVBAR COMPONENT
@@ -27,7 +28,10 @@ import { getHTMLElementById, getHTMLAnchorElement } from '../../utils/dom.utils'
 export class NavbarComponent extends BaseComponent {
 	protected routeConfig: RouteConfig;
 	protected currentUser: User | null = null;
+	protected profilePlaceholder: string;
 	protected profileLink?: string;
+	protected burgerBtn?: HTMLElement;
+	protected logoutLink?: HTMLAnchorElement;
 
 	/**
 	 * Constructeur du composant de la navbar.
@@ -44,6 +48,7 @@ export class NavbarComponent extends BaseComponent {
 		
 		this.routeConfig = routeConfig;
 		this.currentUser = userStore.getCurrentUser();
+		this.profilePlaceholder = '{userId}';
 	}
 
 	/**
@@ -66,7 +71,7 @@ export class NavbarComponent extends BaseComponent {
 			this.container.innerHTML = template;
 			console.log(`[${this.constructor.name}] Hot-reload actif`);
 		}
-		this.profileLink = this.setNavLink('a[href="/profile"]', '/user/{userId}');
+		this.profileLink = this.setNavLink(profileHTMLAnchor, `/user/${this.profilePlaceholder}`);
 
 		const currentRoute = this.routeConfig.path;
 		this.updateNavigation(currentRoute);
@@ -75,6 +80,26 @@ export class NavbarComponent extends BaseComponent {
 		if (main) {
 			main.classList.add('mt-main');
 		}
+	}
+
+	/**
+	 * Modifie dynamiquement un lien dans la barre de navigation.
+	 * Modifie par exemple le lien du profil (/profile) dans la barre de navigation
+	 * pour pointer vers la page de l'utilisateur connecté (/user/id).
+	 * On utilise un placeholder {userId} qui va être remplacé par le vrai id de l'utilisateur.
+	 * 
+	 * @param {string} hrefValue - Valeur de l'attribut href du lien à chercher.
+	 * @param {string} linkTemplate - Le template de lien qui sera modifié.
+	 * @returns {string} Le lien modifié.
+	 */
+	protected setNavLink(hrefValue: string, linkTemplate: string): string {
+		const navLink = getHTMLAnchorElement(hrefValue, this.container);
+		let link = linkTemplate;
+		if (this.currentUser && this.currentUser.id && linkTemplate.includes(this.profilePlaceholder)) {
+			link = linkTemplate.replace(this.profilePlaceholder, this.currentUser.id.toString());
+		}
+		navLink.href = link;
+		return link;
 	}
 
 	/**
@@ -95,7 +120,7 @@ export class NavbarComponent extends BaseComponent {
 			anchor.classList.remove('active');
 			const linkPath = new URL(anchor.href).pathname;
 			if (linkPath === route
-				|| route === '/user/:id' && linkPath === this.profileLink) {
+				|| route === routePaths.profile && linkPath === this.profileLink) {
 				anchor.classList.add('active');
 			}
 		});
@@ -108,47 +133,25 @@ export class NavbarComponent extends BaseComponent {
 	 * - Attribue un listener au bouton de déconnexion.
 	 */
 	protected attachListeners(): void {
-		const burgerBtn = getHTMLElementById('burger-btn', this.container);
-		this.handleBurgerMenu(burgerBtn);
-		this.listenLogout();
+		this.burgerBtn = getHTMLElementById('burger-btn', this.container);
+		this.logoutLink = getHTMLAnchorElement(routePaths.logout, this.container);
+
+		this.burgerBtn.addEventListener('click', this.handleBurgerClick);
+		this.logoutLink.addEventListener('click', this.handleLogoutClick);
 	}
 
 	/**
 	 * Basculle le menu burger pour la navigation mobile.
 	 *
-	 * Ajoute un listener d'événement de clic au bouton burger qui:
+	 * Handler pour ajouter un listener d'événement de clic au bouton burger qui:
 	 * - Fait basculer l'icône entre le symbole 'bars' et 'x'.
 	 * - Fait basculer la visibilité du menu de la navbar.
-	 *
-	 * @param {HTMLElement} burgerBtn - L'élément bouton qui déclenche le basculement du menu.
 	 */
-	protected handleBurgerMenu(burgerBtn: HTMLElement): void {
-		burgerBtn.addEventListener('click', () => {
-			const navbarMenu = document.getElementById('navbar-menu') as HTMLElement;
-			const icon = burgerBtn.querySelector('i');
-			toggleClass(icon, 'fa-bars', 'fa-xmark', 'text-blue-300');
-			toggleClass(navbarMenu, 'show', 'hide');
-		});
-	}
-
-	/**
-	 * Modifie dynamiquement un lien dans la barre de navigation.
-	 * Modifie par exemple le lien du profil (/profile) dans la barre de navigation
-	 * pour pointer vers la page de l'utilisateur connecté (/user/id).
-	 * On utilise un placeholder {userId} qui va être remplacé par le vrai id de l'utilisateur.
-	 * 
-	 * @param {string} selector - Le sélecteur CSS du lien à modifier.
-	 * @param {string} linkTemplate - Le template de lien qui sera modifié.
-	 * @returns {string} Le lien modifié.
-	 */
-	protected setNavLink(selector: string, linkTemplate: string): string {
-		const navLink = getHTMLAnchorElement(selector, this.container);
-		let link = linkTemplate;
-		if (this.currentUser && this.currentUser.id && linkTemplate.includes('{userId}')) {
-			link = linkTemplate.replace('{userId}', this.currentUser.id.toString());
-		}
-		navLink.href = link;
-		return link;
+	protected handleBurgerClick = (e: MouseEvent): void => {
+		const navbarMenu = getHTMLElementById('navbar-menu', this.container);
+		const icon = getHTMLElementByTagName('i', this.burgerBtn);
+		toggleClass(icon, 'fa-bars', 'fa-xmark', 'text-blue-300');
+		toggleClass(navbarMenu, 'show', 'hide');
 	}
 
 	/**
@@ -159,13 +162,14 @@ export class NavbarComponent extends BaseComponent {
 	 * 
 	 * @returns {Promise<void>} Promesse qui se résout lorsque l'opération est terminée.
 	 */
-	protected async listenLogout(): Promise<void> {
-		const logoutLink = document.querySelector('a[href="/logout"]');
-		if (logoutLink) {
-			logoutLink.addEventListener('click', async (e) => {
-				e.preventDefault();
-				await userService.logoutUser();
-			});
-		}
+	protected handleLogoutClick = async (e: MouseEvent): Promise<void> => {
+		e.preventDefault();
+		await userService.logoutUser();
+	};
+
+	public destroy(): void {
+		this.burgerBtn?.removeEventListener('click', this.handleBurgerClick);
+		this.logoutLink?.removeEventListener('click', this.handleLogoutClick);
+		this.container.replaceChildren();
 	}
 }

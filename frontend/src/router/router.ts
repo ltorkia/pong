@@ -151,9 +151,7 @@ export class Router {
 			window.history.replaceState({}, '', normalizedPath);
 			path = normalizedPath;
 		}
-
 		console.log(`[${this.constructor.name}] Tentative de navigation vers: ${path}`);
-		console.log(`[${this.constructor.name}] Routes disponibles:`, Array.from(this.routes.keys()));
 
 		// Recherche la route qui matche (statique ou dynamique)
 		const matchedRoute = matchRoute(path, this.routes);

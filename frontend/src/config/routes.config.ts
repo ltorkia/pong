@@ -1,4 +1,3 @@
-// PAGES
 import { HomePage } from '../pages/user/home.page';
 import { RegisterPage } from '../pages/auth/register.page';
 import { LoginPage } from '../pages/auth/login.page';
@@ -6,31 +5,97 @@ import { GamePage } from '../pages/game/game.page';
 import { UsersPage } from '../pages/user/users.page';
 import { ProfilePage } from '../pages/user/profile.page';
 
-// TYPES
 import { RouteConfig } from '../types/routes.types';
-
-// UTILS
-import { pageNames, componentNames } from './constants.config';
+import { componentNames } from './components.config';
 import { getComponentConfig } from '../utils/config.utils';
 
 // ===========================================
 // ROUTES CONFIG
 // ===========================================
 /**
- * Ce fichier exporte un tableau de configurations de routes.
- * Il est utilisé par le routeur pour enregistrer les routes
- * et par les composants qui ont besoin de connaître les routes de l'application.
+ * Ce fichier contient la configuration de routes de l'application.
+ *
+ * Les routes sont définies dans un tableau de type RouteConfig[].
+ * Chaque élément de ce tableau décrit une route de l'application.
+ * Les routes sont enregistrées par le routeur et sont utilisées pour
+ * rediriger les utilisateurs vers les bonnes pages.
  */
+
+/**
+ * ID de la div HTML dans laquelle on injecte les templates de pages HTML.
+ * 
+ * Cette div est l'élément racine de l'application et est définie dans le fichier
+ * index.html. Les routes injectent les templates HTML dans cette div.
+ */
+export const appId: string = 'app';
+
+/**
+ * Lien HTML vers le profil de l'utilisateur actuel.
+ *
+ * Ce lien est utilisé dans la navbar pour lier vers le profil de l'utilisateur actuel.
+ * Le lien est généré par le composant de la navbar qui remplace le placeholder {userId}
+ * par l'id de l'utilisateur actuel dans 'user/{userId}'.
+ */
+export const profileHTMLAnchor: string = '/profile';
+
+/**
+ * Constantes pour les noms de pages.
+ *
+ * `pageNames` contient l'ensemble des noms de pages de l'application.
+ * Chaque clé est une page de l'application.
+ * La valeur associée à chaque clé est le nom de la page.
+ */
+export const pageNames = {
+	home: 'Home',
+	register: 'Register',
+	login: 'Login',
+	game: 'Game',
+	users: 'Users',
+	profile: 'Profile',
+} as const;
+
+/**
+ * Constantes pour les chemins de routes.
+ *
+ * `routePaths` contient l'ensemble des chemins de routes de l'application.
+ * Chaque clé est une page de l'application.
+ * La valeur associée à chaque clé est le chemin de route correspondant.
+ */
+export const routePaths = {
+	home: '/',
+	register: '/register',
+	login: '/login',
+	game: '/game',
+	users: '/users',
+	profile: '/user/:id',
+	logout: '/logout',
+} as const;
+
+/**
+ * Constantes pour les chemins de modèles HTML.
+ *
+ * `templatePaths` contient l'ensemble des chemins de modèles HTML de l'application.
+ * Chaque clé est une page de l'application.
+ * La valeur associée à chaque clé est le chemin de template correspondant.
+ */
+export const templatePaths = {
+	home: '/templates/user/home.html',
+	register: '/templates/auth/register.html',
+	login: '/templates/auth/login.html',
+	game: '/templates/game/game.html',
+	users: '/templates/user/users.html',
+	profile: '/templates/user/profile.html',
+} as const;
 
 /**
  * Route par défaut pour les redirections
  */
-export const defaultRoute = '/';
+export const defaultRoute = routePaths.home;
 
 /**
  * Route de fallback en cas d'erreur d'authentification
  */
-export const authFallbackRoute = '/login';
+export const authFallbackRoute = routePaths.login;
 
 /**
  * Configuration des routes de l'application.
@@ -46,10 +111,10 @@ export const authFallbackRoute = '/login';
  */
 export const routesConfig: RouteConfig[] = [
 	{
-		path: '/',
+		path: routePaths.home,
 		name: pageNames.home,
 		pageClass: HomePage,
-		templatePath: '/templates/user/home.html',
+		templatePath: templatePaths.home,
 		components: {
 			[componentNames.navbar]: getComponentConfig(componentNames.navbar)
 		},
@@ -57,28 +122,28 @@ export const routesConfig: RouteConfig[] = [
 		enableParticles: true
 	},
 	{
-		path: '/register',
+		path: routePaths.register,
 		name: pageNames.register,
 		pageClass: RegisterPage,
-		templatePath: '/templates/auth/register.html',
+		templatePath: templatePaths.register,
 		components: {},
 		isPublic: true,
 		enableParticles: true
 	},
 	{
-		path: '/login',
+		path: routePaths.login,
 		name: pageNames.login,
 		pageClass: LoginPage,
-		templatePath: '/templates/auth/login.html',
+		templatePath: templatePaths.login,
 		components: {},
 		isPublic: true,
 		enableParticles: true
 	},
 	{
-		path: '/game',
+		path: routePaths.game,
 		name: pageNames.game,
 		pageClass: GamePage,
-		templatePath: '/templates/game/game.html',
+		templatePath: templatePaths.game,
 		components: {
 			[componentNames.navbar]: getComponentConfig(componentNames.navbar)
 		},
@@ -86,10 +151,10 @@ export const routesConfig: RouteConfig[] = [
 		enableParticles: false
 	},
 	{
-		path: '/users',
+		path: routePaths.users,
 		name: pageNames.users,
 		pageClass: UsersPage,
-		templatePath: '/templates/user/users.html',
+		templatePath: templatePaths.users,
 		components: {
 			[componentNames.navbar]: getComponentConfig(componentNames.navbar),
 			[componentNames.userRow]: getComponentConfig(componentNames.userRow)
@@ -98,10 +163,10 @@ export const routesConfig: RouteConfig[] = [
 		enableParticles: true
 	},
 	{
-		path: '/user/:id',
+		path: routePaths.profile,
 		name: pageNames.profile,
 		pageClass: ProfilePage,
-		templatePath: '/templates/user/profile.html',
+		templatePath: templatePaths.profile,
 		components: {
 			[componentNames.navbar]: getComponentConfig(componentNames.navbar)
 		},
