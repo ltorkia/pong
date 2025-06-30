@@ -40,8 +40,7 @@ export class UserService {
 	 * Charge l'utilisateur si un cookie d'authentification est présent,
 	 * sinon, on lance l'application sans utilisateur.
 	 *
-	 * @return {(Promise<User | null>)} L'utilisateur chargé, ou null si pas de cookie.
-	 * @memberof UserService
+	 * @returns {(Promise<User | null>)} L'utilisateur chargé, ou null si pas de cookie.
 	 */
 	public async loadUser(): Promise<User | null> {
 		// Vérification rapide avec le cookie compagnon
@@ -62,8 +61,7 @@ export class UserService {
 	 * dans le navigateur en vérifiant la présence de la clé
 	 * `auth-status` avec la valeur `active` dans le document.cookie.
 	 * 
-	 * @return {boolean} true si le cookie est présent, false sinon.
-	 * @memberof UserService
+	 * @returns {boolean} true si le cookie est présent, false sinon.
 	 */
 	public hasAuthCookie(): boolean {
 		return document.cookie.includes(`${cookiesConst.authStatusKey}=${cookiesConst.authStatusValue}`);
@@ -78,7 +76,6 @@ export class UserService {
 	 *   puis fait fallback sur l'API si nécessaire.
 	 * 
 	 * @returns {Promise<User | null>} L'utilisateur validé ou restauré, ou null si pas d'authentification possible.
-	 * @memberof UserService
 	 */
 	public async loadOrRestoreUser(): Promise<User | null> {
 		const hasCookie = this.hasAuthCookie();
@@ -113,8 +110,7 @@ export class UserService {
 	 * - Si aucun utilisateur n'est trouvé localement, une requête API est effectuée.
 	 *
 	 * @private
-	 * @return {Promise<User | null>} L'utilisateur restauré ou null si la restaurtion a échoué.
-	 * @memberof UserService
+	 * @returns {Promise<User | null>} L'utilisateur restauré ou null si la restaurtion a échoué.
 	 */
 	private async restoreUser(): Promise<User | null> {
 
@@ -148,8 +144,7 @@ export class UserService {
 	 *
 	 * @private
 	 * @param {User} user Utilisateur à valider
-	 * @return {(Promise<User | null>)} L'utilisateur validé ou null si la session a expiré
-	 * @memberof UserService
+	 * @returns {(Promise<User | null>)} L'utilisateur validé ou null si la session a expiré
 	 */
 	private async validateAndReturn(user: User): Promise<User | null> {
 		
@@ -181,8 +176,7 @@ export class UserService {
 	 * En cas d'erreur ou si la session n'est pas valide, retourne false.
 	 *
 	 * @param {number} userId - ID de l'utilisateur dont la session doit être validée.
-	 * @return {Promise<boolean>} true si la session est valide, false sinon.
-	 * @memberof UserService
+	 * @returns {Promise<boolean>} true si la session est valide, false sinon.
 	 */
 
 	private async validateUserSession(userId: number): Promise<boolean> {
@@ -206,9 +200,8 @@ export class UserService {
 	 * et redirige vers la page d'accueil.
 	 * 
 	 * @param {Record<string, string>} data Informations de l'utilisateur à inscrire.
-	 * @return {Promise<void>} Promesse qui se résout lorsque l'opération est terminée.
+	 * @returns {Promise<void>} Promesse qui se résout lorsque l'opération est terminée.
 	 * @throws {Error} Si la requête échoue.
-	 * @memberof UserService
 	 */
 	public async registerUser(data: Record<string, string>): Promise<void> {
 		try {
@@ -241,9 +234,8 @@ export class UserService {
 	 * et redirige vers la page d'accueil.
 	 * 
 	 * @param {Record<string, string>} data Informations de l'utilisateur à connecter.
-	 * @return {Promise<void>} Promesse qui se résout lorsque l'opération est terminée.
+	 * @returns {Promise<void>} Promesse qui se résout lorsque l'opération est terminée.
 	 * @throws {Error} Si la requête échoue ou en cas d'erreur réseau.
-	 * @memberof UserService
 	 */
 	public async loginUser(data: Record<string, string>): Promise<void> {
 		try {
@@ -273,9 +265,8 @@ export class UserService {
 	 * Si la déconnexion réussit, vide le store et le localStorage
 	 * et redirige vers la page de login.
 	 * 
-	 * @return {Promise<void>} Promesse qui se résout lorsque l'opération est terminée.
+	 * @returns {Promise<void>} Promesse qui se résout lorsque l'opération est terminée.
 	 * @throws {Error} Si la requête échoue ou en cas d'erreur réseau.
-	 * @memberof UserService
 	 */
 	public async logoutUser(): Promise<void> {
 		try {

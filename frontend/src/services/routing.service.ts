@@ -25,8 +25,6 @@ export class RoutingService {
 	 * Constructeur:
 	 * - Initialise les routes en les enregistrant dans le router global
 	 * (la map dans router.ts).
-	 * 
-	 * @memberof RoutingService
 	 */
 	constructor() {
 		this.setupRoutes();
@@ -51,8 +49,6 @@ export class RoutingService {
 	 * Dans la map, on set un chemin (ex: /login) et une fonction handler
 	 * qui sera exécutée pour render cette page au moment de la navigation.
 	 * Le handler peut prendre un parametre (ex: id).
-	 * 
-	 * @memberof RoutingService
 	 */
 
 	
@@ -68,8 +64,6 @@ export class RoutingService {
 	 *
 	 * Sinon, on enregistre la route avec un handler qui n'a pas de paramètre
 	 * et qui appellera handleSimpleRoute().
-	 * 
-	 * @memberof RoutingService
 	 */
 	private setupRoutes(): void {
 		routesConfig.forEach(config => {
@@ -118,7 +112,6 @@ export class RoutingService {
 	 * 
 	 * @param {RouteConfig} config Configuration de la route.
 	 * @returns {Promise<void>} Une promesse qui se résout lorsque la page est rendue.
-	 * @memberof RoutingService
 	 */
 	private async handleSimpleRoute(config: RouteConfig): Promise<void> {
 		console.log(`[${this.constructor.name}] Exec route -> navigation vers ${config.name}`);
@@ -146,7 +139,6 @@ export class RoutingService {
 	 * @param {RouteConfig} config Configuration de la route.
 	 * @param {RouteParams} [params] Paramètres de la route.
 	 * @returns {Promise<void>} Une promesse qui se résout lorsque la page est rendue.
-	 * @memberof RoutingService
 	 */
 	private async handleParamRoute(config: RouteConfig, params?: RouteParams): Promise<void> {
 		if (!params || Object.keys(params).length === 0) {
@@ -179,7 +171,6 @@ export class RoutingService {
 	 * @param {RouteConfig} config Configuration de la route.
 	 * @param {RouteParams} [params] Paramètres de la route.
 	 * @returns {Promise<any>} Une promesse qui se résout avec l'instance de page crée.
-	 * @memberof RoutingService
 	 */
 	private async createPageInstance(config: RouteConfig, params?: RouteParams): Promise<any> {
 		try {
@@ -206,7 +197,6 @@ export class RoutingService {
 	 * @param {RouteConfig} config Configuration de la route.
 	 * @param {RouteParams} params Paramètres de la route.
 	 * @returns {any} Une instance de la page crée.
-	 * @memberof RoutingService
 	 */
 	private createParamPageInstance(config: RouteConfig, params: RouteParams): any {
 		// Cas qui attendent un id user en parametre deja en param du handler (comme pour ProfilePage)
@@ -226,7 +216,6 @@ export class RoutingService {
 	 * @param {RouteConfig} config Configuration de la route.
 	 * @param {any} pageInstance Instance de la page créée.
 	 * @returns {Promise<void>} Une promesse qui se résout lorsque la page est rendue.
-	 * @memberof RoutingService
 	 */
 	private async loadPage(config: RouteConfig, pageInstance: any): Promise<void> {
 		try {
@@ -240,7 +229,6 @@ export class RoutingService {
 	 * Getter public pour accéder au router.
 	 * 
 	 * @returns {Router} L'instance du router.
-	 * @memberof RoutingService
 	 */
 	public getRouter(): Router {
 		return router;

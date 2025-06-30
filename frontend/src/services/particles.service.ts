@@ -20,8 +20,7 @@ export class ParticlesService {
 	 * - Cherche l'élément DOM #tsparticles et lance l'initialisation.
 	 * - Si l'élément est introuvable, un avertissement est logué.
 	 * 
-	 * @return {Promise<void>} Une promesse qui se résout lorsque les particules sont initialisées.
-	 * @memberof ParticlesService
+	 * @returns {Promise<void>} Une promesse qui se résout lorsque les particules sont initialisées.
 	 */
 	public async load(): Promise<void> {
 		const particlesElement = document.getElementById('tsparticles');
@@ -40,8 +39,7 @@ export class ParticlesService {
 	 * - Si l'élément est introuvable, un avertissement est logué.
 	 * - Sinon, l'opacité de l'élément est définie à 1 pour rendre les particules visibles.
 	 * 
-	 * @return {Promise<void>} Une promesse qui se résout lorsque l'opération est terminée.
-	 * @memberof ParticlesService
+	 * @returns {Promise<void>} Une promesse qui se résout lorsque l'opération est terminée.
 	 */
 	public async enable(): Promise<void> {
 		const particlesElement = document.getElementById('tsparticles');
@@ -60,8 +58,7 @@ export class ParticlesService {
 	 * - Si l'élément est introuvable, un avertissement est logué.
 	 * - Sinon, l'opacité de l'élément est définie à 0 pour masquer les particules.
 	 * 
-	 * @return {Promise<void>} Une promesse qui se résout lorsque l'opération est terminée.
-	 * @memberof ParticlesService
+	 * @returns {Promise<void>} Une promesse qui se résout lorsque l'opération est terminée.
 	 */
 	public async disable(): Promise<void> {
 		const particlesElement = document.getElementById('tsparticles');
@@ -82,8 +79,7 @@ export class ParticlesService {
 	 * - Si une erreur survient pendant le chargement, un avertissement
 	 *   est logué.
 	 * 
-	 * @return {Promise<void>} Une promesse qui se résout lorsque les particules sont initialisées.
-	 * @memberof ParticlesService
+	 * @returns {Promise<void>} Une promesse qui se résout lorsque les particules sont initialisées.
 	 */
 	private async initParticles(): Promise<void> {
 		try {

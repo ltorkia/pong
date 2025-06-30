@@ -42,7 +42,6 @@ export class PageService {
 	 * 
 	 * @param {RouteConfig} config - Configuration de la page.
 	 * @param {PageInstance} page - Instance de la page à afficher.
-	 * @memberof PageService
 	 */
 	public async renderPage(config: RouteConfig, page: PageInstance): Promise<void> {
 
@@ -69,7 +68,6 @@ export class PageService {
 	 * sinon les désactive.
 	 * 
 	 * @param {RouteConfig} config - Configuration de la page.
-	 * @memberof PageService
 	 */
 	private async toggleParticles(config: RouteConfig) {
 		if (config.enableParticles) {
@@ -88,7 +86,6 @@ export class PageService {
 	 * 
 	 * @param {HTMLElement} container - Élément HTML à transitionner.
 	 * @returns {Promise<void>} Une promesse qui se résout lorsque la transition est terminée.
-	 * @memberof PageService
 	 */
 	private async pageTransitionIn(container: HTMLElement): Promise<void> {
 		container.classList.remove('scale-90');
@@ -105,7 +102,6 @@ export class PageService {
 	 * 
 	 * @param {HTMLElement} container - Élément HTML à transitionner.
 	 * @returns {Promise<void>} Une promesse qui se résout lorsque la transition est terminée.
-	 * @memberof PageService
 	 */
 	private async pageTransitionOut(container: HTMLElement): Promise<void> {
 		container.classList.add('scale-90');
@@ -123,7 +119,6 @@ export class PageService {
 	 * 
 	 * @param {HTMLElement} container - Élément HTML de la navbar à transitionner.
 	 * @returns {Promise<void>} Une promesse qui se résout lorsque la transition est terminée.
-	 * @memberof PageService
 	 */
 	private async navbarTransitionIn(container: HTMLElement): Promise<void> {
 		container.classList.remove('-translate-y-[--navbar-height]');
@@ -142,7 +137,6 @@ export class PageService {
 	 *
 	 * @param {HTMLElement} container - Élément HTML de la navbar à transitionner.
 	 * @returns {Promise<void>} Une promesse qui se résout lorsque la transition est terminée.
-	 * @memberof PageService
 	 */	
 	private async navbarTransitionOut(container: HTMLElement): Promise<void> {
 		container.classList.remove('translate-y-0');
@@ -161,7 +155,6 @@ export class PageService {
 	 *  Méthode appelée par routing.service.ts avant le rendu de chaque page.
 	 * 
 	 * @returns {Promise<void>} Une promesse qui se résout lorsque la page est nettoyée.
-	 * @memberof PageService
 	 */
 	public async cleanup(): Promise<void> {
 		if (this.currentPage && typeof this.currentPage.cleanup === 'function') {
@@ -174,7 +167,6 @@ export class PageService {
 	 * Retourne la page courante (instance de Page) ou null si pas de page courante.
 	 *
 	 * @returns {PageInstance | null} La page courante ou null.
-	 * @memberof PageService
 	 */
 	public getCurrentPage(): PageInstance | null {
 		return this.currentPage;

@@ -34,8 +34,7 @@ export class AppService {
 	 * - Charge les particules d'arrière-plan
 	 * - Lance le routingService pour gérer la navigation et afficher la bonne page
 	 * 
-	 * @return {Promise<void>} Une promesse qui se résout lorsque tsParticles est initialisé.
-	 * @memberof AppService
+	 * @returns {Promise<void>} Une promesse qui se résout lorsque tsParticles est initialisé.
 	 */
 	public async start(): Promise<void> {
 		console.log('=== DEMARRAGE APP ===');
@@ -60,8 +59,7 @@ export class AppService {
 	 * Cette méthode est appelée une seule fois au démarrage de l'app.
 	 * Doit être appelée avant toute utilisation de tsParticles.load().
 	 * 
-	 * @return {Promise<void>} Une promesse qui se résout lorsque tsParticles est initialisé.
-	 * @memberof AppService
+	 * @returns {Promise<void>} Une promesse qui se résout lorsque tsParticles est initialisé.
 	 */
 	private async tsParticlesInit(): Promise<void> {
 		try {
@@ -75,7 +73,7 @@ export class AppService {
 	/**
 	 * Permet d'accéder au router pour le debug, les tests, etc.
 	 * 
-	 * @return {Router} Le router de l'application.
+	 * @returns {Router} Le router de l'application.
 	 */
 	public getRouter(): Router {
 		return routingService.getRouter();
