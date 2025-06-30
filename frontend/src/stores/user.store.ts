@@ -20,8 +20,6 @@ import { UserModel, SafeUserModel } from '../shared/types/user.types';	// en rou
  * La méthode setCurrentUserFromServer met à jour l'utilisateur
  * courant avec les données complètes du serveur (y compris l'email)
  * mais n'enregistre que les données sans email en local storage.
- * 
- * @export
  */
 export class UserStore {
 	

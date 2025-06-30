@@ -16,7 +16,7 @@ import { AuthResponse, BasicResponse } from '../types/api.types';
 import { uiStore } from '../stores/ui.store';
 
 // COOKIES
-import { cookiesConst } from '../shared/config/constants'; // en rouge car dossier local != dossier du conteneur
+import { cookiesConst } from '../shared/config/constants.config'; // en rouge car dossier local != dossier du conteneur
 
 // ===========================================
 // USER SERVICE

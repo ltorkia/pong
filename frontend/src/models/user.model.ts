@@ -15,8 +15,6 @@ import { SafeUserModel, UserModel, PublicUser } from '../shared/types/user.types
  * est temporairement stocké en mémoire vive, puis ses données
  * sont conservées sans l'email dans le localStorage pour un accès
  * ultérieur.
- * 
- * @export
  */
 export class User {
 
@@ -79,7 +77,6 @@ export class User {
 	 * Utilisé pour: listes d'utilisateurs, classements, profils publics.
 	 * 
 	 * @returns {PublicUser} - Version publique sans données sensibles
-	 * @memberof User
 	 */
 	toPublicJSON(): PublicUser {
 		return {
@@ -100,7 +97,6 @@ export class User {
 	 * Utilisé pour: opérations internes où l'email n'est pas nécessaire.
 	 * 
 	 * @returns {SafeUserModel} - Version complète sans email
-	 * @memberof User
 	 */
 	toSafeJSON(): SafeUserModel {
 		return {
@@ -127,7 +123,6 @@ export class User {
 	 * Utilisé pour: communications avec l'API, gestion complète du profil.
 	 * 
 	 * @returns {UserModel} - Version complète avec email
-	 * @memberof User
 	 */
 	toFullJSON(): UserModel {
 		return {
@@ -160,7 +155,6 @@ export class User {
 	 * 
 	 * @param data - Données partielles de l'utilisateur
 	 * @returns {User} - Instance de User avec toutes ses méthodes
-	 * @memberof User
 	 */
 	static fromJSON(data: Partial<UserModel>): User {
 
@@ -193,7 +187,6 @@ export class User {
 	 * 
 	 * @param data - Données SafeUserModel
 	 * @returns {User} - Instance de User (avec email vide)
-	 * @memberof User
 	 */
 	static fromSafeJSON(data: Partial<SafeUserModel>): User {
 		return this.fromJSON({ ...data, email: '' });
@@ -205,7 +198,6 @@ export class User {
 	 * 
 	 * @param data - Données PublicUser
 	 * @returns {User} - Instance de User (avec données minimales)
-	 * @memberof User
 	 */
 	static fromPublicJSON(data: PublicUser): User {
 		if (!data.id || !data.username) {
@@ -240,7 +232,6 @@ export class User {
 	 * 
 	 * @param users - Tableau d'objets UserModel
 	 * @returns {User[]} - Tableau d'instances User
-	 * @memberof User
 	 */
 	static fromJSONArray(users: Partial<UserModel>[]): User[] {
 		return users.map(user => this.fromJSON(user));
@@ -251,7 +242,6 @@ export class User {
 	 * 
 	 * @param users - Tableau d'objets SafeUserModel
 	 * @returns {User[]} - Tableau d'instances User
-	 * @memberof User
 	 */
 	static fromSafeJSONArray(users: Partial<SafeUserModel>[]): User[] {
 		return users.map(user => this.fromSafeJSON(user));
@@ -262,7 +252,6 @@ export class User {
 	 * 
 	 * @param users - Tableau d'objets PublicUser
 	 * @returns {User[]} - Tableau d'instances User
-	 * @memberof User
 	 */
 	static fromPublicJSONArray(users: PublicUser[]): User[] {
 		return users.map(user => this.fromPublicJSON(user));
@@ -273,7 +262,6 @@ export class User {
 	 * 
 	 * @param users - Tableau d'instances User
 	 * @returns {PublicUser[]} - Tableau d'objets PublicUser
-	 * @memberof User
 	 */
 	static toPublicJSONArray(users: User[]): PublicUser[] {
 		return users.map(user => user.toPublicJSON());
@@ -284,7 +272,6 @@ export class User {
 	 * 
 	 * @param users - Tableau d'instances User
 	 * @returns {SafeUserModel[]} - Tableau d'objets SafeUserModel
-	 * @memberof User
 	 */
 	static toSafeJSONArray(users: User[]): SafeUserModel[] {
 		return users.map(user => user.toSafeJSON());
@@ -295,7 +282,6 @@ export class User {
 	 * 
 	 * @param users - Tableau d'instances User
 	 * @returns {UserModel[]} - Tableau d'objets UserModel
-	 * @memberof User
 	 */
 	static toFullJSONArray(users: User[]): UserModel[] {
 		return users.map(user => user.toFullJSON());
@@ -310,7 +296,6 @@ export class User {
 	 * 
 	 * @param users - Tableau d'instances User
 	 * @returns {User[]} - Tableau d'utilisateurs actifs
-	 * @memberof User
 	 */
 	static getActiveUsers(users: User[]): User[] {
 		return users.filter(user => user.isActive);
@@ -321,7 +306,6 @@ export class User {
 	 * 
 	 * @param users - Tableau d'instances User
 	 * @returns {User[]} - Tableau d'utilisateurs en ligne
-	 * @memberof User
 	 */
 	static getOnlineUsers(users: User[]): User[] {
 		return users.filter(user => user.isOnline());
@@ -333,7 +317,6 @@ export class User {
 	 * @param users - Tableau d'instances User
 	 * @param status - Statut à filtrer
 	 * @returns {User[]} - Tableau d'utilisateurs avec le statut spécifié
-	 * @memberof User
 	 */
 	static getUsersByStatus(users: User[], status: 'online' | 'offline' | 'in-game'): User[] {
 		return users.filter(user => user.status === status);
@@ -348,7 +331,6 @@ export class User {
 	 * 
 	 * @param users - Tableau d'instances User
 	 * @returns {User[]} - Tableau d'utilisateurs triés par winRate
-	 * @memberof User
 	 */
 	static sortByWinRate(users: User[]): User[] {
 		return [...users].sort((a, b) => b.winRate - a.winRate);
@@ -359,7 +341,6 @@ export class User {
 	 * 
 	 * @param users - Tableau d'instances User
 	 * @returns {User[]} - Tableau d'utilisateurs triés par game_played
-	 * @memberof User
 	 */
 	static sortByGamesPlayed(users: User[]): User[] {
 		return [...users].sort((a, b) => b.game_played - a.game_played);
@@ -370,7 +351,6 @@ export class User {
 	 * 
 	 * @param users - Tableau d'instances User
 	 * @returns {User[]} - Tableau d'utilisateurs triés par time_played
-	 * @memberof User
 	 */
 	static sortByTimePlayed(users: User[]): User[] {
 		return [...users].sort((a, b) => b.time_played - a.time_played);
@@ -382,7 +362,6 @@ export class User {
 	 * @param users - Tableau d'instances User
 	 * @param id - ID de l'utilisateur à rechercher
 	 * @returns {User | undefined} - Utilisateur trouvé ou undefined
-	 * @memberof User
 	 */
 	static findById(users: User[], id: number): User | undefined {
 		return users.find(user => user.id === id);
@@ -394,7 +373,6 @@ export class User {
 	 * @param users - Tableau d'instances User
 	 * @param username - Nom d'utilisateur à rechercher
 	 * @returns {User | undefined} - Utilisateur trouvé ou undefined
-	 * @memberof User
 	 */
 	static findByUsername(users: User[], username: string): User | undefined {
 		return users.find(user => user.username.toLowerCase() === username.toLowerCase());
@@ -406,7 +384,6 @@ export class User {
 	 * @param users - Tableau d'instances User
 	 * @param searchTerm - Terme de recherche
 	 * @returns {User[]} - Tableau d'utilisateurs correspondants
-	 * @memberof User
 	 */
 	static searchByUsername(users: User[], searchTerm: string): User[] {
 		const term = searchTerm.toLowerCase();
@@ -418,7 +395,6 @@ export class User {
 	 * 
 	 * @param users - Tableau d'instances User
 	 * @returns {Object} - Statistiques globales
-	 * @memberof User
 	 */
 	static getGlobalStats(users: User[]): {
 		totalUsers: number;
@@ -455,7 +431,6 @@ export class User {
 	 * Clone une instance User.
 	 * 
 	 * @returns {User} - Nouvelle instance User identique
-	 * @memberof User
 	 */
 	clone(): User {
 		return User.fromJSON(this.toFullJSON());
@@ -466,7 +441,6 @@ export class User {
 	 * 
 	 * @param updates - Objet contenant les propriétés à mettre à jour
 	 * @returns {User} - Instance mise à jour (pour chaînage)
-	 * @memberof User
 	 */
 	update(updates: Partial<UserModel>): User {
 		Object.assign(this, updates);
@@ -478,7 +452,6 @@ export class User {
 	 * 
 	 * @param other - Autre utilisateur à comparer
 	 * @returns {boolean} - True si les utilisateurs sont identiques
-	 * @memberof User
 	 */
 	equals(other: User): boolean {
 		return this.id === other.id;
@@ -490,7 +463,6 @@ export class User {
 	 * @param other - Autre utilisateur à comparer
 	 * @param sortBy - Critère de tri ('username', 'winRate', 'gamesPlayed', 'timePlayed')
 	 * @returns {number} - Résultat de la comparaison (-1, 0, 1)
-	 * @memberof User
 	 */
 	compareTo(other: User, sortBy: 'username' | 'winRate' | 'gamesPlayed' | 'timePlayed' = 'username'): number {
 		switch (sortBy) {
