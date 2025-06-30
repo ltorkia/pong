@@ -17,8 +17,6 @@
  * Contient toutes les informations internes d'un utilisateur (excepté l'email).
  * 
  * Utilisée pour les opérations internes où l'email n'est pas nécessaire.
- * 
- * @export
  */
 export interface SafeUserModel {
 	id: number;
@@ -43,8 +41,6 @@ export interface SafeUserModel {
  * 
  * Utilisée pour les communications avec l'API et la gestion complète du profil.
  * Reçue après login/register et pour les opérations sur son propre profil.
- * 
- * @export
  */
 export interface UserModel extends SafeUserModel {
 	email: string;
@@ -55,8 +51,6 @@ export interface UserModel extends SafeUserModel {
  * Contient uniquement les informations non-sensibles visibles par d'autres utilisateurs.
  * 
  * Utilisée pour les listes d'utilisateurs, classements, profils publics, etc.
- * 
- * @export
  */
 export interface PublicUser {
 	id: number;
@@ -72,16 +66,12 @@ export interface PublicUser {
 /**
  * Alias de type pour représenter un utilisateur qui peut être null.
  * Utile dans les cas de déconnexion ou les vérifications de session.
- * 
- * @export
  */
 export type OptionalUser = SafeUserModel | null;
 
 /**
  * Interface représentant les informations de base d'un utilisateur.
  * Contient l'identifiant, le nom d'utilisateur, l'adresse e-mail et l'avatar.
- * 
- * @export
  */
 export interface UserBasic {
 	id:number;
@@ -93,8 +83,6 @@ export interface UserBasic {
 /**
  * Interface représentant un utilisateur avec son avatar.
  * Contient l'identifiant, le nom d'utilisateur et l'avatar.
- * 
- * @export
  */
 export interface UserWithAvatar {
 	id:number;
@@ -105,8 +93,6 @@ export interface UserWithAvatar {
 /**
  * Interface représentant un ami d'un utilisateur.
  * Contient l'identifiant, le nom d'utilisateur, l'avatar et la dernière connexion.
- * 
- * @export
  */
 export interface Friends {
 	id: number;
