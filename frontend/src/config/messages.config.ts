@@ -8,5 +8,5 @@
  * Succès, erreurs, etc.
  */
 
-export const REGISTERED_MSG = 'Félicitations ! Vous êtes maintenant enregistré.';
-export const LOADING_PAGE_ERR = 'Erreur de chargement de la page.';
+export const REGISTERED_MSG = 'Congrats, you have been registered.';
+export const LOADING_PAGE_ERR = 'Loading page error.';

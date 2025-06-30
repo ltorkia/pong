@@ -57,6 +57,6 @@ export class RegisterPage extends BasePage {
 	 * d'inscription.
 	 */
 	protected removeListeners(): void {
-		this.form.removeListeners('submit', this.handleRegisterSubmit);
+		this.form.removeEventListener('submit', this.handleRegisterSubmit);
 	}
 }

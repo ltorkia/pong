@@ -62,6 +62,6 @@ export class LoginPage extends BasePage {
 	 * de connexion.
 	 */
 	protected removeListeners(): void {
-		this.form.removeListeners('submit', this.handleLoginSubmit);
+		this.form.removeEventListener('submit', this.handleLoginSubmit);
 	}
 }
