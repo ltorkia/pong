@@ -23,8 +23,6 @@ import { componentNames, HTMLContainers } from './constants.config';
  * - l'id de l'élément HTML où insérer le composant,
  * - Si isPublic = true, le component doit s'afficher sur les pages publiques uniquement (login, register)
  * - Si isCommon = true, le composant est commun à plusieurs pages, si false il est relatif à une seule page
- * 
- * @export
  */
 export const componentsConfig: ComponentConfig[] = [
 	{

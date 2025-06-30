@@ -24,15 +24,11 @@ import { getComponentConfig } from '../utils/config.utils';
 
 /**
  * Route par défaut pour les redirections
- * 
- * @export
  */
 export const defaultRoute = '/';
 
 /**
  * Route de fallback en cas d'erreur d'authentification
- * 
- * @export
  */
 export const authFallbackRoute = '/login';
 
@@ -46,9 +42,7 @@ export const authFallbackRoute = '/login';
  * - templatePath: Chemin du template HTML associé à la page
  * - components: Configuration des composants spécifiques à cette page
  * - isPublic: Si true, la route est accessible sans authentification
- * - enableParticles: Si true, active les particules sur cette page
- * 
- * @exports
+ * - enableParticles: Si true, active les particules sur cette pages
  */
 export const routesConfig: RouteConfig[] = [
 	{
@@ -118,8 +112,6 @@ export const routesConfig: RouteConfig[] = [
 
 /**
  * Routes publiques (accessibles sans authentification / inaccessibles si authentifié)
- * 
- * @export
  */
 export const publicRoutes = routesConfig
 	.filter(route => route.isPublic)
@@ -127,8 +119,6 @@ export const publicRoutes = routesConfig
 
 /**
  * Routes protégées (accessibles authentifié / inaccessibles sans authentification)
- * 
- * @export
  */
 export const protectedRoutes = routesConfig
 	.filter(route => !route.isPublic)

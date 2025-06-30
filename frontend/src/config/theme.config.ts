@@ -18,8 +18,6 @@
  * Définit les familles de polices utilisées dans l'application.
  * Chaque clé représente le nom de la police et sa valeur est un tableau
  * contenant la police principale suivie de polices de secours.
- * 
- * @export
  */
 export const fonts = {
     arial: ['Arial', 'Helvetica', 'sans-serif'],
@@ -32,8 +30,6 @@ export const fonts = {
  *
  * Contient des paires clé-valeur où chaque clé représente un nom de couleur
  * et chaque valeur est le code hexadécimal correspondant à cette couleur.
- * 
- * @export
  */
 export const colorsTheme1 = {
     darkBlue: '#10131B',
@@ -47,8 +43,6 @@ export const colorsTheme1 = {
  *
  * Définit les couleurs utilisées pour les particules d'arrière-plan.
  * Chaque clé représente un nom descriptif de la couleur.
- * 
- * @export
  */
 export const particleColors = {
     forestGold: '#FFD700',
@@ -65,8 +59,6 @@ export const particleColors = {
  *
  * Définit les URLs des ressources d'image utilisées pour le design du thème.
  * Chaque clé représente un nom symbolique de l'image.
- *
- * @export
  */
 export const images = {
     forestWallpaper: "url('/img/design/forest-bg.jpg')"
