@@ -10,8 +10,6 @@
  * 
  * Lorsque l'utilisateur navigue sur le site, le store est mis a jour
  * pour afficher ou cacher des éléments.
- * 
- * @export
  */
 export const uiStore = {
 	animateNavbar: false,

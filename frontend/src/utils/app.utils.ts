@@ -18,7 +18,7 @@ import { userStore } from '../stores/user.store';
  *
  * @param {string} url
  * @param {RequestInit} [options]
- * @return {Promise<Response | never>} Une promesse qui se résout avec l'objet Response
+ * @returns {Promise<Response | never>} Une promesse qui se résout avec l'objet Response
  * ou qui lance une erreur si la session est expirée ou non autorisée
  * @throws {Error} Si la session est expirée ou non autorisée
  */
@@ -43,7 +43,7 @@ export async function secureFetch(url: string, options?: RequestInit): Promise<R
  * du code suivant.
  *
  * @param {number} ms - La durée de la pause en millisecondes.
- * @return {Promise<void>} Une promesse qui se résout automatiquement
+ * @returns {Promise<void>} Une promesse qui se résout automatiquement
  * après ms millisecondes sans valeur.
  */
 export function wait(ms: number): Promise<void> {

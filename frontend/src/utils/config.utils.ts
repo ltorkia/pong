@@ -22,7 +22,7 @@ import { ComponentConfig } from '../types/components.types';
  * Fonction utilitaire pour obtenir la liste des routes configurées
  * (retourne une copie pour éviter les modifications).
  * 
- * @return {RouteConfig[]} La liste des routes configurées.
+ * @returns {RouteConfig[]} La liste des routes configurées.
  */
 export function getRoutesConfig(): RouteConfig[] {
 	return [...routesConfig];
@@ -33,7 +33,7 @@ export function getRoutesConfig(): RouteConfig[] {
  *
  * @param {string} value Valeur de la propriété à chercher
  * @param {keyof RouteConfig} [key='name'] Nom de la propriété à chercher
- * @return {(RouteConfig | undefined)} La configuration de route trouvée, ou undefined si pas trouvée
+ * @returns {(RouteConfig | undefined)} La configuration de route trouvée, ou undefined si pas trouvée
  */
 export function findRouteConfig(value: string, key: keyof RouteConfig = 'name'): RouteConfig | undefined {
 	return routesConfig.find(route => route[key] === value);
@@ -45,7 +45,7 @@ export function findRouteConfig(value: string, key: keyof RouteConfig = 'name'):
  * 
  * @param {string} value Valeur de la propriété à chercher
  * @param {keyof RouteConfig} [key='name'] Nom de la propriété à chercher
- * @return {RouteConfig} La configuration de route trouvée.
+ * @returns {RouteConfig} La configuration de route trouvée.
  * @throws {Error} Si aucune route correspondante n'est trouvée.
  */
 export function getRouteConfig(value: string, key: keyof RouteConfig = 'name'): RouteConfig {
@@ -60,7 +60,7 @@ export function getRouteConfig(value: string, key: keyof RouteConfig = 'name'): 
  * Fonction utilitaire pour obtenir la liste des components configurés
  * (retourne une copie pour éviter les modifications)
  *
- * @return {ComponentConfig[]}
+ * @returns {ComponentConfig[]}
  */
 export function getComponentsConfig(): ComponentConfig[] {
 	return [...componentsConfig];
@@ -71,7 +71,7 @@ export function getComponentsConfig(): ComponentConfig[] {
  *
  * @param {string} value Valeur de la propriété à chercher
  * @param {keyof ComponentConfig} [key='name'] Nom de la propriété à chercher
- * @return {(ComponentConfig | undefined)} La configuration de composant trouvée, ou undefined si pas trouvée
+ * @returns {(ComponentConfig | undefined)} La configuration de composant trouvée, ou undefined si pas trouvée
  */
 export const findComponentConfig = (value: string, key: keyof ComponentConfig = 'name'): ComponentConfig | undefined => {
 	return componentsConfig.find(component => component[key] === value);
@@ -83,7 +83,7 @@ export const findComponentConfig = (value: string, key: keyof ComponentConfig = 
  *
  * @param {string} value Valeur de la propriété à chercher
  * @param {keyof ComponentConfig} [key='name'] Nom de la propriété à chercher
- * @return {ComponentConfig} La configuration de composant trouvée
+ * @returns {ComponentConfig} La configuration de composant trouvée
  * @throws {Error} Si aucune configuration de composant n'est trouvée avec la propriété spécifiée
  */
 

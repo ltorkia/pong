@@ -34,7 +34,7 @@ export class UserStore {
 	/**
 	 * Renvoie l'utilisateur courant en mémoire vive.
 	 *
-	 * @return {User | null} L'utilisateur courant, ou null si pas d'utilisateur connecté.
+	 * @returns {User | null} L'utilisateur courant, ou null si pas d'utilisateur connecté.
 	 */
 	public getCurrentUser(): User | null {
 		return this.currentUser;
@@ -118,7 +118,7 @@ export class UserStore {
 	 * - Si un utilisateur est trouvé, il est dé-sérialisé vers une instance de User.
 	 * - Si aucun utilisateur n'est trouvé, l'utilisateur courant est laissé à null.
 	 * 
-	 * @return {User | null} L'utilisateur restauré, ou null si la restaurtion a échoué.
+	 * @returns {User | null} L'utilisateur restauré, ou null si la restaurtion a échoué.
 	 */
 	// TODO: Prévoir le cas où le user est restauré sans email dans la mémoire vive (fallback api)
 	public restoreFromStorage(): User | null {

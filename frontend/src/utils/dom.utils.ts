@@ -21,7 +21,7 @@ export const templateCache = new Map<string, string>();
  * Sinon, effectue une requête pour récupérer le template et le stocke dans le cache.
  *
  * @param {string} path - Chemin du fichier template HTML à charger.
- * @return {Promise<string>} - Promise résolvant avec le contenu HTML du template.
+ * @returns {Promise<string>} - Promise résolvant avec le contenu HTML du template.
  * @throws {Error} - Lance une erreur si la requête échoue.
  */
 
@@ -43,7 +43,7 @@ export async function loadTemplate(path: string): Promise<string> {
  * Si l'élément n'est pas trouvé, lance une erreur.
  *
  * @param {string} elementId - Identifiant (id) de l'élément à chercher.
- * @return {HTMLElement} - L'élément HTML portant l'identifiant (id) demandé.
+ * @returns {HTMLElement} - L'élément HTML portant l'identifiant (id) demandé.
  * @throws {Error} - Si l'élément n'est pas trouvé dans le DOM.
  */
 export function getHTMLElementById(elementId: string): HTMLElement {
@@ -59,7 +59,7 @@ export function getHTMLElementById(elementId: string): HTMLElement {
  * Si l'élément n'est pas trouvé, lance une erreur.
  *
  * @param {string} elementClass - Nom de la classe CSS de l'élément à chercher.
- * @return {HTMLElement} - L'élément HTML portant la classe CSS demandée.
+ * @returns {HTMLElement} - L'élément HTML portant la classe CSS demandée.
  * @throws {Error} - Si l'élément n'est pas trouvé dans le DOM.
  */
 export function getHTMLElementByClass(elementClass: string): HTMLElement {
@@ -77,7 +77,7 @@ export function getHTMLElementByClass(elementClass: string): HTMLElement {
  *
  * @param {string} elementSelector - Sélecteur CSS de l'élément <a> à chercher.
  * @param {(Document | ParentNode)} [container=document] - Conteneur dans lequel chercher l'élément.
- * @return {HTMLAnchorElement} - L'élément <a> trouvé.
+ * @returns {HTMLAnchorElement} - L'élément <a> trouvé.
  * @throws {Error} - Si l'élément n'est pas trouvé.
  */
 export function getHTMLAnchorElement(elementSelector: string, container: Document | ParentNode = document): HTMLAnchorElement {

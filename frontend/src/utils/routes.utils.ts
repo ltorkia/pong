@@ -15,7 +15,7 @@ import { routesConfig } from '../config/routes.config';
  * Vérifie si une route est publique (accessible sans authentification).
  * 
  * @param {string | null} route Chemin de la route  v rifier
- * @return {boolean} true si la route est publique, false sinon
+ * @returns {boolean} true si la route est publique, false sinon
  */
 export const isPublicRoute = (route: string | null): boolean => {
 	if (!route || typeof route !== 'string') {
