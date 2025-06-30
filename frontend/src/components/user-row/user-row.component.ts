@@ -2,10 +2,14 @@
 import template from './user-row.component.html?raw'
 
 import { BaseComponent } from '../base/base.component';
-import { User } from '../../models/user.model';
-import { userStore } from '../../stores/user.store';
 import { RouteConfig } from '../../types/routes.types';
 import { ComponentConfig } from '../../types/components.types';
+import { User } from '../../models/user.model';
+import { userStore } from '../../stores/user.store';
+
+// ===========================================
+// USER ROW COMPONENT
+// ===========================================
 
 export class UserRowComponent extends BaseComponent {
 	protected routeConfig: RouteConfig;

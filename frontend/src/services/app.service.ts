@@ -1,10 +1,8 @@
-// ROUTER
+// ROUTER + SERVICES
 import { Router } from '../router/router';
-import { routingService } from './routing.service';
-// import { userService } from './user.service';
+import { userService, routingService, particlesService } from './services';
 
 // PARTICLES
-import { particlesService } from './particles.service';
 import { loadFull } from "tsparticles";
 import { tsParticles } from "@tsparticles/engine";
 

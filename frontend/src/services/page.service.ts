@@ -1,5 +1,5 @@
 // PAGE UI / DOM
-import { particlesService } from './particles.service';
+import { particlesService } from './services';
 import { uiStore } from '../stores/ui.store';
 import { getHTMLElementById } from '../utils/dom.utils';
 import { HTMLContainers } from '../config/constants.config';
@@ -172,15 +172,4 @@ export class PageService {
 		return this.currentPage;
 	}
 }
-
-/**
- * Instance unique du service de gestion des pages.
- *
- * Le service de gestion des pages est responsable de:
- * - gérer le cycle de vie des pages (nettoyage, transition, rendu)
- * - appliquer les effets visuels (animations de page, transitions navbar)
- * - activer ou désactiver dynamiquement les particules
- * - garder une référence à la page actuellement affichée (currentPage)
- */
-export const pageService = new PageService();
 

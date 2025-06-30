@@ -1,5 +1,5 @@
 import { BasePage } from '../base/base.page';
-import { userApi } from '../../api/user.api';
+import { userApi } from '../../api/user-crud.api';
 import { UserRowComponent } from '../../components/user-row/user-row.component';
 import { getHTMLElementById } from '../../utils/dom.utils';
 import { componentNames, HTMLContainers } from '../../config/constants.config';

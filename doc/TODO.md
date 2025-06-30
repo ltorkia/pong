@@ -7,6 +7,7 @@ BACK
 - Pourquoi param de majLastlog = username et pas id ?
 - first log, last log ou booleen ? A mediter
 - créer un cookie pour sauvegarder l'email de l'utilisateur (à afficher sur form de connexion si l'utilisateur a cliqué sur "se souvenir de moi")
+- Vérifier systeme middleware/hook pour auth jwt verif des routes
 
 COMMUN
 
@@ -16,7 +17,7 @@ COMMUN
 FRONT
 
 - user.store: Prévoir le cas où le user est restauré sans email dans la mémoire vive (fallback api)
-- Faire un hook à wrapper dans chaque fonction qui impliquent de checker si le user est connecté
+- Faire un hook à wrapper dans chaque fonction qui implique de checker si le user est connecté
 - Rajouter le nom du user connecté sur la navbar
 - Gerer frequence validation session dans les routes
 - Faire components page profil / stats
@@ -28,8 +29,7 @@ FRONT
 - Mieux typer partout
 - Boucle login si erreur validate-session (load user dans start app manager à vérifier)
 - Gérer shared files (types, constants)
-- Générer docType: "npm install -g typedoc" puis "npx typedoc --tsconfig tsconfig.json --out docs src/*"
-	(script ajouté dans package.json, faire "npm run doc" dans conteneur frontend)
+- Générer docType: "npm install -g typedoc" puis "npm run doc" dans conteneur frontend
 
 - check MAJ package.json :
  @tsparticles/engine         ^3.0.2  →   ^3.8.1

@@ -1,5 +1,5 @@
 // PAGE UI
-import { pageService } from './page.service';
+import { pageService } from './services';
 
 // ROUTER
 import { routesConfig } from '../config/routes.config';
@@ -234,11 +234,3 @@ export class RoutingService {
 		return router;
 	}
 }
-
-/**
- * Service de routage global pour l'application.
- * 
- * Cette instance unique de RoutingService gère 
- * l'enregistrement et la gestion des routes.
- */
-export const routingService = new RoutingService();

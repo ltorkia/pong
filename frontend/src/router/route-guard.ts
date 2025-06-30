@@ -1,4 +1,4 @@
-import { userService } from '../services/user.service';
+import { userService } from '../services/services';
 import { userStore } from '../stores/user.store';
 import { defaultRoute, authFallbackRoute } from '../config/routes.config';
 import { isPublicRoute } from '../utils/routes.utils';

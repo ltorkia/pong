@@ -1,6 +1,6 @@
 import { BasePage } from '../base/base.page';
 import { RouteConfig, RouteParams } from '../../types/routes.types';
-import { userApi } from '../../api/user.api';
+import { userApi } from '../../api/user-crud.api';
 
 export class ProfilePage extends BasePage {
 	protected userId?: number | RouteParams;

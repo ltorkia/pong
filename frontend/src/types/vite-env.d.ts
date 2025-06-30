@@ -18,7 +18,7 @@
  * Possibilité d'ajouter des variables comme:
  * VITE_API_URL, VITE_GOOGLE_CLIENT_ID, etc.
  */
-interface ImportMetaEnv {}
+// interface ImportMetaEnv {}
 
 /**
  * Interface globale représentant les métadonnées d'import Vite.

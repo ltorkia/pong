@@ -1,11 +1,35 @@
 import { loadTemplate } from '../../utils/dom.utils';
 import { ComponentConfig } from '../../types/components.types';
 
+// ===========================================
+// BASE COMPONENT
+// ===========================================
+/**
+ * Classe de base pour les composants.
+ *
+ * Les composants sont des éléments de l'interface utilisateur qui peuvent être
+ * injectés dans des éléments HTML pour ajouter des fonctionnalités ou des
+ * contenus dynamiques.
+ *
+ * La classe BaseComponent fournit un ensemble de méthodes et de propriétés
+ * communes à tous les composants. Les composants doivent hériter de cette
+ * classe pour bénéficier de ces fonctionnalités.
+ */
 export abstract class BaseComponent {
 	protected componentConfig: ComponentConfig;
 	protected container: HTMLElement;
 	protected templatePath: string;
 
+	/**
+	 * Constructeur de la classe BaseComponent.
+	 *
+	 * @param {ComponentConfig} componentConfig Les informations de configuration du composant.
+	 * @param {HTMLElement} container L'élément HTML qui sera utilisé comme conteneur pour le composant.
+	 *
+	 * Au moment de la construction, le composant va charger le template HTML depuis
+	 * le chemin indiqué dans la configuration du composant et le stocker dans la propriété
+	 * `templatePath`.
+	 */
 	constructor(componentConfig: ComponentConfig, container: HTMLElement) {
 		this.componentConfig = componentConfig;
 		this.container = container;
@@ -16,12 +40,22 @@ export abstract class BaseComponent {
 	 * Méthodes abstraites (abstract) qui doivent obligatoirement être définies chez les sous-classes
 	 * ou méthodes de surcharge (protected) optionnellement remplies par les sous-classes.
 	 */	
+
 	protected async beforeMount(): Promise<void> {}
 	protected abstract mount(): Promise<void>;
 	protected attachListeners(): void {}
 
 	/**
-	 * Méthode principale de rendu.
+	 * Méthode principale de rendu d'un composant.
+	 *
+	 * Exécute les étapes suivantes:
+	 * 1. Appelle la méthode `beforeMount()` pour effectuer les étapes de pré-rendering.
+	 * 2. Charge le HTML du composant via `loadTemplate()` si le hot-reload est inactif (en production).
+	 * 3. Injecte le HTML dans le conteneur du composant.
+	 * 4. Appelle la méthode `mount()` pour effectuer les opérations de rendu propres au composant.
+	 * 5. Appelle la méthode `attachListeners()` pour attacher les event listeners.
+	 *
+	 * @returns {Promise<void>} Une promesse qui se résout lorsque le composant est entièrement rendu.
 	 */
 	public async render(): Promise<void> {
 		// Etapes avant de render
@@ -48,7 +82,12 @@ export abstract class BaseComponent {
 	}
 
 	/**
-	 * Nettoyage de la page: vide le container.
+	 * Nettoyage du composant: vide le container.
+	 *
+	 * Utilisé par la méthode `cleanup()` de la classe `BasePage`
+	 * pour nettoyer les composants de la page avant de la quitter.
+	 *
+	 * @returns {Promise<void>} Une promesse qui se résout lorsque le nettoyage est terminé.
 	 */
 	protected async cleanup(): Promise<void> {
 		if (this.container) {

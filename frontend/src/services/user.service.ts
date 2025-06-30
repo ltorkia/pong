@@ -7,7 +7,7 @@ import { showError } from '../utils/dom.utils';
 import { REGISTERED_MSG } from '../config/messages.config';
 
 // USER
-import { userApi } from '../api/user.api';
+import { userApi } from '../api/user-crud.api';
 import { userStore } from '../stores/user.store';
 import { User } from '../models/user.model';
 import { AuthResponse, BasicResponse } from '../types/api.types';
@@ -16,7 +16,7 @@ import { AuthResponse, BasicResponse } from '../types/api.types';
 import { uiStore } from '../stores/ui.store';
 
 // COOKIES
-import { cookiesConst } from '../shared/config/constants.config'; // en rouge car dossier local != dossier du conteneur
+import { cookiesConst } from '../shared/config/constants.config'; // en rouge car dossier local 'shared' != dossier du conteneur
 
 // ===========================================
 // USER SERVICE
@@ -290,12 +290,3 @@ export class UserService {
 		}
 	}
 }
-
-/**
- * Instance unique du service d'authentification.
- * 
- * Permet de gérer l'authentification des utilisateurs en stockant
- * l'utilisateur courant dans le store et en gérant les requêtes API
- * liées à l'authentification.
- */
-export const userService = new UserService();

@@ -39,15 +39,17 @@ export async function loadTemplate(path: string): Promise<string> {
 }
 
 /**
- * Renvoie l'élément HTML portant l'identifiant (id) passé en paramètre.
+ * Renvoie l'élément HTML portant l'identifiant (id) passé en paramètre, dans le conteneur
+ * passé en paramètre (par défaut, c'est le document courant).
  * Si l'élément n'est pas trouvé, lance une erreur.
  *
  * @param {string} elementId - Identifiant (id) de l'élément à chercher.
+ * @param {Document | ParentNode} [container=document] - Conteneur dans lequel chercher l'élément.
  * @returns {HTMLElement} - L'élément HTML portant l'identifiant (id) demandé.
  * @throws {Error} - Si l'élément n'est pas trouvé dans le DOM.
  */
-export function getHTMLElementById(elementId: string): HTMLElement {
-	const element = document.getElementById(elementId);
+export function getHTMLElementById(elementId: string, container: Document | ParentNode = document): HTMLElement {
+	const element = container.querySelector(`#${elementId}`);
 	if (!(element instanceof HTMLElement)) {
 		throw new Error(`Elément #${elementId} introuvable dans le DOM`);
 	}
@@ -55,15 +57,17 @@ export function getHTMLElementById(elementId: string): HTMLElement {
 }
 
 /**
- * Renvoie l'élément HTML portant la classe CSS passée en paramètre.
+ * Renvoie l'élément HTML portant la classe CSS passée en paramètre, dans le conteneur
+ * passé en paramètre (par défaut, c'est le document courant).
  * Si l'élément n'est pas trouvé, lance une erreur.
  *
  * @param {string} elementClass - Nom de la classe CSS de l'élément à chercher.
+ * @param {Document | ParentNode} [container=document] - Conteneur dans lequel chercher l'élément.
  * @returns {HTMLElement} - L'élément HTML portant la classe CSS demandée.
  * @throws {Error} - Si l'élément n'est pas trouvé dans le DOM.
  */
-export function getHTMLElementByClass(elementClass: string): HTMLElement {
-	const element = document.querySelector(`.${elementClass}`);
+export function getHTMLElementByClass(elementClass: string, container: Document | ParentNode = document): HTMLElement {
+	const element = container.querySelector(`.${elementClass}`);
 	if (!(element instanceof HTMLElement)) {
 		throw new Error(`Elément .${elementClass} introuvable dans le DOM`);
 	}
