@@ -71,7 +71,7 @@ export const componentPaths = {
 export const componentsConfig: ComponentConfig[] = [
 	{
 		name: componentNames.navbar,
-		componentClass: NavbarComponent,
+		componentConstructor: NavbarComponent,
 		templatePath: componentPaths[componentNames.navbar],
 		containerId: componentContainers.navbarId,
 		isPublic: false,
@@ -79,7 +79,7 @@ export const componentsConfig: ComponentConfig[] = [
 	},
 	{
 		name: componentNames.userRow,
-		componentClass: UserRowComponent,
+		componentConstructor: UserRowComponent,
 		templatePath: componentPaths[componentNames.userRow],
 		containerId: componentContainers.userListId,
 		isPublic: false,

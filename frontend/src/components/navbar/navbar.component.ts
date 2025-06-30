@@ -146,8 +146,10 @@ export class NavbarComponent extends BaseComponent {
 	 * Handler pour ajouter un listener d'événement de clic au bouton burger qui:
 	 * - Fait basculer l'icône entre le symbole 'bars' et 'x'.
 	 * - Fait basculer la visibilité du menu de la navbar.
+	 * 
+	 * @param {MouseEvent} event L'événement de clic.
 	 */
-	protected handleBurgerClick = (e: MouseEvent): void => {
+	protected handleBurgerClick = (event: MouseEvent): void => {
 		const navbarMenu = getHTMLElementById('navbar-menu', this.container);
 		const icon = getHTMLElementByTagName('i', this.burgerBtn);
 		toggleClass(icon, 'fa-bars', 'fa-xmark', 'text-blue-300');
@@ -160,16 +162,22 @@ export class NavbarComponent extends BaseComponent {
 	 * Lors d'un clic sur le bouton logout, on annule l'événement de navigation
 	 * et on appelle la méthode logoutUser() du UserService pour déconnecter l'utilisateur.
 	 * 
+	 * @param {MouseEvent} event L'événement de clic.
 	 * @returns {Promise<void>} Promesse qui se résout lorsque l'opération est terminée.
 	 */
-	protected handleLogoutClick = async (e: MouseEvent): Promise<void> => {
-		e.preventDefault();
+	protected handleLogoutClick = async (event: MouseEvent): Promise<void> => {
+		event.preventDefault();
 		await userService.logoutUser();
 	};
 
-	public destroy(): void {
+	/**
+	 * Enlève les listeners attribués aux éléments de la navbar.
+	 *
+	 * - Enlève le listener du bouton burger pour le menu mobile.
+	 * - Enlève le listener du bouton de déconnexion.
+	 */
+	protected removeListeners(): void {
 		this.burgerBtn?.removeEventListener('click', this.handleBurgerClick);
 		this.logoutLink?.removeEventListener('click', this.handleLogoutClick);
-		this.container.replaceChildren();
 	}
 }

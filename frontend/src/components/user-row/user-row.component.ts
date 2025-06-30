@@ -10,12 +10,34 @@ import { userStore } from '../../stores/user.store';
 // ===========================================
 // USER ROW COMPONENT
 // ===========================================
-
+/**
+ * Composant de la ligne d'utilisateur.
+ *
+ * Ce composant est utilisé pour afficher une ligne d'utilisateur dans la page
+ * des utilisateurs. Il est injecté dans un élément HTML qui a l'id
+ * "user-list". La ligne d'utilisateur affichera l'avatar, le lien du nom
+ * d'utilisateur et le niveau de l'utilisateur fourni.
+ *
+ * En mode développement, utilise le hot-reload Vite pour charger le
+ * template HTML du composant. Ensuite, met à jour le contenu visuel de la
+ * ligne d'utilisateur avec les informations de l'utilisateur fourni.
+ */
 export class UserRowComponent extends BaseComponent {
 	protected routeConfig: RouteConfig;
 	protected user?: User | null = null;
 	protected currentUser: User | null = null;
 
+	/**
+	 * Constructeur du composant de ligne d'utilisateur.
+	 *
+	 * Stocke la configuration de la route actuelle, la configuration du composant,
+	 * l'utilisateur à afficher dans le composant (facultatif) et l'utilisateur actuel.
+	 *
+	 * @param {RouteConfig} routeConfig La configuration de la route actuelle.
+	 * @param {ComponentConfig} componentConfig La configuration du composant.
+	 * @param {HTMLElement} container L'élément HTML qui sera utilisé comme conteneur pour le composant.
+	 * @param {User | null} user L'utilisateur à afficher dans le composant (facultatif).
+	 */
 	constructor(routeConfig: RouteConfig, componentConfig: ComponentConfig, container: HTMLElement, user?: User | null) {
 		super(componentConfig, container);
 				
@@ -24,12 +46,20 @@ export class UserRowComponent extends BaseComponent {
 		this.currentUser = userStore.getCurrentUser();
 	}
 
+	/**
+	 * Méthode de montage du composant de la ligne d'utilisateur.
+	 *
+	 * En mode développement, utilise le hot-reload Vite pour charger
+	 * le template HTML du composant. Ensuite, met à jour le contenu visuel
+	 * de la ligne d'utilisateur avec les informations de l'utilisateur
+	 * fourni, en ajustant l'avatar, le lien du nom d'utilisateur et le
+	 * niveau (taux de victoire) si disponible.
+	 *
+	 * @returns {Promise<void>} Une promesse qui se résout lorsque le composant est monté.
+	 */
 	protected async mount(): Promise<void> {
 		if (import.meta.env.DEV === true) {
-			// code exécuté uniquement en dev pour le hot reload Vite
-			// des fichiers HTML qui sont dans src au lieu de public
 			this.container.innerHTML = template;
-			// console.log(this.componentPath, this.container.innerHTML);
 			console.log('[UserRowComponent] Hot-reload actif');
 		}
 

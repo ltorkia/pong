@@ -1,21 +1,12 @@
-// ROUTER
 import { router } from '../router/router';
 import { defaultRoute, authFallbackRoute } from '../config/routes.config';
-
-// MESSAGES
 import { showError } from '../utils/dom.utils';
 import { REGISTERED_MSG } from '../config/messages.config';
-
-// USER
 import { User } from '../models/user.model';
 import { userStore } from '../stores/user.store';
 import { userAuthApi } from '../api/user/user.api';
 import { AuthResponse, BasicResponse } from '../types/api.types';
-
-// UI
 import { uiStore } from '../stores/ui.store';
-
-// COOKIES
 import { cookiesConst } from '../shared/config/constants.config'; // en rouge car dossier local 'shared' != dossier du conteneur
 
 // ===========================================

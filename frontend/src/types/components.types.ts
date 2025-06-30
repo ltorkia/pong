@@ -26,12 +26,12 @@ import { User } from '../models/user.model';
  * si le composant est commun à plusieurs pages ou non.
  */
 export interface ComponentConfig {
-	name: ComponentName;				// Nom unique du composant (ex: 'navbar', 'user-row')
-	componentClass: ComponentClass;		// Classe du composant à instancier
-	templatePath: ComponentPath;		// Chemin du template HTML associé au composant
-	containerId: ComponentContainer;	// id de l'élément HTML où insérer le composant
-	isPublic: boolean;					// Si true, le composant doit s'afficher sur les pages publiques uniquement (login, register)
-	isCommon: boolean;					// Si true, le composant est commun à plusieurs pages, si false il est relatif à une seule page
+	name: ComponentName;							// Nom unique du composant (ex: 'navbar', 'user-row')
+	componentConstructor: ComponentConstructor;		// Classe du composant à instancier
+	templatePath: ComponentPath;					// Chemin du template HTML associé au composant
+	containerId: ComponentContainer;				// id de l'élément HTML où insérer le composant
+	isPublic: boolean;								// Si true, le composant doit s'afficher sur les pages publiques uniquement (login, register)
+	isCommon: boolean;								// Si true, le composant est commun à plusieurs pages, si false il est relatif à une seule page
 }
 
 /**
@@ -44,7 +44,7 @@ export interface ComponentConfig {
  * - container: élément HTML dans lequel injecter le contenu du composant
  * - user: utilisateur à afficher dans le composant (facultatif)
  */
-export type ComponentClass = new (
+export type ComponentConstructor = new (
 	routeConfig: RouteConfig,			// Configuration complète de la route
 	componentConfig: ComponentConfig,	// Configuration du composant
 	container: HTMLElement,				// Élément HTML dans lequel injecter le contenu du composant

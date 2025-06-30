@@ -6,18 +6,17 @@ BACK
 - gerer stockage des avatars dans frontend/public/img/avatars
 - Pourquoi param de majLastlog = username et pas id ?
 - first log, last log ou booleen ? A mediter
-- créer un cookie pour sauvegarder l'email de l'utilisateur (à afficher sur form de connexion si l'utilisateur a cliqué sur "se souvenir de moi")
+- créer un cookie pour sauvegarder l'email de l'utilisateur (à afficher sur form de connexion si l'utilisateur a cliqué sur "se souvenir de moi") ?
 - Vérifier systeme middleware/hook pour auth jwt verif des routes
 
 COMMUN
 
-- Regrouper types back et front (doublons), peut-être faire dossier 'shared' ?
-- Simplifier tree (components css etc) ça commence à être long + raccorder les noms (miroirs)
+- RAS
 
 FRONT
 
 - user.store: Prévoir le cas où le user est restauré sans email dans la mémoire vive (fallback api)
-- Faire un hook à wrapper dans chaque fonction qui implique de checker si le user est connecté
+- Faire un middleware à wrapper dans chaque fonction qui implique de checker si le user est connecté
 - Rajouter le nom du user connecté sur la navbar
 - Gerer frequence validation session dans les routes
 - Faire components page profil / stats
@@ -28,8 +27,9 @@ FRONT
 - Enregistrer les champs formulaires en session au cas où crash
 - Mieux typer partout
 - Boucle login si erreur validate-session (load user dans start app manager à vérifier)
-- Gérer shared files (types, constants)
-- Générer docType: "npm install -g typedoc" puis "npm run doc" dans conteneur frontend
+- scinder user.service.ts en user-auth.service.ts / user-crud.service.ts / user-session.service.ts (donc changer la doc et la logique de singleton dans services.ts)
+- charger la navbar une seule fois au démarrage de l'app et gérer l'affichage en fonction du log user
+- Changer typage User qui peut être null dans le constructeur de usersPage et de userRowComponent: ne devrait jamais être null ici
 
 - check MAJ package.json :
  @tsparticles/engine         ^3.0.2  →   ^3.8.1
@@ -39,3 +39,6 @@ FRONT
  tailwindcss                ^3.4.17  →  ^4.1.11
  tsparticles                 ^3.0.2  →   ^3.8.1
  vite                        ^6.3.5  →   ^7.0.0
+
+- docType:	npm install -g typedoc
+			npm run doc

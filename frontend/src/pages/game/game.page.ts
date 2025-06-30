@@ -1,6 +1,10 @@
 import { BasePage } from '../base/base.page';
 import { RouteConfig } from '../../types/routes.types';
 
+// ===========================================
+// GAME PAGE
+// ===========================================
+
 /**
  * TODO: Suggestion d'orga pour cohérence avec structure actuelle
  * GamePage = vue principale basique pour injecter le template HTML, canvas + boutons dans le DOM

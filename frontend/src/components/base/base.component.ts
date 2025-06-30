@@ -44,6 +44,7 @@ export abstract class BaseComponent {
 	protected async beforeMount(): Promise<void> {}
 	protected abstract mount(): Promise<void>;
 	protected attachListeners(): void {}
+	protected removeListeners(): void {}
 
 	/**
 	 * Méthode principale de rendu d'un composant.
@@ -51,6 +52,7 @@ export abstract class BaseComponent {
 	 * Exécute les étapes suivantes:
 	 * 1. Appelle la méthode `beforeMount()` pour effectuer les étapes de pré-rendering.
 	 * 2. Charge le HTML du composant via `loadTemplate()` si le hot-reload est inactif (en production).
+	 *    Si le template est en cache, on ne le fetch pas.
 	 * 3. Injecte le HTML dans le conteneur du composant.
 	 * 4. Appelle la méthode `mount()` pour effectuer les opérations de rendu propres au composant.
 	 * 5. Appelle la méthode `attachListeners()` pour attacher les event listeners.
@@ -58,40 +60,31 @@ export abstract class BaseComponent {
 	 * @returns {Promise<void>} Une promesse qui se résout lorsque le composant est entièrement rendu.
 	 */
 	public async render(): Promise<void> {
-		// Etapes avant de render
-		// ex pour navbar: vérifier si on est sur une page publique ou privée...
 		await this.beforeMount();
-
-		// Charge et injecte le HTML.
 		if (import.meta.env.PROD === true) {
 			console.log(this.templatePath);
-			// code exécuté uniquement en prod pour fetch les components
-			// (hot reload Vite inactif)
-			// En dev on importe directement le template dans le fichier
-			// (voir NavbarComponent pour ex)
 			let html = await loadTemplate(this.templatePath);
 			this.container.innerHTML = html;
-			// console.log(this.templatePath, this.container.innerHTML);
 			console.log(`[${this.constructor.name}] Hot-reload inactif`);
 		}
-
-		// On genere les infos propres à chaque component
-		// et on attach les event listeners
 		await this.mount();
 		this.attachListeners();
 	}
 
 	/**
-	 * Nettoyage du composant: vide le container.
+	 * Nettoyage du composant:
+	 * désactive les écouteurs d'événements et vide le container.
 	 *
 	 * Utilisé par la méthode `cleanup()` de la classe `BasePage`
 	 * pour nettoyer les composants de la page avant de la quitter.
 	 *
 	 * @returns {Promise<void>} Une promesse qui se résout lorsque le nettoyage est terminé.
 	 */
-	protected async cleanup(): Promise<void> {
+	public async cleanup(): Promise<void> {
 		if (this.container) {
-			this.container.innerHTML = '';
+			this.removeListeners();
+			this.container.replaceChildren();
+			console.log(`[${this.constructor.name}] Container #${this.componentConfig.containerId} nettoyé`);
 		}
 	}
 }
