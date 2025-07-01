@@ -5,6 +5,7 @@ import { LoginView } from '../views/LoginView';
 import { GameView } from '../views/GameView';
 import { UsersView } from '../views/UsersView';
 import { ProfileView } from '../views/ProfileView';
+import { TwofaView } from '../views/TwofaView';
 
 // TYPES
 import { RouteConfig } from '../types/navigation.types';
@@ -44,6 +45,14 @@ export const routesConfig: RouteConfig[] = [
 		path: '/login',
 		component: LoginView,
 		name: 'Login',
+		isPublic: true,
+		idUserRequired: false,
+		enableParticles: true
+	},
+	{
+		path: '/twofa',
+		component: TwofaView,
+		name: 'Twofa',
 		isPublic: true,
 		idUserRequired: false,
 		enableParticles: true
@@ -98,3 +107,5 @@ export const defaultRoute = '/';
  * Route de fallback en cas d'erreur d'authentification
  */
 export const authFallbackRoute = '/login';
+
+export const authTwofaRoute = '/twofa';

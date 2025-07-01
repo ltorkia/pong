@@ -58,6 +58,27 @@ export class UserController {
 		}
 	}
 
+
+// vive l embrouille twofacontroller
+	public async receiveTwofaController(data: Record<string, string>) {
+		try {
+			const result = await userManager.receive_twofa(data);
+			if (result.errorMessage) {
+				console.error('Erreur de twofa d authentification :', result);
+				showError(result.errorMessage);
+				return;
+			}
+			// Redirection home
+			console.log('Utilisateur connecté :', result);
+			await router.redirectPublic(defaultRoute);
+
+		} catch (err) {
+			console.error('Erreur réseau ou serveur', err);
+			showError('Erreur réseau');
+		}
+	}
+
+
 	/**
 	 * Gestion Logout
 	 * UserManager s'occupe de faire la requête API

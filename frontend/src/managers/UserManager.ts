@@ -155,6 +155,18 @@ export class UserManager {
 		return { user: result.user };
 	}
 
+
+	// test 2FA
+	public async receive_twofa(data: Record<string, string>): Promise<{ user?: User; errorMessage?: string }> {
+		const result = await userApi.check_2FA(data);
+		if (result.errorMessage) {
+			return { errorMessage: result.errorMessage };
+		}
+		console.log('Utilisateur connecté :', result);
+		userStore.setCurrentUser(result.user!);
+		return { user: result.user };
+	}
+
 	/**
 	 * Gestion Logout
 	 * User cleared de store + localStorage

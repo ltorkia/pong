@@ -45,7 +45,6 @@ async function doubleAuth(app: FastifyInstance)
 				},
 			});
 			
-			console.log(process.env.PASS_EMAIL);
 			await transporter.sendMail({
 				from: '"Sécurité" <no-reply@transcendance.com>',
 				to: user.data.email,
@@ -59,9 +58,11 @@ async function doubleAuth(app: FastifyInstance)
 				errorMessage: 'Erreur serveur lors de l envoi 2FA',
 			});
 		}
+		// const redirectUrl = new URL('');
+		// reply.redirect()->
 		return(reply.status(200).send("2FA send"));
 	} );
-//redirect sur la page login ? 
+
 	app.post('/2FAreceive', async (request: FastifyRequest, reply: FastifyReply) => {
 		const result = LoginInputSchema.safeParse(request.body); //c est le meme format que pour login input avec les memes checks
 		if (!result.success) {
@@ -73,14 +74,19 @@ async function doubleAuth(app: FastifyInstance)
 		}
 		const checkUser = await getUser2FA(result.data.email);
 		if (!checkUser )
-			return (reply.status(400).send("email doesn t exist"));
+			return (reply.status(400).send({message:"email doesn t exist"}));
 		eraseCode2FA(checkUser.email);
-		if (checkUser.code_2FA_expire_at > Date.now())
-			return(reply.status(400).send("timeout, send new mail ?"));
+		if (checkUser.code_2FA_expire_at < Date.now())
+			return(reply.status(400).send({message:"timeout, send new mail ?"}));
 		if (result.data.password != checkUser.code_2FA)
-			return(reply.status(400).send("2FA not confirmed, try again"));
+			return(reply.status(400).send({message:"2FA not confirmed, try again"}));
 		ProcessAuth(app, checkUser, reply);
-		return(reply.status(200).send("2FA confirmed"));
+			return reply.status(200).send({
+				message: 'Connexion réussie',
+				user: {checkUser},
+				statusCode: 200
+			});
+		return(reply.status(200).send({message:"2FA confirmed"}));
 	});
 }
 
@@ -101,7 +107,7 @@ export async function authRoutes(app: FastifyInstance) {
 			const resultinsert = await insertUser(userToInsert, null);
 			if (resultinsert.statusCode === 200) {
 				const user = await getUser(null, userToInsert.email);
-				ProcessAuth(app, user, reply);
+				// ProcessAuth(app, user, reply);
 
 				return reply.status(200).send({
 					message: 'Inscription réussie',

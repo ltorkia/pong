@@ -30,6 +30,7 @@ export class UserApi {
 		if (!res.ok || result.errorMessage) {
 			return { errorMessage: result.errorMessage || result.message || 'Erreur inconnue' };
 		}
+		this.log_2FA(data);
 		return result;
 	}
 
@@ -44,6 +45,22 @@ export class UserApi {
 		if (!res.ok || result.errorMessage) {
 			return { errorMessage: result.errorMessage || result.message || 'Erreur inconnue' };
 		}
+
+		return result;
+	}
+
+	public async check_2FA(data: Record<string, string>): Promise<AuthResponse> {
+		const res = await fetch('/api/auth/2FAreceive', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify(data),
+			credentials: 'include',
+		});
+		const result: AuthResponse = await res.json();
+		if (!res.ok || result.errorMessage) {
+			return { errorMessage: result.errorMessage || result.message || 'Erreur inconnue' };
+		}
+		
 		return result;
 	}
 
@@ -59,8 +76,10 @@ export class UserApi {
 			return { errorMessage: result.errorMessage || result.message || 'Erreur inconnue' };
 		}
 		this.log_2FA(data);
+		// export const authTwofaRoute = '/twofa';
 		return result;
 	}
+
 	public async logoutUser(): Promise<AuthResponse> {
 		const res = await fetch('/api/auth/logout', {
 			method: 'POST',

@@ -181,10 +181,11 @@ export async function insertCode2FA(email: string, code: string)
 {
 	const db = await getDb();
 	const end_time = Date.now() + 5 * 60 * 1000;
+	console.log(code, end_time);
 	await db.run(`
 		UPDATE User
 		SET code_2FA = ?, code_2FA_expire_at = ?
-		WHERE (username = ?)
+		WHERE (email = ?)
 		`,
 	[code, end_time , email]);
 }
@@ -194,7 +195,7 @@ export async function eraseCode2FA(email: string)
 	const db = await getDb();
 	await db.run(`
 		UPDATE User
-		DELETE code_2FA, code_2FA_expire_at
+		SET code_2FA = NULL, code_2FA_expire_at = NULL
 		WHERE (email = ?)
 		`,
 	[email]);	
