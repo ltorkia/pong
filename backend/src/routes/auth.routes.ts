@@ -177,7 +177,7 @@ export async function authRoutes(app: FastifyInstance) {
 		}
 	});
 
-	doubleAuth(app);
+	doubleAuth(app); //si deja fait voir si on genere pas un cookie type pour pas avoir a le refaire une seconde fois quand on se log sur le mm ordi
 
 	// LOGOUT
 	app.post('/logout', async (request: FastifyRequest, reply: FastifyReply) => {
