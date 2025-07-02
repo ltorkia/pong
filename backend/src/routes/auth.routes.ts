@@ -9,17 +9,19 @@ import { UserPassword } from 'src/types/user.types';
 import { JwtPayload } from '../types/jwt.types';
 import nodemailer from 'nodemailer';
 
-async function ProcessAuth(app: FastifyInstance, user: UserModel, reply: FastifyReply)
+async function ProcessAuth(app: FastifyInstance, user: Partial<UserPassword>, reply: FastifyReply)
 {
 	// const user = await getUser(null, userToGet);
 	// Création d'un token JWT qui sera utilisé par le frontend pour les requêtes authentifiées
 	// JWT = JSON Web Token = format pour transporter des informations de manière sécurisée entre deux parties, ici le frontend et le backend.
+	const userId = user.id!;
+	const username = user.username!;
 	const token = generateJwt(app, {
-		id: user.id
+		id: userId
 	});
 	setAuthCookie(reply, token);
 	setStatusCookie(reply);
-	await majLastlog(user.username);
+	await majLastlog(username);
 }
 
 
@@ -109,7 +111,11 @@ export async function authRoutes(app: FastifyInstance) {
 			const resultinsert = await insertUser(userToInsert, null);
 			if (resultinsert.statusCode === 201) {
 				const user: UserModel = await getUser(null, userToInsert.email);
-				ProcessAuth(app, user, reply);
+				const userAuth: Partial<UserPassword> = {
+					id: user.id,
+					username: user.username
+				}
+				ProcessAuth(app, userAuth, reply);
 				return reply.status(200).send({
 					message: 'Successful registration.',
 					user: user,
@@ -256,15 +262,13 @@ export async function authRoutes(app: FastifyInstance) {
 				return reply.status(400).send({error: 'Données utilisateur incomplètes' }); //retourne objet vec statuscode ? 
 			}
 
-			let userGoogle: UserModel | null = await getUser(null, userData.email);
-			if (userGoogle && userGoogle.password)
+			let userGooglePassword: UserPassword | null = await getUserP(userData.email);
+			if (userGooglePassword && userGooglePassword.password)
 				return (reply.redirect(process.env.GOOGLE_REDIRECT_FRONTEND! + "?autherror=1"));
 
-			// TODO: Insère l'utilisateur seulement s'il n'existe pas en bdd
-			// TODO: Logique à améliorer, j'ai juste mis ça pour régler un probleme
-			if (!userGoogle) {
+			if (!userGooglePassword) {
 				const result = await insertUser({ email: userData.email, username: userData.given_name, avatar: userData.picture }, true);
-				userGoogle = await getUser(null, userData.email);
+				const userGoogle: UserModel = await getUser(null, userData.email);
 				if (!userGoogle) {
 					return reply.status(500).send({
 						errorMessage: 'Impossible de récupérer l’utilisateur après insertion',
@@ -272,16 +276,6 @@ export async function authRoutes(app: FastifyInstance) {
 				}
 			}
 			ProcessAuth(app, userGoogle, reply);
-
-			// // Création d'un token JWT qui sera utilisé par le frontend pour les requêtes authentifiées
-			// // JWT = JSON Web Token = format pour transporter des informations de manière sécurisée entre deux parties, ici le frontend et le backend.
-			// const token = generateJwt(app, {
-			// 	id: userGoogle.id
-			// });
-
-			// await majLastlog(userGoogle.username);
-			// setAuthCookie(reply, token);
-			// setStatusCookie(reply);
 
 			// Redirection simple sans token dans l'URL
 			return reply.redirect(process.env.GOOGLE_REDIRECT_FRONTEND!);
