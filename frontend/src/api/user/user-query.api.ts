@@ -43,42 +43,4 @@ export class UserQueryApi {
 		return User.getOnlineUsers(users) as User[];
 	}
 
-	/**
-	 * Rechercher des utilisateurs par nom d'utilisateur partiel.
-	 * 
-	 * Envoie une requête pour récupérer tous les utilisateurs,
-	 * puis filtre ceux dont le nom d'utilisateur contient le terme
-	 * de recherche spécifié.
-	 * 
-	 * @param {string} searchTerm - Le terme de recherche partiel à utiliser pour filtrer les utilisateurs.
-	 * @returns {Promise<User[]>} - Promesse qui se résout avec un tableau d'instances `User` correspondant.
-	 */
-	public async searchUsersByUsername(searchTerm: string): Promise<User[]> {
-		const users: User[] = await userCrudApi.getUsers();
-		return User.searchByUsername(users, searchTerm) as User[];
-	}
-
-	/**
-	 * Obtient le classement des utilisateurs actifs selon le critère de tri spécifié.
-	 *
-	 * Récupère les utilisateurs actifs et les trie par taux de victoire, nombre de parties jouées,
-	 * ou temps de jeu selon le paramètre `sortBy`.
-	 *
-	 * @param {string} sortBy - Critère de tri ('winRate', 'gamesPlayed', 'timePlayed').
-	 * @returns {Promise<User[]>} - Promesse qui se résout avec un tableau d'instances `User` triées.
-	 */
-	public async getUserRanking(sortBy: 'winRate' | 'gamesPlayed' | 'timePlayed' = 'winRate'): Promise<User[]> {
-		const users: User[] = await this.getActiveUsers();
-		switch (sortBy) {
-			case 'winRate':
-				return User.sortByWinRate(users);
-			case 'gamesPlayed':
-				return User.sortByGamesPlayed(users);
-			case 'timePlayed':
-				return User.sortByTimePlayed(users);
-			default:
-				return users as User[];
-		}
-	}
-
 }

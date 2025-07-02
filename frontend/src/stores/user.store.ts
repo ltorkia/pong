@@ -118,7 +118,7 @@ export class UserStore {
 	 * 
 	 * @returns {User | null} L'utilisateur restauré, ou null si la restaurtion a échoué.
 	 */
-	// TODO: Prévoir le cas où le user est restauré sans email dans la mémoire vive (fallback api)
+	// TODO: Prévoir le cas où le user est restauré sans email dans la mémoire vive (faire un fallback api)
 	public restoreFromStorage(): User | null {
 		this.currentUser = null;
 		const userJSON = localStorage.getItem('currentUser');
@@ -148,56 +148,6 @@ export class UserStore {
 	 */
 	public replaceCurrentUser(user: User): void {
 		this.setCurrentUser(user);
-	}
-
-	// ============================================================================
-	// MÉTHODES PROXY - DÉLÈGUENT À L'UTILISATEUR COURANT
-	// ============================================================================
-
-	/**
-	 * Indique si l'utilisateur courant est connecté (en ligne).
-	 * Renvoie false si l'utilisateur courant n'existe pas.
-	 * @returns {boolean} true si l'utilisateur courant est connecté, false sinon.
-	 */
-	public get isCurrentUserOnline(): boolean {
-		return this.currentUser?.isOnline() ?? false;
-	}
-
-	/**
-	 * Renvoie le taux de victoire de l'utilisateur courant.
-	 * Renvoie 0 si l'utilisateur courant n'existe pas.
-	 * @returns {number} Taux de victoire de l'utilisateur courant, ou 0 si l'utilisateur n'existe pas.
-	 */
-	public get currentUserWinRate(): number {
-		return this.currentUser?.winRate ?? 0;
-	}
-
-	/**
-	 * Proxy vers currentUser.displayName avec vérification null.
-	 * Renvoie le nom d'affichage de l'utilisateur courant, ou une string vide si l'utilisateur n'existe pas.
-	 * @returns {string} Le nom d'affichage de l'utilisateur courant, ou une string vide si l'utilisateur n'existe pas.
-	 */
-	public get currentUserDisplayName(): string {
-		return this.currentUser?.displayName ?? '';
-	}
-
-	/**
-	 * Proxy vers currentUser.formattedTimePlayed avec vérification null.
-	 * Renvoie le temps total de jeu formaté en heures et minutes, ou "0h 0m" si l'utilisateur courant n'existe pas.
-	 * @returns {string} Le temps total de jeu formaté, ou "0h 0m" si l'utilisateur n'existe pas.
-	 */
-	public get currentUserFormattedTimePlayed(): string {
-		return this.currentUser?.formattedTimePlayed ?? '0h 0m';
-	}
-
-	/**
-	 * Accès sécurisé à l'email de l'utilisateur courant.
-	 * L'email est stockée en mémoire vive uniquement, et non en localStorage.
-	 * Si l'utilisateur courant n'existe pas, renvoie une string vide.
-	 * @returns {string} L'email de l'utilisateur courant, ou une string vide si l'utilisateur n'existe pas.
-	 */
-	public get currentUserEmail(): string {
-		return this.currentUser?.email ?? '';
 	}
 }
 

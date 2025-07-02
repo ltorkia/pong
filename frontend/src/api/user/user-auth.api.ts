@@ -142,7 +142,7 @@ export class UserAuthApi {
 	 * authentifié ou un message d'erreur.
 	 */
 	public async twofaConnectUser(data: Record<string, string>): Promise<AuthResponse> {
-		const res = await fetch('/api/auth/2FAreceive', {
+		const res: Response = await fetch('/api/auth/2FAreceive', {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify(data),

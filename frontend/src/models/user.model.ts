@@ -223,6 +223,7 @@ export class User {
 		);
 	}
 
+	// TODO: Déplacer logique user vers service
 	// ============================================================================
 	// MÉTHODES STATIQUES SUR TABLEAUX D'UTILISATEURS
 	// ============================================================================
@@ -323,118 +324,8 @@ export class User {
 	}
 
 	// ============================================================================
-	// STATISTIQUES & TRI
-	// ============================================================================
-
-	/**
-	 * Trie les utilisateurs par taux de victoire décroissant.
-	 * 
-	 * @param users - Tableau d'instances User
-	 * @returns {User[]} - Tableau d'utilisateurs triés par winRate
-	 */
-	static sortByWinRate(users: User[]): User[] {
-		return [...users].sort((a, b) => b.winRate - a.winRate);
-	}
-
-	/**
-	 * Trie les utilisateurs par nombre de parties jouées décroissant.
-	 * 
-	 * @param users - Tableau d'instances User
-	 * @returns {User[]} - Tableau d'utilisateurs triés par game_played
-	 */
-	static sortByGamesPlayed(users: User[]): User[] {
-		return [...users].sort((a, b) => b.game_played - a.game_played);
-	}
-
-	/**
-	 * Trie les utilisateurs par temps de jeu décroissant.
-	 * 
-	 * @param users - Tableau d'instances User
-	 * @returns {User[]} - Tableau d'utilisateurs triés par time_played
-	 */
-	static sortByTimePlayed(users: User[]): User[] {
-		return [...users].sort((a, b) => b.time_played - a.time_played);
-	}
-
-	/**
-	 * Recherche un utilisateur par ID dans un tableau.
-	 * 
-	 * @param users - Tableau d'instances User
-	 * @param id - ID de l'utilisateur à rechercher
-	 * @returns {User | undefined} - Utilisateur trouvé ou undefined
-	 */
-	static findById(users: User[], id: number): User | undefined {
-		return users.find(user => user.id === id);
-	}
-
-	/**
-	 * Recherche un utilisateur par nom d'utilisateur dans un tableau.
-	 * 
-	 * @param users - Tableau d'instances User
-	 * @param username - Nom d'utilisateur à rechercher
-	 * @returns {User | undefined} - Utilisateur trouvé ou undefined
-	 */
-	static findByUsername(users: User[], username: string): User | undefined {
-		return users.find(user => user.username.toLowerCase() === username.toLowerCase());
-	}
-
-	/**
-	 * Recherche des utilisateurs par nom d'utilisateur partiel.
-	 * 
-	 * @param users - Tableau d'instances User
-	 * @param searchTerm - Terme de recherche
-	 * @returns {User[]} - Tableau d'utilisateurs correspondants
-	 */
-	static searchByUsername(users: User[], searchTerm: string): User[] {
-		const term = searchTerm.toLowerCase();
-		return users.filter(user => user.username.toLowerCase().includes(term));
-	}
-
-	/**
-	 * Obtient les statistiques globales d'un groupe d'utilisateurs.
-	 * 
-	 * @param users - Tableau d'instances User
-	 * @returns {Object} - Statistiques globales
-	 */
-	static getGlobalStats(users: User[]): {
-		totalUsers: number;
-		activeUsers: number;
-		onlineUsers: number;
-		totalGamesPlayed: number;
-		totalTimePlayed: number;
-		averageWinRate: number;
-	} {
-		const activeUsers = this.getActiveUsers(users);
-		const onlineUsers = this.getOnlineUsers(users);
-		
-		const totalGamesPlayed = users.reduce((sum, user) => sum + user.game_played, 0);
-		const totalTimePlayed = users.reduce((sum, user) => sum + user.time_played, 0);
-		const averageWinRate = users.length > 0 
-			? users.reduce((sum, user) => sum + user.winRate, 0) / users.length 
-			: 0;
-
-		return {
-			totalUsers: users.length,
-			activeUsers: activeUsers.length,
-			onlineUsers: onlineUsers.length,
-			totalGamesPlayed,
-			totalTimePlayed,
-			averageWinRate: Math.round(averageWinRate * 100) / 100
-		};
-	}
-
-	// ============================================================================
 	// MÉTHODES D’INSTANCE POUR MANIPULATION
 	// ============================================================================
-
-	/**
-	 * Clone une instance User.
-	 * 
-	 * @returns {User} - Nouvelle instance User identique
-	 */
-	clone(): User {
-		return User.fromJSON(this.toFullJSON());
-	}
 
 	/**
 	 * Met à jour les propriétés de l'utilisateur avec de nouvelles données.
@@ -445,37 +336,5 @@ export class User {
 	update(updates: Partial<UserModel>): User {
 		Object.assign(this, updates);
 		return this;
-	}
-
-	/**
-	 * Vérifie si deux utilisateurs sont identiques (même ID).
-	 * 
-	 * @param other - Autre utilisateur à comparer
-	 * @returns {boolean} - True si les utilisateurs sont identiques
-	 */
-	equals(other: User): boolean {
-		return this.id === other.id;
-	}
-
-	/**
-	 * Compare deux utilisateurs pour le tri.
-	 * 
-	 * @param other - Autre utilisateur à comparer
-	 * @param sortBy - Critère de tri ('username', 'winRate', 'gamesPlayed', 'timePlayed')
-	 * @returns {number} - Résultat de la comparaison (-1, 0, 1)
-	 */
-	compareTo(other: User, sortBy: 'username' | 'winRate' | 'gamesPlayed' | 'timePlayed' = 'username'): number {
-		switch (sortBy) {
-			case 'username':
-				return this.username.localeCompare(other.username);
-			case 'winRate':
-				return other.winRate - this.winRate; // Décroissant
-			case 'gamesPlayed':
-				return other.game_played - this.game_played; // Décroissant
-			case 'timePlayed':
-				return other.time_played - this.time_played; // Décroissant
-			default:
-				return 0;
-		}
 	}
 }
