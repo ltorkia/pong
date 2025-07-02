@@ -3,10 +3,9 @@ import bcrypt from 'bcrypt';
 import { GoogleCallbackQuery, GoogleTokenResponse, GoogleUserInfo } from '../types/google.types';
 import { insertUser, getUser, getUserP, majLastlog, eraseCode2FA, insertCode2FA, getUser2FA } from '../db/user';
 import { RegisterInputSchema, LoginInputSchema } from '../types/zod/auth.zod';
-import { generateJwt, setAuthCookie, setStatusCookie, clearAuthCookies, setPublicUserInfos } from '../helpers/auth.helpers';
+import { generateJwt, setAuthCookie, setStatusCookie, clearAuthCookies } from '../helpers/auth.helpers';
 import { UserModel } from '../shared/types/user.types'; // en rouge car dossier local 'shared' != dossier conteneur
 import { UserPassword } from 'src/types/user.types';
-import { JwtPayload } from '../types/jwt.types';
 import nodemailer from 'nodemailer';
 
 async function ProcessAuth(app: FastifyInstance, user: Partial<UserPassword>, reply: FastifyReply)
