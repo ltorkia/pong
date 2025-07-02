@@ -23,7 +23,7 @@ async function ProcessAuth(app: FastifyInstance, user: UserModel, reply: Fastify
 }
 
 
-	const PORT = 3001;
+const PORT = 3001;
 
 
 async function doubleAuth(app: FastifyInstance)
@@ -162,16 +162,7 @@ export async function authRoutes(app: FastifyInstance) {
 					errorMessage: 'Password does not match.'
 				});
 			}
-			// TODO: CHECK CA APRES MERGE
-			// const token = generateJwt(app, {
-			// 	id: validUser.id
-			// });
-
-			// await majLastlog(validUser.username);
-			// setAuthCookie(reply, token);
-			// setStatusCookie(reply);
-			// // ProcessAuth(app, validUser, reply);
-
+			ProcessAuth(app, validUser, reply);
 			const user: UserModel | null = await getUser(null, result.data.email);
 			if (!user) {
 				return reply.status(500).send({
@@ -181,7 +172,6 @@ export async function authRoutes(app: FastifyInstance) {
 			return reply.status(200).send({
 				message: 'Successfully logged in.',
 				user: user,
-				// user: { id: validUser.id, username: validUser.username },
 				statusCode: 200
 			});
 
