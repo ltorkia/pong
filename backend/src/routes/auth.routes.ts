@@ -262,13 +262,13 @@ export async function authRoutes(app: FastifyInstance) {
 				return reply.status(400).send({error: 'Données utilisateur incomplètes' }); //retourne objet vec statuscode ? 
 			}
 
-			let userGooglePassword: UserPassword | null = await getUserP(userData.email);
-			if (userGooglePassword && userGooglePassword.password)
+			let userGoogle: UserPassword | null = await getUserP(userData.email);
+			if (userGoogle && userGoogle.password)
 				return (reply.redirect(process.env.GOOGLE_REDIRECT_FRONTEND! + "?autherror=1"));
 
-			if (!userGooglePassword) {
+			if (!userGoogle) {
 				const result = await insertUser({ email: userData.email, username: userData.given_name, avatar: userData.picture }, true);
-				const userGoogle: UserModel = await getUser(null, userData.email);
+				userGoogle = await getUserP(userData.email);
 				if (!userGoogle) {
 					return reply.status(500).send({
 						errorMessage: 'Impossible de récupérer l’utilisateur après insertion',
