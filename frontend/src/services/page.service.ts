@@ -141,7 +141,6 @@ export class PageService {
 		container.classList.add('-translate-y-[--navbar-height]');
 		setTimeout(() => container.classList.remove('-translate-y-[--navbar-height]'), 300);
 		await new Promise(resolve => setTimeout(resolve, 200));
-		// uiStore.animateNavbarOut = false;
 	}
 
 	/**
