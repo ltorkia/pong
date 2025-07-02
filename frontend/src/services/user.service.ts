@@ -1,5 +1,5 @@
 import { router } from '../router/router';
-import { defaultRoute, authFallbackRoute } from '../config/routes.config';
+import { defaultRoute, authFallbackRoute, authTwofaRoute } from '../config/routes.config';
 import { showError } from '../utils/dom.utils';
 import { REGISTERED_MSG } from '../config/messages.config';
 import { User } from '../models/user.model';
@@ -206,13 +206,15 @@ export class UserService {
 				showError(result.errorMessage);
 				return;
 			}
+	
+			await router.redirect(authTwofaRoute);
+					
+			// console.log(`[${this.constructor.name}] Utilisateur inscrit :`, result);
 			
-			console.log(`[${this.constructor.name}] Utilisateur inscrit :`, result);
-			
-			// Redirection home
-			alert(REGISTERED_MSG);
-			uiStore.animateNavbarOut = true;
-			await router.redirect(defaultRoute);
+			// // Redirection home
+			// alert(REGISTERED_MSG);
+			// uiStore.animateNavbarOut = true;
+			// await router.redirect(defaultRoute);
 
 		} catch (err) {
 			console.error(`[${this.constructor.name}] Erreur réseau ou serveur`, err);
@@ -241,12 +243,13 @@ export class UserService {
 				showError(result.errorMessage);
 				return;
 			}
+			await router.redirect(authTwofaRoute);
+
+			// console.log(`[${this.constructor.name}] Utilisateur connecté :`, result);
 			
-			console.log(`[${this.constructor.name}] Utilisateur connecté :`, result);
-			
-			// Redirection home
-			uiStore.animateNavbarOut = true;
-			await router.redirect(defaultRoute);
+			// // Redirection home
+			// uiStore.animateNavbarOut = true;
+			// await router.redirect(defaultRoute);
 
 		} catch (err) {
 			console.error(`[${this.constructor.name}] Erreur réseau ou serveur`, err);
@@ -275,11 +278,11 @@ export class UserService {
 				return;
 			}
 
-			console.log(`[${this.constructor.name}] Utilisateur connecté :`, result);
+			// console.log(`[${this.constructor.name}] Utilisateur connecté :`, result);
 
-			// Redirection home
-			uiStore.animateNavbarOut = true;
-			await router.redirect(defaultRoute);
+			// // Redirection home
+			// uiStore.animateNavbarOut = true;
+			// await router.redirect(defaultRoute);
 
 		} catch (err) {
 			console.error(`[${this.constructor.name}] Erreur réseau ou serveur`, err);

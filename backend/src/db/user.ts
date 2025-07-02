@@ -3,7 +3,7 @@ import { RegisterInput } from '../types/zod/auth.zod';
 import { Game } from '../types/game.types';
 import { ChatMessage } from '../types/chat.types';
 import { searchNewName } from '../helpers/auth.helpers';
-import { UserPassword } from '../types/user.types';
+import { UserPassword, User2FA } from '../types/user.types';
 import { UserModel, UserBasic, UserWithAvatar, Friends } from '../shared/types/user.types'; // en rouge car dossier local 'shared' != dossier conteneur
 
 // retourne les infos d un user particulier - userId = le id de l user a afficher
@@ -54,7 +54,7 @@ export async function getUser2FA(email: string) {
 		`,
 		[email]
 	);
-	return user;
+	return user as User2FA;
 }
 	
 // pour choper les friends, mais implique qu un element chat soit forcement cree des qu on devient ami
@@ -145,7 +145,7 @@ export async function insertUser(user: (RegisterInput | {username: string, email
 				VALUES (?, ?, ?, ?, ?)
 				`,
 				[u.username, u.email, u.password, u.question, u.answer]
-		);
+			);
 		}
 		else 
 		{

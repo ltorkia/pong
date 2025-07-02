@@ -2,10 +2,10 @@ import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import bcrypt from 'bcrypt';
 import { GoogleCallbackQuery, GoogleTokenResponse, GoogleUserInfo } from '../types/google.types';
 import { insertUser, getUser, getUserP, majLastlog, eraseCode2FA, insertCode2FA, getUser2FA } from '../db/user';
-import { RegisterInputSchema, LoginInputSchema } from '../types/zod/auth.zod';
+import { RegisterInputSchema, LoginInputSchema, LoginInput, RegisterInput } from '../types/zod/auth.zod';
 import { generateJwt, setAuthCookie, setStatusCookie, clearAuthCookies } from '../helpers/auth.helpers';
+import { UserPassword, User2FA, Code2FA } from 'src/types/user.types';
 import { UserModel } from '../shared/types/user.types'; // en rouge car dossier local 'shared' != dossier conteneur
-import { UserPassword } from 'src/types/user.types';
 import nodemailer from 'nodemailer';
 
 async function ProcessAuth(app: FastifyInstance, user: Partial<UserPassword>, reply: FastifyReply)
@@ -38,7 +38,8 @@ async function doubleAuth(app: FastifyInstance)
 		}
 		try {
 			const code = Math.floor(100000 + Math.random() * 900000).toString();
-			const resInsert = await insertCode2FA(user.data.email, code);
+			// check resInsert
+			const resInsert: Code2FA | void = await insertCode2FA(user.data.email, code);
 			const transporter = nodemailer.createTransport({
 				service: 'gmail',
 				auth: {
@@ -74,7 +75,7 @@ async function doubleAuth(app: FastifyInstance)
 				errorMessage: error.message + " in " + error.path
 			});
 		}
-		const checkUser = await getUser2FA(result.data.email);
+		const checkUser: User2FA = await getUser2FA(result.data.email);
 		if (!checkUser )
 			return (reply.status(400).send({message:"email doesn t exist"}));
 		eraseCode2FA(checkUser.email);
@@ -82,13 +83,20 @@ async function doubleAuth(app: FastifyInstance)
 			return(reply.status(400).send({message:"timeout, send new mail ?"}));
 		if (result.data.password != checkUser.code_2FA)
 			return(reply.status(400).send({message:"2FA not confirmed, try again"}));
+
+		const user: UserModel | null = await getUser(null, result.data.email);
+		if (!user) {
+			return reply.status(500).send({
+				errorMessage: 'Impossible de récupérer l’utilisateur après insertion',
+			});
+		}
 		ProcessAuth(app, checkUser, reply);
 		return reply.status(200).send({
-			message: 'Connexion réussie',
-			user: {checkUser},
+			message: 'Successfully logged in.',
+			user: user,
 			statusCode: 200
 		});
-		// return(reply.status(200).send({message:"2FA confirmed"}));
+		return(reply.status(200).send({message:"2FA confirmed"}));
 	});
 }
 
@@ -108,18 +116,24 @@ export async function authRoutes(app: FastifyInstance) {
 	
 			const resultinsert = await insertUser(userToInsert, null);
 			if (resultinsert.statusCode === 201) {
-				const user: UserModel = await getUser(null, userToInsert.email);
-				const userAuth: Partial<UserPassword> = {
-					id: user.id,
-					username: user.username
-				}
-				// ProcessAuth(app, userAuth, reply);
 				return reply.status(200).send({
 					message: 'Successful registration.',
-					user: user,
-					statusCode: 200 // -> convention json pour donner toutes les infos au front
+					statusCode: 200
 				});
 			}
+			// if (resultinsert.statusCode === 201) {
+				// const user: UserModel = await getUser(null, userToInsert.email);
+				// const userAuth: Partial<UserPassword> = {
+				// 	id: user.id,
+				// 	username: user.username
+				// }
+				// ProcessAuth(app, userAuth, reply);
+				// return reply.status(200).send({
+				// 	message: 'Successful registration.',
+				// 	user: user,
+				// 	statusCode: 200 // -> convention json pour donner toutes les infos au front
+				// });
+			// }
 			return reply.status(resultinsert.statusCode).send(resultinsert);
 	
 		} catch (err) {
@@ -167,15 +181,15 @@ export async function authRoutes(app: FastifyInstance) {
 				});
 			}
 			// ProcessAuth(app, validUser, reply);
-			const user: UserModel | null = await getUser(null, result.data.email);
-			if (!user) {
-				return reply.status(500).send({
-					errorMessage: 'Impossible de récupérer l’utilisateur après insertion',
-				});
-			}
+			// const user: UserModel | null = await getUser(null, result.data.email);
+			// if (!user) {
+			// 	return reply.status(500).send({
+			// 		errorMessage: 'Impossible de récupérer l’utilisateur après insertion',
+			// 	});
+			// }
 			return reply.status(200).send({
-				message: 'Successfully logged in.',
-				user: user,
+				message: 'All infos are correct.',
+				// user: user,
 				statusCode: 200
 			});
 

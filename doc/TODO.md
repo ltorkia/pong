@@ -8,6 +8,7 @@ BACK
 - first log, last log ou booleen ? A mediter
 - créer un cookie pour sauvegarder l'email de l'utilisateur (à afficher sur form de connexion si l'utilisateur a cliqué sur "se souvenir de moi") ?
 - Vérifier systeme middleware/hook pour auth jwt verif des routes
+- Voir si on parametre 2FA pour qu il soit actif qu a la premiere connexion
 
 COMMUN
 
@@ -23,7 +24,7 @@ FRONT
 - Ajouter carré à cocher sur formulaire login pour "mémoriser les informations"
 - Ajouter "Mot de passe oublie ?" avec gestion question secrete
 - Intercepter l'erreur backend dans l'url si authentification google echoue
-- Gerer HTML 2FA
+- Gerer HTML 2FA / gere redirections
 - Enregistrer les champs formulaires en session au cas où crash
 - Mieux typer partout
 - Boucle login si erreur validate-session (load user dans start app manager à vérifier)

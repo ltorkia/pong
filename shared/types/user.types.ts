@@ -75,7 +75,7 @@ export type OptionalUser = SafeUserModel | null;
  */
 export interface UserBasic {
 	id:number;
-	username : string;
+	username: string;
 	email: string;
 	avatar: string;
 }
@@ -86,8 +86,8 @@ export interface UserBasic {
  */
 export interface UserWithAvatar {
 	id:number;
-	username : string;
-	avatar : string;
+	username: string;
+	avatar: string;
 }
 
 /**

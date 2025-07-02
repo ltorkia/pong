@@ -104,7 +104,7 @@ export const authFallbackRoute = routePaths.login;
 /**
  * Route pour la page de double authentification (2FA)
  */
-export const authTwofaRoute = '/twofa';
+export const authTwofaRoute = routePaths.twofa;
 
 /**
  * Configuration statique des routes de l'application.
