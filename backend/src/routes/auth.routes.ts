@@ -48,8 +48,7 @@ async function doubleAuth(app: FastifyInstance)
 			});
 			
 			await transporter.sendMail({
-				// from: '"Sécurité" <no-reply@transcendance.com>',
-				from: '"Sécurité" <lee.torkia@gmail.com>',
+				from: '"Sécurité" <no-reply@transcendance.com>',
 				to: user.data.email,
 				subject: 'Votre code de vérification',
 				text: `Votre code est : ${code}`,
@@ -262,8 +261,9 @@ export async function authRoutes(app: FastifyInstance) {
 			}
 
 			let userGoogle: UserPassword | null = await getUserP(userData.email);
-			if (userGoogle && userGoogle.password)
+			if (userGoogle && userGoogle.password) {
 				return (reply.redirect(process.env.GOOGLE_REDIRECT_FRONTEND! + "?autherror=1"));
+			}
 
 			if (!userGoogle) {
 				const result = await insertUser({ email: userData.email, username: userData.given_name, avatar: userData.picture }, true);

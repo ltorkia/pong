@@ -159,7 +159,7 @@ export async function insertUser(user: (RegisterInput | {username: string, email
 				[user.username, user.email, 'google']
 			);	
 		}
-		return {statusCode : 200, message : 'user add'};
+		return {statusCode : 201, message : 'user add'};
 
 	} catch (err) {
 		console.error("Erreur lors de l'insertion d'un utilisateur standard :", err);

@@ -254,6 +254,18 @@ export class UserService {
 		}
 	}
 	
+	/**
+	 * Connecte un utilisateur après avoir vérifié son code 2FA.
+	 * 
+	 * Effectue une requête API pour connecter un utilisateur avec son code 2FA.
+	 * Si la connexion réussit, stocke l'utilisateur dans le store et le localStorage,
+	 * active l'animation d'entrée de la barre de navigation
+	 * et redirige vers la page d'accueil.
+	 * 
+	 * @param {Record<string, string>} data Informations de l'utilisateur à connecter.
+	 * @returns {Promise<void>} Promesse qui se résout lorsque l'opération est terminée.
+	 * @throws {Error} Si la requête échoue ou en cas d'erreur réseau.
+	 */
 	public async twofaConnectUser(data: Record<string, string>): Promise<void> {
 		try {
 			const result: AuthResponse = await userAuthApi.twofaConnectUser(data);
