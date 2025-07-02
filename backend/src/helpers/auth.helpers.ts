@@ -1,9 +1,9 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { JwtPayload } from '../types/jwt.types';
+import { UserModel, PublicUser } from '../shared/types/user.types'; // en rouge car dossier local 'shared' != dossier conteneur
+import { cookiesConst } from '../shared/config/constants.config'; // en rouge car dossier local 'shared' != dossier conteneur
 import { getUser } from '../db/user';
 // import { majLastlog } from '../db/user';
-
-
 
 /*propose un nouveau nom pour register*/
 export async function searchNewName(username: string) {
@@ -31,14 +31,13 @@ export function generateJwt(app: FastifyInstance, user: JwtPayload) {
 	return app.jwt.sign(user, { expiresIn: '7d' });
 }
 
-
 /**
  * Définit le cookie principal d'authentification (sécurisé, HttpOnly)
  * Ce cookie contient le vrai token JWT et n'est pas accessible en JavaScript
  * Personne ne peut s'emparer de la session d'un utilisateur.
  */
 export function setAuthCookie(reply: FastifyReply, token: string) {
-	reply.setCookie('auth_token', token, {
+	reply.setCookie(cookiesConst.authTokenKey, token, {
 		path: '/',
 		httpOnly: true,
 		sameSite: 'lax',
@@ -53,7 +52,7 @@ export function setAuthCookie(reply: FastifyReply, token: string) {
  * Il ne contient aucune information sensible, juste un indicateur booléen.
  */
 export function setStatusCookie(reply: FastifyReply) {
-	reply.setCookie('auth_status', 'active', {
+	reply.setCookie(cookiesConst.authStatusKey, 'active', {
 		path: '/',
 		httpOnly: false,
 		sameSite: 'lax',
@@ -68,7 +67,7 @@ export function setStatusCookie(reply: FastifyReply) {
  */
 export function clearAuthCookies(reply: FastifyReply) {
 	// le cookie principal (token JWT)
-	reply.clearCookie('auth_token', {
+	reply.clearCookie(cookiesConst.authTokenKey, {
 		path: '/',
 		httpOnly: true,
 		sameSite: 'lax',
@@ -76,7 +75,7 @@ export function clearAuthCookies(reply: FastifyReply) {
 	});
 	
 	// le cookie compagnon (statut)
-	reply.clearCookie('auth_status', {
+	reply.clearCookie(cookiesConst.authStatusKey, {
 		path: '/',
 		httpOnly: false,
 		sameSite: 'lax',
@@ -95,4 +94,20 @@ export function requireAuth(request: FastifyRequest, reply: FastifyReply): JwtPa
 		return undefined;
 	}
 	return user;
+}
+
+/**
+ * Définit les propriétés user safe à envoyer au front après login réussi
+ */
+export function setPublicUserInfos(user: UserModel): PublicUser {
+	return {
+		id: user.id,
+		username: user.username,
+		avatar: user.avatar,
+		game_played: user.game_played,
+		game_win: user.game_win,
+		game_loose: user.game_loose,
+		time_played: user.time_played,
+		n_friends: user.n_friends
+	};
 }

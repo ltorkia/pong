@@ -1,0 +1,44 @@
+@layer components {
+
+	/* NO TRANSITION WHEN RELOADING */
+	.load {
+		@apply !transition-none;
+	}
+
+	/* BACKGROUND PARTICLES */
+	#tsparticles {
+		@apply fixed top-0 left-0 w-screen h-screen -z-10 pointer-events-none transition-opacity duration-300 ease-in-out;
+	}
+
+	/* ERROR MESSAGES BOX */
+	#alert {
+		@apply font-classic text-sm text-center
+		bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded;
+	}
+
+	.element:focus-within {
+		@apply outline-none;
+	}
+
+	/* SITE LOGO */
+	.pong-logo {
+		@apply text-center mb-4 animate-logo-appear cursor-pointer;
+	}
+	.title {
+		@apply text-6xl font-bold text-white font-title tracking-widest
+		animate-logo-glow relative transition-transform duration-300 ease-out
+		
+		mobile:text-7xl;
+	}
+	.pong-logo span {
+		@apply inline-block relative;
+	}
+	.magical-ball {
+		@apply absolute bottom-2 right-3.5
+		w-10 animate-bounce
+		
+		mobile:right-5 mobile:bottom-3;
+
+		filter: brightness(1.5) saturate(0.5) hue-rotate(156deg) drop-shadow(1px 2px 3px black);
+	}
+}

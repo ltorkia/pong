@@ -7,6 +7,9 @@
 	.form-box#login-form {
 		@apply px-9;
 	}
+	.form-box#twofa-form {
+		@apply px-9;
+	}	
 	.fields-container {
 		@apply space-y-4;
 	}

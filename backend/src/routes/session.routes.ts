@@ -11,10 +11,10 @@ export async function sessionRoutes(app: FastifyInstance) {
 	 * Utile pour valider côté client que la session est toujours active et que
 	 * l'utilisateur est bien celui attendu, sans exposer de données sensibles comme avec api/me.
 	 */
-	app.get('/:id', async (request: FastifyRequest<{ Params: { id : string } }>, reply: FastifyReply) => {
+	app.get('/:id', async (request: FastifyRequest<{ Params: { id : number } }>, reply: FastifyReply) => {
 		const jwtUser = requireAuth(request, reply);
 		if (!jwtUser) {
-			return;
+			return reply.status(401).send({ error: 'Not authenticated' });
 		}
 
 		const requestedId = Number(request.params.id);

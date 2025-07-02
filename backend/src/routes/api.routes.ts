@@ -22,6 +22,8 @@ export async function apiRoutes(app: FastifyInstance) {
 			'/api/auth/register',
 			'/api/auth/google',
 			'/api/auth/google/callback',
+			'/api/auth/2FAsend',
+			'/api/auth/2FAreceive',
 			'/api/health',
 		];
 
@@ -59,7 +61,7 @@ export async function apiRoutes(app: FastifyInstance) {
 				});
 			}
 
-			// Données user décodées du JWT (ici l'id et username du token)
+			// Données user décodées du JWT (ici l'id du token)
 			// injectées dans l'objet 'request' en param de chaque requete.
 			// Ca permet aux routes d’accéder facilement à l’utilisateur authentifié
 			// via request.user sans devoir redécoder le token à chaque fois.

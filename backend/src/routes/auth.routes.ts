@@ -1,66 +1,96 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import bcrypt from 'bcrypt';
 import { GoogleCallbackQuery, GoogleTokenResponse, GoogleUserInfo } from '../types/google.types';
-import { insertUser, getUser, getUserP, majLastlog, eraseCode2FA, insertCode2FA } from '../db/user';
+import { insertUser, getUser, getUserP, majLastlog, eraseCode2FA, insertCode2FA, getUser2FA } from '../db/user';
 import { RegisterInputSchema, LoginInputSchema } from '../types/zod/auth.zod';
 import { generateJwt, setAuthCookie, setStatusCookie, clearAuthCookies } from '../helpers/auth.helpers';
-import { JwtPayload } from '../types/jwt.types';
-// import nodemailer from 'nodemailer';
+import { UserModel } from '../shared/types/user.types'; // en rouge car dossier local 'shared' != dossier conteneur
+import { UserPassword } from 'src/types/user.types';
+import nodemailer from 'nodemailer';
 
-async function ProcessAuth(app: FastifyInstance, user: JwtPayload, reply: FastifyReply)
+async function ProcessAuth(app: FastifyInstance, user: Partial<UserPassword>, reply: FastifyReply)
 {
 	// const user = await getUser(null, userToGet);
 	// Création d'un token JWT qui sera utilisé par le frontend pour les requêtes authentifiées
 	// JWT = JSON Web Token = format pour transporter des informations de manière sécurisée entre deux parties, ici le frontend et le backend.
+	const userId = user.id!;
+	const username = user.username!;
 	const token = generateJwt(app, {
-		id: user.id,
-		username: user.username,
+		id: userId
 	});
 	setAuthCookie(reply, token);
 	setStatusCookie(reply);
-	await majLastlog(user.username);
+	await majLastlog(username);
 }
 
 
-
-// async function doubleAuth(app: FastifyInstance, user: JwtPayload, email: string, reply: FastifyReply)
-// {
-// 	app.post('/2FAsend', async (request: FastifyRequest, reply: FastifyReply) => {
-// 		try {
-// 			const code = Math.floor(100000 + Math.random() * 900000).toString().slice(0, length);
-// 			insertCode2FA(user.username, code);
-// 			const transporter = nodemailer.createTransport({	
-// 				service: 'yopmail', // ou autre SMTP
-// 				auth: {
-// 					user: `alt.vl-5ouy5ww2@yopmail.com`,
-// 					// pass: code,
-// 				}
-// 			});
-// 			await transporter.sendMail({
-// 				from: '"Sécurité" <no-reply@transcendance.com>',
-// 				to: email,
-// 				subject: 'Votre code de vérification',
-// 				text: `Votre code est : ${code}`,
-// 			});
-// 		} catch (err) {
-// 			request.log.error(err);
-// 			return reply.status(500).send({
-// 				errorMessage: 'Erreur serveur lors de l envoi 2FA',
-// 			});
-// 		}
-// 		return(reply.status(200).send("2FA ok"));
-// 	} );
-
-// 	app.post('/2FAreceive', async (request: FastifyRequest, reply: FastifyReply) => {
-// 	});
-
-// check date d expiratioquand reception du code. si obsolete recommencer operation a partir de redir du front + erase les infos
-// 
-
-			// await sendEmail(user.email, `Votre code de vérification : ${code}`);
+const PORT = 3001;
 
 
-// }
+async function doubleAuth(app: FastifyInstance)
+{
+	app.post('/2FAsend', async (request: FastifyRequest, reply: FastifyReply) => {
+		const user = await LoginInputSchema.safeParse(request.body);
+		if (!user.success) {
+			const error = user.error.errors[0];
+			console.log(error);
+			return reply.status(400).send({statusCode: 400, errorMessage: error.message + " in " + error.path });
+		}
+		try {
+			const code = Math.floor(100000 + Math.random() * 900000).toString();
+			const resInsert = await insertCode2FA(user.data.email, code);
+			const transporter = nodemailer.createTransport({
+				service: 'gmail',
+				auth: {
+					user: process.env.EMAIL_2FA,
+					pass: process.env.PASS_EMAIL,
+				},
+			});
+			
+			await transporter.sendMail({
+				from: '"Sécurité" <no-reply@transcendance.com>',
+				to: user.data.email,
+				subject: 'Votre code de vérification',
+				text: `Votre code est : ${code}`,
+			});
+		} catch (err) {
+			console.log(err)
+			request.log.error(err);
+			return reply.status(500).send({
+				errorMessage: 'Erreur serveur lors de l envoi 2FA',
+			});
+		}
+		// const redirectUrl = new URL('');
+		// reply.redirect()->
+		return(reply.status(200).send("2FA send"));
+	} );
+
+	app.post('/2FAreceive', async (request: FastifyRequest, reply: FastifyReply) => {
+		const result = LoginInputSchema.safeParse(request.body); //c est le meme format que pour login input avec les memes checks
+		if (!result.success) {
+			const error = result.error.errors[0];
+			return reply.status(400).send({
+				statusCode : 400,
+				errorMessage: error.message + " in " + error.path
+			});
+		}
+		const checkUser = await getUser2FA(result.data.email);
+		if (!checkUser )
+			return (reply.status(400).send({message:"email doesn t exist"}));
+		eraseCode2FA(checkUser.email);
+		if (checkUser.code_2FA_expire_at < Date.now())
+			return(reply.status(400).send({message:"timeout, send new mail ?"}));
+		if (result.data.password != checkUser.code_2FA)
+			return(reply.status(400).send({message:"2FA not confirmed, try again"}));
+		ProcessAuth(app, checkUser, reply);
+		return reply.status(200).send({
+			message: 'Connexion réussie',
+			user: {checkUser},
+			statusCode: 200
+		});
+		// return(reply.status(200).send({message:"2FA confirmed"}));
+	});
+}
 
 export async function authRoutes(app: FastifyInstance) {
 	
@@ -96,13 +126,16 @@ export async function authRoutes(app: FastifyInstance) {
 			// 	await datafile.toFile(`./public/img/avatars/${datafile.filename}`);
 
 			const resultinsert = await insertUser(userToInsert, null);
-			if (resultinsert.statusCode === 200) {
-				const user = await getUser(null, userToInsert.email);
-				ProcessAuth(app, user, reply);
-
+			if (resultinsert.statusCode === 201) {
+				const user: UserModel = await getUser(null, userToInsert.email);
+				const userAuth: Partial<UserPassword> = {
+					id: user.id,
+					username: user.username
+				}
+				// ProcessAuth(app, userAuth, reply);
 				return reply.status(200).send({
-					message: 'Inscription réussie',
-					user: { id: user.id, username: user.username},
+					message: 'Successful registration.',
+					user: user,
 					statusCode: 200 // -> convention json pour donner toutes les infos au front
 				});
 			}
@@ -129,11 +162,11 @@ export async function authRoutes(app: FastifyInstance) {
 				});
 			}
 
-			const validUser = await getUserP(result.data.email);
+			const validUser: UserPassword | null = await getUserP(result.data.email);
 			if (!validUser) {
 				return reply.status(401).send({
 					statusCode: 401,
-					errorMessage: 'Email invalid or unknown'
+					errorMessage: 'Email invalid or unknown.'
 				});
 			}
 
@@ -141,7 +174,7 @@ export async function authRoutes(app: FastifyInstance) {
 			{
 				return reply.status(402).send({
 					statusCode: 402,
-					errorMessage: 'Email already register from google'
+					errorMessage: 'Email already register from Google.'
 				});				
 			}
 			
@@ -149,14 +182,19 @@ export async function authRoutes(app: FastifyInstance) {
 			if (!isPassValid) {
 				return reply.status(401).send({
 					statusCode: 401,
-					errorMessage: 'Password does not match'
+					errorMessage: 'Password does not match.'
 				});
 			}
-			ProcessAuth(app, validUser, reply);
-
+			// ProcessAuth(app, validUser, reply);
+			const user: UserModel | null = await getUser(null, result.data.email);
+			if (!user) {
+				return reply.status(500).send({
+					errorMessage: 'Impossible de récupérer l’utilisateur après insertion',
+				});
+			}
 			return reply.status(200).send({
-				message: 'Connexion réussie',
-				user: { id: validUser.id, username: validUser.username },
+				message: 'Successfully logged in.',
+				user: user,
 				statusCode: 200
 			});
 
@@ -168,10 +206,12 @@ export async function authRoutes(app: FastifyInstance) {
 		}
 	});
 
+	doubleAuth(app); //si deja fait voir si on genere pas un cookie type pour pas avoir a le refaire une seconde fois quand on se log sur le mm ordi
+
 	// LOGOUT
 	app.post('/logout', async (request: FastifyRequest, reply: FastifyReply) => {
 		clearAuthCookies(reply);
-		reply.send({ message: 'Déconnecté' })
+		return reply.status(200).send({ message: 'Déconnecté' });
 	});
 
 	// LOGIN AVEC GOOGLE
@@ -239,17 +279,18 @@ export async function authRoutes(app: FastifyInstance) {
 				return reply.status(400).send({error: 'Données utilisateur incomplètes' }); //retourne objet vec statuscode ? 
 			}
 
-			let userGoogle = await getUserP(userData.email);
-			if (userGoogle && userGoogle.password)
+			let userGoogle: UserPassword | null = await getUserP(userData.email);
+			if (userGoogle && userGoogle.password) {
 				return (reply.redirect(process.env.GOOGLE_REDIRECT_FRONTEND! + "?autherror=1"));
+			}
 
-			// TODO: Insère l'utilisateur seulement s'il n'existe pas en bdd
-			// TODO: Logique à améliorer, j'ai juste mis ça pour régler un probleme
 			if (!userGoogle) {
 				const result = await insertUser({ email: userData.email, username: userData.given_name, avatar: userData.picture }, true);
-				userGoogle = await getUser(null, userData.email);
+				userGoogle = await getUserP(userData.email);
 				if (!userGoogle) {
-					return reply.status(500).send({ error: 'Impossible de récupérer l’utilisateur après insertion' });
+					return reply.status(500).send({
+						errorMessage: 'Impossible de récupérer l’utilisateur après insertion',
+					});
 				}
 			}
 			ProcessAuth(app, userGoogle, reply);
@@ -261,4 +302,6 @@ export async function authRoutes(app: FastifyInstance) {
 			return reply.status(500).send({ error: 'Erreur serveur' });
 		}
 	});
+
+	//login -> status a 1 ou status a 0
 }

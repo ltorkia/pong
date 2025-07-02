@@ -5,7 +5,7 @@
 	"main": "src/index.ts",
 	"scripts": {
 		"start": "node dist/index.js",
-		"dev": "nodemon --watch 'src/**/*.ts' --exec 'ts-node' src/index.ts",
+		"dev": "nodemon --watch tsconfig.json --watch 'src/**/*.ts' --exec 'ts-node' src/index.ts",
 		"build": "tsc"
 	},
 	"dependencies": {
@@ -19,7 +19,7 @@
 		"@fastify/websocket": "11.1.0",
 		"@fastify/jwt": "9.1.0",
 		"@fastify/cookie": "11.0.2",
-		"nodemailer": "7.0.3",
+		"nodemailer":"7.0.3",
 		"@fastify/multipart":"9.0.3"
 	},
 	"devDependencies": {
@@ -28,6 +28,7 @@
 		"typescript": "^5.8.3",
   		"@types/node": "^22.15.30",
     	"@types/bcrypt": "^5.0.2",
-		"@fastify/multipart":"9.0.3"
+		"@fastify/multipart":"9.0.3",
+		"@types/nodemailer": "6.4.17"
 	}
 }

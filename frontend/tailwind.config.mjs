@@ -1,21 +1,46 @@
 /** @type {import('tailwindcss').Config} */
 
-import { fonts, colorsTheme1, images } from './src/styles/theme/theme'
+import { fonts, colorsTheme1, images } from './src/config/theme.config'
 
+// ===========================================
+// TAILWIND CONFIG
+// ===========================================
+/**
+ * Configuration de Tailwind CSS pour le projet.
+ *
+ * Les paramètres sont regroupés en 3 catégories :
+ * - `content`: les fichiers à surveiller pour les mises à jour,
+ * - `theme`: les paramètres de personnalisation du thème (dont certaines
+ *            propriétés sont importées de theme.config),
+ * - `plugins`: les plugins à charger.
+ */
 export default {
+	/**
+	 * Les fichiers à surveiller pour les mises à jour (hot-reload).
+	 * Les modifications sont détectées pour reconstruire le CSS si nécessaire.
+	 */
 	content: [
-		"./index.html",
 		"./public/**/*.html",
-		"./src/**/*.{js,ts,jsx,tsx}",
-  		"./node_modules/@fortawesome/fontawesome-free/**/*.js"
+		"./src/**/*.{js,ts,html,css}",
+		"./node_modules/@fortawesome/fontawesome-free/**/*.js"
 	],
+
+	/**
+	 * Les paramètres de personnalisation du thème.
+	 */
 	theme: {
+		/**
+		 * Les polices de caractères.
+		 */
 		extend: {
 			fontFamily: {
 				'title': fonts.cinzel,
 				'home': fonts.garamond,
 				'classic': fonts.arial,
 			},
+			/**
+			 * Les couleurs.
+			 */
 			colors: {
 				'main-font-color': colorsTheme1.white,
 				'body-bg-color': colorsTheme1.darkBlue,
@@ -23,9 +48,15 @@ export default {
 				'btn-font-color': colorsTheme1.white,
 				'btn-google-color': colorsTheme1.pastelBlue,
 			},
+			/**
+			 * Les images de fond.
+			 */
 			backgroundImage: {
 				'body-bg-img': images.forestWallpaper
 			},
+			/**
+			 * Les écrans pour le mode responsive.
+			 */
 			screens: {
 				'mobile': '390px',
 				'tablet': '768px',
@@ -33,6 +64,9 @@ export default {
 				'wide': '1280px',
 				'extra-wide': '1536px'
 			},
+			/**
+			 * Les animations via Keyframes css.
+			 */
 			keyframes: {
 				logoGlow: {
 					'0%': {
@@ -81,6 +115,9 @@ export default {
 					}
 				}
 			},
+			/**
+			 * Les animations (adaptation des Keyframes).
+			 */
 			animation: {
 				'logo-glow': 'logoGlow 3s ease-in-out infinite alternate',
 				'letter-float-1': 'letterFloat 4s ease-in-out infinite',
@@ -91,5 +128,9 @@ export default {
 			}
 		},
 	},
+
+	/**
+	 * Les plugins à charger pour ajouter des fonctionnalités à Tailwind CSS.
+	 */
 	plugins: [],
 }

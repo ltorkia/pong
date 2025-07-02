@@ -1,25 +1,16 @@
-# FROM nginx:stable-alpine
+FROM nginx:stable-alpine
 
-# # Installer openssl dans l'image
-# RUN apk add --no-cache openssl bash
+# ! Si serveur nginx déconne, alternative miroir pour éviter les erreurs réseau :
+# RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/' /etc/apk/repositories \
+#   && apk update \
+#   && apk add --no-cache openssl bash
 
-# # Copier le script de génération de certificat dans l'image
-# COPY ./generate-cert.sh /usr/local/bin/generate-cert.sh
-# RUN chmod +x /usr/local/bin/generate-cert.sh
+# Installer openssl dans l'image
+RUN apk add --no-cache openssl bash
 
-# # Point d'entrée personnalisé qui génère le certificat puis lance nginx
-# CMD ["/bin/bash", "-c", "/usr/local/bin/generate-cert.sh && nginx -g 'daemon off;'"]
-
-FROM nginx:stable-alpine3.19
-
-# Utiliser un miroir fiable pour éviter les erreurs réseau
-RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/' /etc/apk/repositories \
-  && apk update \
-  && apk add --no-cache openssl bash
-
-# Copier le script de génération de certificat
+# Copier le script de génération de certificat dans l'image
 COPY ./generate-cert.sh /usr/local/bin/generate-cert.sh
 RUN chmod +x /usr/local/bin/generate-cert.sh
 
-# Point d’entrée : génère les certificats, puis lance nginx
-CMD ["bash", "-c", "/usr/local/bin/generate-cert.sh && nginx -g 'daemon off;'"]
+# Point d'entrée personnalisé qui génère le certificat puis lance nginx
+CMD ["/bin/bash", "-c", "/usr/local/bin/generate-cert.sh && nginx -g 'daemon off;'"]

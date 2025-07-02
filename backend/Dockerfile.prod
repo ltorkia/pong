@@ -4,14 +4,15 @@ FROM node:20-alpine AS backend-builder
 WORKDIR /app
 
 # Copier les fichiers de dépendances
-COPY package*.json ./
+COPY backend/package*.json .
 
 # Installer toutes les dépendances (dev + prod) pour la compilation
 RUN npm install
 
 # Copier le code source
-COPY tsconfig.json ./
-COPY src ./src
+COPY backend/tsconfig.json .
+COPY backend/src ./src
+COPY shared ./src/shared
 
 # Compiler le TypeScript selon le script build du package.json
 RUN npm run build
@@ -22,7 +23,7 @@ FROM node:20-alpine
 WORKDIR /app
 
 # Copier les fichiers de dépendances
-COPY package*.json ./
+COPY backend/package*.json ./
 
 # Installer uniquement les dépendances de production
 RUN npm install --omit=dev
@@ -31,7 +32,7 @@ RUN npm install --omit=dev
 COPY --from=backend-builder /app/dist ./dist
 
 # Copier le fichier SQL init
-COPY sql/init.sql ./sql/init.sql
+COPY backend/sql/init.sql ./sql/init.sql
 
 # Commande pour lancer le backend en prod selon package.json
 CMD ["npm", "start"]

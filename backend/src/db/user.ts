@@ -1,9 +1,10 @@
 import { getDb } from './index.db';
-import { RegisterInput, RegisterInputSchema } from '../types/zod/auth.zod';
-import { UserBasic, UserForDashboard, UserWithAvatar, Friends } from '../types/user.types';
+import { RegisterInput } from '../types/zod/auth.zod';
 import { Game } from '../types/game.types';
 import { ChatMessage } from '../types/chat.types';
 import { searchNewName } from '../helpers/auth.helpers';
+import { UserPassword } from '../types/user.types';
+import { UserModel, UserBasic, UserWithAvatar, Friends } from '../shared/types/user.types'; // en rouge car dossier local 'shared' != dossier conteneur
 
 // retourne les infos d un user particulier - userId = le id de l user a afficher
 // a priori ? protegerait contre les insertions sql
@@ -18,7 +19,7 @@ export async function getUser(userId : number | null = null, search : string | n
 		`,
 		[userId, search, search]
 	);
-	return user as UserForDashboard;
+	return user as UserModel;
 }
 
 // retourne les infos de tous les users pour l authentification 
@@ -36,6 +37,18 @@ export async function getUserP(email: string) {
 	const db = await getDb();
 	const user = await db.get(`
 		SELECT id, username, email, password, register_from
+		FROM User 
+		WHERE email = ?
+		`,
+		[email]
+	);
+	return user as UserPassword;
+}
+
+export async function getUser2FA(email: string) {
+	const db = await getDb();
+	const user = await db.get(`
+		SELECT id, username, email, code_2FA, code_2FA_expire_at, register_from
 		FROM User 
 		WHERE email = ?
 		`,
@@ -146,7 +159,7 @@ export async function insertUser(user: (RegisterInput | {username: string, email
 				[user.username, user.email, 'google']
 			);	
 		}
-		return {statusCode : 200, message : 'user add'};
+		return {statusCode : 201, message : 'user add'};
 
 	} catch (err) {
 		console.error("Erreur lors de l'insertion d'un utilisateur standard :", err);
@@ -165,25 +178,26 @@ export async function majLastlog(username: string)
 	[username]);
 }
 
-export async function insertCode2FA(username: string, code: string)
+export async function insertCode2FA(email: string, code: string)
 {
 	const db = await getDb();
 	const end_time = Date.now() + 5 * 60 * 1000;
+	console.log(code, end_time);
 	await db.run(`
 		UPDATE User
 		SET code_2FA = ?, code_2FA_expire_at = ?
-		WHERE (username = ?)
+		WHERE (email = ?)
 		`,
-	[code, end_time , username]);
+	[code, end_time , email]);
 }
 
-export async function eraseCode2FA(username: string)
+export async function eraseCode2FA(email: string)
 {
 	const db = await getDb();
 	await db.run(`
 		UPDATE User
-		DELETE code_2FA, code_2FA_expire_at
-		WHERE (username = ?)
+		SET code_2FA = NULL, code_2FA_expire_at = NULL
+		WHERE (email = ?)
 		`,
-	[username]);	
+	[email]);	
 }
