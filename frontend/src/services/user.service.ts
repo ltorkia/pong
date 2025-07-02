@@ -253,6 +253,27 @@ export class UserService {
 			showError('Erreur réseau');
 		}
 	}
+	
+	public async twofaConnectUser(data: Record<string, string>): Promise<void> {
+		try {
+			const result: AuthResponse = await userAuthApi.twofaConnectUser(data);
+			if (result.errorMessage) {
+				console.error(`[${this.constructor.name}] Erreur d'authentification :`, result);
+				showError(result.errorMessage);
+				return;
+			}
+
+			console.log(`[${this.constructor.name}] Utilisateur connecté :`, result);
+
+			// Redirection home
+			uiStore.animateNavbarOut = true;
+			await router.redirect(defaultRoute);
+
+		} catch (err) {
+			console.error(`[${this.constructor.name}] Erreur réseau ou serveur`, err);
+			showError('Erreur réseau');
+		}
+	}
 
 	/**
 	 * Déconnecte un utilisateur.

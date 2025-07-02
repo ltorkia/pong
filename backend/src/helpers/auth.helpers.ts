@@ -2,6 +2,26 @@ import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { JwtPayload } from '../types/jwt.types';
 import { UserModel, PublicUser } from '../shared/types/user.types'; // en rouge car dossier local 'shared' != dossier conteneur
 import { cookiesConst } from '../shared/config/constants.config'; // en rouge car dossier local 'shared' != dossier conteneur
+import { getUser } from '../db/user';
+// import { majLastlog } from '../db/user';
+
+/*propose un nouveau nom pour register*/
+export async function searchNewName(username: string) {
+	const now = Date.now();
+	const digits = now.toString().split('');
+	const len = digits.length;
+	console.log( now + " " + digits + " " + len);
+	
+	for (let i = 0; i < len; i++)
+	{
+		if (i === 0)
+			username += "_";
+		username += digits[i];
+		if (!await getUser(null, username))
+			break ;
+	}
+	return username;
+} 
 
 /**
  * Génère un token JWT pour un utilisateur donné

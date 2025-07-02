@@ -130,6 +130,32 @@ export class UserAuthApi {
 	}
 
 	/**
+	 * Vérifie l'authentification à deux facteurs (2FA) pour un utilisateur.
+	 * 
+	 * Envoie une requête POST à la route API `/auth/2FAreceive` avec les
+	 * données fournies dans l'objet `data`. Si la vérification réussit, 
+	 * renvoie un objet contenant les informations de l'utilisateur authentifié.
+	 * Sinon, renvoie un objet contenant un message d'erreur.
+	 * 
+	 * @param {Record<string, string>} data Informations nécessaires pour la vérification 2FA.
+	 * @returns {Promise<AuthResponse>} Promesse résolue avec les informations de l'utilisateur
+	 * authentifié ou un message d'erreur.
+	 */
+	public async twofaConnectUser(data: Record<string, string>): Promise<AuthResponse> {
+		const res = await fetch('/api/auth/2FAreceive', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify(data),
+			credentials: 'include',
+		});
+		const result: AuthResponse = await res.json();
+		if (!res.ok || result.errorMessage) {
+			return { errorMessage: result.errorMessage || result.message || 'Erreur inconnue' };
+		}
+		return result as AuthResponse;
+	}
+
+	/**
 	 * Déconnecte l'utilisateur.
 	 * 
 	 * Envoie une requête POST à l'API `/auth/logout` pour déconnecter

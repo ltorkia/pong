@@ -18,7 +18,9 @@ CREATE TABLE IF NOT EXISTS User (
 	n_friends INTEGER DEFAULT 0 NOT NULL,														-- nbre d'amis total -> a mettre a jour a chaque ajout/suppression d'ami
 	status TEXT DEFAULT 'offline' NOT NULL CHECK (status IN ('online', 'offline', 'in-game')),
 	is_deleted INTEGER DEFAULT 0 NOT NULL CHECK (is_deleted IN (0, 1)),							-- pour savoir si le compte est actif ou non (on garde le user en bdd meme apres desinscription pour garder les stats des jeux pour ses partenaires toujours inscrits), 0 = actif, 1 = pas actif
-	register_from TEXT DEFAULT 'local' NOT NULL CHECK (register_from IN ('local', 'google'))	-- pour savoir si le user s'est inscrit via le site ou via Google, utile pour l'authentification
+	register_from TEXT DEFAULT 'local' NOT NULL CHECK (register_from IN ('local', 'google')),	-- pour savoir si le user s'est inscrit via le site ou via Google, utile pour l'authentification
+	code_2FA TEXT,
+	code_2FA_expire_at INTEGER
 );
 
 -- Game -> donnees propre au jeu

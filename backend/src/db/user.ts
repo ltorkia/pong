@@ -2,6 +2,7 @@ import { getDb } from './index.db';
 import { RegisterInput } from '../types/zod/auth.zod';
 import { Game } from '../types/game.types';
 import { ChatMessage } from '../types/chat.types';
+import { searchNewName } from '../helpers/auth.helpers';
 import { UserPassword } from '../types/user.types';
 import { UserModel, UserBasic, UserWithAvatar, Friends } from '../shared/types/user.types'; // en rouge car dossier local 'shared' != dossier conteneur
 
@@ -42,6 +43,18 @@ export async function getUserP(email: string) {
 		[email]
 	);
 	return user as UserPassword;
+}
+
+export async function getUser2FA(email: string) {
+	const db = await getDb();
+	const user = await db.get(`
+		SELECT id, username, email, code_2FA, code_2FA_expire_at, register_from
+		FROM User 
+		WHERE email = ?
+		`,
+		[email]
+	);
+	return user;
 }
 	
 // pour choper les friends, mais implique qu un element chat soit forcement cree des qu on devient ami
@@ -116,55 +129,44 @@ export async function getUserChat(userId1: number, userId2: number) {
 }
 	
 export async function insertUser(user: (RegisterInput | {username: string, email: string, avatar?: string}), is_google: (boolean | null)) {
-	const db = await getDb();
-	// if(await getUser(null, user.username))
-	// 	return {statusCode : 409, message : "username already used"};
+	try {
+		const db = await getDb();
 		
-	// if (await getUser(null, user.email))
-	// 	return {statusCode: 409, message : "email already used"};
-
-	if (!is_google)
-	{
-		if(await getUser(null, user.username))
-			return {statusCode : 409, message : "username already used"};
-		
-		if (await getUser(null, user.email))
-			return {statusCode: 409, message : "email already used"};
-		 const u = user as RegisterInput;
-		await db.run(`
-			INSERT INTO User (username, email, password, secret_question_number, secret_question_answer)
-			VALUES (?, ?, ?, ?, ?)
-			`,
-			[u.username, u.email, u.password, u.question, u.answer]
-		);
-	}
-	else 
-	{
-		if(await getUser(null, user.username))
+		if (!is_google)
 		{
-			const now = Date.now();
-			const digits = now.toString().split('');
-			const len = digits.length;
-			console.log( now + " " + digits + " " + len);
-
-			for (let i = 0; i < len; i++)
-			{
-				user.username = user.username + "_" + digits[i];
-				if (!await getUser(null, user.username))
-					break ;
-			}
+			if(await getUser(null, user.username))
+				return {statusCode : 409, message : "username already used, you can choose :" + await (searchNewName(user.username))};
+			
+			if (await getUser(null, user.email))
+				return {statusCode: 409, message : "email already used"};
+			const u = user as RegisterInput;
+			await db.run(`
+				INSERT INTO User (username, email, password, secret_question_number, secret_question_answer)
+				VALUES (?, ?, ?, ?, ?)
+				`,
+				[u.username, u.email, u.password, u.question, u.answer]
+		);
 		}
-	
-		await db.run(`
-			INSERT INTO User (username, email, register_from)
-			VALUES (?, ?, ?)
-			`,
-			[user.username, user.email, 'google']
-		);	
-	}
-	return {statusCode : 201, message : 'user add'};
-}
+		else 
+		{
+			if(await getUser(null, user.username))
+				user.username = await (searchNewName(user.username));
+					
+			await db.run(`
+				INSERT INTO User (username, email, register_from)
+				VALUES (?, ?, ?)
+				`,
+				[user.username, user.email, 'google']
+			);	
+		}
+		return {statusCode : 200, message : 'user add'};
 
+	} catch (err) {
+		console.error("Erreur lors de l'insertion d'un utilisateur standard :", err);
+		return { statusCode: 500, message: "Erreur serveur : insertion utilisateur échouée." };
+	}	
+}
+		
 export async function majLastlog(username: string)
 {
 	const db = await getDb();
@@ -174,4 +176,28 @@ export async function majLastlog(username: string)
 		WHERE (username = ?)
 		`,
 	[username]);
+}
+
+export async function insertCode2FA(email: string, code: string)
+{
+	const db = await getDb();
+	const end_time = Date.now() + 5 * 60 * 1000;
+	console.log(code, end_time);
+	await db.run(`
+		UPDATE User
+		SET code_2FA = ?, code_2FA_expire_at = ?
+		WHERE (email = ?)
+		`,
+	[code, end_time , email]);
+}
+
+export async function eraseCode2FA(email: string)
+{
+	const db = await getDb();
+	await db.run(`
+		UPDATE User
+		SET code_2FA = NULL, code_2FA_expire_at = NULL
+		WHERE (email = ?)
+		`,
+	[email]);	
 }

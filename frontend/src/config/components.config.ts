@@ -41,6 +41,7 @@ export const componentContainers = {
 export const componentNames = {
 	navbar: 'navbar',
 	userRow: 'user-row',
+	twofa: 'twofa',
 } as const;
 
 /**

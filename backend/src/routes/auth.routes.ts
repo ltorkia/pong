@@ -1,11 +1,96 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import bcrypt from 'bcrypt';
 import { GoogleCallbackQuery, GoogleTokenResponse, GoogleUserInfo } from '../types/google.types';
-import { insertUser, getUser, getUserP, majLastlog } from '../db/user';
+import { insertUser, getUser, getUserP, majLastlog, eraseCode2FA, insertCode2FA, getUser2FA } from '../db/user';
 import { RegisterInputSchema, LoginInputSchema } from '../types/zod/auth.zod';
 import { generateJwt, setAuthCookie, setStatusCookie, clearAuthCookies, setPublicUserInfos } from '../helpers/auth.helpers';
 import { UserModel } from '../shared/types/user.types'; // en rouge car dossier local 'shared' != dossier conteneur
 import { UserPassword } from 'src/types/user.types';
+import { JwtPayload } from '../types/jwt.types';
+import nodemailer from 'nodemailer';
+
+async function ProcessAuth(app: FastifyInstance, user: JwtPayload, reply: FastifyReply)
+{
+	// const user = await getUser(null, userToGet);
+	// Création d'un token JWT qui sera utilisé par le frontend pour les requêtes authentifiées
+	// JWT = JSON Web Token = format pour transporter des informations de manière sécurisée entre deux parties, ici le frontend et le backend.
+	const token = generateJwt(app, {
+		id: user.id,
+		username: user.username,
+	});
+	setAuthCookie(reply, token);
+	setStatusCookie(reply);
+	await majLastlog(user.username);
+}
+
+
+	const PORT = 3001;
+
+
+async function doubleAuth(app: FastifyInstance)
+{
+	app.post('/2FAsend', async (request: FastifyRequest, reply: FastifyReply) => {
+		const user = await LoginInputSchema.safeParse(request.body);
+		if (!user.success) {
+			const error = user.error.errors[0];
+			console.log(error);
+			return reply.status(400).send({statusCode: 400, errorMessage: error.message + " in " + error.path });
+		}
+		try {
+			const code = Math.floor(100000 + Math.random() * 900000).toString();
+			const resInsert = await insertCode2FA(user.data.email, code);
+			const transporter = nodemailer.createTransport({
+				service: 'gmail',
+				auth: {
+					user: process.env.EMAIL_2FA,
+					pass: process.env.PASS_EMAIL,
+				},
+			});
+			
+			await transporter.sendMail({
+				from: '"Sécurité" <no-reply@transcendance.com>',
+				to: user.data.email,
+				subject: 'Votre code de vérification',
+				text: `Votre code est : ${code}`,
+			});
+		} catch (err) {
+			console.log(err)
+			request.log.error(err);
+			return reply.status(500).send({
+				errorMessage: 'Erreur serveur lors de l envoi 2FA',
+			});
+		}
+		// const redirectUrl = new URL('');
+		// reply.redirect()->
+		return(reply.status(200).send("2FA send"));
+	} );
+
+	app.post('/2FAreceive', async (request: FastifyRequest, reply: FastifyReply) => {
+		const result = LoginInputSchema.safeParse(request.body); //c est le meme format que pour login input avec les memes checks
+		if (!result.success) {
+			const error = result.error.errors[0];
+			return reply.status(400).send({
+				statusCode : 400,
+				errorMessage: error.message + " in " + error.path
+			});
+		}
+		const checkUser = await getUser2FA(result.data.email);
+		if (!checkUser )
+			return (reply.status(400).send({message:"email doesn t exist"}));
+		eraseCode2FA(checkUser.email);
+		if (checkUser.code_2FA_expire_at < Date.now())
+			return(reply.status(400).send({message:"timeout, send new mail ?"}));
+		if (result.data.password != checkUser.code_2FA)
+			return(reply.status(400).send({message:"2FA not confirmed, try again"}));
+		ProcessAuth(app, checkUser, reply);
+			return reply.status(200).send({
+				message: 'Connexion réussie',
+				user: {checkUser},
+				statusCode: 200
+			});
+		return(reply.status(200).send({message:"2FA confirmed"}));
+	});
+}
 
 export async function authRoutes(app: FastifyInstance) {
 	
@@ -27,6 +112,7 @@ export async function authRoutes(app: FastifyInstance) {
 				const token = generateJwt(app, {
 					id: user.id
 				});
+				// ProcessAuth(app, user, reply);
 
 				await majLastlog(user.username);
 				setAuthCookie(reply, token);
@@ -34,7 +120,8 @@ export async function authRoutes(app: FastifyInstance) {
 
 				return reply.status(200).send({
 					message: 'Successful registration.',
-					user: user
+					user: { id: user.id, username: user.username},
+					statusCode: 200 // -> convention json pour donner toutes les infos au front
 				});
 			}
 			return reply.status(resultinsert.statusCode).send(resultinsert);
@@ -83,14 +170,15 @@ export async function authRoutes(app: FastifyInstance) {
 					errorMessage: 'Password does not match.'
 				});
 			}
+			// TODO: CHECK CA APRES MERGE
+			// const token = generateJwt(app, {
+			// 	id: validUser.id
+			// });
 
-			const token = generateJwt(app, {
-				id: validUser.id
-			});
-
-			await majLastlog(validUser.username);
-			setAuthCookie(reply, token);
-			setStatusCookie(reply);
+			// await majLastlog(validUser.username);
+			// setAuthCookie(reply, token);
+			// setStatusCookie(reply);
+			// // ProcessAuth(app, validUser, reply);
 
 			const user: UserModel | null = await getUser(null, result.data.email);
 			if (!user) {
@@ -100,7 +188,9 @@ export async function authRoutes(app: FastifyInstance) {
 			}
 			return reply.status(200).send({
 				message: 'Successfully logged in.',
-				user: user
+				user: user,
+				// user: { id: validUser.id, username: validUser.username },
+				statusCode: 200
 			});
 
 		} catch (err) {
@@ -110,6 +200,8 @@ export async function authRoutes(app: FastifyInstance) {
 			});
 		}
 	});
+
+	doubleAuth(app); //si deja fait voir si on genere pas un cookie type pour pas avoir a le refaire une seconde fois quand on se log sur le mm ordi
 
 	// LOGOUT
 	app.post('/logout', async (request: FastifyRequest, reply: FastifyReply) => {
@@ -182,19 +274,14 @@ export async function authRoutes(app: FastifyInstance) {
 				return reply.status(400).send({error: 'Données utilisateur incomplètes' }); //retourne objet vec statuscode ? 
 			}
 
-			// if(!await (getUser(null,userData.email)))
-			// 	await insertUser(({email: userData.email, username: userData.given_name}), true);
-
-			// const userGoogle = await getUserP(userData.email)
-			// // console.log("usergoogle is :" + userGoogle.id);
-			// // console.log("userdata is :" + userData.given_name);
-
 			let userGoogle: UserModel | null = await getUser(null, userData.email);
+			if (userGoogle && userGoogle.password)
+				return (reply.redirect(process.env.GOOGLE_REDIRECT_FRONTEND! + "?autherror=1"));
 
 			// TODO: Insère l'utilisateur seulement s'il n'existe pas en bdd
 			// TODO: Logique à améliorer, j'ai juste mis ça pour régler un probleme
 			if (!userGoogle) {
-				await insertUser({ email: userData.email, username: userData.given_name, avatar: userData.picture }, true);
+				const result = await insertUser({ email: userData.email, username: userData.given_name, avatar: userData.picture }, true);
 				userGoogle = await getUser(null, userData.email);
 				if (!userGoogle) {
 					return reply.status(500).send({
@@ -202,16 +289,17 @@ export async function authRoutes(app: FastifyInstance) {
 					});
 				}
 			}
+			ProcessAuth(app, userGoogle, reply);
 
-			// Création d'un token JWT qui sera utilisé par le frontend pour les requêtes authentifiées
-			// JWT = JSON Web Token = format pour transporter des informations de manière sécurisée entre deux parties, ici le frontend et le backend.
-			const token = generateJwt(app, {
-				id: userGoogle.id
-			});
+			// // Création d'un token JWT qui sera utilisé par le frontend pour les requêtes authentifiées
+			// // JWT = JSON Web Token = format pour transporter des informations de manière sécurisée entre deux parties, ici le frontend et le backend.
+			// const token = generateJwt(app, {
+			// 	id: userGoogle.id
+			// });
 
-			await majLastlog(userGoogle.username);
-			setAuthCookie(reply, token);
-			setStatusCookie(reply);
+			// await majLastlog(userGoogle.username);
+			// setAuthCookie(reply, token);
+			// setStatusCookie(reply);
 
 			// Redirection simple sans token dans l'URL
 			return reply.redirect(process.env.GOOGLE_REDIRECT_FRONTEND!);
@@ -220,4 +308,6 @@ export async function authRoutes(app: FastifyInstance) {
 			return reply.status(500).send({ error: 'Erreur serveur' });
 		}
 	});
+
+	//login -> status a 1 ou status a 0
 }

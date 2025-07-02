@@ -4,6 +4,7 @@ import { LoginPage } from '../pages/login.page';
 import { GamePage } from '../pages/game.page';
 import { UsersPage } from '../pages/users.page';
 import { ProfilePage } from '../pages/profile.page';
+import { TwofaPage } from '../pages/twofa.page';
 
 import { RouteConfig } from '../types/routes.types';
 import { componentNames } from './components.config';
@@ -52,6 +53,7 @@ export const pageNames = {
 	game: 'Game',
 	users: 'Users',
 	profile: 'Profile',
+	twofa: 'Twofa',
 } as const;
 
 /**
@@ -69,6 +71,7 @@ export const routePaths = {
 	users: '/users',
 	profile: '/user/:id',
 	logout: '/logout',
+	twofa: '/twofa',
 } as const;
 
 /**
@@ -85,6 +88,7 @@ export const templatePaths = {
 	game: '/templates/game.html',
 	users: '/templates/users.html',
 	profile: '/templates/profile.html',
+	twofa: '/templates/twofa.html',
 } as const;
 
 /**
@@ -96,6 +100,11 @@ export const defaultRoute = routePaths.home;
  * Route de fallback en cas d'erreur d'authentification
  */
 export const authFallbackRoute = routePaths.login;
+
+/**
+ * Route pour la page de double authentification (2FA)
+ */
+export const authTwofaRoute = '/twofa';
 
 /**
  * Configuration statique des routes de l'application.
@@ -143,6 +152,15 @@ export const routesConfig: RouteConfig[] = [
 		name: pageNames.login,
 		pageConstructor: LoginPage,
 		templatePath: templatePaths.login,
+		components: {},
+		isPublic: true,
+		enableParticles: true
+	},
+	{
+		path: routePaths.twofa,
+		name: pageNames.twofa,
+		pageConstructor: TwofaPage,
+		templatePath: templatePaths.twofa,
 		components: {},
 		isPublic: true,
 		enableParticles: true
