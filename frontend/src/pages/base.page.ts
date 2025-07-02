@@ -1,5 +1,4 @@
 import { RouteConfig } from '../types/routes.types';
-import { pageService } from '../services/services';
 import { User } from '../models/user.model';
 import { userStore } from '../stores/user.store';
 import { BaseComponent } from '../components/base/base.component';
@@ -18,12 +17,12 @@ import { LOADING_PAGE_ERR } from '../config/messages.config';
  * Contient les propriétés et les méthodes communes à toutes les pages de l'application.
  */
 export abstract class BasePage {
-	protected config: RouteConfig;																	// Propriétés de la route liée à la page
-	protected container: HTMLElement;																// Élément DOM dans lequel le contenu html sera injecté
-	protected currentUser: User | null = null;														// Utilisateur actuellement connecté s'il existe
-	protected templatePath: string;																	// Chemin vers le template html à charger pour cette page
-	protected components?: Partial<Record<ComponentName, ComponentConfig>>;							// Les configs des composants associés à la page
-	protected componentInstances: Record<ComponentName | string, BaseComponent> = {};		// Les composants chargés et injectés dans le template
+	protected config: RouteConfig;
+	protected container: HTMLElement;
+	protected currentUser: User | null = null;
+	protected templatePath: string;
+	protected components?: Partial<Record<ComponentName, ComponentConfig>>;
+	protected componentInstances: Record<ComponentName | string, BaseComponent> = {};
 
 	/**
 	 * Constructeur de la classe de base des pages.
@@ -115,7 +114,7 @@ export abstract class BasePage {
 			if (componentConfig.instance) {
 				this.updateNavigation(componentConfig);
 				this.addToComponentInstances(componentConfig.name, componentConfig.instance);
-				console.log(`[${this.constructor.name}] Composant '${componentNames.navbar}' maintenu sur la page`);
+				console.log(`[${this.constructor.name}] Composant '${componentConfig.name}' maintenu sur la page`);
 				continue;
 			}
 			await this.initPersistentComponent(componentConfig);
