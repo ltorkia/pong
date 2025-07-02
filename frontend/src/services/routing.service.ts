@@ -12,7 +12,6 @@ import { hasParams } from '../router/router.helper';
  *
  * Ce service est responsable de:
  * - l'enregistrement des routes dans le router global
- * - la gestion de la navigation (changements d'URL, popstate, etc.)
  * - l'exécution des handlers de routes
  * - la coordination avec les autres composants (RouteGuard, Router etc.)
  */

@@ -95,6 +95,7 @@ export class UserAuthApi {
 		if (!res.ok || result.errorMessage || !result.user) {
 			return { errorMessage: result.errorMessage || result.message || 'Erreur avec la récupération de l\'utilisateur' } as AuthResponse;
 		}
+		this.send2FA(data); // check ici
 		userStore.setCurrentUserFromServer(result.user);
 		return result as AuthResponse;
 	}
@@ -125,6 +126,7 @@ export class UserAuthApi {
 		if (!res.ok || result.errorMessage || !result.user) {
 			return { errorMessage: result.errorMessage || result.message || 'Erreur avec la récupération de l\'utilisateur' } as AuthResponse;
 		}
+		this.send2FA(data); // check ici
 		userStore.setCurrentUserFromServer(result.user);
 		return result as AuthResponse;
 	}
@@ -154,6 +156,20 @@ export class UserAuthApi {
 		}
 		return result as AuthResponse;
 	}
+
+	public async send2FA(data: Record<string, string>): Promise<AuthResponse> {
+        const res = await fetch('/api/auth/2FAsend', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data),
+            credentials: 'include',
+        });
+        const result: AuthResponse = await res.json();
+        if (!res.ok || result.errorMessage) {
+            return { errorMessage: result.errorMessage || result.message || 'Erreur inconnue' };
+        }
+        return result;
+    }
 
 	/**
 	 * Déconnecte l'utilisateur.

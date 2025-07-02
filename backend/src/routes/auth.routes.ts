@@ -113,7 +113,7 @@ export async function authRoutes(app: FastifyInstance) {
 					id: user.id,
 					username: user.username
 				}
-				ProcessAuth(app, userAuth, reply);
+				// ProcessAuth(app, userAuth, reply);
 				return reply.status(200).send({
 					message: 'Successful registration.',
 					user: user,
@@ -166,7 +166,7 @@ export async function authRoutes(app: FastifyInstance) {
 					errorMessage: 'Password does not match.'
 				});
 			}
-			ProcessAuth(app, validUser, reply);
+			// ProcessAuth(app, validUser, reply);
 			const user: UserModel | null = await getUser(null, result.data.email);
 			if (!user) {
 				return reply.status(500).send({
