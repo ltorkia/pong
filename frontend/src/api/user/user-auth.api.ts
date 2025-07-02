@@ -85,12 +85,15 @@ export class UserAuthApi {
 	 *  ou un objet d'erreur.
 	 */
 	public async registerUser(data: Record<string, string>): Promise<AuthResponse> {
+		const form = document.getElementById('register-form') as HTMLFormElement;
+		const formData = new FormData(form);
 		const res: Response = await fetch('/api/auth/register', {
 			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify(data),
+			// headers: { 'Content-Type': 'application/json' },
+			body: formData,
 			credentials: 'include',
 		});
+		// body: JSON.stringify(data),
 		const result: AuthResponse = await res.json();
 		if (!res.ok || result.errorMessage || !result.user) {
 			return { errorMessage: result.errorMessage || result.message || 'Erreur avec la récupération de l\'utilisateur' } as AuthResponse;

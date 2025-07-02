@@ -88,6 +88,16 @@ export class UserCrudApi {
 		return User.fromPublicJSONArray(data) as User[];
 	}
 
+
+	public async getAvatar64(id: number): Promise<string> {
+		const res = await secureFetch('api/users/${id}/avatar', { method: 'GET' });
+		if (!res.ok) {
+			throw new Error('Erreur de l’API');
+		}
+		const avatarBase64 = await res.json(); //pb inutile
+		return avatarBase64.avatar;
+	}
+
 	// ===========================================
 	// PUT REQUESTS - DATABASE UPDATE
 	// ===========================================

@@ -127,7 +127,30 @@ export async function getUserChat(userId1: number, userId2: number) {
 		other_user: other_user as UserWithAvatar 
 	};
 }
-	
+
+export async function insertAvatar(avatar: string, username: string)
+{
+	const db = await getDb();
+	await db.run(`
+		UPDATE User
+		SET avatar = ?
+		WHERE (username = ?)
+		`,
+	[avatar, username]);
+}
+
+export async function getAvatar(id: number)
+{
+	const db = await getDb();
+	const avatar = await db.get(`
+		SELECT u.avatar
+		FROM User u
+		WHERE u.id == ?
+		`,
+	[id]);
+	return avatar;
+}
+
 export async function insertUser(user: (RegisterInput | {username: string, email: string, avatar?: string}), is_google: (boolean | null)) {
 	try {
 		const db = await getDb();

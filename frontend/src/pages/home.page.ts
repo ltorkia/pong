@@ -1,6 +1,7 @@
 import { BasePage } from './base.page';
 import { RouteConfig } from '../types/routes.types';
 import { getHTMLElementByClass } from '../utils/dom.utils';
+import { UserCrudApi } from 'src/api/user/user-crud.api';
 
 // ===========================================
 // HOME PAGE
@@ -58,10 +59,24 @@ export class HomePage extends BasePage {
 	 * Recherche l'élément HTML de classe "avatar" et y applique
 	 * les styles pour afficher l'image d'avatar en arrière-plan.
 	 */
-	private loadAvatar() {
+
+	public async getAvatar64(id: number): Promise<string> {
+		const res = await fetch(`api/users/${id}/avatar`, { method: 'GET' });
+		if (!res.ok) {
+			throw new Error('Erreur de l’API');
+		}
+		const avatarBase64 = await res.json(); //pb inutile
+		return avatarBase64.avatar;
+	}
+
+	private async loadAvatar() {
 		const avatar = getHTMLElementByClass('avatar');
+		const base64Image = await this.getAvatar64(this.currentUser!.id);
+		console.log(base64Image);
+
 		Object.assign(avatar.style, {
-			backgroundImage: `url('/img/avatars/${this.currentUser!.avatar}')`,
+			// backgroundImage: `url('/api/avatar/${this.currentUser!.id}')`,
+			backgroundImage: `data:image/jpeg;base64,${base64Image}`,
 			backgroundSize: "cover",
 			backgroundPosition: "center"
 		});

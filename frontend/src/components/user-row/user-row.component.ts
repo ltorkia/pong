@@ -52,6 +52,16 @@ export class UserRowComponent extends BaseComponent {
 	 *
 	 * @returns {Promise<void>} Une promesse qui se résout lorsque le composant est monté.
 	 */
+
+	// public async getAvatar64(id: number): Promise<string> {
+	// 	const res = await fetch(`api/users/${id}/avatar`, { method: 'GET' });
+	// 	if (!res.ok) {
+	// 		throw new Error('Erreur de l’API');
+	// 	}
+	// 	const avatarBase64 = await res.json(); //pb inutile
+	// 	return avatarBase64.avatar;
+	// }
+	
 	protected async mount(): Promise<void> {
 		this.checkUserLogged();
 		if (import.meta.env.DEV === true) {
@@ -63,8 +73,12 @@ export class UserRowComponent extends BaseComponent {
 		const usernameLink = this.container.querySelector('.username-link') as HTMLAnchorElement;
 		const levelCell = this.container.querySelector('.level-cell') as HTMLElement;
 
+
+
 		if (this.user) {
 			if (avatarImg) {
+				// 				const base64Image = this.getAvatar64(this.user.id);
+				// avatarImg.setAttribute('src', `data:image/jpeg;base64,${base64Image}`);
 				avatarImg.setAttribute('src', `/img/avatars/${this.user.avatar}`);
 				avatarImg.setAttribute('alt', `${this.user.username}'s avatar`);
 			}

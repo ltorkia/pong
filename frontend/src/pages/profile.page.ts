@@ -59,6 +59,10 @@ export class ProfilePage extends BasePage {
 		const img = document.createElement('img');
 		img.classList.add('avatar-img');
 		img.src = `/img/avatars/${user.avatar}`;
+		// img.src = await userCrudApi.getAvatar64(this.userId).avatar;
+		// const base64 = await userCrudApi.getAvatar64(this.userId);
+		// console.log('base64 avatar:', base64);
+		// img.src = `data:image/jpeg;base64,${base64}`;
 		img.alt = `${user.username}'s avatar`;
 		userAvatar.appendChild(img);
 

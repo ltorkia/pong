@@ -1,7 +1,7 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import bcrypt from 'bcrypt';
 import { GoogleCallbackQuery, GoogleTokenResponse, GoogleUserInfo } from '../types/google.types';
-import { insertUser, getUser, getUserP, majLastlog, eraseCode2FA, insertCode2FA, getUser2FA } from '../db/user';
+import { insertUser, getUser, getUserP, majLastlog, eraseCode2FA, insertCode2FA, getUser2FA, insertAvatar } from '../db/user';
 import { RegisterInputSchema, LoginInputSchema } from '../types/zod/auth.zod';
 import { generateJwt, setAuthCookie, setStatusCookie, clearAuthCookies } from '../helpers/auth.helpers';
 import { UserModel } from '../shared/types/user.types'; // en rouge car dossier local 'shared' != dossier conteneur
@@ -97,41 +97,59 @@ export async function authRoutes(app: FastifyInstance) {
 	// REGISTER
 	app.post('/register', async (request: FastifyRequest, reply: FastifyReply) => {
 		try {
-			// const elements = await request.parts();
-			// let dataText: Record<string, string> = {};
-			// // let dataText;
-			// let avatarFile;
+			const elements = await request.parts(); //separe les differents elements recuperes
+			let dataText: Record<string, string> = {}; //stockera les elements textes
+			const fs = require('node:fs') //permet de creer dossier et fichiers
+			const { pipeline } = require('node:stream/promises') //pour transferer fichier ? 
+			let avatarFile; //stockera le file de l avatar
 
-			// for await (const element of elements) {
-			// 	if ('file' in element) {
-			// 		if (element.fieldname === 'avatar') {
-			// 			avatarFile = element; // Gérer la sauvegarde
-			// 		}
-			// 	} else if (element.value === 'string') {
-			// 	dataText[element.fieldname] = element.value;
-			// 	}
-			// }
-	
-			const result = RegisterInputSchema.safeParse(request.body); //datatext
+
+			//preparsing qui dispatch datatext d un cote et l avatar de l autre
+			for await (const element of elements) {
+				if (element.type === 'file' && element.fieldname === 'avatar') {
+					avatarFile = element;
+				} else if (element.type === 'field' && typeof element.value === 'string') {
+					dataText[element.fieldname] = element.value;
+				}
+			}
+			
+			//check les datas texts pour voir si elles correspondent a ce qu on attend
+			const result = RegisterInputSchema.safeParse(dataText);
 			if (!result.success) {
 				const error = result.error.errors[0];
 				return reply.status(400).send({statusCode: 400, errorMessage: error.message + " in " + error.path });
 			}
-
-			const userToInsert = result.data;
-			// const userToInsert = dataText; //datatext
-			// const datafile = await avatarFile;
+			
+			
+			//on cree l user avec les donnees a inserer une fois le safeparse effectue
+			let userToInsert = result.data; //datatext
+			
+			//on hash le password dans un souci de confidentialite
 			userToInsert.password = await bcrypt.hash(userToInsert.password, 10);
-			// if (datafile)
-			// 	await datafile.toFile(`./public/img/avatars/${datafile.filename}`);
-
+			
+			//logique a ameliorer pour eviter de faire +ieurs requetes a la db MAIS EN ATTENDANT
+			// ->
+			// on insere les donnes de l user dans la dbet on check si c est ok
 			const resultinsert = await insertUser(userToInsert, null);
-			if (resultinsert.statusCode === 201) {
-				const user: UserModel = await getUser(null, userToInsert.email);
-				const userAuth: Partial<UserPassword> = {
-					id: user.id,
-					username: user.username
-				}
+			if (resultinsert.statusCode === 201) 
+				{
+					const user: UserModel = await getUser(null, userToInsert.email);
+					const userAuth: Partial<UserPassword> = {
+						id: user.id,
+						username: user.username
+					}
+					
+					//puis on check si avatar ou non, on cree un dossier ou stocker les avatars puis si ok on insere dans
+					// la db le nom de l avatar ->chelou d ailleurs ca aurait du etre le chemin -> a renommer le fichier + chemin avec l username
+					// !!!TODO PIPELINE A SECURISER PEUT FOUTRE LA MERDE
+					if (avatarFile)
+					{
+						// const avatarBuffer = await avatarFile.toBuffer();
+						await fs.promises.mkdir('./public/img/avatars/', {recursive: true});
+						await pipeline(avatarFile.file, fs.createWriteStream(`./public/img/avatars/${user.id}.jpeg`))
+							insertAvatar(`./public/img/avatars/${user.id}.jpeg`, userToInsert.username)
+			}
+				// si on veut skip la double auth -> decommenter ligne suivante
 				// ProcessAuth(app, userAuth, reply);
 				return reply.status(200).send({
 					message: 'Successful registration.',
