@@ -9,14 +9,13 @@ import { UserPassword } from 'src/types/user.types';
 import { JwtPayload } from '../types/jwt.types';
 import nodemailer from 'nodemailer';
 
-async function ProcessAuth(app: FastifyInstance, user: JwtPayload, reply: FastifyReply)
+async function ProcessAuth(app: FastifyInstance, user: UserModel, reply: FastifyReply)
 {
 	// const user = await getUser(null, userToGet);
 	// Création d'un token JWT qui sera utilisé par le frontend pour les requêtes authentifiées
 	// JWT = JSON Web Token = format pour transporter des informations de manière sécurisée entre deux parties, ici le frontend et le backend.
 	const token = generateJwt(app, {
-		id: user.id,
-		username: user.username,
+		id: user.id
 	});
 	setAuthCookie(reply, token);
 	setStatusCookie(reply);
@@ -48,7 +47,8 @@ async function doubleAuth(app: FastifyInstance)
 			});
 			
 			await transporter.sendMail({
-				from: '"Sécurité" <no-reply@transcendance.com>',
+				// from: '"Sécurité" <no-reply@transcendance.com>',
+				from: '"Sécurité" <lee.torkia@gmail.com>',
 				to: user.data.email,
 				subject: 'Votre code de vérification',
 				text: `Votre code est : ${code}`,
@@ -83,12 +83,12 @@ async function doubleAuth(app: FastifyInstance)
 		if (result.data.password != checkUser.code_2FA)
 			return(reply.status(400).send({message:"2FA not confirmed, try again"}));
 		ProcessAuth(app, checkUser, reply);
-			return reply.status(200).send({
-				message: 'Connexion réussie',
-				user: {checkUser},
-				statusCode: 200
-			});
-		return(reply.status(200).send({message:"2FA confirmed"}));
+		return reply.status(200).send({
+			message: 'Connexion réussie',
+			user: {checkUser},
+			statusCode: 200
+		});
+		// return(reply.status(200).send({message:"2FA confirmed"}));
 	});
 }
 
@@ -109,18 +109,10 @@ export async function authRoutes(app: FastifyInstance) {
 			const resultinsert = await insertUser(userToInsert, null);
 			if (resultinsert.statusCode === 201) {
 				const user: UserModel = await getUser(null, userToInsert.email);
-				const token = generateJwt(app, {
-					id: user.id
-				});
-				// ProcessAuth(app, user, reply);
-
-				await majLastlog(user.username);
-				setAuthCookie(reply, token);
-				setStatusCookie(reply);
-
+				ProcessAuth(app, user, reply);
 				return reply.status(200).send({
 					message: 'Successful registration.',
-					user: { id: user.id, username: user.username},
+					user: user,
 					statusCode: 200 // -> convention json pour donner toutes les infos au front
 				});
 			}
