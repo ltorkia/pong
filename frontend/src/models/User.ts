@@ -9,6 +9,8 @@ export class User {
 		public email: string,
 		public registration: string,
 		public lastlog: string,
+		// public begin_log: string,
+		// public end_log: string,
 		public tournament: number,
 		public game_played: number,
 		public game_win: number,

@@ -3,6 +3,7 @@ import fastifyHelmet from '@fastify/helmet';
 import fastifyCookie from '@fastify/cookie';
 import fastifyJwt from '@fastify/jwt';
 import websocket from '@fastify/websocket';
+import fastifyMultipart from '@fastify/multipart';
 // import { SocketStream } from '@fastify/websocket';
 
 // Database
@@ -27,6 +28,9 @@ async function start() {
 	// Enregistre le plugin fastify-cookie pour gérer les cookies HTTP
 	// dans les requêtes et réponses
 	app.register(fastifyCookie);
+
+	// pour uploader des avatars
+	app.register(fastifyMultipart);
 
 	// Enregistrement du plugin JWT
 	const jwtSecret = process.env.JWT_SECRET;

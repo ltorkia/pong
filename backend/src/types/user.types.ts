@@ -15,7 +15,8 @@ export interface UserForDashboard extends UserBasic {
 	id: number;
 	username: string;
 	email: string;
-	lastlog: string | null;
+	begin_log: string | null;
+	end_log: string | null;
 	registration: Date;
 	tournament: string;
 	avatar: string;
@@ -33,5 +34,6 @@ export interface Friends {
 	id: number;
 	username: string;
 	avatar?: string | null;
-	lastlog: number;
+	begin_log: number;
+	end_log: number;
 }

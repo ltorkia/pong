@@ -11,7 +11,7 @@ export async function getUser(userId : number | null = null, search : string | n
 	const db = await getDb(); 
 	const user = await db.get(`
 		SELECT id, username, email, registration, 
-		lastlog, tournament, avatar, game_played, game_win, 
+		begin_log, end_log, tournament, avatar, game_played, game_win, 
 		game_loose, time_played, n_friends, status, is_deleted, register_from 
 		FROM User 
 		WHERE id = ? OR username = ? OR email = ?
@@ -50,7 +50,7 @@ export async function getUserP(email: string) {
 export async function getUserFriends(userId: number) {
 	const db = await getDb();
 	const friends = await db.all(`
-		SELECT u.id, u.username, u.avatar, u.lastlog
+		SELECT u.id, u.username, u.avatar, u.begin_log, u.end_log
 		FROM Friends f
 		JOIN User u ON (
 			(f.User1_id = ? AND f.User2_id = u.id)
@@ -159,7 +159,7 @@ export async function majLastlog(username: string)
 	const db = await getDb();
 	await db.run(`
 		UPDATE User
-		SET lastlog = datetime('now')
+		SET begin_log = datetime('now')
 		WHERE (username = ?)
 		`,
 	[username]);

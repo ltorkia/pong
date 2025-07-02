@@ -67,15 +67,34 @@ export async function authRoutes(app: FastifyInstance) {
 	// REGISTER
 	app.post('/register', async (request: FastifyRequest, reply: FastifyReply) => {
 		try {
-			const result = RegisterInputSchema.safeParse(request.body);
+			// const elements = await request.parts();
+			// let dataText: Record<string, string> = {};
+			// // let dataText;
+			// let avatarFile;
+
+			// for await (const element of elements) {
+			// 	if ('file' in element) {
+			// 		if (element.fieldname === 'avatar') {
+			// 			avatarFile = element; // Gérer la sauvegarde
+			// 		}
+			// 	} else if (element.value === 'string') {
+			// 	dataText[element.fieldname] = element.value;
+			// 	}
+			// }
+	
+			const result = RegisterInputSchema.safeParse(request.body); //datatext
 			if (!result.success) {
 				const error = result.error.errors[0];
 				return reply.status(400).send({statusCode: 400, errorMessage: error.message + " in " + error.path });
 			}
 
 			const userToInsert = result.data;
+			// const userToInsert = dataText; //datatext
+			// const datafile = await avatarFile;
 			userToInsert.password = await bcrypt.hash(userToInsert.password, 10);
-	
+			// if (datafile)
+			// 	await datafile.toFile(`./public/img/avatars/${datafile.filename}`);
+
 			const resultinsert = await insertUser(userToInsert, null);
 			if (resultinsert.statusCode === 200) {
 				const user = await getUser(null, userToInsert.email);
