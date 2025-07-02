@@ -18,20 +18,28 @@ import { User } from '../models/user.model';
  */
 
 /**
- * Interface de configuration d'un composant.
+ * Interface de configuration d’un composant.
  *
- * Un composant est une instance de BaseComponent qui est injectée dans un élément HTML
- * et qui est configurée avec un nom unique, un chemin de template, un id d'élément cible,
- * un booléen pour définir si le composant est public ou non, et un booléen pour définir
- * si le composant est commun à plusieurs pages ou non.
+ * Un composant est défini par :
+ * - un nom unique, utilisé pour l’identifier et le référencer dans les routes,
+ * - un constructeur, permettant d’instancier dynamiquement le composant,
+ * - un chemin vers son template HTML, pour charger son rendu visuel,
+ * - l’identifiant de l’élément HTML dans lequel il doit être inséré,
+ * - `isPublic`: si true, le composant s’affiche uniquement sur les pages publiques (ex : login, register),
+ * - `isPersistent`: si true, le composant est conservé entre les pages et ne dépend pas du cycle de vie d’une page,
+ * - `destroy`: si true, un composant persistant doit être explicitement détruit (par exemple à la déconnexion),
+ * - `instance`: si une instance d’un composant persistant est conservée, elle peut être récupérée par les pages suivantes
+ *   pour permettre son nettoyage si `destroy` est activé.
  */
 export interface ComponentConfig {
-	name: ComponentName;							// Nom unique du composant (ex: 'navbar', 'user-row')
-	componentConstructor: ComponentConstructor;		// Classe du composant à instancier
-	templatePath: ComponentPath;					// Chemin du template HTML associé au composant
-	containerId: ComponentContainer;				// id de l'élément HTML où insérer le composant
-	isPublic: boolean;								// Si true, le composant doit s'afficher sur les pages publiques uniquement (login, register)
-	isCommon: boolean;								// Si true, le composant est commun à plusieurs pages, si false il est relatif à une seule page
+	name: ComponentName;
+	componentConstructor: ComponentConstructor;
+	templatePath: ComponentPath;
+	containerId: ComponentContainer;
+	isPublic: boolean;
+	isPersistent: boolean;
+	destroy?: boolean;
+	instance?: BaseComponent;
 }
 
 /**
@@ -45,11 +53,11 @@ export interface ComponentConfig {
  * - user: utilisateur à afficher dans le composant (facultatif)
  */
 export type ComponentConstructor = new (
-	routeConfig: RouteConfig,			// Configuration complète de la route
-	componentConfig: ComponentConfig,	// Configuration du composant
-	container: HTMLElement,				// Élément HTML dans lequel injecter le contenu du composant
-	user?: User | null,					// Utilisateur à afficher dans le composant
-) => BaseComponent;						// Composant instanciable
+	routeConfig: RouteConfig,
+	componentConfig: ComponentConfig,
+	container: HTMLElement,
+	user?: User | null,
+) => BaseComponent;
 
 /**
  * Types pour les noms de composants.

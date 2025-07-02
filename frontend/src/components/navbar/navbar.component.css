@@ -3,7 +3,7 @@
 	/* NAVBAR CONTAINER */
 	#navbar {
 		@apply fixed z-50
-		transform transition-transform duration-300 ease-in-out z-50;
+		transform transition-transform duration-300 ease-in-out;
 	}
 	
 	/* LOGO + NAVBAR + NOTIFBAR */
@@ -92,6 +92,9 @@
 	}
 	#navbar-menu a i, #navbar-menu a span {
 		@apply transition;
+	}
+	a.active:hover .no-hover-if-active, #navbar-menu a:focus .no-hover-if-active {
+		color: inherit !important;
 	}
 	#navbar-menu a span {
 		@apply uppercase text-xs tracking-wider mt-1;

@@ -1,8 +1,11 @@
 import { RouteConfig } from '../types/routes.types';
-import { ComponentName, ComponentConfig } from '../types/components.types';
+import { pageService } from '../services/services';
 import { User } from '../models/user.model';
 import { userStore } from '../stores/user.store';
-import { BaseComponent } from 'src/components/base/base.component';
+import { BaseComponent } from '../components/base/base.component';
+import { NavbarComponent } from '../components/navbar/navbar.component';
+import { componentNames } from '../config/components.config';
+import { ComponentName, ComponentConfig } from '../types/components.types';
 import { loadTemplate, getHTMLElementById } from '../utils/dom.utils';
 import { appId } from '../config/routes.config';
 import { LOADING_PAGE_ERR } from '../config/messages.config';
@@ -20,7 +23,7 @@ export abstract class BasePage {
 	protected currentUser: User | null = null;														// Utilisateur actuellement connecté s'il existe
 	protected templatePath: string;																	// Chemin vers le template html à charger pour cette page
 	protected components?: Partial<Record<ComponentName, ComponentConfig>>;							// Les configs des composants associés à la page
-	protected componentInstances: Partial<Record<ComponentName | string, BaseComponent>> = {};		// Les composants chargés et injectés dans le template
+	protected componentInstances: Record<ComponentName | string, BaseComponent> = {};		// Les composants chargés et injectés dans le template
 
 	/**
 	 * Constructeur de la classe de base des pages.
@@ -54,13 +57,13 @@ export abstract class BasePage {
 	/**
 	 * Méthode principale de rendu de la page.
 	 * 
-	 * - Vérifie que l'utilisateur est connecté si la page est privée.
-	 * - Exécute les étapes de pré-rendering (beforeMount).
-	 * - Charge le HTML du template via fetch ou cache et l'injecte dans
-	 *   le conteneur DOM.
-	 * - Injecte les composants communs à plusieurs pages.
-	 * - Exécute les opérations de rendu propres à la page (mount).
-	 * - Attache les écouteurs d'événements relatifs à la page.
+	 * - Vérifie l'authentification de l'utilisateur si la page est privée.
+	 * - Exécute les étapes de pré-rendering avec `beforeMount()`.
+	 * - Charge le template HTML et l'injecte dans le conteneur.
+	 * - Charge et rend les composants persistants - comme la navbar - si besoin.
+	 * - Exécute les opérations de montage spécifiques à la page.
+	 * - Attache les écouteurs d'événements nécessaires.
+	 * - En cas d'erreur, affiche un message d'erreur dans le conteneur.
 	 * 
 	 * @returns {Promise<void>} Une promesse qui se résout lorsque le rendu est terminé.
 	 */
@@ -72,7 +75,7 @@ export abstract class BasePage {
 			const html = await loadTemplate(this.templatePath);
 			this.container.innerHTML = html;
 			console.log(`[${this.constructor.name}] HTML injecté`);
-			await this.loadCommonComponents();
+			await this.loadPersistentComponents();
 			await this.mount();
 			console.log(`[${this.constructor.name}] Page montée, rendu terminé`);
 			this.attachListeners();
@@ -85,7 +88,7 @@ export abstract class BasePage {
 	}
 
 	/**
-	 * Charge les composants communs à plusieurs pages (isCommon = true)
+	 * Charge les composants persistants sur plusieurs pages (isPersistent = true)
 	 * en bouclant sur la propriété components de la page.
 	 * Pour chaque composant, instancie la classe du composant avec
 	 * la configuration de la page et le conteneur HTML correspondant,
@@ -93,10 +96,15 @@ export abstract class BasePage {
 	 * Stocke les instances des composants rendus dans la propriété
 	 * componentInstances avec le nom du composant comme clé.
 	 * 
+	 * Si un composant est déjà instancié dans la propriété instance
+	 * de la configuration, met à jour la navigation en appelant la méthode
+	 * setActiveLink() s'il s'agit de la navbar, puis le composant est simplement
+	 * ajouté à la liste des composants de la page sans être recréé.
+	 * 
 	 * @returns {Promise<void>} Une promesse qui se résout lorsque
-	 * tous les composants communs sont chargés et rendus.
+	 * tous les composants persistants sont chargés et rendus.
 	 */
-	protected async loadCommonComponents(): Promise<void> {
+	protected async loadPersistentComponents(): Promise<void> {
 		if (!this.components) {
 			return;
 		}
@@ -104,29 +112,52 @@ export abstract class BasePage {
 			if (!this.isValidConfig(componentConfig)) {
 				continue;
 			}
-			const componentContainer = getHTMLElementById(componentConfig.containerId);
-			const component = new componentConfig.componentConstructor(this.config, componentConfig, componentContainer);
-			await component.render();
-			this.addToComponentInstances(componentConfig.name, component);
-			
-			console.log(`[${this.constructor.name}] Composant '${componentConfig.name}' généré`);
+			if (componentConfig.instance) {
+				this.updateNavigation(componentConfig);
+				this.addToComponentInstances(componentConfig.name, componentConfig.instance);
+				console.log(`[${this.constructor.name}] Composant '${componentNames.navbar}' maintenu sur la page`);
+				continue;
+			}
+			await this.initPersistentComponent(componentConfig);
 		};
+	}
+	
+	/**
+	 * Instancie et charge un composant persistant sur plusieurs pages.
+	 * 
+	 * Pour un composant persistant, crée une instance de la classe du composant
+	 * avec la configuration de la page et le conteneur HTML correspondant,
+	 * et appelle la méthode render() du composant.
+	 * Stocke l'instance du composant dans la propriété componentInstances
+	 * de la page avec le nom du composant comme clé.
+	 * 
+	 * @param {ComponentConfig} componentConfig La configuration du composant à charger.
+	 * @returns {Promise<void>} Une promesse qui se résout lorsque le composant est chargé et rendu.
+	 */
+	protected async initPersistentComponent(componentConfig: ComponentConfig): Promise<void> {
+		const componentContainer = getHTMLElementById(componentConfig.containerId);
+		const componentInstance = new componentConfig.componentConstructor(this.config, componentConfig, componentContainer);
+		componentConfig.instance = componentInstance;
+		this.addToComponentInstances(componentConfig.name, componentInstance);
+		await componentInstance.render();
+		
+		console.log(`[${this.constructor.name}] Composant '${componentConfig.name}' généré`);
 	}
 
 	/**
 	 * Vérifie si la configuration d'un composant est valide pour la page actuelle.
 	 *
-	 * La configuration est considérée comme valide si le type (commun ou non) et
+	 * La configuration est considérée comme valide si le type (persistant ou non) et
 	 * la visibilité (publique ou privée) du composant correspondent aux attentes
 	 * pour la page actuelle.
 	 *
 	 * @param {ComponentConfig} componentConfig La configuration du composant à vérifier.
-	 * @param {boolean} [isCommon=true] Indique si le composant est commun à plusieurs pages.
+	 * @param {boolean} [isPersistent=true] Indique si le composant est persistant sur plusieurs pages.
 	 * @returns {boolean} Retourne true si la configuration du composant est valide, false sinon.
 	 */
-	protected isValidConfig(componentConfig: ComponentConfig, isCommon: boolean = true): boolean {
+	protected isValidConfig(componentConfig: ComponentConfig, isPersistent: boolean = true): boolean {
 		const isVisibilityMismatch = !this.shouldRenderComponent(componentConfig);
-		const isTypeMismatch = isCommon !== componentConfig.isCommon;
+		const isTypeMismatch = isPersistent !== componentConfig.isPersistent;
 
 		if (isVisibilityMismatch || isTypeMismatch) {
 			return false;
@@ -177,6 +208,22 @@ export abstract class BasePage {
 	}
 
 	/**
+	 * Met à jour la navigation active sur la navbar.
+	 *
+	 * Appelée par loadPersistentComponents() pour mettre à jour la navigation
+	 * active sur la navbar si elle est présente sur la page actuelle.
+	 * La méthode setActiveLink() est appelée sur l'instance de la navbar
+	 * en passant le pathname de la route actuelle en paramètre.
+	 *
+	 * @param {ComponentConfig} componentConfig La configuration du composant navbar.
+	 */
+	private updateNavigation(componentConfig: ComponentConfig): void {
+		if (componentConfig.name === componentNames.navbar && componentConfig.instance instanceof NavbarComponent) {
+			componentConfig.instance.setActiveLink(this.config.path);
+		}
+	}
+
+	/**
 	 * Retourne l'élément HTML du conteneur principal de l'application.
 	 *
 	 * @returns {HTMLElement} L'élément HTML correspondant à l'ID spécifié.
@@ -209,16 +256,19 @@ export abstract class BasePage {
 	 * Nettoyage des composants de la page.
 	 *
 	 * Appel la méthode cleanup() de chaque instance de composant stockée dans
-	 * componentInstances pour nettoyer les composants de la page.
+	 * componentInstances pour nettoyer les composants de la page, sauf si le
+	 * composant est persistant et que la propriété destroy est à false.
+	 * Les composants persistants sont alors maintenus sur la page.
 	 */
 	protected cleanupComponents(): void {
 		if (this.components) {
-			Object.values(this.componentInstances).forEach(componentInstance => {
-				if (!componentInstance) {
-					return;
+			for (const instance of Object.values(this.componentInstances)) {
+				if (instance.componentConfig.isPersistent
+					&& instance.componentConfig.destroy === false) {
+					continue;
 				}
-				componentInstance.cleanup();
-			});
+				instance.cleanup();
+			}
 		}
 	}
 

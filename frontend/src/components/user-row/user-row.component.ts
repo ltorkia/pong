@@ -5,7 +5,6 @@ import { BaseComponent } from '../base/base.component';
 import { RouteConfig } from '../../types/routes.types';
 import { ComponentConfig } from '../../types/components.types';
 import { User } from '../../models/user.model';
-import { userStore } from '../../stores/user.store';
 
 // ===========================================
 // USER ROW COMPONENT
@@ -23,9 +22,7 @@ import { userStore } from '../../stores/user.store';
  * ligne d'utilisateur avec les informations de l'utilisateur fourni.
  */
 export class UserRowComponent extends BaseComponent {
-	protected routeConfig: RouteConfig;
 	protected user?: User | null = null;
-	protected currentUser: User | null = null;
 
 	/**
 	 * Constructeur du composant de ligne d'utilisateur.
@@ -39,16 +36,14 @@ export class UserRowComponent extends BaseComponent {
 	 * @param {User | null} user L'utilisateur à afficher dans le composant (facultatif).
 	 */
 	constructor(routeConfig: RouteConfig, componentConfig: ComponentConfig, container: HTMLElement, user?: User | null) {
-		super(componentConfig, container);
-				
-		this.routeConfig = routeConfig;
+		super(routeConfig, componentConfig, container);
 		this.user = user;
-		this.currentUser = userStore.getCurrentUser();
 	}
 
 	/**
 	 * Méthode de montage du composant de la ligne d'utilisateur.
 	 *
+	 * Vérifie qu'un utilisateur est bien authentifié.
 	 * En mode développement, utilise le hot-reload Vite pour charger
 	 * le template HTML du composant. Ensuite, met à jour le contenu visuel
 	 * de la ligne d'utilisateur avec les informations de l'utilisateur
@@ -58,6 +53,7 @@ export class UserRowComponent extends BaseComponent {
 	 * @returns {Promise<void>} Une promesse qui se résout lorsque le composant est monté.
 	 */
 	protected async mount(): Promise<void> {
+		this.checkUserLogged();
 		if (import.meta.env.DEV === true) {
 			this.container.innerHTML = template;
 			console.log('[UserRowComponent] Hot-reload actif');

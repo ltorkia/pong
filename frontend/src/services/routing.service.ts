@@ -1,7 +1,4 @@
-// PAGE UI
 import { pageService } from './services';
-
-// ROUTER
 import { routesConfig } from '../config/routes.config';
 import { router, Router } from '../router/router';
 import { RouteConfig, RouteParams } from '../types/routes.types';
@@ -96,47 +93,43 @@ export class RoutingService {
 	// 	setActiveNavLink('/login');
 	// 	console.log('LoginPage rendue');
 	// });
-
-	/**
-	 * Gère les routes simples sans paramètres
-	 */
 	
 	/**
 	 * Gère les routes sans paramètres.
 	 * 
+	 * - Crée une copie isolée de la configuration originale de la route.
 	 * - Crée l'instance de page associée à la route en appelant createPageInstance()
-	 *   en passant la config de la route.
+	 *   en passant cette copie.
 	 * - Si l'instance est null, on stoppe là.
-	 * - Appel la méthode loadPage() pour charger et afficher la page.
+	 * - Appelle la méthode loadPage() pour charger et afficher la page.
 	 * - En cas d'erreur, on logue l'erreur.
 	 * 
-	 * @param {RouteConfig} config Configuration de la route.
+	 * @param {RouteConfig} config Configuration originale de la route.
 	 * @returns {Promise<void>} Une promesse qui se résout lorsque la page est rendue.
 	 */
 	private async handleSimpleRoute(config: RouteConfig): Promise<void> {
 		console.log(`[${this.constructor.name}] Exec route -> navigation vers ${config.name}`);
-
-		// Création de l'instance de page
 		const pageInstance = await this.createPageInstance(config);
 		if (!pageInstance) {
-			return
+			return;
 		};
-
-		// Chargement et affichage de la page
 		await this.loadPage(config, pageInstance);
+
 		console.log(`[${this.constructor.name}] ${config.name} rendue`);
 	}
 
 	/**
 	 * Gère les routes avec paramètres.
 	 * 
+	 * - Crée une copie isolée de la configuration originale de la route.
 	 * - Vérifie que les paramètres sont bien présents.
-	 * - Crée l'instance de page en appelant createPageInstance() en passant la config de la route et les paramètres.
+	 * - Crée l'instance de page en appelant createPageInstance()
+	 *   en passant cette copie et les paramètres.
 	 * - Si l'instance est null, on stoppe là.
-	 * - Appel la méthode loadPage() pour charger et afficher la page.
+	 * - Appelle la méthode loadPage() pour charger et afficher la page.
 	 * - En cas d'erreur, on logue l'erreur.
 	 * 
-	 * @param {RouteConfig} config Configuration de la route.
+	 * @param {RouteConfig} config Configuration originale de la route.
 	 * @param {RouteParams} [params] Paramètres de la route.
 	 * @returns {Promise<void>} Une promesse qui se résout lorsque la page est rendue.
 	 */
@@ -145,19 +138,12 @@ export class RoutingService {
 			console.error(`[${this.constructor.name}] Paramètres manquants pour la route ${config.path}`);
 			return;
 		}
-
 		console.log(`[${this.constructor.name}] Exec route -> navigation vers ${config.name} avec params:`, params);
-
-		// Création de l'instance avec paramètres
 		const pageInstance = await this.createPageInstance(config, params);
 		if (!pageInstance) {
 			return;
 		}
-
-		// Chargement et affichage de la page
 		await this.loadPage(config, pageInstance);
-		// await this.updateNavigation(config);
-		
 		console.log(`[${this.constructor.name}] ${config.name} rendue`);
 	}
 
@@ -180,7 +166,7 @@ export class RoutingService {
 			}
 
 			// Cas classique
-			return new config.pageClass(config);
+			return new config.pageConstructor(config);
 		} catch (error) {
 			console.error(`[${this.constructor.name}] Erreur lors de la création de l'instance de page pour ${config.name}:`, error);
 			return null;
@@ -200,11 +186,11 @@ export class RoutingService {
 	private createParamPageInstance(config: RouteConfig, params: RouteParams): any {
 		// Cas qui attendent un id user en parametre deja en param du handler (comme pour ProfilePage)
 		if (params.id) {
-			return new config.pageClass(config, Number(params.id));
+			return new config.pageConstructor(config, Number(params.id));
 		}
 		
 		// Cas général avec params, utile pour de futures pages ?
-		return new config.pageClass(config, params);
+		return new config.pageConstructor(config, params);
 	}
 
 	/**

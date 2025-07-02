@@ -1,4 +1,7 @@
 import { userStore } from '../stores/user.store';
+import { componentsConfig, componentNames } from '../config/components.config';
+import { NavbarComponent } from '../components/navbar/navbar.component';
+
 
 // ===========================================
 // APP UTILS
@@ -7,8 +10,7 @@ import { userStore } from '../stores/user.store';
  * Ce fichier contient des fonctions utilitaires qui
  * fournissent des fonctionnalités réutilisables pour
  * diverses parties de l'application frontend. Cela inclut
- * des méthodes pour gérer les requêtes
- * HTTP sécurisées, paramétrer des promesses, etc.
+ * gérer les requêtes HTTP sécurisées, paramétrer des promesses, etc.
  */
 
 /**

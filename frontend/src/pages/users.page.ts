@@ -4,6 +4,7 @@ import { UserRowComponent } from '../components/user-row/user-row.component';
 import { getHTMLElementById } from '../utils/dom.utils';
 import { componentNames, componentContainers } from '../config/components.config';
 import { RouteConfig } from '../types/routes.types';
+import { ComponentConfig } from '../types/components.types';
 
 // ===========================================
 // USERS PAGE
@@ -14,6 +15,7 @@ import { RouteConfig } from '../types/routes.types';
  * Permet d'afficher la liste des utilisateurs enregistrés sur le site.
  */
 export class UsersPage extends BasePage {
+	protected componentConfig?: ComponentConfig;
 
 	/**
 	 * Constructeur de la page des utilisateurs.
@@ -24,6 +26,29 @@ export class UsersPage extends BasePage {
 	 */
 	constructor(config: RouteConfig) {
 		super(config);
+	}
+
+	/**
+	 * Préparation avant le montage de la page des utilisateurs.
+	 * 
+	 * Vérifie que l'utilisateur est connecté et s'assure que la configuration
+	 * du composant 'userRow' est valide avant de le monter. 
+	 * Si la configuration est invalide, une erreur est lancée.
+	 * 
+	 * @returns {Promise<void>} Une promesse qui se résout lorsque les composants sont chargés.
+	 * @throws {Error} Lance une erreur si la configuration du composant 'userRow' est invalide.
+	 */
+	protected async beforeMount(): Promise<void> {
+		if (!this.components) {
+			return;
+		}
+		this.checkUserLogged();
+		const config = this.components[componentNames.userRow];
+		if (!config || !this.shouldRenderComponent(config)
+			|| !this.isValidConfig(config, false)) {
+			throw new Error(`Configuration du composant '${componentNames.userRow}' invalide`);
+		}
+		this.componentConfig = config;
 	}
 
 	/**
@@ -51,8 +76,7 @@ export class UsersPage extends BasePage {
 	/**
 	 * Injecte les lignes du tableau de la liste des utilisateurs (user-row) dans le DOM.
 	 * 
-	 * Cette méthode récupère la configuration du composant user-row et vérifie 
-	 * sa validité. Elle utilise l'API pour obtenir la liste des utilisateurs 
+	 * Cette méthode  utilise l'API pour obtenir la liste des utilisateurs 
 	 * et crée dynamiquement un UserRowComponent pour chaque utilisateur.
 	 * Chaque ligne utilisateur est ensuite rendue et ajoutée à l'élément HTML 
 	 * identifié par `userListId`. L'ID de chaque ligne est incrémenté en 
@@ -65,17 +89,13 @@ export class UsersPage extends BasePage {
 	 * sont injectés dans le DOM.
 	 */
 	protected async injectUserList(): Promise<void> {
-		const componentConfig = this.components?.[componentNames.userRow];
-		if (!componentConfig || !this.isValidConfig) {
-			throw new Error(`Configuration du composant '${componentNames.userRow}' invalide`);
-		}
 		const users = await userCrudApi.getUsers();
 		const userList = getHTMLElementById(componentContainers.userListId);
 
 		let i = 1;
 		for (const user of users) {
 			let tempContainer = document.createElement('tbody');
-			const rowComponent = new UserRowComponent(this.config, componentConfig, tempContainer, user);
+			const rowComponent = new UserRowComponent(this.config, this.componentConfig!, tempContainer, user);
 			await rowComponent.render();
 
 			const tr = tempContainer.querySelector('tr');
@@ -83,10 +103,10 @@ export class UsersPage extends BasePage {
 				tr.id = `${componentNames.userRow}-${i}`;
 				userList.appendChild(tr);
 			}
-			componentConfig.name += user.id;
-			this.addToComponentInstances(componentConfig.name, rowComponent);
+			const instanceKey = `${this.componentConfig!.name}-${user.id}`;
+			this.addToComponentInstances(instanceKey, rowComponent);
 			i++;
 		}
-		console.log(`[${this.constructor.name}] Composant '${componentConfig.name}' généré`);
+		console.log(`[${this.constructor.name}] Composant '${this.componentConfig!.name}' généré`);
 	}
 }

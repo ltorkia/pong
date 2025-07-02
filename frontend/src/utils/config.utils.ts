@@ -10,26 +10,29 @@ import { ComponentConfig } from '../types/components.types';
 // CONFIG UTILS
 // ===========================================
 /**
- * Ce fichier contient des fonctions utilitaires pour faciliter l'accès
- * et la manipulation des configurations de routes et de composants.
+ * Ce fichier regroupe des fonctions utilitaires destinées à faciliter
+ * l'accès, la recherche, la copie et la manipulation des configurations
+ * des routes et des composants de l’application.
  * 
- * Les configurations sont stockées dans des fichiers de configuration
- * séparés (routes.config.ts et components.config.ts) et sont exportées
- * via des fonctions utilitaires dans ce fichier.
+ * Les configurations elles-mêmes sont définies dans des fichiers dédiés
+ * (routes.config.ts et components.config.ts).
  */
 
 /**
- * Fonction utilitaire pour obtenir la liste des routes configurées
- * (retourne une copie pour éviter les modifications).
+ * Fonction utilitaire permettant d’obtenir la copie d'une route configurée.
  * 
- * @returns {RouteConfig[]} La liste des routes configurées.
+ * Retourne une copie de la configuration d’origine afin d’éviter toute
+ * modification involontaire de la source initiale.
+ *
+ * @returns {ComponentConfig[]} Une nouvelle copie indépendante de la configuration de la route.
  */
-export function getRoutesConfig(): RouteConfig[] {
-	return [...routesConfig];
+export function cloneRouteConfig(config: RouteConfig): RouteConfig {
+	return { ...config };
 }
 
 /**
- * Fonction utilitaire pour trouver une configuration de route par une propriété donnée (par défaut 'name').
+ * Fonction utilitaire pour trouver une configuration de route par une
+ * propriété donnée (par défaut 'name').
  *
  * @param {string} value Valeur de la propriété à chercher
  * @param {keyof RouteConfig} [key='name'] Nom de la propriété à chercher
@@ -40,8 +43,8 @@ export function findRouteConfig(value: string, key: keyof RouteConfig = 'name'):
 }
 
 /**
- * Fonction utilitaire pour récupérer une configuration de route par une propriété donnée
- * (par défaut 'name') et lever une erreur si aucune correspondance n'est trouvée.
+ * Fonction utilitaire pour récupérer une configuration de route par
+ * une propriété donnée (par défaut 'name') et lever une erreur si aucune correspondance n'est trouvée.
  * 
  * @param {string} value Valeur de la propriété à chercher
  * @param {keyof RouteConfig} [key='name'] Nom de la propriété à chercher
@@ -57,17 +60,20 @@ export function getRouteConfig(value: string, key: keyof RouteConfig = 'name'): 
 }
 
 /**
- * Fonction utilitaire pour obtenir la liste des components configurés
- * (retourne une copie pour éviter les modifications)
+ * Fonction utilitaire permettant d’obtenir la copie d'un composant configuré.
+ * 
+ * Retourne une copie de la configuration d’origine afin d’éviter toute
+ * modification involontaire de la source initiale.
  *
- * @returns {ComponentConfig[]}
+ * @returns {ComponentConfig[]} Une nouvelle copie indépendante de la configuration du composant.
  */
-export function getComponentsConfig(): ComponentConfig[] {
-	return [...componentsConfig];
+export function cloneComponentConfig(config: ComponentConfig): ComponentConfig {
+	return { ...config };
 }
 
 /**
- * Fonction utilitaire pour trouver une configuration de composant par l'une de ses propriétés (par défaut 'name').
+ * Fonction utilitaire pour trouver une configuration de composant par l'une de ses
+ * propriétés (par défaut 'name').
  *
  * @param {string} value Valeur de la propriété à chercher
  * @param {keyof ComponentConfig} [key='name'] Nom de la propriété à chercher
@@ -78,8 +84,8 @@ export const findComponentConfig = (value: string, key: keyof ComponentConfig = 
 };
 
 /**
- * Fonction utilitaire pour récupérer une configuration de composant par une propriété donnée
- * (par défaut 'name') et lever une erreur si aucune correspondance n'est trouvée.
+ * Fonction utilitaire pour récupérer une configuration de composant par
+ * une propriété donnée (par défaut 'name') et lever une erreur si aucune correspondance n'est trouvée.
  *
  * @param {string} value Valeur de la propriété à chercher
  * @param {keyof ComponentConfig} [key='name'] Nom de la propriété à chercher

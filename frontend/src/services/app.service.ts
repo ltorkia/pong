@@ -1,17 +1,13 @@
-// ROUTER + SERVICES
 import { Router } from '../router/router';
-import { userService, routingService, particlesService } from './services';
-
-// PARTICLES
+import { routingService, particlesService } from './services';
 import { loadFull } from "tsparticles";
 import { tsParticles } from "@tsparticles/engine";
-
-// UTILS
+import { uiStore } from '../stores/ui.store';
 import { wait } from '../utils/app.utils';
-import { getHTMLElementById } from '../utils/dom.utils';
+// import { userService } from './services';
 
 // ===========================================
-// GAME SERVICE
+// APP SERVICE
 // ===========================================
 /**
  * Service principal de l'application.
@@ -28,7 +24,6 @@ export class AppService {
 	 * - Charge le moteur tsParticles
 	 * - Attend que le DOM soit prêt
 	 * - Supprime la classe 'load' sur le body qui empêche les transitions au refresh
-	 * - Vérifie que le container principal #app existe dans le DOM
 	 * - Charge les particules d'arrière-plan
 	 * - Lance le routingService pour gérer la navigation et afficher la bonne page
 	 * 
@@ -36,12 +31,11 @@ export class AppService {
 	 */
 	public async start(): Promise<void> {
 		console.log('=== DEMARRAGE APP ===');
-		// await userService.loadUser();
+		// userService.loadUser();
 		await this.tsParticlesInit();
 		await wait(100);
 		document.body.classList.remove('load');
 		console.log(`[${this.constructor.name}] Pathname actuel:`, location.pathname);
-		
 		await particlesService.load();
 		await routingService.start();
 

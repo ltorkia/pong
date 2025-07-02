@@ -21,15 +21,24 @@ import { pageNames, routePaths, templatePaths } from '../config/routes.config';
  *
  * Chaque route correspond à une URL, une classe de page et peut avoir
  * des composants spécifiques, des restrictions d'accès, ou des effets visuels.
+ * 
+ * La configuration d'une route comprend les éléments suivants:
+ * path: chemin de la route ('/', '/users', '/user/:id'...)
+ * name: nom de la route pour logs et debug
+ * pageConstructor: constructeur de la page à instancier / render (HomePage, GamePage...)
+ * templatePath: chemin du template HTML associé à la page
+ * components: configuration des composants spécifiques à cette page
+ * isPublic: si true, la route est accessible sans authentification uniquement (login, register)
+ * enableParticles: si true, active les particules sur cette page
  */
 export interface RouteConfig {
-	path: RoutePath;												// Chemin de la route ('/', '/users', '/user/:id'...)
-	name: PageName;													// Nom de la route pour logs et debug
-	pageClass: PageClass;											// Classe de la page à instancier / render (HomePage, GamePage...)
-	templatePath: TemplatePath;										// Chemin du template HTML associé à la page
-	components?: Partial<Record<ComponentName, ComponentConfig>>;	// Config des composants spécifiques à cette page
-	isPublic: boolean;												// Si true, la route est accessible sans authentification uniquement (login, register)
-	enableParticles: boolean;										// Si true, active les particules sur cette page
+	path: RoutePath;
+	name: PageName;
+	pageConstructor: PageConstructor;
+	templatePath: TemplatePath;
+	components?: Partial<Record<ComponentName, ComponentConfig>>;
+	isPublic: boolean;
+	enableParticles: boolean;
 }
 
 /**
@@ -40,7 +49,7 @@ export interface RouteConfig {
  * - container: élément HTML dans lequel injecter le contenu
  * - param: paramètre optionnel associé à la route (ex: ID dans /user/:id)
  */
-export type PageClass = new (
+export type PageConstructor = new (
 	routeConfig: RouteConfig,
 	param?: number | RouteParams
 ) => BasePage;

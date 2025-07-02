@@ -56,18 +56,27 @@ export const componentPaths = {
 } as const;
 
 /**
- * Exporte un tableau de configurations de composants.
+ * Configuration statique des composants réutilisables de l’application.
  * 
- * Chaque élément de ce tableau décrit un composant réutilisable de l'application.
+ * Chaque élément de ce tableau décrit un composant par ses propriétés statiques:
+ * - `name`: Nom unique permettant d’identifier et référencer le composant,
+ * - `componentConstructor`: Constructeur permettant d’instancier dynamiquement le composant,
+ * - `templatePath`: Chemin vers le template HTML servant au rendu visuel du composant,
+ * - `containerId`: ID de l’élément HTML dans lequel le composant sera inséré,
+ * - `isPublic`: Indique si le composant s’affiche uniquement sur les pages publiques (ex: login, register),
+ * - `isPersistent`: Booléen indiquant si le composant est persistant, c’est-à-dire créé une fois et conservé entre les pages,
+ * - `destroy`: Indique si un nettoyage manuel est requis lors de la destruction d’un composant persistant.
  * 
- * Un composant est décrit par:
- * - son nom unique (permet de l'identifier et de le référencer dans les routes),
- * - la classe du composant (pour instancier le composant dynamiquement),
- * - le chemin vers son template HTML (pour charger le rendu visuel associé),
- * - l'id de l'élément HTML où insérer le composant,
- * - Si isPublic = true, le component doit s'afficher sur les pages publiques uniquement (login, register)
- * - Si isCommon = true, le composant est commun à plusieurs pages, si false il est relatif à une seule page
+ * Cette configuration est statique et partagée durant toute l’exécution de l’application.
+ * 
+ * Les propriétés dynamiques (comme `instance` ou `destroy`) sont modifiées directement
+ * sur cette configuration partagée, ce qui implique que l’état des composants est centralisé.
+ * 
+ * Exemples d’utilisation:
+ * - Composants non persistants générés et détruits à chaque chargement de page (ex: lignes de tableau `/users`),
+ * - Composants persistants créés une seule fois et conservés (ex: navbar générée à la connexion et détruite à la déconnexion).
  */
+
 export const componentsConfig: ComponentConfig[] = [
 	{
 		name: componentNames.navbar,
@@ -75,7 +84,9 @@ export const componentsConfig: ComponentConfig[] = [
 		templatePath: componentPaths[componentNames.navbar],
 		containerId: componentContainers.navbarId,
 		isPublic: false,
-		isCommon: true
+		isPersistent: true,
+		destroy: true
+		// instance: créee et stockée ici lors de la connexion, undefined avant ça
 	},
 	{
 		name: componentNames.userRow,
@@ -83,6 +94,6 @@ export const componentsConfig: ComponentConfig[] = [
 		templatePath: componentPaths[componentNames.userRow],
 		containerId: componentContainers.userListId,
 		isPublic: false,
-		isCommon: false
+		isPersistent: false
 	}
 ];

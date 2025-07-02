@@ -1,12 +1,9 @@
-// PAGE UI / DOM
 import { particlesService } from './services';
 import { uiStore } from '../stores/ui.store';
 import { getHTMLElementById } from '../utils/dom.utils';
 import { appId } from '../config/routes.config';
-import { componentContainers } from '../config/components.config';
-
-// ROUTE CONFIG
 import { RouteConfig, PageInstance } from '../types/routes.types';
+import { componentContainers } from '../config/components.config';
 
 // ===========================================
 // PAGE SERVICE
@@ -34,7 +31,7 @@ export class PageService {
 	 * Rendu d'une nouvelle page.
 	 * 
 	 * - Gère la transition de la page actuelle vers la nouvelle page.
-	 * - Gère la transition de la navbar (disparait à la deconnexion
+	 * - Gère la transition de la navbar (disparait à la déconnexion
 	 *   et apparait à la connexion après redirection).
 	 * - Active ou désactive les particules de fond en fonction de la config de la page.
 	 * - Nettoie l'ancienne page.
@@ -48,17 +45,19 @@ export class PageService {
 
 		this.toggleParticles(config);
 		const appDiv = getHTMLElementById(appId);
-		await this.pageTransitionOut(appDiv);
 		const navbarDiv = getHTMLElementById(componentContainers.navbarId);
-		if (uiStore.animateNavbar === true) {
+		await this.pageTransitionOut(appDiv);
+		if (uiStore.animateNavbarOut === true) {
 			await this.navbarTransitionOut(navbarDiv);
+			uiStore.animateNavbarOut = false;
 		}
 		await this.cleanup();
 		this.currentPage = page;
 		await this.pageTransitionIn(appDiv);
 		await this.currentPage.render();
-		if (uiStore.animateNavbar === true) {
+		if (uiStore.animateNavbarIn === true) {
 			await this.navbarTransitionIn(navbarDiv);
+			uiStore.animateNavbarIn = false;
 		}
 	}
 
@@ -116,7 +115,6 @@ export class PageService {
 	 * - Retire la classe '-translate-y-[--navbar-height]' pour annuler la translation vers le haut.
 	 * - Ajoute la classe 'translate-y-0' pour appliquer la translation vers le bas.
 	 * - Retire la classe 'translate-y-0' après 300ms.
-	 * - Désactive l'animation de la navbar.
 	 * 
 	 * @param {HTMLElement} container - Élément HTML de la navbar à transitionner.
 	 * @returns {Promise<void>} Une promesse qui se résout lorsque la transition est terminée.
@@ -125,7 +123,6 @@ export class PageService {
 		container.classList.remove('-translate-y-[--navbar-height]');
 		container.classList.add('translate-y-0');
 		setTimeout(() => container.classList.remove('translate-y-0'), 300);
-		uiStore.animateNavbar = false;
 	}
 	
 	/**
@@ -144,6 +141,7 @@ export class PageService {
 		container.classList.add('-translate-y-[--navbar-height]');
 		setTimeout(() => container.classList.remove('-translate-y-[--navbar-height]'), 300);
 		await new Promise(resolve => setTimeout(resolve, 200));
+		// uiStore.animateNavbarOut = false;
 	}
 
 	/**

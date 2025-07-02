@@ -99,6 +99,7 @@ export class UserService {
 	 * - Tente d'abord de récupérer l'utilisateur stocké localement.
 	 * - Si un utilisateur est trouvé, il est validé côté serveur.
 	 * - Si aucun utilisateur n'est trouvé localement, une requête API est effectuée.
+	 * - L'utilisateur est conecté et validé, on active l'animation d'entrée de la barre de navigation.
 	 *
 	 * @private
 	 * @returns {Promise<User | null>} L'utilisateur restauré ou null si la restaurtion a échoué.
@@ -109,6 +110,7 @@ export class UserService {
 		const user = userStore.restoreFromStorage();
 		if (user) {
 			console.log(`[${this.constructor.name}] Utilisateur localStorage trouvé, validation serveur en cours...`);
+			uiStore.animateNavbarOut = true;
 			return await this.validateAndReturn(user);
 		}
 
@@ -117,6 +119,7 @@ export class UserService {
 			const apiUser = await userAuthApi.getMe();
 			if (apiUser) {
 				const user = userStore.getCurrentUser();
+				uiStore.animateNavbarOut = true;
 				console.log(`[${this.constructor.name}] Utilisateur chargé via API`);
 				return user;
 			}
@@ -187,7 +190,8 @@ export class UserService {
 	 * Inscription d'un utilisateur
 	 * 
 	 * Fait une requête API pour inscrire un utilisateur.
-	 * Si la requête réussit, stocke l'utilisateur dans le store et le localStorage (dans users.api)
+	 * Si la requête réussit, stocke l'utilisateur dans le store et le localStorage,
+	 * affiche un message de confirmation, active l'animation d'entrée de la barre de navigation
 	 * et redirige vers la page d'accueil.
 	 * 
 	 * @param {Record<string, string>} data Informations de l'utilisateur à inscrire.
@@ -204,10 +208,10 @@ export class UserService {
 			}
 			
 			console.log(`[${this.constructor.name}] Utilisateur inscrit :`, result);
-			uiStore.animateNavbar = true;
 			
 			// Redirection home
 			alert(REGISTERED_MSG);
+			uiStore.animateNavbarOut = true;
 			await router.redirect(defaultRoute);
 
 		} catch (err) {
@@ -221,7 +225,8 @@ export class UserService {
 	 * 
 	 * Effectue une requête API pour connecter un utilisateur avec ses
 	 * informations d'identification. Si la connexion réussit, stocke 
-	 * l'utilisateur dans le store et le localStorage (dans users.api)
+	 * l'utilisateur dans le store et le localStorage,
+	 * active l'animation d'entrée de la barre de navigation
 	 * et redirige vers la page d'accueil.
 	 * 
 	 * @param {Record<string, string>} data Informations de l'utilisateur à connecter.
@@ -238,9 +243,9 @@ export class UserService {
 			}
 			
 			console.log(`[${this.constructor.name}] Utilisateur connecté :`, result);
-			uiStore.animateNavbar = true;
 			
 			// Redirection home
+			uiStore.animateNavbarOut = true;
 			await router.redirect(defaultRoute);
 
 		} catch (err) {
@@ -253,7 +258,8 @@ export class UserService {
 	 * Déconnecte un utilisateur.
 	 * 
 	 * Effectue une requête API pour déconnecter l'utilisateur. 
-	 * Si la déconnexion réussit, vide le store et le localStorage
+	 * Si la déconnexion réussit, vide le store et le localStorage,
+	 * active l'animation de sortie de la barre de navigation
 	 * et redirige vers la page de login.
 	 * 
 	 * @returns {Promise<void>} Promesse qui se résout lorsque l'opération est terminée.
@@ -267,9 +273,8 @@ export class UserService {
 				showError(result.errorMessage);
 				return;
 			}
-			
+			uiStore.animateNavbarOut = true;
 			console.log(`[${this.constructor.name}] Utilisateur déconnecté :`, result);
-			uiStore.animateNavbar = true;
 			
 			// Redirection SPA vers login
 			console.log(`[${this.constructor.name}] Déconnexion réussie. Redirection /login`);

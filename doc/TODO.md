@@ -28,9 +28,9 @@ FRONT
 - Mieux typer partout
 - Boucle login si erreur validate-session (load user dans start app manager à vérifier)
 - scinder user.service.ts en user-auth.service.ts / user-crud.service.ts / user-session.service.ts (donc changer la doc et la logique de singleton dans services.ts)
-- charger la navbar une seule fois au démarrage de l'app et gérer l'affichage en fonction du log user
-- Changer typage User qui peut être null dans le constructeur de usersPage et de userRowComponent: ne devrait jamais être null ici
 - Déléguer logique métier de user.modele dans user.service !
+- Changer typage User qui peut être null dans le constructeur de usersPage et de userRowComponent: ne devrait jamais être null ici
+- Ajouter lien home sur logo pong navbar
 
 - check MAJ package.json :
  @tsparticles/engine         ^3.0.2  →   ^3.8.1

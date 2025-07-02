@@ -98,22 +98,30 @@ export const defaultRoute = routePaths.home;
 export const authFallbackRoute = routePaths.login;
 
 /**
- * Configuration des routes de l'application.
+ * Configuration statique des routes de l'application.
  * 
  * Chaque route est définie par un objet contenant:
  * - path: Chemin de la route (ex: '/', '/users', '/user/:id')
  * - name: Nom de la route pour les logs et le debug
- * - pageClass: Classe de la page à instancier/rendre (ex: HomePage, GamePage)
+ * - pageConstructor: Constructeur de la page à instancier/rendre (ex: HomePage, GamePage)
  * - templatePath: Chemin du template HTML associé à la page
- * - components: Configuration des composants spécifiques à cette page
+ * - components : Configuration des composants spécifiques à cette page,
+ *                chaque composant est une copie indépendante de la configuration originale
+ *                afin d'éviter toute modification directe de la configuration globale des composants,
+ *                car certains champs (ex: instance, destroy) peuvent être modifiés dynamiquement
+ *                lors de l'exécution de l'application.
  * - isPublic: Si true, la route est accessible sans authentification
  * - enableParticles: Si true, active les particules sur cette pages
+ * 
+ * Cette configuration est destinée à être statique et manuelle:
+ * elle ne doit pas être modifiée dynamiquement au cours de l'exécution,
+ * pour garantir une source de vérité stable.
  */
 export const routesConfig: RouteConfig[] = [
 	{
 		path: routePaths.home,
 		name: pageNames.home,
-		pageClass: HomePage,
+		pageConstructor: HomePage,
 		templatePath: templatePaths.home,
 		components: {
 			[componentNames.navbar]: getComponentConfig(componentNames.navbar)
@@ -124,7 +132,7 @@ export const routesConfig: RouteConfig[] = [
 	{
 		path: routePaths.register,
 		name: pageNames.register,
-		pageClass: RegisterPage,
+		pageConstructor: RegisterPage,
 		templatePath: templatePaths.register,
 		components: {},
 		isPublic: true,
@@ -133,7 +141,7 @@ export const routesConfig: RouteConfig[] = [
 	{
 		path: routePaths.login,
 		name: pageNames.login,
-		pageClass: LoginPage,
+		pageConstructor: LoginPage,
 		templatePath: templatePaths.login,
 		components: {},
 		isPublic: true,
@@ -142,7 +150,7 @@ export const routesConfig: RouteConfig[] = [
 	{
 		path: routePaths.game,
 		name: pageNames.game,
-		pageClass: GamePage,
+		pageConstructor: GamePage,
 		templatePath: templatePaths.game,
 		components: {
 			[componentNames.navbar]: getComponentConfig(componentNames.navbar)
@@ -153,7 +161,7 @@ export const routesConfig: RouteConfig[] = [
 	{
 		path: routePaths.users,
 		name: pageNames.users,
-		pageClass: UsersPage,
+		pageConstructor: UsersPage,
 		templatePath: templatePaths.users,
 		components: {
 			[componentNames.navbar]: getComponentConfig(componentNames.navbar),
@@ -165,7 +173,7 @@ export const routesConfig: RouteConfig[] = [
 	{
 		path: routePaths.profile,
 		name: pageNames.profile,
-		pageClass: ProfilePage,
+		pageConstructor: ProfilePage,
 		templatePath: templatePaths.profile,
 		components: {
 			[componentNames.navbar]: getComponentConfig(componentNames.navbar)

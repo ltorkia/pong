@@ -1,5 +1,6 @@
 // CONFIG
 import { routesConfig } from '../config/routes.config';
+import { RouteConfig } from '../types/routes.types';
 
 // ===========================================
 // ROUTES UTILS
@@ -38,12 +39,12 @@ export const isPublicRoute = (route: string | null): boolean => {
  */
 export const isPublicTemplate = (templatePath: string): boolean => {
 	// Récupérer le nom du fichier sans extension pour reconstituer la route
-	const fileName = getRouteFromPath(templatePath);
+	const fileName = getRouteFromTemplatePath(templatePath);
 	return isPublicRoute(fileName);
 };
 
 /**
- * Retourne le nom de la page (chemin de la route) associé à  un chemin de fichier de
+ * Retourne le nom de la page (chemin de la route) associé à un chemin de fichier de
  * mod le (template).
  *
  * Exemple: si le chemin de fichier est "src/templates/page.html", la fonction
@@ -52,8 +53,31 @@ export const isPublicTemplate = (templatePath: string): boolean => {
  * @param {string} path - Le chemin du fichier de mod le.
  * @return {string} - Le nom de la page (chemin de la route) associ .
  */
-export const getRouteFromPath = (path: string): string => {
+export const getRouteFromTemplatePath = (path: string): string => {
 	// Récupérer le nom de la page sans extension pour reconstituer la route
 	const pageName = path.split('/').pop()?.replace('.html', '') ?? '';
 	return '/' + pageName;
+};
+
+/**
+ * Récupère la configuration de la route correspondant à la page actuelle.
+ * Gère aussi les routes dynamiques comme /user/:id.
+ *
+ * @returns {RouteConfig | undefined} La configuration de la route courante.
+ */
+export const getCurrentRouteConfig = (): RouteConfig | undefined => {
+	const currentPath = window.location.pathname;
+
+	// 1. Recherche exacte
+	const exactMatch = routesConfig.find(config => config.path === currentPath);
+	if (exactMatch) return exactMatch;
+
+	// 2. Cas des routes dynamiques (ex: /user/:id)
+	if (currentPath.startsWith('/user/')) {
+		return routesConfig.find(config => config.path.startsWith('/user/:'));
+	}
+
+	// Ajoute ici d'autres cas dynamiques si nécessaire
+
+	return undefined;
 };

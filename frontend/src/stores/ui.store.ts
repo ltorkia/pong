@@ -12,5 +12,6 @@
  * pour afficher ou cacher des éléments.
  */
 export const uiStore = {
-	animateNavbar: false,
+	animateNavbarIn: false,
+	animateNavbarOut: false,
 };
