@@ -126,12 +126,13 @@ export class UserAuthApi {
 			credentials: 'include',
 		});
 		const result: AuthResponse = await res.json();
-		if (!res.ok || result.errorMessage || !result.user) {
+		if (!res.ok || result.errorMessage) {
 			return { errorMessage: result.errorMessage || result.message || 'Erreur avec la récupération de l\'utilisateur' } as AuthResponse;
 		}
+		console.log(`[${this.constructor.name}] OK LOGIN...`);
 		const res2FA: AuthResponse = await this.send2FA(data);
-		if (result.errorMessage) {
-			return { errorMessage: result.errorMessage || result.message || 'Erreur avec la récupération de l\'utilisateur' } as AuthResponse;
+		if (res2FA.errorMessage) {
+			return { errorMessage: res2FA.errorMessage || res2FA.message || 'Erreur avec la récupération de l\'utilisateur' } as AuthResponse;
 		}
 		// userStore.setCurrentUserFromServer(result.user);
 		return result as AuthResponse;

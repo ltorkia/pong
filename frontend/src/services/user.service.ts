@@ -243,6 +243,7 @@ export class UserService {
 				showError(result.errorMessage);
 				return;
 			}
+			console.log(`[${this.constructor.name}] Redirection vers 2FA...`);
 			await router.redirect(AUTH_TWOFA_ROUTE);
 
 			// console.log(`[${this.constructor.name}] Utilisateur connecté :`, result);
