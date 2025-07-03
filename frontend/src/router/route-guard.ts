@@ -1,6 +1,6 @@
 import { userService } from '../services/services';
 import { userStore } from '../stores/user.store';
-import { defaultRoute, authFallbackRoute } from '../config/routes.config';
+import { DEFAULT_ROUTE, AUTH_FALLBACK_ROUTE } from '../config/routes.config';
 import { isPublicRoute } from '../utils/routes.utils';
 import { router } from './router';
 
@@ -42,7 +42,7 @@ export class RouteGuard {
 			if (!isPublic && !authCookieIsActive) {
 				userStore.clearCurrentUser();
 				console.log(`[${this.constructor.name}] Non connecté -> redirection vers /login`);
-				await router.redirect(authFallbackRoute);
+				await router.redirect(AUTH_FALLBACK_ROUTE);
 				return true;
 			}
 
@@ -52,7 +52,7 @@ export class RouteGuard {
 				// Vérification dans le store d'abord
 				if (userStore.getCurrentUser()) {
 					console.log(`[${this.constructor.name}] Utilisateur déjà en store -> redirection vers /`);
-					await router.redirect(defaultRoute);
+					await router.redirect(DEFAULT_ROUTE);
 					return true;
 				}
 				
@@ -61,7 +61,7 @@ export class RouteGuard {
 				const user = await userService.loadOrRestoreUser();
 				if (user) {
 					console.log(`[${this.constructor.name}] Utilisateur restauré -> redirection vers /`);
-					await router.redirect(defaultRoute);
+					await router.redirect(DEFAULT_ROUTE);
 					return true;
 				}
 				// Si pas d'utilisateur mais cookie présent: désynchronisation cookie/serveur
@@ -74,7 +74,7 @@ export class RouteGuard {
 					// Cookie présent mais pas d'utilisateur valide
 					// (cas de désynchronisation ou session expirée côté serveur)
 					console.log(`[${this.constructor.name}] Cookie présent mais utilisateur invalide -> redirection vers /login`);
-					await router.redirect(authFallbackRoute);
+					await router.redirect(AUTH_FALLBACK_ROUTE);
 					return true;
 				}
 				// Désynchronisation cookie/serveur
@@ -84,7 +84,7 @@ export class RouteGuard {
 		} catch (err) {
 			console.error(`[${this.constructor.name}] Erreur critique`, err);
 			userStore.clearCurrentUser();
-			await router.redirect(authFallbackRoute);
+			await router.redirect(AUTH_FALLBACK_ROUTE);
 			return true;
 		}
 	}

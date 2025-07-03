@@ -1,7 +1,7 @@
 import { routeGuard } from './route-guard';
 import { RouteHandler } from '../types/routes.types';
 import { normalizePath, matchRoute } from './router.helper';
-import { defaultRoute } from '../config/routes.config';
+import { DEFAULT_ROUTE } from '../config/routes.config';
 
 // ===========================================
 // ROUTER
@@ -117,7 +117,7 @@ export class Router {
 			await this.handleLocation();
 		} else {
 			console.warn(`[${this.constructor.name}] Route ${normalizedPath} n'existe pas, redirection vers /`);
-			window.history.pushState({}, '', defaultRoute);
+			window.history.pushState({}, '', DEFAULT_ROUTE);
 			await this.handleLocation();
 		}
 
@@ -173,9 +173,9 @@ export class Router {
 				} catch (error) {
 					console.error(`[${this.constructor.name}] Erreur lors de l'exécution de la route ${path}:`, error);
 
-					if (path !== defaultRoute) {
+					if (path !== DEFAULT_ROUTE) {
 						console.log(`[${this.constructor.name}] Redirection vers l\'accueil après erreur`);
-						await this.navigate(defaultRoute);
+						await this.navigate(DEFAULT_ROUTE);
 					}
 				}
 			} else {
@@ -184,7 +184,7 @@ export class Router {
 		} else {
 			console.warn(`[${this.constructor.name}] Aucune route trouvée pour: ${path}`);
 			console.log(`[${this.constructor.name}] Redirection automatique vers l\'accueil`);
-			await this.redirect(defaultRoute);
+			await this.redirect(DEFAULT_ROUTE);
 		}
 	}
 

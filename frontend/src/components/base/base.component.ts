@@ -2,7 +2,6 @@ import { User } from '../../models/user.model';
 import { userStore } from '../../stores/user.store';
 import { RouteConfig } from '../../types/routes.types';
 import { ComponentConfig } from '../../types/components.types';
-import { componentNames } from '../../config/components.config';
 import { loadTemplate } from '../../utils/dom.utils';
 
 // ===========================================

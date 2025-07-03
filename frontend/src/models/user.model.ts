@@ -1,4 +1,4 @@
-import { SafeUserModel, UserModel, PublicUser } from '../shared/types/user.types';	// en rouge car dossier local 'shared' != dossier conteneur
+import { SafeUserModel, UserModel, PublicUser, UserStatus, RegisterMethod } from '../shared/types/user.types';	// en rouge car dossier local 'shared' != dossier conteneur
 
 // ===========================================
 // USER MODEL
@@ -31,9 +31,9 @@ export class User {
 		public game_loose: number,
 		public time_played: number,
 		public n_friends: number,
-		public status: 'online' | 'offline' | 'in-game',
+		public status: UserStatus,
 		public is_deleted: boolean,
-		public register_from: 'local' | 'google'
+		public register_from: RegisterMethod
 	) {}
 
 	// ============================================================================
@@ -58,13 +58,7 @@ export class User {
 	}
 
 	get formattedLastLog(): string {
-		return this.lastlog ? new Date(this.lastlog).toLocaleString() : 'Jamais connecté';
-	}
-
-	get formattedTimePlayed(): string {
-		const hours = Math.floor(this.time_played / 3600);
-		const minutes = Math.floor((this.time_played % 3600) / 60);
-		return `${hours}h ${minutes}m`;
+		return this.lastlog ? new Date(this.lastlog).toLocaleString() : 'User has never logged in';
 	}
 
 	// ============================================================================

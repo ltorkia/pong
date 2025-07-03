@@ -3,10 +3,10 @@ import { User } from '../models/user.model';
 import { userStore } from '../stores/user.store';
 import { BaseComponent } from '../components/base/base.component';
 import { NavbarComponent } from '../components/navbar/navbar.component';
-import { componentNames } from '../config/components.config';
 import { ComponentName, ComponentConfig } from '../types/components.types';
 import { loadTemplate, getHTMLElementById } from '../utils/dom.utils';
-import { appId } from '../config/routes.config';
+import { APP_ID } from '../config/routes.config';
+import { COMPONENT_NAMES } from '../config/components.config';
 import { LOADING_PAGE_ERR } from '../config/messages.config';
 
 // ===========================================
@@ -108,7 +108,7 @@ export abstract class BasePage {
 			return;
 		}
 		for (const componentConfig of Object.values(this.components)) {
-			if (!this.isValidConfig(componentConfig)) {
+			if (!componentConfig || !this.isValidConfig(componentConfig)) {
 				continue;
 			}
 			if (componentConfig.instance) {
@@ -217,7 +217,7 @@ export abstract class BasePage {
 	 * @param {ComponentConfig} componentConfig La configuration du composant navbar.
 	 */
 	private updateNavigation(componentConfig: ComponentConfig): void {
-		if (componentConfig.name === componentNames.navbar && componentConfig.instance instanceof NavbarComponent) {
+		if (componentConfig.name === COMPONENT_NAMES.navbar && componentConfig.instance instanceof NavbarComponent) {
 			componentConfig.instance.setActiveLink(this.config.path);
 		}
 	}
@@ -229,7 +229,7 @@ export abstract class BasePage {
 	 * @throws {Error} Si l'élément n'est pas trouvé dans le DOM.
 	 */
 	protected getContainerApp(): HTMLElement {
-		return getHTMLElementById(appId);
+		return getHTMLElementById(APP_ID);
 	}
 
 	/**
@@ -247,7 +247,7 @@ export abstract class BasePage {
 		this.cleanupComponents();
 		this.removeListeners();
 		this.container.replaceChildren();
-		console.log(`[${this.constructor.name}] Container principal #${appId} nettoyé`);
+		console.log(`[${this.constructor.name}] Container principal #${APP_ID} nettoyé`);
 		console.log(`[${this.constructor.name}] Nettoyage terminé`);
 	}
 

@@ -21,12 +21,12 @@ import { ComponentConfig } from '../types/components.types';
 /**
  * Constantes pour les identifiants de conteneurs HTML de composants.
  *
- * `HTMLComponentContainers` contient l'ensemble des identifiants de conteneurs HTML
+ * `HTML_COMPONENT_CONTAINERS` contient l'ensemble des identifiants de conteneurs HTML
  * des composants de l'application.
  * Chaque clé est un identifiant de conteneur HTML.
  * La valeur associée à chaque clé est l'identifiant HTML correspondant.
  */
-export const componentContainers = {
+export const HTML_COMPONENT_CONTAINERS = {
 	navbarId: 'navbar',
 	userListId: 'user-list',
 } as const;
@@ -34,11 +34,11 @@ export const componentContainers = {
 /**
  * Constantes pour les noms de composants.
  *
- * `componentNames` contient l'ensemble des noms de composants de l'application.
+ * `COMPONENT_NAMES` contient l'ensemble des noms de composants de l'application.
  * Chaque clé est un nom de composant.
  * La valeur associée à chaque clé est le nom du composant.
  */
-export const componentNames = {
+export const COMPONENT_NAMES = {
 	navbar: 'navbar',
 	userRow: 'user-row',
 } as const;
@@ -46,13 +46,13 @@ export const componentNames = {
 /**
  * Constantes pour les chemins de modèles HTML de composants.
  *
- * `componentPaths` contient l'ensemble des chemins de modèles HTML de composants de l'application.
+ * `COMPONENT_PATHS` contient l'ensemble des chemins de modèles HTML de composants de l'application.
  * Chaque clé est une page de l'application.
  * La valeur associée à chaque clé est le chemin de de modèle HTML du composant correspondant.
  */
-export const componentPaths = {
-	[componentNames.navbar]: '/components/common/navbar/navbar-component.html',
-	[componentNames.userRow]: '/components/user/users/user-row-component.html',
+export const COMPONENT_PATHS = {
+	[COMPONENT_NAMES.navbar]: '/components/common/navbar/navbar-component.html',
+	[COMPONENT_NAMES.userRow]: '/components/user/users/user-row-component.html',
 } as const;
 
 /**
@@ -79,20 +79,20 @@ export const componentPaths = {
 
 export const componentsConfig: ComponentConfig[] = [
 	{
-		name: componentNames.navbar,
+		name: COMPONENT_NAMES.navbar,
 		componentConstructor: NavbarComponent,
-		templatePath: componentPaths[componentNames.navbar],
-		containerId: componentContainers.navbarId,
+		templatePath: COMPONENT_PATHS[COMPONENT_NAMES.navbar],
+		containerId: HTML_COMPONENT_CONTAINERS.navbarId,
 		isPublic: false,
 		isPersistent: true,
 		destroy: true
 		// instance: créee et stockée ici lors de la connexion, undefined avant ça
 	},
 	{
-		name: componentNames.userRow,
+		name: COMPONENT_NAMES.userRow,
 		componentConstructor: UserRowComponent,
-		templatePath: componentPaths[componentNames.userRow],
-		containerId: componentContainers.userListId,
+		templatePath: COMPONENT_PATHS[COMPONENT_NAMES.userRow],
+		containerId: HTML_COMPONENT_CONTAINERS.userListId,
 		isPublic: false,
 		isPersistent: false
 	}

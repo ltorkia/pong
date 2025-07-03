@@ -1,13 +1,13 @@
 import { router } from '../router/router';
-import { defaultRoute, authFallbackRoute, authTwofaRoute } from '../config/routes.config';
 import { showError } from '../utils/dom.utils';
-import { REGISTERED_MSG } from '../config/messages.config';
 import { User } from '../models/user.model';
 import { userStore } from '../stores/user.store';
 import { userAuthApi } from '../api/user/user.api';
 import { AuthResponse, BasicResponse } from '../types/api.types';
 import { uiStore } from '../stores/ui.store';
-import { cookiesConst } from '../shared/config/constants.config'; // en rouge car dossier local 'shared' != dossier du conteneur
+import { COOKIES_CONST } from '../shared/config/constants.config'; // en rouge car dossier local 'shared' != dossier du conteneur
+import { DEFAULT_ROUTE, AUTH_FALLBACK_ROUTE, AUTH_TWOFA_ROUTE } from '../config/routes.config';
+import { REGISTERED_MSG } from '../config/messages.config';
 
 // ===========================================
 // USER SERVICE
@@ -55,7 +55,7 @@ export class UserService {
 	 * @returns {boolean} true si le cookie est présent, false sinon.
 	 */
 	public hasAuthCookie(): boolean {
-		return document.cookie.includes(`${cookiesConst.authStatusKey}=${cookiesConst.authStatusValue}`);
+		return document.cookie.includes(`${COOKIES_CONST.AUTH.STATUS_KEY}=${COOKIES_CONST.AUTH.STATUS_VALUE}`);
 	}
 
 	/**
@@ -207,14 +207,14 @@ export class UserService {
 				return;
 			}
 	
-			await router.redirect(authTwofaRoute);
+			await router.redirect(AUTH_TWOFA_ROUTE);
 					
 			// console.log(`[${this.constructor.name}] Utilisateur inscrit :`, result);
 			
 			// // Redirection home
 			// alert(REGISTERED_MSG);
 			// uiStore.animateNavbarOut = true;
-			// await router.redirect(defaultRoute);
+			// await router.redirect(DEFAULT_ROUTE);
 
 		} catch (err) {
 			console.error(`[${this.constructor.name}] Erreur réseau ou serveur`, err);
@@ -243,13 +243,13 @@ export class UserService {
 				showError(result.errorMessage);
 				return;
 			}
-			await router.redirect(authTwofaRoute);
+			await router.redirect(AUTH_TWOFA_ROUTE);
 
 			// console.log(`[${this.constructor.name}] Utilisateur connecté :`, result);
 			
 			// // Redirection home
 			// uiStore.animateNavbarOut = true;
-			// await router.redirect(defaultRoute);
+			// await router.redirect(DEFAULT_ROUTE);
 
 		} catch (err) {
 			console.error(`[${this.constructor.name}] Erreur réseau ou serveur`, err);
@@ -282,7 +282,7 @@ export class UserService {
 
 			// // Redirection home
 			// uiStore.animateNavbarOut = true;
-			// await router.redirect(defaultRoute);
+			// await router.redirect(DEFAULT_ROUTE);
 
 		} catch (err) {
 			console.error(`[${this.constructor.name}] Erreur réseau ou serveur`, err);
@@ -314,7 +314,7 @@ export class UserService {
 			
 			// Redirection SPA vers login
 			console.log(`[${this.constructor.name}] Déconnexion réussie. Redirection /login`);
-			await router.redirect(authFallbackRoute);
+			await router.redirect(AUTH_FALLBACK_ROUTE);
 
 		} catch (err) {
 			console.error(`[${this.constructor.name}] Erreur réseau ou serveur`, err);
