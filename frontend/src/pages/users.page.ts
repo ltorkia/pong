@@ -43,10 +43,10 @@ export class UsersPage extends BasePage {
 			return;
 		}
 		this.checkUserLogged();
-		const config = this.components[COMPONENT_NAMES.userRow];
+		const config = this.components[COMPONENT_NAMES.USER_ROW];
 		if (!config || !this.shouldRenderComponent(config)
 			|| !this.isValidConfig(config, false)) {
-			throw new Error(`Configuration du composant '${COMPONENT_NAMES.userRow}' invalide`);
+			throw new Error(`Configuration du composant '${COMPONENT_NAMES.USER_ROW}' invalide`);
 		}
 		this.componentConfig = config;
 	}
@@ -90,7 +90,7 @@ export class UsersPage extends BasePage {
 	 */
 	protected async injectUserList(): Promise<void> {
 		const users = await userCrudApi.getUsers();
-		const userList = getHTMLElementById(HTML_COMPONENT_CONTAINERS.userListId);
+		const userList = getHTMLElementById(HTML_COMPONENT_CONTAINERS.USER_LIST_ID);
 
 		let i = 1;
 		for (const user of users) {
@@ -100,7 +100,7 @@ export class UsersPage extends BasePage {
 
 			const tr = tempContainer.querySelector('tr');
 			if (tr) {
-				tr.id = `${COMPONENT_NAMES.userRow}-${i}`;
+				tr.id = `${COMPONENT_NAMES.USER_ROW}-${i}`;
 				userList.appendChild(tr);
 			}
 			const instanceKey = `${this.componentConfig!.name}-${user.id}`;

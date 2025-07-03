@@ -27,8 +27,8 @@ import { ComponentConfig } from '../types/components.types';
  * La valeur associée à chaque clé est l'identifiant HTML correspondant.
  */
 export const HTML_COMPONENT_CONTAINERS = {
-	navbarId: 'navbar',
-	userListId: 'user-list',
+	NAVBAR_ID: 'navbar',
+	USER_LIST_ID: 'user-list',
 } as const;
 
 /**
@@ -39,8 +39,8 @@ export const HTML_COMPONENT_CONTAINERS = {
  * La valeur associée à chaque clé est le nom du composant.
  */
 export const COMPONENT_NAMES = {
-	navbar: 'navbar',
-	userRow: 'user-row',
+	NAVBAR: 'navbar',
+	USER_ROW: 'user-row',
 } as const;
 
 /**
@@ -51,8 +51,8 @@ export const COMPONENT_NAMES = {
  * La valeur associée à chaque clé est le chemin de de modèle HTML du composant correspondant.
  */
 export const COMPONENT_PATHS = {
-	[COMPONENT_NAMES.navbar]: '/components/common/navbar/navbar-component.html',
-	[COMPONENT_NAMES.userRow]: '/components/user/users/user-row-component.html',
+	[COMPONENT_NAMES.NAVBAR]: '/components/common/navbar/navbar-component.html',
+	[COMPONENT_NAMES.USER_ROW]: '/components/user/users/user-row-component.html',
 } as const;
 
 /**
@@ -79,20 +79,20 @@ export const COMPONENT_PATHS = {
 
 export const componentsConfig: ComponentConfig[] = [
 	{
-		name: COMPONENT_NAMES.navbar,
+		name: COMPONENT_NAMES.NAVBAR,
 		componentConstructor: NavbarComponent,
-		templatePath: COMPONENT_PATHS[COMPONENT_NAMES.navbar],
-		containerId: HTML_COMPONENT_CONTAINERS.navbarId,
+		templatePath: COMPONENT_PATHS[COMPONENT_NAMES.NAVBAR],
+		containerId: HTML_COMPONENT_CONTAINERS.NAVBAR_ID,
 		isPublic: false,
 		isPersistent: true,
 		destroy: true
 		// instance: créee et stockée ici lors de la connexion, undefined avant ça
 	},
 	{
-		name: COMPONENT_NAMES.userRow,
+		name: COMPONENT_NAMES.USER_ROW,
 		componentConstructor: UserRowComponent,
-		templatePath: COMPONENT_PATHS[COMPONENT_NAMES.userRow],
-		containerId: HTML_COMPONENT_CONTAINERS.userListId,
+		templatePath: COMPONENT_PATHS[COMPONENT_NAMES.USER_ROW],
+		containerId: HTML_COMPONENT_CONTAINERS.USER_LIST_ID,
 		isPublic: false,
 		isPersistent: false
 	}

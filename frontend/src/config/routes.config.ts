@@ -47,13 +47,13 @@ export const PROFILE_HTML_ANCHOR: string = '/profile';
  * La valeur associée à chaque clé est le nom de la page.
  */
 export const PAGE_NAMES = {
-	home: 'Home',
-	register: 'Register',
-	login: 'Login',
-	game: 'Game',
-	users: 'Users',
-	profile: 'Profile',
-	twofa: 'Twofa',
+	HOME: 'Home',
+	REGISTER: 'Register',
+	LOGIN: 'Login',
+	GAME: 'Game',
+	USERS: 'Users',
+	PROFILE: 'Profile',
+	TWOFA: 'Twofa',
 } as const;
 
 /**
@@ -64,14 +64,14 @@ export const PAGE_NAMES = {
  * La valeur associée à chaque clé est le chemin de route correspondant.
  */
 export const ROUTE_PATHS = {
-	home: '/',
-	register: '/register',
-	login: '/login',
-	game: '/game',
-	users: '/users',
-	profile: '/user/:id',
-	logout: '/logout',
-	twofa: '/twofa',
+	HOME: '/',
+	REGISTER: '/register',
+	LOGIN: '/login',
+	GAME: '/game',
+	USERS: '/users',
+	PROFILE: '/user/:id',
+	LOGOUT: '/logout',
+	TWOFA: '/twofa',
 } as const;
 
 /**
@@ -82,29 +82,29 @@ export const ROUTE_PATHS = {
  * La valeur associée à chaque clé est le chemin de template correspondant.
  */
 export const TEMPLATE_PATHS = {
-	home: '/templates/home.html',
-	register: '/templates/register.html',
-	login: '/templates/login.html',
-	game: '/templates/game.html',
-	users: '/templates/users.html',
-	profile: '/templates/profile.html',
-	twofa: '/templates/twofa.html',
+	HOME: '/templates/home.html',
+	REGISTER: '/templates/register.html',
+	LOGIN: '/templates/login.html',
+	GAME: '/templates/game.html',
+	USERS: '/templates/users.html',
+	PROFILE: '/templates/profile.html',
+	TWOFA: '/templates/twofa.html',
 } as const;
 
 /**
  * Route par défaut pour les redirections
  */
-export const DEFAULT_ROUTE = ROUTE_PATHS.home;
+export const DEFAULT_ROUTE = ROUTE_PATHS.HOME;
 
 /**
  * Route de fallback en cas d'erreur d'authentification
  */
-export const AUTH_FALLBACK_ROUTE = ROUTE_PATHS.login;
+export const AUTH_FALLBACK_ROUTE = ROUTE_PATHS.LOGIN;
 
 /**
  * Route pour la page de double authentification (2FA)
  */
-export const AUTH_TWOFA_ROUTE = ROUTE_PATHS.twofa;
+export const AUTH_TWOFA_ROUTE = ROUTE_PATHS.TWOFA;
 
 /**
  * Configuration statique des routes de l'application.
@@ -128,73 +128,73 @@ export const AUTH_TWOFA_ROUTE = ROUTE_PATHS.twofa;
  */
 export const routesConfig: RouteConfig[] = [
 	{
-		path: ROUTE_PATHS.home,
-		name: PAGE_NAMES.home,
+		path: ROUTE_PATHS.HOME,
+		name: PAGE_NAMES.HOME,
 		pageConstructor: HomePage,
-		templatePath: TEMPLATE_PATHS.home,
+		templatePath: TEMPLATE_PATHS.HOME,
 		components: {
-			[COMPONENT_NAMES.navbar]: getComponentConfig(COMPONENT_NAMES.navbar)
+			[COMPONENT_NAMES.NAVBAR]: getComponentConfig(COMPONENT_NAMES.NAVBAR)
 		},
 		isPublic: false,
 		enableParticles: true
 	},
 	{
-		path: ROUTE_PATHS.register,
-		name: PAGE_NAMES.register,
+		path: ROUTE_PATHS.REGISTER,
+		name: PAGE_NAMES.REGISTER,
 		pageConstructor: RegisterPage,
-		templatePath: TEMPLATE_PATHS.register,
+		templatePath: TEMPLATE_PATHS.REGISTER,
 		components: {},
 		isPublic: true,
 		enableParticles: true
 	},
 	{
-		path: ROUTE_PATHS.login,
-		name: PAGE_NAMES.login,
+		path: ROUTE_PATHS.LOGIN,
+		name: PAGE_NAMES.LOGIN,
 		pageConstructor: LoginPage,
-		templatePath: TEMPLATE_PATHS.login,
+		templatePath: TEMPLATE_PATHS.LOGIN,
 		components: {},
 		isPublic: true,
 		enableParticles: true
 	},
 	{
-		path: ROUTE_PATHS.twofa,
-		name: PAGE_NAMES.twofa,
+		path: ROUTE_PATHS.TWOFA,
+		name: PAGE_NAMES.TWOFA,
 		pageConstructor: TwofaPage,
-		templatePath: TEMPLATE_PATHS.twofa,
+		templatePath: TEMPLATE_PATHS.TWOFA,
 		components: {},
 		isPublic: true,
 		enableParticles: true
 	},
 	{
-		path: ROUTE_PATHS.game,
-		name: PAGE_NAMES.game,
+		path: ROUTE_PATHS.GAME,
+		name: PAGE_NAMES.GAME,
 		pageConstructor: GamePage,
-		templatePath: TEMPLATE_PATHS.game,
+		templatePath: TEMPLATE_PATHS.GAME,
 		components: {
-			[COMPONENT_NAMES.navbar]: getComponentConfig(COMPONENT_NAMES.navbar)
+			[COMPONENT_NAMES.NAVBAR]: getComponentConfig(COMPONENT_NAMES.NAVBAR)
 		},
 		isPublic: false,
 		enableParticles: false
 	},
 	{
-		path: ROUTE_PATHS.users,
-		name: PAGE_NAMES.users,
+		path: ROUTE_PATHS.USERS,
+		name: PAGE_NAMES.USERS,
 		pageConstructor: UsersPage,
-		templatePath: TEMPLATE_PATHS.users,
+		templatePath: TEMPLATE_PATHS.USERS,
 		components: {
-			[COMPONENT_NAMES.navbar]: getComponentConfig(COMPONENT_NAMES.navbar),
-			[COMPONENT_NAMES.userRow]: getComponentConfig(COMPONENT_NAMES.userRow)
+			[COMPONENT_NAMES.NAVBAR]: getComponentConfig(COMPONENT_NAMES.NAVBAR),
+			[COMPONENT_NAMES.USER_ROW]: getComponentConfig(COMPONENT_NAMES.USER_ROW)
 		},
 		isPublic: false,
 		enableParticles: true
 	},
 	{
-		path: ROUTE_PATHS.profile,
-		name: PAGE_NAMES.profile,
+		path: ROUTE_PATHS.PROFILE,
+		name: PAGE_NAMES.PROFILE,
 		pageConstructor: ProfilePage,
-		templatePath: TEMPLATE_PATHS.profile,
+		templatePath: TEMPLATE_PATHS.PROFILE,
 		components: {
-			[COMPONENT_NAMES.navbar]: getComponentConfig(COMPONENT_NAMES.navbar)
+			[COMPONENT_NAMES.NAVBAR]: getComponentConfig(COMPONENT_NAMES.NAVBAR)
 		},
 		isPublic: false,
 		enableParticles: true

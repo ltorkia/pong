@@ -217,7 +217,7 @@ export abstract class BasePage {
 	 * @param {ComponentConfig} componentConfig La configuration du composant navbar.
 	 */
 	private updateNavigation(componentConfig: ComponentConfig): void {
-		if (componentConfig.name === COMPONENT_NAMES.navbar && componentConfig.instance instanceof NavbarComponent) {
+		if (componentConfig.name === COMPONENT_NAMES.NAVBAR && componentConfig.instance instanceof NavbarComponent) {
 			componentConfig.instance.setActiveLink(this.config.path);
 		}
 	}

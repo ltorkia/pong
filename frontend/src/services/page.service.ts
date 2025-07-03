@@ -45,7 +45,7 @@ export class PageService {
 
 		this.toggleParticles(config);
 		const appDiv = getHTMLElementById(APP_ID);
-		const navbarDiv = getHTMLElementById(HTML_COMPONENT_CONTAINERS.navbarId);
+		const navbarDiv = getHTMLElementById(HTML_COMPONENT_CONTAINERS.NAVBAR_ID);
 		await this.pageTransitionOut(appDiv);
 		if (uiStore.animateNavbarOut === true) {
 			await this.navbarTransitionOut(navbarDiv);

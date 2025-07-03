@@ -64,7 +64,7 @@ export class NavbarComponent extends BaseComponent {
 			anchor.classList.remove('active');
 			const linkPath = new URL(anchor.href).pathname;
 			if (linkPath === route
-				|| (route === ROUTE_PATHS.profile && linkPath === this.profileLink)) {
+				|| (route === ROUTE_PATHS.PROFILE && linkPath === this.profileLink)) {
 				anchor.classList.add('active');
 			}
 		});
@@ -127,7 +127,7 @@ export class NavbarComponent extends BaseComponent {
 	 */
 	protected attachListeners(): void {
 		this.burgerBtn = getHTMLElementById('burger-btn', this.container);
-		this.logoutLink = getHTMLAnchorElement(ROUTE_PATHS.logout, this.container);
+		this.logoutLink = getHTMLAnchorElement(ROUTE_PATHS.LOGOUT, this.container);
 
 		this.burgerBtn.addEventListener('click', this.handleBurgerClick);
 		this.logoutLink.addEventListener('click', this.handleLogoutClick);
