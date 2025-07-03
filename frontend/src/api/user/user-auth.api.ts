@@ -103,15 +103,10 @@ export class UserAuthApi {
 	 * 
 	 * Envoie une requête POST à la route API `/auth/login` pour connecter
 	 * un utilisateur avec les informations fournies dans l'objet `data`.
-	 * 
-	 * Si la connexion réussit, stocke l'utilisateur en mémoire vive avec email,
-	 * et localStorage sans email. Renvoie un objet avec la clé `user` contenant
-	 * l'utilisateur connecté. Sinon, renvoie un objet avec la clé `errorMessage`
-	 * contenant le message d'erreur.
+	 * Appelle la méthode `send2FA` pour envoyer un code de vérification.
 	 * 
 	 * @param {Record<string, string>} data Informations de l'utilisateur à connecter.
-	 * @returns {Promise<AuthResponse>} Promesse qui se résout avec l'utilisateur connecté
-	 *  ou un objet d'erreur.
+	 * @returns {Promise<AuthResponse>} Promesse résolue avec une fois que le code est envoyé.
 	 */
 	public async loginUser(data: Record<string, string>): Promise<AuthResponse> {
 		const res: Response = await fetch('/api/auth/login', {
@@ -131,6 +126,15 @@ export class UserAuthApi {
 		return res2FA as AuthResponse;
 	}
 
+	/**
+	 * Envoie un code de vérification pour l'authentification à deux facteurs (2FA).
+	 * 
+	 * Si la vérification 2FA échoue, renvoie un objet contenant un message d'erreur.
+	 * Si la vérification réussit, renvoie un objet avec un message d'erreur ou de confirmation.
+	 * 
+	 * @param {Record<string, string>} data Informations de l'utilisateur à connecter.
+	 * @returns {Promise<AuthResponse>} Promesse résolue avec une fois que le code est envoyé.
+	 */
 	public async send2FA(data: Record<string, string>): Promise<AuthResponse> {
 		const res: Response = await fetch('/api/auth/2FAsend', {
 			method: 'POST',
@@ -148,12 +152,17 @@ export class UserAuthApi {
 	/**
 	 * Vérifie l'authentification à deux facteurs (2FA) pour un utilisateur.
 	 * 
-	 * Envoie une requête POST à la route API `/auth/2FAreceive` avec les
-	 * données fournies dans l'objet `data`. Si la vérification réussit, 
+	 * Envoie une requête POST à la route API `/auth/2FAreceive` avec le code
+	 * de vérification fournit dans l'objet `data`. Si la vérification réussit, 
 	 * renvoie un objet contenant les informations de l'utilisateur authentifié.
 	 * Sinon, renvoie un objet contenant un message d'erreur.
 	 * 
-	 * @param {Record<string, string>} data Informations nécessaires pour la vérification 2FA.
+	 * Si la vérification réussit, stocke l'utilisateur en mémoire vive avec email,
+	 * et localStorage sans email. Renvoie un objet avec la clé `user` contenant
+	 * l'utilisateur connecté. Sinon, renvoie un objet avec la clé `errorMessage`
+	 * contenant le message d'erreur.
+	 * 
+	 * @param {Record<string, string>} data Informations de l'utilisateur à connecter.
 	 * @returns {Promise<AuthResponse>} Promesse résolue avec les informations de l'utilisateur
 	 * authentifié ou un message d'erreur.
 	 */
@@ -164,7 +173,6 @@ export class UserAuthApi {
 			body: JSON.stringify(data),
 			credentials: 'include',
 		});
-		console.log(`[${this.constructor.name}] TWOFA RECEIVE USER...`, res);
 		const result: AuthResponse = await res.json();
 		if (!res.ok || result.errorMessage) {
 			return { errorMessage: result.errorMessage || result.message || 'Erreur avec l' };

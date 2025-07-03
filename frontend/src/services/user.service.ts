@@ -237,7 +237,6 @@ export class UserService {
 				showError(result.errorMessage);
 				return;
 			}
-			console.log(`[${this.constructor.name}] Redirection vers 2FA...`);
 			await router.redirect(AUTH_TWOFA_ROUTE);
 
 		} catch (err) {
@@ -269,6 +268,7 @@ export class UserService {
 			console.log(`[${this.constructor.name}] Utilisateur connecté :`, result);
 
 			// Redirection home
+			console.log(`[${this.constructor.name}] Connexion réussie. Redirection /`);
 			uiStore.animateNavbarOut = true;
 			await router.redirect(DEFAULT_ROUTE);
 
