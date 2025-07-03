@@ -92,14 +92,9 @@ export class UserAuthApi {
 			credentials: 'include',
 		});
 		const result: AuthResponse = await res.json();
-		if (!res.ok || result.errorMessage || !result.user) {
-			return { errorMessage: result.errorMessage || result.message || 'Erreur avec la récupération de l\'utilisateur' } as AuthResponse;
+		if (!res.ok || result.errorMessage) {
+			return { errorMessage: result.errorMessage || result.message || 'Erreur inconnue' } as AuthResponse;
 		}
-		const res2FA: AuthResponse = await this.send2FA(data);
-		if (result.errorMessage) {
-			return { errorMessage: result.errorMessage || result.message || 'Erreur avec la récupération de l\'utilisateur' } as AuthResponse;
-		}
-		// userStore.setCurrentUserFromServer(result.user);
 		return result as AuthResponse;
 	}
 
@@ -127,25 +122,23 @@ export class UserAuthApi {
 		});
 		const result: AuthResponse = await res.json();
 		if (!res.ok || result.errorMessage) {
-			return { errorMessage: result.errorMessage || result.message || 'Erreur avec la récupération de l\'utilisateur' } as AuthResponse;
+			return { errorMessage: result.errorMessage || result.message || 'Erreur inconnue' } as AuthResponse;
 		}
-		console.log(`[${this.constructor.name}] OK LOGIN...`);
-		const res2FA: AuthResponse = await this.send2FA(data);
+		const res2FA = await this.send2FA(data);
 		if (res2FA.errorMessage) {
-			return { errorMessage: res2FA.errorMessage || res2FA.message || 'Erreur avec la récupération de l\'utilisateur' } as AuthResponse;
+			return { errorMessage: res2FA.errorMessage || res2FA.message || 'Erreur inconnue' } as AuthResponse;
 		}
-		// userStore.setCurrentUserFromServer(result.user);
-		return result as AuthResponse;
+		return res2FA as AuthResponse;
 	}
 
 	public async send2FA(data: Record<string, string>): Promise<AuthResponse> {
-		const res = await fetch('/api/auth/2FAsend', {
+		const res: Response = await fetch('/api/auth/2FAsend', {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify(data),
 			credentials: 'include',
 		});
-		const result: AuthResponse = await res.json();
+		const result = await res.json();
 		if (!res.ok || result.errorMessage) {
 			return { errorMessage: result.errorMessage || result.message || 'Erreur inconnue' };
 		}
@@ -171,10 +164,12 @@ export class UserAuthApi {
 			body: JSON.stringify(data),
 			credentials: 'include',
 		});
+		console.log(`[${this.constructor.name}] TWOFA RECEIVE USER...`, res);
 		const result: AuthResponse = await res.json();
 		if (!res.ok || result.errorMessage) {
-			return { errorMessage: result.errorMessage || result.message || 'Erreur inconnue' };
+			return { errorMessage: result.errorMessage || result.message || 'Erreur avec l' };
 		}
+		userStore.setCurrentUserFromServer(result.user);
 		return result as AuthResponse;
 	}
 

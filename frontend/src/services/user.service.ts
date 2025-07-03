@@ -207,14 +207,8 @@ export class UserService {
 				return;
 			}
 	
-			await router.redirect(AUTH_TWOFA_ROUTE);
-					
-			// console.log(`[${this.constructor.name}] Utilisateur inscrit :`, result);
-			
-			// // Redirection home
-			// alert(REGISTERED_MSG);
-			// uiStore.animateNavbarOut = true;
-			// await router.redirect(DEFAULT_ROUTE);
+			alert(REGISTERED_MSG);
+			await router.redirect(AUTH_FALLBACK_ROUTE);
 
 		} catch (err) {
 			console.error(`[${this.constructor.name}] Erreur réseau ou serveur`, err);
@@ -246,12 +240,6 @@ export class UserService {
 			console.log(`[${this.constructor.name}] Redirection vers 2FA...`);
 			await router.redirect(AUTH_TWOFA_ROUTE);
 
-			// console.log(`[${this.constructor.name}] Utilisateur connecté :`, result);
-			
-			// // Redirection home
-			// uiStore.animateNavbarOut = true;
-			// await router.redirect(DEFAULT_ROUTE);
-
 		} catch (err) {
 			console.error(`[${this.constructor.name}] Erreur réseau ou serveur`, err);
 			showError('Erreur réseau');
@@ -278,12 +266,11 @@ export class UserService {
 				showError(result.errorMessage);
 				return;
 			}
+			console.log(`[${this.constructor.name}] Utilisateur connecté :`, result);
 
-			// console.log(`[${this.constructor.name}] Utilisateur connecté :`, result);
-
-			// // Redirection home
-			// uiStore.animateNavbarOut = true;
-			// await router.redirect(DEFAULT_ROUTE);
+			// Redirection home
+			uiStore.animateNavbarOut = true;
+			await router.redirect(DEFAULT_ROUTE);
 
 		} catch (err) {
 			console.error(`[${this.constructor.name}] Erreur réseau ou serveur`, err);

@@ -178,7 +178,7 @@ export async function majLastlog(username: string)
 	[username]);
 }
 
-export async function insertCode2FA(email: string, code: string)
+export async function insertCode2FA(email: string, code: string): Promise<{statusCode: number, message: string}>
 {
 	const db = await getDb();
 	const end_time = Date.now() + 5 * 60 * 1000;
@@ -189,6 +189,7 @@ export async function insertCode2FA(email: string, code: string)
 		WHERE (email = ?)
 		`,
 	[code, end_time , email]);
+	return {statusCode : 201, message : 'code 2FA inserted'};
 }
 
 export async function eraseCode2FA(email: string)

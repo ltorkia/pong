@@ -34,12 +34,20 @@ async function doubleAuth(app: FastifyInstance)
 		if (!user.success) {
 			const error = user.error.errors[0];
 			console.log(error);
-			return reply.status(400).send({statusCode: 400, errorMessage: error.message + " in " + error.path });
+			return reply.status(400).send({
+				statusCode: 400, 
+				errorMessage: error.message + " in " + error.path });
 		}
 		try {
 			const code = Math.floor(100000 + Math.random() * 900000).toString();
-			// check resInsert
-			const resInsert: Code2FA | void = await insertCode2FA(user.data.email, code);
+
+			const resInsert = await insertCode2FA(user.data.email, code);
+			if (!resInsert) {
+				return reply.status(500).send({
+					statusCode: 500,
+					errorMessage: 'Erreur lors de l’insertion du code 2FA'
+				});
+			}
 			const transporter = nodemailer.createTransport({
 				service: 'gmail',
 				auth: {
@@ -54,16 +62,18 @@ async function doubleAuth(app: FastifyInstance)
 				subject: 'Votre code de vérification',
 				text: `Votre code est : ${code}`,
 			});
+			return(reply.status(200).send({ 
+				statusCode: 200,
+				message: 'Code 2FA envoyé avec succès.'
+			}));
 		} catch (err) {
 			console.log(err)
 			request.log.error(err);
 			return reply.status(500).send({
-				errorMessage: 'Erreur serveur lors de l envoi 2FA',
+				statusCode: 500,
+				errorMessage: 'Erreur serveur lors de l\'envoi 2FA'
 			});
 		}
-		// const redirectUrl = new URL('');
-		// reply.redirect()->
-		return(reply.status(200).send("2FA send"));
 	} );
 
 	app.post('/2FAreceive', async (request: FastifyRequest, reply: FastifyReply) => {
@@ -87,16 +97,16 @@ async function doubleAuth(app: FastifyInstance)
 		const user: UserModel | null = await getUser(null, result.data.email);
 		if (!user) {
 			return reply.status(500).send({
-				errorMessage: 'Impossible de récupérer l’utilisateur après insertion',
+				statusCode: 500,
+				errorMessage: 'Impossible de récupérer l’utilisateur après insertion'
 			});
 		}
 		ProcessAuth(app, checkUser, reply);
 		return reply.status(200).send({
+			statusCode: 200,
 			message: 'Successfully logged in.',
-			user: user,
-			statusCode: 200
+			user: user
 		});
-		return(reply.status(200).send({message:"2FA confirmed"}));
 	});
 }
 
@@ -110,31 +120,20 @@ export async function authRoutes(app: FastifyInstance) {
 				const error = result.error.errors[0];
 				return reply.status(400).send({statusCode: 400, errorMessage: error.message + " in " + error.path });
 			}
-
 			const userToInsert = result.data;
 			userToInsert.password = await bcrypt.hash(userToInsert.password, 10);
 	
 			const resultinsert = await insertUser(userToInsert, null);
-			if (resultinsert.statusCode === 201) {
-				return reply.status(200).send({
-					message: 'Successful registration.',
-					statusCode: 200
+			if (resultinsert.statusCode !== 201) {
+				return reply.status(resultinsert.statusCode).send({
+					statusCode: resultinsert.statusCode,
+					errorMessage: resultinsert.message || 'Erreur lors de l’insertion de l’utilisateur',
 				});
 			}
-			// if (resultinsert.statusCode === 201) {
-				// const user: UserModel = await getUser(null, userToInsert.email);
-				// const userAuth: Partial<UserPassword> = {
-				// 	id: user.id,
-				// 	username: user.username
-				// }
-				// ProcessAuth(app, userAuth, reply);
-				// return reply.status(200).send({
-				// 	message: 'Successful registration.',
-				// 	user: user,
-				// 	statusCode: 200 // -> convention json pour donner toutes les infos au front
-				// });
-			// }
-			return reply.status(resultinsert.statusCode).send(resultinsert);
+			return reply.status(200).send({
+				statusCode: 200,
+				message: 'Successful registration.'
+			});
 	
 		} catch (err) {
 			request.log.error(err);
@@ -180,22 +179,15 @@ export async function authRoutes(app: FastifyInstance) {
 					errorMessage: 'Password does not match.'
 				});
 			}
-			// ProcessAuth(app, validUser, reply);
-			// const user: UserModel | null = await getUser(null, result.data.email);
-			// if (!user) {
-			// 	return reply.status(500).send({
-			// 		errorMessage: 'Impossible de récupérer l’utilisateur après insertion',
-			// 	});
-			// }
 			return reply.status(200).send({
-				message: 'All infos are correct.',
-				// user: user,
-				statusCode: 200
+				statusCode: 200,
+				message: 'All infos are correct.'
 			});
 
 		} catch (err) {
 			request.log.error(err);
 			return reply.status(500).send({
+				statusCode: 500,
 				errorMessage: 'Erreur serveur lors de la connexion',
 			});
 		}
@@ -206,7 +198,10 @@ export async function authRoutes(app: FastifyInstance) {
 	// LOGOUT
 	app.post('/logout', async (request: FastifyRequest, reply: FastifyReply) => {
 		clearAuthCookies(reply);
-		return reply.status(200).send({ message: 'Déconnecté' });
+		return reply.status(200).send({
+			statusCode: 200,
+			message: 'Déconnecté'
+		});
 	});
 
 	// LOGIN AVEC GOOGLE
