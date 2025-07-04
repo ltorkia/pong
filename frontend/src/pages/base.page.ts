@@ -89,16 +89,14 @@ export abstract class BasePage {
 	/**
 	 * Charge les composants persistants sur plusieurs pages (isPersistent = true)
 	 * en bouclant sur la propriété components de la page.
-	 * Pour chaque composant, instancie la classe du composant avec
-	 * la configuration de la page et le conteneur HTML correspondant,
-	 * et appelle la méthode render() du composant.
-	 * Stocke les instances des composants rendus dans la propriété
-	 * componentInstances avec le nom du composant comme clé.
 	 * 
 	 * Si un composant est déjà instancié dans la propriété instance
 	 * de la configuration, met à jour la navigation en appelant la méthode
 	 * setActiveLink() s'il s'agit de la navbar, puis le composant est simplement
 	 * ajouté à la liste des composants de la page sans être recréé.
+	 * 
+	 * Sinon, fait appel à initPersistentComponent() pour créer
+	 * l'instance du composant persistant et le charger et le rendre.
 	 * 
 	 * @returns {Promise<void>} Une promesse qui se résout lorsque
 	 * tous les composants persistants sont chargés et rendus.
@@ -125,8 +123,9 @@ export abstract class BasePage {
 	 * Instancie et charge un composant persistant sur plusieurs pages.
 	 * 
 	 * Pour un composant persistant, crée une instance de la classe du composant
-	 * avec la configuration de la page et le conteneur HTML correspondant,
-	 * et appelle la méthode render() du composant.
+	 * avec la configuration de la page, la configuration du composant
+	 * et le conteneur HTML correspondant,
+	 * Appelle la méthode render() du composant.
 	 * Stocke l'instance du composant dans la propriété componentInstances
 	 * de la page avec le nom du composant comme clé.
 	 * 

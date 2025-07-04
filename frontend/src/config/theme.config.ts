@@ -6,7 +6,7 @@
  *
  * Ce fichier est importé par :
  * - tailwind.config.mjs: pour définir des class personnalisées
- * - theme.config.ts: pour les couleurs des particules
+ * - particles.service.ts: pour les couleurs des particules
  *
  * Les configurations sont divisées en plusieurs constantes: les couleurs, les polices,
  * les images, etc.
