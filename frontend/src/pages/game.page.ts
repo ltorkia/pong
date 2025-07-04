@@ -44,7 +44,6 @@ import { RouteConfig } from '../types/routes.types';
  * 		- intégrer le composant à ta page...
  */
 export class GamePage extends BasePage {
-
 	/**
 	 * GamePage hérite de BasePage (frontend/src/pages/base.page.ts) qui:
 	 * - injecte le template HTML dans la div #app
@@ -53,20 +52,55 @@ export class GamePage extends BasePage {
 	 * 
 	 * ! Voir les propriétés + méthodes de surcharge qui peuvent être utilisées ici.
 	 */
-
+	private playerOnePosX: number = 0;
+	private playerOnePosY: number = 0;
 	constructor(config: RouteConfig) {
 		// super() = appelle le constructeur du parent BasePage et lui transmet la config de la page Game.
 		// avec le container et le chemin du template HTML pour injecter la page.
 		super(config);
 	}
-
+	
 	// méthode mount() = Ce qu'on injecte dynamiquement dans la page après avoir injecté le template HTML dans la div #app.
 	// Tout est configuré. Il restera éventuellement des composants à rajouter si besoin,
 	// mais le canvas / jeu dans frontend/public/templates/game.html devrait suffire ?
-	protected async mount(): Promise<void> {}
-
+	protected async mount(): Promise<void> {
+		this.initGame();
+	}
+	
 	// Les potentiels events de la page ?
-	protected attachListeners(): void {}
+	protected attachListeners(): void {
+		document.addEventListener("keydown", (event) => {})
+		
+		onkeydown = (event) => {
+			console.log(event);
+			if (event.key == "w")
+				this.playerOnePosX -= 1;
+			else if (event.key == "s")
+				this.playerOnePosX += 1;
+		}
+	}
+	
+	private gameLoop(): void {
+		
+	}
+
+	private initGame(): void {
+		const canvas = document.getElementById("pong-canvas");
+		const canvasContainer = document.getElementById("pong-section");
+		if (!canvas || !canvasContainer)
+			return ;
+		console.log(canvas, typeof(canvas));
+		console.log("coucou!");
+		const ctx = canvas.getContext("2d");
+		const height = canvasContainer.getBoundingClientRect().height;
+		const width = canvasContainer.getBoundingClientRect().width;
+		canvas.height = height;
+		canvas.width = width;
+		ctx.fillStyle = "rgb(255, 0, 0)";
+		ctx.fillRect(0, height / 2, 10, 100);
+		ctx.fillRect(width - 10, 100, 10, 100);
+		this.gameLoop();
+	}
 
 	// Amuse-toi biiiiiiennnnnnn ! =D
 }
