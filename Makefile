@@ -92,7 +92,7 @@ fclean: clean # Nettoyage profond: volumes, images et données persistantes et s
 	rm -rf frontend/src/shared backend/src/shared
 	rm -rf frontend/node_modules backend/node_modules
 	rm -rf backend/data backend/dist nginx/dist .mode
-	find frontend/public/img/avatars/ -type f ! -name 'default.png' -delete
+	find frontend/public/assets/img/avatars/ -type f ! -name 'default.png' -delete
 
 prune: fclean # Nettoyage complet y compris le système Docker global
 	@echo "$(YELLOW)⚠️ Suppression complète de tous les éléments Docker non utilisés...${NC}"

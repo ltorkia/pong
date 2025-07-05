@@ -35,11 +35,22 @@ export default defineConfig(({ command: command }: { command: string }) => {
 					entryFileNames: 'assets/js/[name].js',			// Nom des fichiers d'entrée
 					chunkFileNames: 'assets/js/[name].js',			// Nom des fichiers de chunks
 					assetFileNames: (assetInfo: any): string => {
-						if (assetInfo.type === 'asset'
-							&& assetInfo.name?.endsWith('.css')) {
-							return 'assets/css/[name][extname]'; 	// Nom des fichiers CSS
+						const name = assetInfo.name ?? '';
+						if (assetInfo.type === 'asset') {
+							if (name.endsWith('.css')) {
+								return 'assets/css/[name][extname]';		// Nom des fichiers CSS	
+							}
+							if (name.startsWith('fa-') && /\.(woff2?|ttf)$/.test(name)) {
+								return 'assets/fonts/fa/[name][extname]';	// Nom des fichiers de polices FontAwesome
+							}
+							// if (/\.(woff2?|ttf|otf|eot)$/.test(name)) {
+							// 	return 'assets/fonts/[name][extname]';		// Nom des autres fichiers de polices
+							// }
+							// if (/\.(png|jpe?g|svg|gif|webp)$/.test(name)) {
+							// 	return 'assets/images/[name][extname]';		// Nom des fichiers d'images
+							// }
 						}
-						return 'assets/[name][extname]';			// Nom des autres fichiers
+						return 'assets/[name][extname]';					// Nom des autres fichiers
 					}
 				}
 			}
@@ -69,7 +80,18 @@ export default defineConfig(({ command: command }: { command: string }) => {
 							const relativePath = fullPath.replace(/^.*src\//, '');
 							return relativePath;
 						}
-					}
+					},
+					/** 
+					 * Copie des ressources statiques du dossier public vers assets
+					 */
+					// {
+					// 	src: 'public/img/**/*',
+					// 	dest: 'assets/images'
+					// },
+					// {
+					// 	src: 'public/fonts/**/*',
+					// 	dest: 'assets/fonts'
+					// },
 				]
 			})]
 			: [])

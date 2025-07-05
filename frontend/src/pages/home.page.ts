@@ -61,7 +61,7 @@ export class HomePage extends BasePage {
 	private loadAvatar() {
 		const avatar = getHTMLElementByClass('avatar');
 		Object.assign(avatar.style, {
-			backgroundImage: `url('/img/avatars/${this.currentUser!.avatar}')`,
+			backgroundImage: `url('/assets/img/avatars/${this.currentUser!.avatar}')`,
 			backgroundSize: "cover",
 			backgroundPosition: "center"
 		});

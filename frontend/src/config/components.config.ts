@@ -51,8 +51,8 @@ export const COMPONENT_NAMES = {
  * La valeur associée à chaque clé est le chemin de de modèle HTML du composant correspondant.
  */
 export const COMPONENT_PATHS = {
-	[COMPONENT_NAMES.NAVBAR]: '/components/common/navbar/navbar-component.html',
-	[COMPONENT_NAMES.USER_ROW]: '/components/user/users/user-row-component.html',
+	[COMPONENT_NAMES.NAVBAR]: '/components/navbar/navbar.component.html',
+	[COMPONENT_NAMES.USER_ROW]: '/components/user-row/user-row.component.html',
 } as const;
 
 /**

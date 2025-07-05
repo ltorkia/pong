@@ -65,7 +65,7 @@ export class UserRowComponent extends BaseComponent {
 
 		if (this.user) {
 			if (avatarImg) {
-				avatarImg.setAttribute('src', `/img/avatars/${this.user.avatar}`);
+				avatarImg.setAttribute('src', `/assets/img/avatars/${this.user.avatar}`);
 				avatarImg.setAttribute('alt', `${this.user.username}'s avatar`);
 			}
 

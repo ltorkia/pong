@@ -44,7 +44,7 @@ export interface SafeUserModel {
 	game_loose: number;
 	time_played: number;
 	n_friends: number;
-	status: RegisterMethod;
+	status: UserStatus;
 	is_deleted: boolean;
 	register_from: RegisterMethod;
 }

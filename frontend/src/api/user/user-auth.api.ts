@@ -174,7 +174,7 @@ export class UserAuthApi {
 			credentials: 'include',
 		});
 		const result: AuthResponse = await res.json();
-		if (!res.ok || result.errorMessage) {
+		if (!res.ok || result.errorMessage || !result.user) {
 			return { errorMessage: result.errorMessage || result.message || 'Erreur avec l' };
 		}
 		userStore.setCurrentUserFromServer(result.user);

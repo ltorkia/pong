@@ -58,7 +58,7 @@ export class ProfilePage extends BasePage {
 		const userAvatar = clone.querySelector('.avatar-cell') as HTMLElement;
 		const img = document.createElement('img');
 		img.classList.add('avatar-img');
-		img.src = `/img/avatars/${user.avatar}`;
+		img.src = `/assets/img/avatars/${user.avatar}`;
 		img.alt = `${user.username}'s avatar`;
 		userAvatar.appendChild(img);
 
