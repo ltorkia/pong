@@ -4,6 +4,7 @@ import template from './user-row.component.html?raw'
 import { BaseComponent } from '../base/base.component';
 import { RouteConfig } from '../../types/routes.types';
 import { ComponentConfig } from '../../types/components.types';
+import { AVATARS_ROUTE_API } from '../../config/routes.config';
 import { User } from '../../models/user.model';
 
 // ===========================================
@@ -65,7 +66,7 @@ export class UserRowComponent extends BaseComponent {
 
 		if (this.user) {
 			if (avatarImg) {
-				avatarImg.setAttribute('src', `/assets/img/avatars/${this.user.avatar}`);
+				avatarImg.setAttribute('src', `${AVATARS_ROUTE_API}${this.user.avatar}`);
 				avatarImg.setAttribute('alt', `${this.user.username}'s avatar`);
 			}
 

@@ -107,6 +107,11 @@ export const AUTH_FALLBACK_ROUTE = ROUTE_PATHS.LOGIN;
 export const AUTH_TWOFA_ROUTE = ROUTE_PATHS.TWOFA;
 
 /**
+ * Route API pour les avatars
+ */
+export const AVATARS_ROUTE_API = '/uploads/avatars/';
+
+/**
  * Configuration statique des routes de l'application.
  * 
  * Chaque route est définie par un objet contenant:

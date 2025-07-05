@@ -1,5 +1,6 @@
 import { BasePage } from './base.page';
 import { RouteConfig, RouteParams } from '../types/routes.types';
+import { AVATARS_ROUTE_API } from '../config/routes.config';
 import { userCrudApi } from '../api/user/user.api';
 
 // ===========================================
@@ -58,7 +59,7 @@ export class ProfilePage extends BasePage {
 		const userAvatar = clone.querySelector('.avatar-cell') as HTMLElement;
 		const img = document.createElement('img');
 		img.classList.add('avatar-img');
-		img.src = `/assets/img/avatars/${user.avatar}`;
+		img.src = `${AVATARS_ROUTE_API}${user.avatar}`;
 		img.alt = `${user.username}'s avatar`;
 		userAvatar.appendChild(img);
 

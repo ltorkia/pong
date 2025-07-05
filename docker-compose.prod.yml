@@ -10,6 +10,8 @@ services:
       - "8080:80"
     depends_on:
       - backend
+    volumes:
+      - ./backend/uploads:/usr/share/nginx/html/uploads
     networks:
       - transcendence
 
