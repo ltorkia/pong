@@ -174,7 +174,7 @@ export const routesConfig: RouteConfig[] = [
 			[COMPONENT_NAMES.NAVBAR]: getComponentConfig(COMPONENT_NAMES.NAVBAR)
 		},
 		isPublic: false,
-		enableParticles: true
+		enableParticles: false
 	},
 	{
 		path: ROUTE_PATHS.USERS,

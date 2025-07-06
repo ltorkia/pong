@@ -52,8 +52,11 @@ export class GamePage extends BasePage {
 	 * 
 	 * ! Voir les propriétés + méthodes de surcharge qui peuvent être utilisées ici.
 	 */
-	private playerOnePosX: number = 0;
-	private playerOnePosY: number = 0;
+
+    private gameCanvas: HTMLCanvasElement = document.createElement('canvas');
+    private canvasCtx: CanvasRenderingContext2D = this.gameCanvas.getContext("2d")!;
+    private playerOnePosY: number = 0;
+
 	constructor(config: RouteConfig) {
 		// super() = appelle le constructeur du parent BasePage et lui transmet la config de la page Game.
 		// avec le container et le chemin du template HTML pour injecter la page.
@@ -69,37 +72,40 @@ export class GamePage extends BasePage {
 	
 	// Les potentiels events de la page ?
 	protected attachListeners(): void {
-		document.addEventListener("keydown", (event) => {})
-		
+        const canvasContainer: HTMLElement = document.getElementById("pong-section")!;
+		document.addEventListener("keydown", (event) => {});
 		onkeydown = (event) => {
 			console.log(event);
 			if (event.key == "w")
-				this.playerOnePosX -= 1;
+				this.playerOnePosY -= 10;
 			else if (event.key == "s")
-				this.playerOnePosX += 1;
+				this.playerOnePosY += 10;
+            // console.log(this.playerOnePosY);
 		}
 	}
+
+    private clearScreen(ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement): void {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
 	
-	private gameLoop(): void {
-		
+	private gameLoop = () => {
+        // this.clearScreen(this.canvasCtx, this.gameCanvas);
+        this.canvasCtx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+        this.canvasCtx.fillRect(0, 0, this.gameCanvas.width, this.gameCanvas.height);
+        this.canvasCtx.filter = 'blur(1.5px)';
+		this.canvasCtx.fillStyle = "rgb(255, 0, 0)";
+        this.canvasCtx.fillRect(0, this.playerOnePosY, 20, 100);
+        this.canvasCtx.filter = 'none';
+        requestAnimationFrame(this.gameLoop);
 	}
 
 	private initGame(): void {
-		const canvas = document.getElementById("pong-canvas");
-		const canvasContainer = document.getElementById("pong-section");
-		if (!canvas || !canvasContainer)
-			return ;
-		console.log(canvas, typeof(canvas));
-		console.log("coucou!");
-		const ctx = canvas.getContext("2d");
-		const height = canvasContainer.getBoundingClientRect().height;
-		const width = canvasContainer.getBoundingClientRect().width;
-		canvas.height = height;
-		canvas.width = width;
-		ctx.fillStyle = "rgb(255, 0, 0)";
-		ctx.fillRect(0, height / 2, 10, 100);
-		ctx.fillRect(width - 10, 100, 10, 100);
-		this.gameLoop();
+        const canvasContainer: HTMLElement = document.getElementById("pong-section")!;
+        canvasContainer.style.border = "1px solid black";
+		this.gameCanvas.height = canvasContainer.getBoundingClientRect().height;    // will need to update that every frame later (responsiveness)
+		this.gameCanvas.width = canvasContainer.getBoundingClientRect().width;
+        canvasContainer.append(this.gameCanvas);
+        requestAnimationFrame(this.gameLoop);
 	}
 
 	// Amuse-toi biiiiiiennnnnnn ! =D
