@@ -22,7 +22,7 @@ async function start() {
 	});
 
 	// Sécurise
-	await app.register(fastifyHelmet);
+	// await app.register(fastifyHelmet);
 
 	// Enregistre le plugin fastify-cookie pour gérer les cookies HTTP
 	// dans les requêtes et réponses

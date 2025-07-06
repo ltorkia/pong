@@ -10,7 +10,7 @@
 		mobile:min-w-80 mobile:text-lg;
 	}
 	.smaller-btn {
-		@apply min-w-24 text-xs px-0 mt-2 mb-7;
+		@apply min-w-24 text-xs px-0 mt-2;
 	}
 	.form-btn {
 		@apply min-w-40 -mt-3;
@@ -19,13 +19,33 @@
 		@apply mt-5 text-5xl text-[#d5d5d5] text-opacity-80;
 	}
 	.btn-google-container {
-		@apply absolute bottom-0 left-0 w-full py-0.5 rounded-bl-[16px] rounded-br-[16px]
+		@apply absolute bottom-0 left-0 w-full py-0
+		rounded-bl-[16px] rounded-br-[16px]
 		bg-btn-google-color;
 	}
-	.btn-google {
-		@apply font-classic w-full flex items-center text-[11px] justify-center text-gray-300;
+	.custom-google-button {
+		@apply w-full h-10 flex items-center justify-center font-classic
+		bg-white/10 backdrop-blur-sm
+		rounded-bl-[16px] rounded-br-[16px]
+		text-gray-300 text-sm transition-all duration-200
+		hover:bg-white/20 hover:text-gray-100
+		cursor-pointer;
 	}
-	.google-logo {
-		@apply w-3.5 h-3.5 mr-2;
+
+	.google-icon-wrapper {
+		@apply p-1 mr-3 bg-white rounded-full;
 	}
+
+	.google-icon {
+		@apply w-3 h-3 flex-shrink-0;
+	}
+
+	/* .custom-google-button:hover .google-icon {
+		@apply scale-110;
+		transition: transform 0.2s ease;
+	} */
+
+	/* .custom-google-button:disabled {
+		@apply opacity-50 cursor-not-allowed;
+	} */
 }

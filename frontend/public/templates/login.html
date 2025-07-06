@@ -43,6 +43,8 @@
 					<div id="alert" aria-live="assertive" class="hidden"></div>
 					<!-- <div id="alert" aria-live="assertive" class="hidden"></div> TODO mettre le message pour double authentification-->
 				</form>
+				
+				<hr class="form-separator">
 
 				<div>
 					<span>Not registered yet ?</span>
@@ -53,10 +55,15 @@
 					</div>
 				</div>
 
+				<hr class="form-separator mb-5">
+
 				<div class="btn-container btn-google-container">
-					<a href="/api/auth/google" class="btn-google " aria-label="Sign in with Google">
-						<img src="/assets/img/design/google-icon.svg" alt="Google logo" class="google-logo" />
-						<span>Sign in with Google</span>
-					</a>
+					<button id="custom-google-btn" class="custom-google-button">
+						<div class="google-icon-wrapper">
+							<img id="google-icon" src="/assets/img/design/google-icon.svg" alt="Google logo" />
+						</div>
+						<span>Continue with Google</span>
+					</button>
 				</div>
+				
 			</div>

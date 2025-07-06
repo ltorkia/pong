@@ -204,94 +204,161 @@ export async function authRoutes(app: FastifyInstance) {
 		});
 	});
 
-	// LOGIN AVEC GOOGLE
-	// Route qui redirige vers la page d'autorisation de Google quand on clique sur "sign in with Google"
-	app.get('/google', async (request: FastifyRequest, reply: FastifyReply) => {
-		// Construction de l'URL d'autorisation Google OAuth2
-		const redirectUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
-
-		// Configuration des paramètres requis par Google :
-		redirectUrl.searchParams.set('client_id', process.env.GOOGLE_CLIENT_ID!);
-		redirectUrl.searchParams.set('redirect_uri', process.env.GOOGLE_CALLBACK_URL!);
-		redirectUrl.searchParams.set('response_type', 'code');
-		redirectUrl.searchParams.set('scope', 'openid profile email');
-		redirectUrl.searchParams.set('access_type', 'offline');
-		redirectUrl.searchParams.set('prompt', 'consent');
-
-		// Redirection vers Google pour que le user s'authentifie
-		return reply.redirect(redirectUrl.toString());
-	});
-
-	// CALLBACK GOOGLE
-	// Une fois que le user s'est connecté sur Google, Google le redirige vers cette route
-	app.get('/google/callback', async (request: FastifyRequest<{ Querystring: GoogleCallbackQuery }>, reply: FastifyReply) => {
-		const { code, error } = request.query;
-  		console.log('Google callback hit', request.query);
-
-		// On check si Google a renvoyé une erreur
-		if (error) return reply.status(400).send({ error: `Erreur OAuth: ${error}` });
-
-		// On check si le code d'autorisation est manquant
-		if (!code) return reply.status(400).send({ error: 'Code manquant' });
+	app.post('/google', async (request: FastifyRequest, reply: FastifyReply) => {
+		const { id_token } = request.body as { id_token: string };
+		if (!id_token) {
+			return reply.status(400).send({ errorMessage: 'Token Google manquant' });
+		}
 
 		try {
+			// Vérification rapide du token Google (signature, audience, expiration)
+			const verifyRes = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${id_token}`);
+			if (!verifyRes.ok) {
+				return reply.status(401).send({ errorMessage: 'Token Google invalide' });
+			}
+			const payload = await verifyRes.json() as {
+				email: string;
+				aud: string;
+			};
 
-			// On échange le code d'autorisation reçu de Google contre un access_token
-			// (code temporaire qui ne permet pas d'accéder aux données, il faut l'échanger contre un access_token auprès de Google)
-			const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-				body: new URLSearchParams({
-					client_id: process.env.GOOGLE_CLIENT_ID!,			// ID de l'app
-					client_secret: process.env.GOOGLE_CLIENT_SECRET!,	// Secret de l'app
-					redirect_uri: process.env.GOOGLE_CALLBACK_URL!,		// Même URL de callback qu'à l'étape 1
-					grant_type: 'authorization_code',					// Type d'échange OAuth2
-					code,												// Le code reçu de Google
-				}).toString(),
-			});
-
-			const tokenData = await tokenRes.json() as GoogleTokenResponse;
-			console.log('Google token response:', tokenData);
-
-			// On check si Google a renvoyé une erreur lors de l'échange du code
-			if (tokenData.error) {
-				return reply.status(400).send({ error: 'Erreur authentification Google', details: tokenData.error_description });
+			if (payload.aud !== process.env.GOOGLE_CLIENT_ID) {
+				return reply.status(401).send({ errorMessage: 'Token Google non destiné à cette application' });
 			}
 
-			// On récupère les infos du user via l'access_token
-			const userRes = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
-				headers: { Authorization: `Bearer ${tokenData.access_token}` },
-			});
-			const userData = await userRes.json() as GoogleUserInfo;
-
-			// On check si les données essentielles sont présentes
-			if (!userData.id || !userData.email) {
-				return reply.status(400).send({error: 'Données utilisateur incomplètes' }); //retourne objet vec statuscode ? 
+			// Décodage local du JWT Google (pour extraire given_name, picture, etc.)
+			const parts = id_token.split('.');
+			if (parts.length !== 3) {
+				return reply.status(400).send({ errorMessage: 'Format de token invalide' });
 			}
 
-			let userGoogle: UserPassword | null = await getUserP(userData.email);
-			if (userGoogle && userGoogle.password) {
-				return (reply.redirect(process.env.GOOGLE_REDIRECT_FRONTEND! + "?autherror=1"));
+			const payloadDecoded = JSON.parse(Buffer.from(parts[1], 'base64url').toString()) as {
+				email: string;
+				given_name?: string;
+				picture?: string;
+				name?: string;
+			};
+
+			console.log(payloadDecoded);
+
+			const email = payloadDecoded.email;
+			const username = payloadDecoded.given_name ?? payloadDecoded.name?.split(' ')[0] ?? 'GoogleUser';
+			const avatar = payloadDecoded.picture ?? '';
+
+			let user = await getUserP(email);
+			if (user && user.password) {
+				return reply.status(403).send({ errorMessage: 'Un compte existe déjà avec mot de passe local' });
 			}
 
-			if (!userGoogle) {
-				const result = await insertUser({ email: userData.email, username: userData.given_name, avatar: userData.picture }, true);
-				userGoogle = await getUserP(userData.email);
-				if (!userGoogle) {
-					return reply.status(500).send({
-						errorMessage: 'Impossible de récupérer l’utilisateur après insertion',
-					});
+			if (!user) {
+				await insertUser({ email, username, avatar }, true);
+				user = await getUserP(email);
+				if (!user) {
+					return reply.status(500).send({ errorMessage: 'Erreur lors de la création du compte Google' });
 				}
 			}
-			ProcessAuth(app, userGoogle, reply);
 
-			// Redirection simple sans token dans l'URL
-			return reply.redirect(process.env.GOOGLE_REDIRECT_FRONTEND!);
+		ProcessAuth(app, user, reply);
+		const userData: UserModel = await getUser(null, email);
+		return reply.status(200).send({
+			statusCode: 200,
+			message: 'Connexion Google réussie',
+			user: userData
+		});
+
 		} catch (err) {
-			console.error('Erreur callback Google:', err);
-			return reply.status(500).send({ error: 'Erreur serveur' });
+			console.error('Erreur Google Sign-In:', err);
+			return reply.status(500).send({ errorMessage: 'Erreur serveur' });
 		}
 	});
 
-	//login -> status a 1 ou status a 0
+// 	// LOGIN AVEC GOOGLE
+// 	// Route qui redirige vers la page d'autorisation de Google quand on clique sur "sign in with Google"
+// 	app.get('/google', async (request: FastifyRequest, reply: FastifyReply) => {
+// 		// Construction de l'URL d'autorisation Google OAuth2
+// 		const redirectUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
+
+// 		// Configuration des paramètres requis par Google :
+// 		redirectUrl.searchParams.set('client_id', process.env.GOOGLE_CLIENT_ID!);
+// 		redirectUrl.searchParams.set('redirect_uri', process.env.GOOGLE_CALLBACK_URL!);
+// 		redirectUrl.searchParams.set('response_type', 'code');
+// 		redirectUrl.searchParams.set('scope', 'openid profile email');
+// 		redirectUrl.searchParams.set('access_type', 'offline');
+// 		redirectUrl.searchParams.set('prompt', 'consent');
+
+// 		// Redirection vers Google pour que le user s'authentifie
+// 		return reply.redirect(redirectUrl.toString());
+// 	});
+
+// 	// CALLBACK GOOGLE
+// 	// Une fois que le user s'est connecté sur Google, Google le redirige vers cette route
+// 	app.get('/google/callback', async (request: FastifyRequest<{ Querystring: GoogleCallbackQuery }>, reply: FastifyReply) => {
+// 		const { code, error } = request.query;
+//   		console.log('Google callback hit', request.query);
+
+// 		// On check si Google a renvoyé une erreur
+// 		if (error) return reply.status(400).send({ error: `Erreur OAuth: ${error}` });
+
+// 		// On check si le code d'autorisation est manquant
+// 		if (!code) return reply.status(400).send({ error: 'Code manquant' });
+
+// 		try {
+
+// 			// On échange le code d'autorisation reçu de Google contre un access_token
+// 			// (code temporaire qui ne permet pas d'accéder aux données, il faut l'échanger contre un access_token auprès de Google)
+// 			const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
+// 				method: 'POST',
+// 				headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+// 				body: new URLSearchParams({
+// 					client_id: process.env.GOOGLE_CLIENT_ID!,			// ID de l'app
+// 					client_secret: process.env.GOOGLE_CLIENT_SECRET!,	// Secret de l'app
+// 					redirect_uri: process.env.GOOGLE_CALLBACK_URL!,		// Même URL de callback qu'à l'étape 1
+// 					grant_type: 'authorization_code',					// Type d'échange OAuth2
+// 					code,												// Le code reçu de Google
+// 				}).toString(),
+// 			});
+
+// 			const tokenData = await tokenRes.json() as GoogleTokenResponse;
+// 			console.log('Google token response:', tokenData);
+
+// 			// On check si Google a renvoyé une erreur lors de l'échange du code
+// 			if (tokenData.error) {
+// 				return reply.status(400).send({ error: 'Erreur authentification Google', details: tokenData.error_description });
+// 			}
+
+// 			// On récupère les infos du user via l'access_token
+// 			const userRes = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+// 				headers: { Authorization: `Bearer ${tokenData.access_token}` },
+// 			});
+// 			const userData = await userRes.json() as GoogleUserInfo;
+
+// 			// On check si les données essentielles sont présentes
+// 			if (!userData.id || !userData.email) {
+// 				return reply.status(400).send({error: 'Données utilisateur incomplètes' }); //retourne objet vec statuscode ? 
+// 			}
+
+// 			let userGoogle: UserPassword | null = await getUserP(userData.email);
+// 			if (userGoogle && userGoogle.password) {
+// 				return (reply.redirect(process.env.GOOGLE_REDIRECT_FRONTEND! + "?autherror=1"));
+// 			}
+
+// 			if (!userGoogle) {
+// 				const result = await insertUser({ email: userData.email, username: userData.given_name, avatar: userData.picture }, true);
+// 				userGoogle = await getUserP(userData.email);
+// 				if (!userGoogle) {
+// 					return reply.status(500).send({
+// 						errorMessage: 'Impossible de récupérer l’utilisateur après insertion',
+// 					});
+// 				}
+// 			}
+// 			ProcessAuth(app, userGoogle, reply);
+
+// 			// Redirection simple sans token dans l'URL
+// 			return reply.redirect(process.env.GOOGLE_REDIRECT_FRONTEND!);
+// 		} catch (err) {
+// 			console.error('Erreur callback Google:', err);
+// 			return reply.status(500).send({ error: 'Erreur serveur' });
+// 		}
+// 	});
+
+// 	//login -> status a 1 ou status a 0
 }

@@ -38,6 +38,23 @@ export async function loadTemplate(path: string): Promise<string> {
 	return html;
 }
 
+export async function loadGoogleScript() {
+	return new Promise((resolve, reject) => {
+		if (document.getElementById('google-client-script')) {
+			resolve(null);
+			return;
+		}
+		const script = document.createElement('script');
+		script.id = 'google-client-script';
+		script.src = 'https://accounts.google.com/gsi/client';
+		script.async = true;
+		script.defer = true;
+		script.onload = () => resolve(null);
+		script.onerror = () => reject(new Error('Google script load error'));
+		document.head.appendChild(script);
+	});
+}
+
 /**
  * Renvoie l'élément HTML portant l'identifiant (id) passé en paramètre, dans le conteneur
  * passé en paramètre (par défaut, c'est le document courant).

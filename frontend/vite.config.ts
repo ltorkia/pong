@@ -43,12 +43,6 @@ export default defineConfig(({ command: command }: { command: string }) => {
 							if (name.startsWith('fa-') && /\.(woff2?|ttf)$/.test(name)) {
 								return 'assets/fonts/fa/[name][extname]';	// Nom des fichiers de polices FontAwesome
 							}
-							// if (/\.(woff2?|ttf|otf|eot)$/.test(name)) {
-							// 	return 'assets/fonts/[name][extname]';		// Nom des autres fichiers de polices
-							// }
-							// if (/\.(png|jpe?g|svg|gif|webp)$/.test(name)) {
-							// 	return 'assets/images/[name][extname]';		// Nom des fichiers d'images
-							// }
 						}
 						return 'assets/[name][extname]';					// Nom des autres fichiers
 					}
@@ -80,18 +74,7 @@ export default defineConfig(({ command: command }: { command: string }) => {
 							const relativePath = fullPath.replace(/^.*src\//, '');
 							return relativePath;
 						}
-					},
-					/** 
-					 * Copie des ressources statiques du dossier public vers assets
-					 */
-					// {
-					// 	src: 'public/img/**/*',
-					// 	dest: 'assets/images'
-					// },
-					// {
-					// 	src: 'public/fonts/**/*',
-					// 	dest: 'assets/fonts'
-					// },
+					}
 				]
 			})]
 			: [])

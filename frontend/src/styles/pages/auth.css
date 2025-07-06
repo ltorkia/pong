@@ -1,22 +1,13 @@
 @layer components {
 
 	/* REGISTER PAGE */
-	.register-box {
-		@apply mt-0;
-	}
-	#register-form {
-		@apply mb-4;
-	}
 	.field-box input.avatar-field {
 		@apply text-gray-500 bg-white;
 	}
 
 	/* LOGIN PAGE */
-	.login-box {
+	.login-box, .register-box {
 		@apply px-0 m-5 mt-0;
-	}
-	#login-form {
-		@apply mb-4 border-b-8 border-b-white/20;
 	}
 	#login-form .field-box label {
 		@apply w-20;
@@ -27,7 +18,7 @@
 		@apply px-0 m-5 mt-0;
 	}
 	#twofa-box {
-		@apply mb-4 border-b-8 border-b-white/20;
+		@apply mb-4;
 	}
 	#twofa-box .field-box label {
 		@apply w-20;

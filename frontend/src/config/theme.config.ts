@@ -34,6 +34,7 @@ export const fonts = {
 export const colorsTheme1 = {
     darkBlue: '#10131B',
     pastelBlue: '#3b4e7f',
+    googleBlue: '#3c6eed',
     white: '#FFFFFF',
     black: '#000000'
 } as const;

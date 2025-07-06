@@ -244,6 +244,85 @@ export class UserService {
 			showError('Erreur réseau');
 		}
 	}
+
+	public async initGoogleSignIn() {
+		console.log('Initialisation Google Sign-In');
+
+		// const icon = document.getElementById("google-icon");
+		// if (icon) {
+		// 	try {
+		// 		const res = await fetch('/assets/img/design/google-icon.svg');
+		// 		if (!res.ok) {
+		// 			throw new Error('Erreur SVG');
+		// 		}
+		// 		const svg = await res.text();
+		// 		icon.innerHTML = svg;
+		// 	} catch (e) {
+		// 		console.error(e);
+		// 	}
+		// }
+		
+		// Supprimer le script Google existant s'il y en a un
+		const existingScript = document.getElementById('google-script');
+		if (existingScript) {
+			existingScript.remove();
+		}
+		
+		// Charger le script Google
+		const script = document.createElement('script');
+		script.src = 'https://accounts.google.com/gsi/client';
+		script.onload = () => {
+			this.setupGoogleButton();
+		};
+		document.head.appendChild(script);
+	}
+
+	private setupGoogleButton() {
+		// Créer un bouton Google invisible
+		const hiddenContainer = document.createElement('div');
+		hiddenContainer.style.display = 'none';
+		document.body.appendChild(hiddenContainer);
+		
+		google.accounts.id.initialize({
+			client_id: '417190538839-hg16bk0i0n7jtoccsmnu407nbjm69nel.apps.googleusercontent.com',
+			callback: this.handleCredentialResponse.bind(this)
+		});
+		
+		google.accounts.id.renderButton(hiddenContainer, {
+			theme: 'outline',
+			size: 'large'
+		});
+		
+		// Attacher notre bouton personnalisé au clic du bouton Google
+		const customButton = document.getElementById('custom-google-btn');
+		if (customButton) {
+			customButton.addEventListener('click', () => {
+				const googleButton = hiddenContainer.querySelector('[role="button"]') as HTMLElement;
+				if (googleButton) {
+					googleButton.click();
+				}
+			});
+		}
+	}
+
+	public async handleCredentialResponse(response: google.accounts.id.CredentialResponse) {
+		const id_token = response.credential;
+		try {
+			const result = await userAuthApi.googleConnectUser(id_token);
+			if (result.errorMessage) {
+				console.error(`[${this.constructor.name}] Erreur Google Auth :`, result.errorMessage);
+				showError(result.errorMessage);
+				return;
+			}
+			userStore.setCurrentUserFromServer(result.user);
+			uiStore.animateNavbarOut = true;
+			await router.redirect(DEFAULT_ROUTE);
+
+		} catch (err) {
+			console.error(`[${this.constructor.name}] Erreur réseau ou serveur`, err);
+			showError('Erreur réseau');
+		}
+	}
 	
 	/**
 	 * Connecte un utilisateur après avoir vérifié son code 2FA.

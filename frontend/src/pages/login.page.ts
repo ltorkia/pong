@@ -1,7 +1,7 @@
 import { BasePage } from './base.page';
 import { RouteConfig } from '../types/routes.types';
 import { userService } from '../services/services';
-import { getHTMLElementById } from '../utils/dom.utils';
+import { loadGoogleScript, getHTMLElementById } from '../utils/dom.utils';
 
 // ===========================================
 // LOGIN PAGE
@@ -26,6 +26,11 @@ export class LoginPage extends BasePage {
 	 */
 	constructor(config: RouteConfig) {
 		super(config);
+	}
+
+	protected async mount(): Promise<void> {
+		// await loadGoogleScript();
+		userService.initGoogleSignIn();
 	}
 
 	/**
