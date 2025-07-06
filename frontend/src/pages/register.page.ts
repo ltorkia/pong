@@ -23,8 +23,16 @@ export class RegisterPage extends BasePage {
 		super(config);
 	}
 
+	/**
+	 * Méthode de montage de la page d'inscription.
+	 *
+	 * Initialise le bouton de connexion Google en appelant la méthode
+	 * `initGoogleSignIn()` du service d'authentification.
+	 *
+	 * @returns {Promise<void>} Une promesse qui se résout lorsque le bouton
+	 * de connexion Google est initialisé.
+	 */
 	protected async mount(): Promise<void> {
-		await loadGoogleScript();
 		userService.initGoogleSignIn();
 	}
 

@@ -1,22 +1,15 @@
 @layer components {
-	.form-box {
-		@apply w-full mx-auto space-y-8 text-xl
 
-		mobile:max-w-sm;
-	}
-	.form-box#login-form, .form-box#register-form {
-		@apply px-4
-		
+	/* FORMS - GENERAL */
+	.form-box {
+		@apply w-full mx-auto px-4 space-y-8 text-xl
+		mobile:max-w-sm
 		tablet:px-7
 		desktop:px-9;
 	}
-	.form-box#twofa-form {
-		@apply px-9;
-	}	
 	.fields-container {
 		@apply space-y-4;
 	}
-
 	.field-box {
 		@apply flex flex-col justify-center
 		
@@ -36,5 +29,18 @@
 	}
 	.form-separator {
 		@apply border-0 border-t-8 border-solid border-white/20 w-full my-4;
+	}
+
+	/* REGISTER PAGE */
+	.field-box input.avatar-field {
+		@apply text-gray-500 bg-white;
+	}
+
+	/* LOGIN + TWOFA PAGE */
+	.auth-box {
+		@apply px-0 m-5 mt-0;
+	}
+	#login-form .field-box label, #twofa-form .field-box label {
+		@apply w-20;
 	}
 }

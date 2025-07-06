@@ -225,7 +225,7 @@ export async function authRoutes(app: FastifyInstance) {
 				return reply.status(401).send({ errorMessage: 'Token Google non destiné à cette application' });
 			}
 
-			// Décodage local du JWT Google (pour extraire given_name, picture, etc.)
+			// Décodage du JWT Google (pour extraire given_name, picture, etc.)
 			const parts = id_token.split('.');
 			if (parts.length !== 3) {
 				return reply.status(400).send({ errorMessage: 'Format de token invalide' });
@@ -237,8 +237,6 @@ export async function authRoutes(app: FastifyInstance) {
 				picture?: string;
 				name?: string;
 			};
-
-			console.log(payloadDecoded);
 
 			const email = payloadDecoded.email;
 			const username = payloadDecoded.given_name ?? payloadDecoded.name?.split(' ')[0] ?? 'GoogleUser';

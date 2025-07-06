@@ -28,8 +28,16 @@ export class LoginPage extends BasePage {
 		super(config);
 	}
 
+	/**
+	 * Méthode de montage de la page de connexion.
+	 *
+	 * Initialise le bouton de connexion Google en appelant la méthode
+	 * `initGoogleSignIn()` du service d'authentification.
+	 *
+	 * @returns {Promise<void>} Une promesse qui se résout lorsque le bouton
+	 * de connexion Google est initialisé.
+	 */
 	protected async mount(): Promise<void> {
-		// await loadGoogleScript();
 		userService.initGoogleSignIn();
 	}
 

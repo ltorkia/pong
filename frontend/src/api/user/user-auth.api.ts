@@ -126,6 +126,19 @@ export class UserAuthApi {
 		return res2FA as AuthResponse;
 	}
 
+	/**
+	 * Connecte un utilisateur via Google.
+	 * 
+	 * Envoie une requête POST à la route API `/auth/google` pour connecter
+	 * un utilisateur via Google avec le token d'accès `id_token`.
+	 * Si la connexion réussit, stocke l'utilisateur en mémoire vive avec email,
+	 * et localStorage sans email. Renvoie un objet avec la clé `user` contenant
+	 * l'utilisateur connecté. Sinon, renvoie un objet avec la clé `errorMessage`
+	 * contenant le message d'erreur.
+	 * 
+	 * @param {string} id_token Le token d'accès Google.
+	 * @returns {Promise<AuthResponse>} Promesse qui se résout lorsque l'opération est terminée.
+	 */
 	public async googleConnectUser(id_token: string): Promise<AuthResponse> {
 		const res = await fetch('/api/auth/google', {
 			method: 'POST',
@@ -133,7 +146,6 @@ export class UserAuthApi {
 			body: JSON.stringify({ id_token }),
 			credentials: 'include',
 		});
-
 		const data: AuthResponse = await res.json();
 		if (!res.ok || data.errorMessage || !data.user) {
 			return { errorMessage: data.errorMessage || data.message || 'Erreur lors de la connexion Google' };
@@ -145,7 +157,7 @@ export class UserAuthApi {
 	 * Envoie un code de vérification pour l'authentification à deux facteurs (2FA).
 	 * 
 	 * Si la vérification 2FA échoue, renvoie un objet contenant un message d'erreur.
-	 * Si la vérification réussit, renvoie un objet avec un message d'erreur ou de confirmation.
+	 * Si la vérification réussit, renvoie un objet avec un message de confirmation.
 	 * 
 	 * @param {Record<string, string>} userData Informations de l'utilisateur à connecter.
 	 * @returns {Promise<AuthResponse>} Promesse résolue avec une fois que le code est envoyé.

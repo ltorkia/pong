@@ -245,39 +245,43 @@ export class UserService {
 		}
 	}
 
-	public async initGoogleSignIn() {
-		console.log('Initialisation Google Sign-In');
-
-		// const icon = document.getElementById("google-icon");
-		// if (icon) {
-		// 	try {
-		// 		const res = await fetch('/assets/img/design/google-icon.svg');
-		// 		if (!res.ok) {
-		// 			throw new Error('Erreur SVG');
-		// 		}
-		// 		const svg = await res.text();
-		// 		icon.innerHTML = svg;
-		// 	} catch (e) {
-		// 		console.error(e);
-		// 	}
-		// }
-		
-		// Supprimer le script Google existant s'il y en a un
-		const existingScript = document.getElementById('google-script');
-		if (existingScript) {
-			existingScript.remove();
-		}
+	/**
+	 * Initialise le bouton Google Sign-In.
+	 * 
+	 * Charge le script Google, crée le bouton Google Sign-In et l'attache au
+	 * document HTML. Une fois le script chargé, le bouton est mis en place.
+	 * 
+	 * @returns {Promise<void>} Une promesse qui se résout lorsque le bouton
+	 * est initialisé.
+	 */
+	public async initGoogleSignIn(): Promise<void> {
 		
 		// Charger le script Google
 		const script = document.createElement('script');
 		script.src = 'https://accounts.google.com/gsi/client';
+
+		// Attacher le callback pour initialiser le bouton Google une fois le script chargé
 		script.onload = () => {
 			this.setupGoogleButton();
 		};
 		document.head.appendChild(script);
 	}
 
-	private setupGoogleButton() {
+	/**
+	 * Initialise le bouton Google Sign-In.
+	 * 
+	 * Crée un bouton Google invisible, l'attache au document HTML et configure
+	 * le callback pour traiter la réponse de l'API Google.
+	 * 
+	 * Ensuite, attache notre bouton personnalisé au clic du bouton Google.
+	 * 
+	 * NB: `google.` fait référence à l'objet global google injecté dans la page 
+	 * par le script Google Identity Services.
+	 * 
+	 * @returns {void}
+	 */
+	private setupGoogleButton(): void {
+
 		// Créer un bouton Google invisible
 		const hiddenContainer = document.createElement('div');
 		hiddenContainer.style.display = 'none';
@@ -287,11 +291,7 @@ export class UserService {
 			client_id: '417190538839-hg16bk0i0n7jtoccsmnu407nbjm69nel.apps.googleusercontent.com',
 			callback: this.handleCredentialResponse.bind(this)
 		});
-		
-		google.accounts.id.renderButton(hiddenContainer, {
-			theme: 'outline',
-			size: 'large'
-		});
+		google.accounts.id.renderButton(hiddenContainer, {});
 		
 		// Attacher notre bouton personnalisé au clic du bouton Google
 		const customButton = document.getElementById('custom-google-btn');
@@ -305,7 +305,21 @@ export class UserService {
 		}
 	}
 
-	public async handleCredentialResponse(response: google.accounts.id.CredentialResponse) {
+	/**
+	 * Callback pour la réponse de l'API Google Identity Services.
+	 * 
+	 * - Extrait l'ID token de la réponse.
+	 * - Envoie une requête POST à la route API `/auth/google` pour connecter
+	 *   un utilisateur via Google avec l'ID token.
+	 * - Stocke l'utilisateur en mémoire vive avec email et en local storage
+	 *   sans email si la connexion réussit.
+	 * - Active l'animation de sortie de la barre de navigation.
+	 * - Redirige vers la page d'accueil.
+	 * 
+	 * @param {google.accounts.id.CredentialResponse} response - La réponse de l'API Google.
+	 * @returns {Promise<void>} Promesse qui se résout lorsque l'opération est terminée.
+	 */
+	public async handleCredentialResponse(response: google.accounts.id.CredentialResponse): Promise<void> {
 		const id_token = response.credential;
 		try {
 			const result = await userAuthApi.googleConnectUser(id_token);
