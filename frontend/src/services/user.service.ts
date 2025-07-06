@@ -288,7 +288,7 @@ export class UserService {
 		document.body.appendChild(hiddenContainer);
 		
 		google.accounts.id.initialize({
-			client_id: '417190538839-hg16bk0i0n7jtoccsmnu407nbjm69nel.apps.googleusercontent.com',
+			client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
 			callback: this.handleCredentialResponse.bind(this)
 		});
 		google.accounts.id.renderButton(hiddenContainer, {});

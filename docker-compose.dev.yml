@@ -24,10 +24,11 @@ services:
       dockerfile: backend/Dockerfile.dev
     volumes:
       - ./backend:/app
-      - ./shared:/app/src/shared
-      - ./backend/uploads:/app/uploads
-      - /app/node_modules
       - ./backend/data:/app/data
+      - ./backend/uploads:/app/uploads
+      - ./backend/.env:/app/.env:ro
+      - ./shared:/app/src/shared
+      - /app/node_modules
     env_file:
       - ./backend/.env
     environment:
@@ -43,6 +44,7 @@ services:
       dockerfile: frontend/Dockerfile.dev
     volumes:
       - ./frontend:/app
+      - ./frontend/.env:/app/.env:ro
       - ./shared:/app/src/shared
       - /app/node_modules
     networks:
