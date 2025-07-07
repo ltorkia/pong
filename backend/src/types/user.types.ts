@@ -1,7 +1,7 @@
 import { RegisterMethod } from '../shared/types/user.types';	// en rouge car dossier local 'shared' != dossier conteneur
 
 export interface GoogleUserInfo {
-	email?: string;
+	email: string;
 	given_name?: string;
 	picture?: string;
 	name?: string;

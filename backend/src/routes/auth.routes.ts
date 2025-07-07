@@ -3,7 +3,7 @@ import bcrypt from 'bcrypt';
 import { insertUser, getUser, getUserP, majLastlog, eraseCode2FA, insertCode2FA, getUser2FA } from '../db/user';
 import { RegisterInputSchema, LoginInputSchema, LoginInput, RegisterInput } from '../types/zod/auth.zod';
 import { generateJwt, setAuthCookie, setStatusCookie, clearAuthCookies } from '../helpers/auth.helpers';
-import { GoogleUserInfo, UserPassword, User2FA } from 'src/types/user.types';
+import { GoogleUserInfo, UserPassword, User2FA } from '../types/user.types';
 import { UserModel } from '../shared/types/user.types'; // en rouge car dossier local 'shared' != dossier conteneur
 import nodemailer from 'nodemailer';
 
