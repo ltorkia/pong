@@ -173,7 +173,7 @@ export class UserAuthApi {
 		});
 		const data: AuthResponse = await res.json();
 		if (!res.ok || data.errorMessage || !data.user) {
-			return { errorMessage: data.errorMessage || data.message || 'Erreur avec l' };
+			return { errorMessage: data.errorMessage || data.message || 'Erreur avec la récupération de l\'utilisateur' };
 		}
 		userStore.setCurrentUserFromServer(data.user);
 		return data as AuthResponse;

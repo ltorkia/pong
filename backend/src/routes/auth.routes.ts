@@ -87,12 +87,12 @@ async function doubleAuth(app: FastifyInstance)
 		}
 		const checkUser: User2FA = await getUser2FA(result.data.email);
 		if (!checkUser )
-			return (reply.status(400).send({message:"email doesn t exist"}));
+			return (reply.status(400).send({message:"email doesn't exist"}));
 		eraseCode2FA(checkUser.email);
 		if (checkUser.code_2FA_expire_at < Date.now())
-			return(reply.status(400).send({message:"timeout, send new mail ?"}));
+			return(reply.status(400).send({message:"Timeout"}));
 		if (result.data.password != checkUser.code_2FA)
-			return(reply.status(400).send({message:"2FA not confirmed, try again"}));
+			return(reply.status(400).send({message:"Wrong code"}));
 
 		const user: UserModel | null = await getUser(null, result.data.email);
 		if (!user) {
