@@ -63,12 +63,14 @@ export class TwofaModalComponent extends BaseComponent {
 	private handleMethodChange = async (event: Event): Promise<void> => {
 		const method = (event.target as HTMLSelectElement).value;
 		if (method === 'email') {
+			this.qrcodeContainer.classList.add('hidden');
+			this.errorMsg.classList.add('hidden');
 			this.handleSendEmailCode();
 		}
 		if (method === 'qrcode') {
-			this.qrcodeContainer.classList.remove('hidden');
 			this.emailContainer.classList.add('hidden');
 			this.errorMsg.classList.add('hidden');
+			this.qrcodeContainer.classList.remove('hidden');
 		}
 	};
 
@@ -103,7 +105,6 @@ export class TwofaModalComponent extends BaseComponent {
 		hideSpinner('twofa-spinner');
 		showAlert(`Code sent to ${this.userData.email}`, 'twofa-error', 'success');
 		this.emailContainer.classList.remove('hidden');
-		this.qrcodeContainer.classList.add('hidden');
 	}
 
 	private handleResendEmailCode = async (event: MouseEvent): Promise<void> => {
