@@ -1,5 +1,5 @@
 import { router } from '../router/router';
-import { showError } from '../utils/dom.utils';
+import { showAlert } from '../utils/dom.utils';
 import { User } from '../models/user.model';
 import { userStore } from '../stores/user.store';
 import { userAuthApi } from '../api/user/user.api';
@@ -203,7 +203,7 @@ export class UserService {
 			const result: AuthResponse = await userAuthApi.registerUser(data);
 			if (result.errorMessage) {
 				console.error(`[${this.constructor.name}] Erreur d\'inscription :`, result);
-				showError(result.errorMessage);
+				showAlert(result.errorMessage);
 				return;
 			}
 			console.log(`[${this.constructor.name}] Utilisateur inscrit :`, result);
@@ -212,7 +212,7 @@ export class UserService {
 
 		} catch (err) {
 			console.error(`[${this.constructor.name}] Erreur réseau ou serveur`, err);
-			showError('Erreur réseau');
+			showAlert('Erreur réseau');
 		}
 	}
 
@@ -234,7 +234,7 @@ export class UserService {
 
 			if (result.errorMessage) {
 				console.error(`[${this.constructor.name}] Erreur d'authentification :`, result);
-				showError(result.errorMessage);
+				showAlert(result.errorMessage);
 				return { errorMessage: result.errorMessage };
 			}
 
@@ -244,7 +244,7 @@ export class UserService {
 
 		} catch (err) {
 			console.error(`[${this.constructor.name}] Erreur réseau ou serveur`, err);
-			showError('Erreur réseau');
+			showAlert('Erreur réseau');
 			return { errorMessage: 'Erreur réseau' };
 		}
 	}
@@ -296,7 +296,7 @@ export class UserService {
 			return result;
 		} catch (err) {
 			console.error(`[${this.constructor.name}] Erreur réseau ou serveur`, err);
-			showError('Erreur réseau');
+			showAlert('Erreur réseau');
 			return { errorMessage: 'Erreur réseau' };
 		}
 	}
@@ -386,7 +386,7 @@ export class UserService {
 			const result = await userAuthApi.googleConnectUser(id_token);
 			if (result.errorMessage) {
 				console.error(`[${this.constructor.name}] Erreur Google Auth :`, result.errorMessage);
-				showError(result.errorMessage);
+				showAlert(result.errorMessage);
 				return;
 			}
 			uiStore.animateNavbarOut = true;
@@ -394,7 +394,7 @@ export class UserService {
 
 		} catch (err) {
 			console.error(`[${this.constructor.name}] Erreur réseau ou serveur`, err);
-			showError('Erreur réseau');
+			showAlert('Erreur réseau');
 		}
 	}
 
@@ -414,7 +414,7 @@ export class UserService {
 			const result: BasicResponse = await userAuthApi.logoutUser();
 			if (result.errorMessage) {
 				console.error(`[${this.constructor.name}] Erreur lors du logout :`, result);
-				showError(result.errorMessage);
+				showAlert(result.errorMessage);
 				return;
 			}
 			uiStore.animateNavbarOut = true;
@@ -426,7 +426,7 @@ export class UserService {
 
 		} catch (err) {
 			console.error(`[${this.constructor.name}] Erreur réseau ou serveur`, err);
-			showError('Erreur réseau');
+			showAlert('Erreur réseau');
 		}
 	}
 }

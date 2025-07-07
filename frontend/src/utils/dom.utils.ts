@@ -148,19 +148,19 @@ export function toggleClass(el: Element | null, classA: string, classB: string, 
  * @param {string} [containerId='alert'] - ID de l'élément HTML qui affichera le message d'erreur.
  * @param {AlertColor} [type='error'] - La couleur du style à appliquer (par défaut 'error').
  */
-export function showError(message: string, containerId: string = 'alert', type: AlertColor = 'error'): void {
+export function showAlert(message: string, containerId: string = 'alert', type: AlertColor = 'error'): void {
 	const alertDiv = getHTMLElementById(containerId);
 
-	// Supprime toutes les classes déjà définies dans alertStyles
+	// Supprime toutes les classes de style précédentes
 	for (const style of Object.values(alertStyles)) {
-		alertDiv.classList.remove(style.bg, style.text, style.border);
+		alertDiv.classList.remove(style.baseClass);
 	}
 
-	// Puis on ajoute celles correspondant à la couleur demandée
+	// Ajoute la classe correspondant au type demandé
 	const style = alertStyles[type];
-	alertDiv.classList.add(style.bg, style.text, style.border);
+	alertDiv.classList.add(style.baseClass);
 
-	// Injecter l'icône + message
+	// Injecte le contenu et affiche
 	alertDiv.innerHTML = style.icon + ' ' + message;
 	alertDiv.classList.remove('hidden');
 }

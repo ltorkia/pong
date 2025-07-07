@@ -5,7 +5,7 @@ import { userService } from '../../services/services';
 import { BaseComponent } from '../base/base.component';
 import { RouteConfig } from '../../types/routes.types';
 import { ComponentConfig } from '../../types/components.types';
-import { showError, showSpinner, hideSpinner } from '../../utils/dom.utils';
+import { showAlert, showSpinner, hideSpinner } from '../../utils/dom.utils';
 
 // ===========================================
 // TWOFA MODAL COMPONENT
@@ -76,7 +76,7 @@ export class TwofaModalComponent extends BaseComponent {
 		event.preventDefault();
 		const code = this.codeInput.value.trim();
 		if (!code) {
-			showError('Code required', 'twofa-error');
+			showAlert('Code required', 'twofa-error');
 			this.errorMsg.classList.remove('hidden');
 			return;
 		}
@@ -85,7 +85,7 @@ export class TwofaModalComponent extends BaseComponent {
 			password: code,
 		});
 		if (res.errorMessage) {
-			showError(res.errorMessage, 'twofa-error');
+			showAlert(res.errorMessage, 'twofa-error');
 			this.errorMsg.classList.remove('hidden');
 			return;
 		}
@@ -96,12 +96,12 @@ export class TwofaModalComponent extends BaseComponent {
 		showSpinner('twofa-spinner');
 		const res = await userService.send2FA(this.userData);
 		if (res.errorMessage) {
-			showError(res.errorMessage, 'twofa-error');
+			showAlert(res.errorMessage, 'twofa-error');
 			this.qrcodeContainer.classList.add('hidden');
 			return;
 		}
 		hideSpinner('twofa-spinner');
-		showError(`Code sent to ${this.userData.email}`, 'twofa-error', 'success');
+		showAlert(`Code sent to ${this.userData.email}`, 'twofa-error', 'success');
 		this.emailContainer.classList.remove('hidden');
 		this.qrcodeContainer.classList.add('hidden');
 	}
