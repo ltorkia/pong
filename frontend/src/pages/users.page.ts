@@ -52,17 +52,6 @@ export class UsersPage extends BasePage {
 	}
 
 	/**
-	 * Méthode de montage de la page.
-	 * 
-	 * Appelle loadSpecificComponents() pour charger les composants propres à cette page.
-	 * 
-	 * @returns {Promise<void>} Une promesse qui se résout lorsque les composants sont chargés.
-	 */
-	protected async mount(): Promise<void> {
-		await this.loadSpecificComponents();
-	}
-
-	/**
 	 * Charge les composants propres à cette page.
 	 * 
 	 * Cette méthode charge les lignes du tableau de la liste des utilisateurs (user-row).

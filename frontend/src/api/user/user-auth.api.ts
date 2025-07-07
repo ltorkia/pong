@@ -99,14 +99,16 @@ export class UserAuthApi {
 	}
 
 	/**
-	 * Connecte un utilisateur.
+	 * Procède à la première étape de l'authentification.
 	 * 
 	 * Envoie une requête POST à la route API `/auth/login` pour connecter
 	 * un utilisateur avec les informations fournies dans l'objet `userData`.
-	 * Appelle la méthode `send2FA` pour envoyer un code de vérification.
+	 * Si la première "tape de l'authentification réussit, renvoie un objet contenant les informations
+	 * de l'utilisateur qui tente de se connecter. Sinon, renvoie un objet contenant un message d'erreur.
 	 * 
 	 * @param {Record<string, string>} userData Informations de l'utilisateur à connecter.
-	 * @returns {Promise<AuthResponse>} Promesse résolue avec une fois que le code est envoyé.
+	 * @returns {Promise<AuthResponse>} Promesse qui se résout avec les informations de
+	 * l'utilisateur authentifié ou un message d'erreur.
 	 */
 	public async loginUser(userData: Record<string, string>): Promise<AuthResponse> {
 		const res: Response = await fetch('/api/auth/login', {
@@ -118,37 +120,6 @@ export class UserAuthApi {
 		const data: AuthResponse = await res.json();
 		if (!res.ok || data.errorMessage) {
 			return { errorMessage: data.errorMessage || data.message || 'Erreur inconnue' } as AuthResponse;
-		}
-		const res2FA = await this.send2FA(userData);
-		if (res2FA.errorMessage) {
-			return { errorMessage: res2FA.errorMessage || res2FA.message || 'Erreur inconnue' } as AuthResponse;
-		}
-		return res2FA as AuthResponse;
-	}
-
-	/**
-	 * Connecte un utilisateur via Google.
-	 * 
-	 * Envoie une requête POST à la route API `/auth/google` pour connecter
-	 * un utilisateur via Google avec le token d'accès `id_token`.
-	 * Si la connexion réussit, stocke l'utilisateur en mémoire vive avec email,
-	 * et localStorage sans email. Renvoie un objet avec la clé `user` contenant
-	 * l'utilisateur connecté. Sinon, renvoie un objet avec la clé `errorMessage`
-	 * contenant le message d'erreur.
-	 * 
-	 * @param {string} id_token Le token d'accès Google.
-	 * @returns {Promise<AuthResponse>} Promesse qui se résout lorsque l'opération est terminée.
-	 */
-	public async googleConnectUser(id_token: string): Promise<AuthResponse> {
-		const res = await fetch('/api/auth/google', {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({ id_token }),
-			credentials: 'include',
-		});
-		const data: AuthResponse = await res.json();
-		if (!res.ok || data.errorMessage || !data.user) {
-			return { errorMessage: data.errorMessage || data.message || 'Erreur lors de la connexion Google' };
 		}
 		return data as AuthResponse;
 	}
@@ -205,6 +176,33 @@ export class UserAuthApi {
 			return { errorMessage: data.errorMessage || data.message || 'Erreur avec l' };
 		}
 		userStore.setCurrentUserFromServer(data.user);
+		return data as AuthResponse;
+	}
+
+	/**
+	 * Connecte un utilisateur via Google.
+	 * 
+	 * Envoie une requête POST à la route API `/auth/google` pour connecter
+	 * un utilisateur via Google avec le token d'accès `id_token`.
+	 * Si la connexion réussit, stocke l'utilisateur en mémoire vive avec email,
+	 * et localStorage sans email. Renvoie un objet avec la clé `user` contenant
+	 * l'utilisateur connecté. Sinon, renvoie un objet avec la clé `errorMessage`
+	 * contenant le message d'erreur.
+	 * 
+	 * @param {string} id_token Le token d'accès Google.
+	 * @returns {Promise<AuthResponse>} Promesse qui se résout lorsque l'opération est terminée.
+	 */
+	public async googleConnectUser(id_token: string): Promise<AuthResponse> {
+		const res = await fetch('/api/auth/google', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ id_token }),
+			credentials: 'include',
+		});
+		const data: AuthResponse = await res.json();
+		if (!res.ok || data.errorMessage || !data.user) {
+			return { errorMessage: data.errorMessage || data.message || 'Erreur lors de la connexion Google' };
+		}
 		return data as AuthResponse;
 	}
 

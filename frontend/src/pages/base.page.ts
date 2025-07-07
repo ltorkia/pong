@@ -60,6 +60,7 @@ export abstract class BasePage {
 	 * - Exécute les étapes de pré-rendering avec `beforeMount()`.
 	 * - Charge le template HTML et l'injecte dans le conteneur.
 	 * - Charge et rend les composants persistants - comme la navbar - si besoin.
+	 * - Charge et rend les composants spécifiques à la page.
 	 * - Exécute les opérations de montage spécifiques à la page.
 	 * - Attache les écouteurs d'événements nécessaires.
 	 * - En cas d'erreur, affiche un message d'erreur dans le conteneur.
@@ -75,6 +76,7 @@ export abstract class BasePage {
 			this.container.innerHTML = html;
 			console.log(`[${this.constructor.name}] HTML injecté`);
 			await this.loadPersistentComponents();
+			await this.loadSpecificComponents();
 			await this.mount();
 			console.log(`[${this.constructor.name}] Page montée, rendu terminé`);
 			this.attachListeners();
@@ -190,6 +192,22 @@ export abstract class BasePage {
 	 */
 	protected addToComponentInstances(componentName: ComponentName | string, componentInstance: BaseComponent): void {
 		this.componentInstances[componentName] = componentInstance;
+	}
+
+	/**
+	 * Retourne l'instance d'un composant par son nom.
+	 *
+	 * Cherche l'instance du composant enregistrée dans
+	 * la propriété componentInstances de la page en utilisant le nom
+	 * du composant comme clé.
+	 * Si l'instance est trouvée, la retourne, sinon retourne undefined.
+	 *
+	 * @template T Le type de l'instance du composant attendue.
+	 * @param {string} name Le nom du composant à retrouver.
+	 * @returns {T | undefined} L'instance du composant trouvée, ou undefined si pas trouvée.
+	 */
+	protected getComponentInstance<T>(name: string): T | undefined {
+		return this.componentInstances[name] as T;
 	}
 
 	/**

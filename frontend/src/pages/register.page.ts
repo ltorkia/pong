@@ -1,7 +1,7 @@
 import { BasePage } from './base.page';
 import { RouteConfig } from '../types/routes.types';
 import { userService } from '../services/services';
-import { loadGoogleScript, getHTMLElementById } from '../utils/dom.utils';
+import { getHTMLElementById } from '../utils/dom.utils';
 
 // ===========================================
 // REGISTER PAGE

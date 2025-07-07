@@ -4,7 +4,6 @@ import { LoginPage } from '../pages/login.page';
 import { GamePage } from '../pages/game.page';
 import { UsersPage } from '../pages/users.page';
 import { ProfilePage } from '../pages/profile.page';
-import { TwofaPage } from '../pages/twofa.page';
 
 import { RouteConfig } from '../types/routes.types';
 import { getComponentConfig } from '../utils/config.utils';
@@ -53,7 +52,6 @@ export const PAGE_NAMES = {
 	GAME: 'Game',
 	USERS: 'Users',
 	PROFILE: 'Profile',
-	TWOFA: 'Twofa',
 } as const;
 
 /**
@@ -71,7 +69,6 @@ export const ROUTE_PATHS = {
 	USERS: '/users',
 	PROFILE: '/user/:id',
 	LOGOUT: '/logout',
-	TWOFA: '/twofa',
 } as const;
 
 /**
@@ -88,7 +85,6 @@ export const TEMPLATE_PATHS = {
 	GAME: '/templates/game.html',
 	USERS: '/templates/users.html',
 	PROFILE: '/templates/profile.html',
-	TWOFA: '/templates/twofa.html',
 } as const;
 
 /**
@@ -100,11 +96,6 @@ export const DEFAULT_ROUTE = ROUTE_PATHS.HOME;
  * Route de fallback en cas d'erreur d'authentification
  */
 export const AUTH_FALLBACK_ROUTE = ROUTE_PATHS.LOGIN;
-
-/**
- * Route pour la page de double authentification (2FA)
- */
-export const AUTH_TWOFA_ROUTE = ROUTE_PATHS.TWOFA;
 
 /**
  * Route API pour les avatars
@@ -157,16 +148,9 @@ export const routesConfig: RouteConfig[] = [
 		name: PAGE_NAMES.LOGIN,
 		pageConstructor: LoginPage,
 		templatePath: TEMPLATE_PATHS.LOGIN,
-		components: {},
-		isPublic: true,
-		enableParticles: true
-	},
-	{
-		path: ROUTE_PATHS.TWOFA,
-		name: PAGE_NAMES.TWOFA,
-		pageConstructor: TwofaPage,
-		templatePath: TEMPLATE_PATHS.TWOFA,
-		components: {},
+		components: {
+			[COMPONENT_NAMES.TWOFA_MODAL]: getComponentConfig(COMPONENT_NAMES.TWOFA_MODAL)
+		},
 		isPublic: true,
 		enableParticles: true
 	},

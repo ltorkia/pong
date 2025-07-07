@@ -1,3 +1,4 @@
+import { TwofaModalComponent } from '../components/twofa-modal/twofa-modal.component';
 import { NavbarComponent } from '../components/navbar/navbar.component';
 import { UserRowComponent } from '../components/user-row/user-row.component';
 import { ComponentConfig } from '../types/components.types';
@@ -27,6 +28,7 @@ import { ComponentConfig } from '../types/components.types';
  * La valeur associée à chaque clé est l'identifiant HTML correspondant.
  */
 export const HTML_COMPONENT_CONTAINERS = {
+	TWOFA_MODAL_ID: 'twofa-modal',
 	NAVBAR_ID: 'navbar',
 	USER_LIST_ID: 'user-list',
 } as const;
@@ -39,6 +41,7 @@ export const HTML_COMPONENT_CONTAINERS = {
  * La valeur associée à chaque clé est le nom du composant.
  */
 export const COMPONENT_NAMES = {
+	TWOFA_MODAL: 'twofa-modal',
 	NAVBAR: 'navbar',
 	USER_ROW: 'user-row',
 } as const;
@@ -51,6 +54,7 @@ export const COMPONENT_NAMES = {
  * La valeur associée à chaque clé est le chemin de de modèle HTML du composant correspondant.
  */
 export const COMPONENT_PATHS = {
+	[COMPONENT_NAMES.TWOFA_MODAL]: '/components/twofa-modal/twofa-modal.component.html',
 	[COMPONENT_NAMES.NAVBAR]: '/components/navbar/navbar.component.html',
 	[COMPONENT_NAMES.USER_ROW]: '/components/user-row/user-row.component.html',
 } as const;
@@ -78,6 +82,14 @@ export const COMPONENT_PATHS = {
  */
 
 export const componentsConfig: ComponentConfig[] = [
+	{
+		name: COMPONENT_NAMES.TWOFA_MODAL,
+		componentConstructor: TwofaModalComponent,
+		templatePath: COMPONENT_PATHS[COMPONENT_NAMES.TWOFA_MODAL],
+		containerId: HTML_COMPONENT_CONTAINERS.TWOFA_MODAL_ID,
+		isPublic: true,
+		isPersistent: false
+	},
 	{
 		name: COMPONENT_NAMES.NAVBAR,
 		componentConstructor: NavbarComponent,

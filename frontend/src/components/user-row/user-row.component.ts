@@ -29,7 +29,7 @@ export class UserRowComponent extends BaseComponent {
 	 * Constructeur du composant de ligne d'utilisateur.
 	 *
 	 * Stocke la configuration de la route actuelle, la configuration du composant,
-	 * l'utilisateur à afficher dans le composant (facultatif) et l'utilisateur actuel.
+	 * le container HTML et l'utilisateur à afficher dans le composant.
 	 *
 	 * @param {RouteConfig} routeConfig La configuration de la route actuelle.
 	 * @param {ComponentConfig} componentConfig La configuration du composant.
@@ -57,7 +57,7 @@ export class UserRowComponent extends BaseComponent {
 		this.checkUserLogged();
 		if (import.meta.env.DEV === true) {
 			this.container.innerHTML = template;
-			console.log('[UserRowComponent] Hot-reload actif');
+			console.log(`[${this.constructor.name}] Hot-reload actif`);
 		}
 
 		const avatarImg = this.container.querySelector('.avatar-img') as HTMLImageElement;

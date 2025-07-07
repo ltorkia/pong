@@ -1,0 +1,72 @@
+	<div class="modal-content section-box auth-box">
+
+		<div class="bloc-title">
+			<div class="page-title">Two-Step Authentication</div>
+			<div class="under-title">
+				<span>Please, pick a verification method</span>
+			</div>
+		</div>
+	
+		<form class="form-box" id="twofa-form">		
+			<div class="fields-container">
+				<div class="field-box">
+					<select id="twofa-method">
+						<option value="-"disabled selected>-- Select --</option>
+						<option value="email">Send an email</option>
+						<option value="qrcode">Scan a QR Code</option>
+					</select>
+				</div>
+
+				<!-- Email / numeric code container -->
+				<div id="twofa-email-container" class="hidden">
+
+					<hr class="form-separator">
+
+					<div class="field-box">
+						<div>
+							<label for="twofa-code">Code received :</label>
+							<input type="text" id="twofa-code" autocomplete="one-time-code" placeholder="Insert your secret code here" />
+						</div>
+					</div>
+
+					<hr class="form-separator">
+
+					<div class="btn-container">
+						<button id="twofa-email-code-submit-btn" class="btn form-btn">
+							Confirm
+						</button>
+						<button id="twofa-email-resend-btn" class="btn form-btn bg-black/10">
+							Resend
+						</button>
+					</div>
+				</div>
+
+				<!-- QR Code container -->
+				<div id="twofa-qrcode-container" class="hidden">
+
+					<hr class="form-separator">
+
+					<span>TODO: Affichage du QR Code</span>
+
+					<!-- <hr class="form-separator"> -->
+					<!-- <div class="btn-container">
+						<button id="twofa-qrcode-submit-btn" class="btn form-btn">
+							Confirm
+						</button>
+					</div> -->
+				</div>
+
+				<div id="twofa-spinner" class="spinner hidden" aria-hidden="true"></div>
+				<div id="twofa-error" aria-live="assertive" class="error-message hidden"></div>
+
+				<hr class="form-separator">
+
+				<div class="btn-container">
+					<button id="twofa-back-btn" class="btn-icon" data-link>
+						<i class="fa-regular fa-circle-left"></i>
+					</button>
+				</div>
+			</div>
+		</form>
+
+	</div>
