@@ -198,7 +198,7 @@ export class UserService {
 	 * @returns {Promise<void>} Promesse qui se résout lorsque l'opération est terminée.
 	 * @throws {Error} Si la requête échoue.
 	 */
-	public async registerUser(data: Record<string, string>): Promise<void> {
+	public async registerUser(data: FormData): Promise<void> {
 		try {
 			const result: AuthResponse = await userAuthApi.registerUser(data);
 			if (result.errorMessage) {

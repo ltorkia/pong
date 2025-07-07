@@ -4,7 +4,9 @@ CREATE TABLE IF NOT EXISTS User (
 	username TEXT UNIQUE NOT NULL,
 	email TEXT UNIQUE NOT NULL,
 	registration DATETIME NOT NULL DEFAULT (datetime('now')),																-- 1ere inscription
-	lastlog DATETIME,																			-- derniere connection (NULL si jamais connecté)
+	-- lastlog DATETIME,																			-- derniere connection (NULL si jamais connecté)
+	begin_log DATETIME,
+	end_log DATETIME, 
 	password TEXT,																				-- a hascher + tard (NULL si register via Google)
 	-- ingame INTEGER DEFAULT 0 NOT NULL CHECK (ingame IN (0, 1)),								-- si actuellement en jeu
 	tournament INTEGER DEFAULT 0 NOT NULL,														-- a voir si utile ici, aussi s'il peut participer a plusieurs tournois

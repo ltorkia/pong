@@ -23,7 +23,8 @@ export interface SafeUserModel {
 	username: string;
 	avatar: string;
 	registration: string;
-	lastlog: string;
+	begin_log: string;
+	end_log: string;
 	tournament: number;
 	game_played: number;
 	game_win: number;
@@ -98,6 +99,7 @@ export interface Friends {
 	id: number;
 	username: string;
 	avatar?: string | null;
-	lastlog: number;
+	begin_log: number;
+	end_log: number;
 }
 

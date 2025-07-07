@@ -12,7 +12,7 @@ export async function getUser(userId : number | null = null, search : string | n
 	const db = await getDb(); 
 	const user = await db.get(`
 		SELECT id, username, email, registration, 
-		lastlog, tournament, avatar, game_played, game_win, 
+		begin_log, end_log, tournament, avatar, game_played, game_win, 
 		game_loose, time_played, n_friends, status, is_deleted, register_from 
 		FROM User 
 		WHERE id = ? OR username = ? OR email = ?
@@ -63,7 +63,7 @@ export async function getUser2FA(email: string) {
 export async function getUserFriends(userId: number) {
 	const db = await getDb();
 	const friends = await db.all(`
-		SELECT u.id, u.username, u.avatar, u.lastlog
+		SELECT u.id, u.username, u.avatar, u.begin_log, u.end_log
 		FROM Friends f
 		JOIN User u ON (
 			(f.User1_id = ? AND f.User2_id = u.id)
@@ -166,13 +166,36 @@ export async function insertUser(user: (RegisterInput | {username: string, email
 		return { statusCode: 500, message: "Erreur serveur : insertion utilisateur échouée." };
 	}	
 }
+
+export async function insertAvatar(avatar: string, username: string)
+{
+       const db = await getDb();
+       await db.run(`
+               UPDATE User
+               SET avatar = ?
+               WHERE (username = ?)
+               `,
+       [avatar, username]);
+}
+
+export async function getAvatar(id: number)
+{
+       const db = await getDb();
+       const avatar = await db.get(`
+               SELECT u.avatar
+               FROM User u
+               WHERE u.id == ?
+               `,
+       [id]);
+       return avatar;
+}
 		
 export async function majLastlog(username: string)
 {
 	const db = await getDb();
 	await db.run(`
 		UPDATE User
-		SET lastlog = datetime('now')
+		SET begin_log = datetime('now')
 		WHERE (username = ?)
 		`,
 	[username]);
