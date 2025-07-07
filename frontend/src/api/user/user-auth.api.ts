@@ -203,6 +203,7 @@ export class UserAuthApi {
 		if (!res.ok || data.errorMessage || !data.user) {
 			return { errorMessage: data.errorMessage || data.message || 'Erreur lors de la connexion Google' };
 		}
+		userStore.setCurrentUserFromServer(data.user);
 		return data as AuthResponse;
 	}
 

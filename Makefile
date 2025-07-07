@@ -2,7 +2,7 @@ PROJECT_NAME = transcendence
 APP_URL = https://localhost:8443
 
 DEV_COMPOSE_FILE = docker-compose.dev.yml
-PROD_COMPOSE_FILE = docker-compose.prod.yml
+PROD_COMPOSE_FILE = docker-compose.yml
 
 BACKEND_DIR = ./backend
 ENV_BACK_SOURCE = $(HOME)/ft_transcendence_env
@@ -70,11 +70,11 @@ copy-local: # Copie locale des fichiers statiques pour avoir un visuel en mode p
 	@echo "$(GREEN)Copie des fichiers statiques du dossier /dist du docker backend vers backend local...$(NC)"
 	docker cp $$(docker compose -f $(COMPOSE_FILE) ps -q backend):/app/dist ./backend/dist || echo "Backend dist absent"
 
-build: # Construit les images Docker
+build: sync-env # Construit les images Docker
 	@echo "$(GREEN)Construction des images Docker...$(NC)"
 	COMPOSE_BAKE=true docker compose -f $(COMPOSE_FILE) build --no-cache
 
-up: sync-env # Lance les services
+up: # Lance les services
 	@echo "$(GREEN)Lancement des services...$(NC)"
 	docker compose -f $(COMPOSE_FILE) up -d --remove-orphans
 	@echo "$(GREEN)App: $(APP_URL)$(NC)"

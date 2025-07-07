@@ -1,22 +1,23 @@
 {
 	"compilerOptions": {
-		"rootDir": "src",								// Dossier racine de notre code source TypeScript (frontend)
-		"outDir": "dist",								// Dossier de sortie des fichiers compilés
-		"baseUrl": ".",									// Base pour les chemins relatifs dans les imports = app/
-		"target": "ES2020",								// Version JavaScript ciblée (pour async/await...)
-		"lib": ["DOM", "dom.iterable", "ESNext"],		// Parce qu'on utilise fetch, le DOM
-		"module": "ESNext",								// Utilise les modules ECMAScript (import/export modernes)
-		"moduleResolution": "bundler",					// Manière dont TypeScript résout les imports (ici comme vite ou webpack)
-		"strict": true,									// Active toutes les vérifications strictes (bon pour la qualité du code)
-		"esModuleInterop": true,						// Permet d'importer des modules CommonJS avec `import`
-		"forceConsistentCasingInFileNames": true,		// Évite les bugs liés à la casse des noms de fichiers (Windows vs Linux)
-		"jsx": "preserve",								// Ne transforme pas le JSX (utile parce qu'on n'utilise pas React ici)
-		"types": ["vite/client", "node"],				// Ajoute les types spéciaux de Vite (ex: import.meta.env) et node
-		"allowSyntheticDefaultImports": true,			// Autorise l'import par défaut même si le module ne l'exporte pas
-		"allowJs": true,								// Autorise les fichiers JavaScript (utile pour intégrer des libs JS)
-		"skipLibCheck": true,							// Ignore les erreurs dans les fichiers de types des dépendances
-		"checkJs": false								// Ne pas vérifier les fichiers JavaScript (on se concentre sur TypeScript)
+		"rootDir": "src",												// Dossier racine de notre code source TypeScript (frontend)
+		"outDir": "dist",												// Dossier de sortie des fichiers compilés
+		"baseUrl": ".",													// Base pour les chemins relatifs dans les imports = app/
+		"target": "ES2020",												// Version JavaScript ciblée (pour async/await...)
+		"lib": ["DOM", "dom.iterable", "ESNext"],						// Parce qu'on utilise fetch, le DOM
+		"module": "ESNext",												// Utilise les modules ECMAScript (import/export modernes)
+		"moduleResolution": "bundler",									// Manière dont TypeScript résout les imports (ici comme vite ou webpack)
+		"strict": true,													// Active toutes les vérifications strictes (bon pour la qualité du code)
+		"esModuleInterop": true,										// Permet d'importer des modules CommonJS avec `import`
+		"forceConsistentCasingInFileNames": true,						// Évite les bugs liés à la casse des noms de fichiers (Windows vs Linux)
+		"jsx": "preserve",												// Ne transforme pas le JSX (utile parce qu'on n'utilise pas React ici)
+		"types": ["vite/client", "node"],								// Ajoute les types spéciaux de Vite (ex: import.meta.env) et node
+		"allowSyntheticDefaultImports": true,							// Autorise l'import par défaut même si le module ne l'exporte pas
+		"allowJs": true,												// Autorise les fichiers JavaScript (utile pour intégrer des libs JS)
+		"skipLibCheck": true,											// Ignore les erreurs dans les fichiers de types des dépendances
+		"checkJs": false,												// Ne pas vérifier les fichiers JavaScript (on se concentre sur TypeScript)
+		"typeRoots": ["./node_modules/@types", "./src/types"],			// Chemins vers les types personnalisés (ex: types globaux)
 	},
-	"include": ["src/**/*", "../shared/config/db-constants.config.ts"],							// Dossiers/fichiers à inclure dans la compilation
-	"exclude": ["node_modules", "dist"]					// Dossiers à exclure de la compilation
+	"include": ["src/**/*", "../shared/config/db-constants.config.ts"],	// Dossiers/fichiers à inclure dans la compilation
+	"exclude": ["node_modules", "dist"]									// Dossiers à exclure de la compilation
 }

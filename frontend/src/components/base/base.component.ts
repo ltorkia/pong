@@ -69,7 +69,6 @@ export abstract class BaseComponent {
 	public async render(): Promise<void> {
 		await this.beforeMount();
 		if (import.meta.env.PROD === true) {
-			console.log(this.templatePath);
 			let html = await loadTemplate(this.templatePath);
 			this.container.innerHTML = html;
 			console.log(`[${this.constructor.name}] Hot-reload inactif`);

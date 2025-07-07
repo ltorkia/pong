@@ -43,3 +43,9 @@ FRONT
 
 - docType:	npm install -g typedoc
 			npm run doc
+
+------------------------------------------------------------------------
+- POUR L'EVAL:
+Copier les fichiers .env du back et du front manuellement et:
+docker compose up --build
+------------------------------------------------------------------------

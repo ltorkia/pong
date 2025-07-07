@@ -47,6 +47,8 @@ services:
       - ./frontend/.env:/app/.env:ro
       - ./shared:/app/src/shared
       - /app/node_modules
+    env_file:
+      - ./frontend/.env
     networks:
       - transcendence
     restart: unless-stopped

@@ -4,7 +4,7 @@ services:
     container_name: nginx
     build:
       context: .
-      dockerfile: nginx/Dockerfile.prod
+      dockerfile: nginx/Dockerfile
     ports:
       - "8443:443"
       - "8080:80"
@@ -19,7 +19,7 @@ services:
     container_name: backend
     build:
       context: .
-      dockerfile: backend/Dockerfile.prod
+      dockerfile: backend/Dockerfile
     volumes:
       - ./backend/data:/app/data
     env_file:

@@ -11,7 +11,11 @@ yarn-error.log*
 # Environment variables
 .env
 backend/.env
+backend/.env.production
+backend/.env.development
 frontend/.env
+frontend/.env.production
+frontend/.env.development
 shared/.env
 
 # Doc temp perso frontend

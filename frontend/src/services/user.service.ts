@@ -337,16 +337,21 @@ export class UserService {
 	 * @returns {void}
 	 */
 	private setupGoogleButton(): void {
+		const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+		if (!clientId) {
+			console.error('Google Client ID not found');
+			return;
+		}
 
 		// Créer un bouton Google invisible
 		const hiddenContainer = document.createElement('div');
 		hiddenContainer.style.display = 'none';
 		document.body.appendChild(hiddenContainer);
-		
 		google.accounts.id.initialize({
-			client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
+			client_id: clientId,
 			callback: this.handleCredentialResponse.bind(this)
 		});
+
 		google.accounts.id.renderButton(hiddenContainer, {});
 		
 		// Attacher notre bouton personnalisé au clic du bouton Google
@@ -384,7 +389,6 @@ export class UserService {
 				showError(result.errorMessage);
 				return;
 			}
-			userStore.setCurrentUserFromServer(result.user);
 			uiStore.animateNavbarOut = true;
 			await router.redirect(DEFAULT_ROUTE);
 

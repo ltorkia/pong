@@ -54,7 +54,7 @@ export class LoginPage extends BasePage {
 	 * de connexion Google est initialisé.
 	 */
 	protected async mount(): Promise<void> {
-		userService.initGoogleSignIn();
+		await userService.initGoogleSignIn();
 	}
 
 	/**
