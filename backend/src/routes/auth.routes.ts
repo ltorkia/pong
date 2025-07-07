@@ -1,10 +1,9 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import bcrypt from 'bcrypt';
-import { GoogleCallbackQuery, GoogleTokenResponse, GoogleUserInfo } from '../types/google.types';
 import { insertUser, getUser, getUserP, majLastlog, eraseCode2FA, insertCode2FA, getUser2FA } from '../db/user';
 import { RegisterInputSchema, LoginInputSchema, LoginInput, RegisterInput } from '../types/zod/auth.zod';
 import { generateJwt, setAuthCookie, setStatusCookie, clearAuthCookies } from '../helpers/auth.helpers';
-import { UserPassword, User2FA, Code2FA } from 'src/types/user.types';
+import { GoogleUserInfo, UserPassword, User2FA } from 'src/types/user.types';
 import { UserModel } from '../shared/types/user.types'; // en rouge car dossier local 'shared' != dossier conteneur
 import nodemailer from 'nodemailer';
 
@@ -231,12 +230,7 @@ export async function authRoutes(app: FastifyInstance) {
 				return reply.status(400).send({ errorMessage: 'Format de token invalide' });
 			}
 
-			const payloadDecoded = JSON.parse(Buffer.from(parts[1], 'base64url').toString()) as {
-				email: string;
-				given_name?: string;
-				picture?: string;
-				name?: string;
-			};
+			const payloadDecoded = JSON.parse(Buffer.from(parts[1], 'base64url').toString()) as GoogleUserInfo;
 
 			const email = payloadDecoded.email;
 			const username = payloadDecoded.given_name ?? payloadDecoded.name?.split(' ')[0] ?? 'GoogleUser';
