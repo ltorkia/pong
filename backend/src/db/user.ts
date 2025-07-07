@@ -135,10 +135,10 @@ export async function insertUser(user: (RegisterInput | {username: string, email
 		if (!is_google)
 		{
 			if(await getUser(null, user.username))
-				return {statusCode : 409, message : "username already used, you can choose :" + await (searchNewName(user.username))};
+				return {statusCode : 409, message : "Username already used, you can choose :" + await (searchNewName(user.username))};
 			
 			if (await getUser(null, user.email))
-				return {statusCode: 409, message : "email already used"};
+				return {statusCode: 409, message : "Email already used"};
 			const u = user as RegisterInput;
 			await db.run(`
 				INSERT INTO User (username, email, password, secret_question_number, secret_question_answer)

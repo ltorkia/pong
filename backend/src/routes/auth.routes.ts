@@ -244,14 +244,14 @@ export async function authRoutes(app: FastifyInstance) {
 
 			let user = await getUserP(email);
 			if (user && user.password) {
-				return reply.status(403).send({ errorMessage: 'Un compte existe déjà avec mot de passe local' });
+				return reply.status(403).send({ errorMessage: 'Account already registered with a local password.' });
 			}
 
 			if (!user) {
 				await insertUser({ email, username, avatar }, true);
 				user = await getUserP(email);
 				if (!user) {
-					return reply.status(500).send({ errorMessage: 'Erreur lors de la création du compte Google' });
+					return reply.status(500).send({ errorMessage: 'An error occurred while creating your Google account.' });
 				}
 			}
 
