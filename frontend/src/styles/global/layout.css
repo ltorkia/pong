@@ -11,7 +11,8 @@
 		@apply flex flex-col items-center justify-center mb-10;
 	}
 	.page-title {
-		@apply font-title tracking-widest font-semibold text-2xl mb-4 animate-logo-glow
+		@apply font-title text-center tracking-widest font-semibold text-2xl
+		mb-4 animate-logo-glow
 		
 		desktop:text-3xl;
 	}

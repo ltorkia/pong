@@ -4,7 +4,7 @@
 						<span class="animate-letter-float-1">P</span>
 						<span class="animate-letter-float-2">
 							O
-							<img src="/img/design/magical-ball.png" class="magical-ball" alt="Magical ball">
+							<img src="/assets/img/design/magical-ball.png" class="magical-ball" alt="Magical ball">
 
 						</span>
 						<span class="animate-letter-float-3">N</span>
@@ -16,14 +16,14 @@
 				</div>
 			</div>
 
-			<div class="section-box login-box">
+			<div class="section-box auth-box">
 				<form class="form-box" id="login-form">
 					<div class="fields-container">
 						
 						<!-- Email -->
 						<div class="field-box">
 							<label for="email">Email :</label>
-							<input type="email" id="email" name="email" required>
+							<input type="email" id="email" name="email" autocomplete="email" required>
 						</div>
 
 						<!-- Password -->
@@ -41,8 +41,9 @@
 					</div>
 
 					<div id="alert" aria-live="assertive" class="hidden"></div>
-					<!-- <div id="alert" aria-live="assertive" class="hidden"></div> TODO mettre le message pour double authentification-->
 				</form>
+				
+				<hr class="form-separator">
 
 				<div>
 					<span>Not registered yet ?</span>
@@ -53,10 +54,17 @@
 					</div>
 				</div>
 
+				<hr class="form-separator mb-5">
+
 				<div class="btn-container btn-google-container">
-					<a href="/api/auth/google" class="btn-google " aria-label="Sign in with Google">
-						<img src="/img/design/google-icon.svg" alt="Google logo" class="google-logo" />
-						<span>Sign in with Google</span>
-					</a>
+					<button id="custom-google-btn" class="custom-google-button">
+						<div class="google-icon-wrapper">
+							<img src="/assets/img/design/google-icon.svg" alt="Google logo" class="google-icon" />
+						</div>
+						<span>Continue with Google</span>
+					</button>
 				</div>
+				
 			</div>
+
+			<div id="twofa-modal" class="modal hidden"></div>

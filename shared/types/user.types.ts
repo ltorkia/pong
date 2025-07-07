@@ -1,3 +1,5 @@
+import { DB_CONST } from '../config/constants.config';
+
 // ===========================================
 // USER TYPES
 // ===========================================
@@ -11,6 +13,18 @@
  * Les types exportés sont utilisés dans les parties de l'application qui ont besoin de
  * connaître les informations relatives à un utilisateur.
  */
+
+/**
+ * Type d'état d'un utilisateur.
+ */
+export type UserStatus = 
+	typeof DB_CONST.USER.STATUS[keyof typeof DB_CONST.USER.STATUS];
+
+/**
+ * Type de méthode d'inscription.
+ */
+export type RegisterMethod =
+	typeof DB_CONST.USER.REGISTER_FROM[keyof typeof DB_CONST.USER.REGISTER_FROM];
 
 /**
  * Interface représentant le modèle de base de l'utilisateur.
@@ -31,9 +45,9 @@ export interface SafeUserModel {
 	game_loose: number;
 	time_played: number;
 	n_friends: number;
-	status: 'online' | 'offline' | 'in-game';
+	status: UserStatus;
 	is_deleted: boolean;
-	register_from: 'local' | 'google';
+	register_from: RegisterMethod;
 }
 
 /**
@@ -76,7 +90,7 @@ export type OptionalUser = SafeUserModel | null;
  */
 export interface UserBasic {
 	id:number;
-	username : string;
+	username: string;
 	email: string;
 	avatar: string;
 }
@@ -87,8 +101,8 @@ export interface UserBasic {
  */
 export interface UserWithAvatar {
 	id:number;
-	username : string;
-	avatar : string;
+	username: string;
+	avatar: string;
 }
 
 /**
@@ -102,4 +116,3 @@ export interface Friends {
 	begin_log: number;
 	end_log: number;
 }
-

@@ -4,6 +4,7 @@ import template from './user-row.component.html?raw'
 import { BaseComponent } from '../base/base.component';
 import { RouteConfig } from '../../types/routes.types';
 import { ComponentConfig } from '../../types/components.types';
+import { AVATARS_ROUTE_API } from '../../config/routes.config';
 import { User } from '../../models/user.model';
 
 // ===========================================
@@ -28,7 +29,7 @@ export class UserRowComponent extends BaseComponent {
 	 * Constructeur du composant de ligne d'utilisateur.
 	 *
 	 * Stocke la configuration de la route actuelle, la configuration du composant,
-	 * l'utilisateur à afficher dans le composant (facultatif) et l'utilisateur actuel.
+	 * le container HTML et l'utilisateur à afficher dans le composant.
 	 *
 	 * @param {RouteConfig} routeConfig La configuration de la route actuelle.
 	 * @param {ComponentConfig} componentConfig La configuration du composant.
@@ -56,7 +57,7 @@ export class UserRowComponent extends BaseComponent {
 		this.checkUserLogged();
 		if (import.meta.env.DEV === true) {
 			this.container.innerHTML = template;
-			console.log('[UserRowComponent] Hot-reload actif');
+			console.log(`[${this.constructor.name}] Hot-reload actif`);
 		}
 
 		const avatarImg = this.container.querySelector('.avatar-img') as HTMLImageElement;
@@ -65,7 +66,7 @@ export class UserRowComponent extends BaseComponent {
 
 		if (this.user) {
 			if (avatarImg) {
-				avatarImg.setAttribute('src', `/img/avatars/${this.user.avatar}`);
+				avatarImg.setAttribute('src', `${AVATARS_ROUTE_API}${this.user.avatar}`);
 				avatarImg.setAttribute('alt', `${this.user.username}'s avatar`);
 			}
 

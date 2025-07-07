@@ -1,3 +1,5 @@
+import { AlertColor, alertStyles } from '../types/ui-styles.types';
+
 // ===========================================
 // DOM UTILS
 // ===========================================
@@ -140,14 +142,47 @@ export function toggleClass(el: Element | null, classA: string, classB: string, 
 /**
  * Affiche un message d'erreur sur la page actuelle.
  *
- * Récupère l'élément HTML <div id="alert"> et y injecte le message d'erreur
- * préfixé d'un icône de triangle d'avertissement.
+ * Récupère un élément HTML et y injecte le message préfixé d'une icône.
  *
  * @param {string} message - Le message d'erreur à afficher.
+ * @param {string} [containerId='alert'] - ID de l'élément HTML qui affichera le message d'erreur.
+ * @param {AlertColor} [type='error'] - La couleur du style à appliquer (par défaut 'error').
  */
-export function showError(message: string): void {
-	const alertDiv = getHTMLElementById('alert');
-	const cautionIcon = '<i class="fa-solid fa-circle-exclamation"></i> ';
-	alertDiv.innerHTML = cautionIcon + message;
+export function showError(message: string, containerId: string = 'alert', type: AlertColor = 'error'): void {
+	const alertDiv = getHTMLElementById(containerId);
+
+	// Supprime toutes les classes déjà définies dans alertStyles
+	for (const style of Object.values(alertStyles)) {
+		alertDiv.classList.remove(style.bg, style.text, style.border);
+	}
+
+	// Puis on ajoute celles correspondant à la couleur demandée
+	const style = alertStyles[type];
+	alertDiv.classList.add(style.bg, style.text, style.border);
+
+	// Injecter l'icône + message
+	alertDiv.innerHTML = style.icon + ' ' + message;
 	alertDiv.classList.remove('hidden');
+}
+
+/**
+ * Affiche le spinner d'attente (par défaut, l'élément HTML #twofa-spinner).
+ *
+ * @param {string} [id='twofa-spinner'] - ID de l'élément HTML du spinner.
+ */
+export function showSpinner(id: string = 'twofa-spinner'): void {
+	const el = getHTMLElementById(id);
+	el.classList.remove('hidden');
+	el.setAttribute('aria-hidden', 'false');
+}
+
+/**
+ * Cache le spinner d'attente (par défaut, l'élément HTML #twofa-spinner).
+ *
+ * @param {string} [id='twofa-spinner'] - ID de l'élément HTML du spinner.
+ */
+export function hideSpinner(id: string = 'twofa-spinner'): void {
+	const el = getHTMLElementById(id);
+	el.classList.add('hidden');
+	el.setAttribute('aria-hidden', 'true');
 }

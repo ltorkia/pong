@@ -1,13 +1,13 @@
 import { router } from '../router/router';
-import { defaultRoute, authFallbackRoute } from '../config/routes.config';
 import { showError } from '../utils/dom.utils';
-import { REGISTERED_MSG } from '../config/messages.config';
 import { User } from '../models/user.model';
 import { userStore } from '../stores/user.store';
 import { userAuthApi } from '../api/user/user.api';
 import { AuthResponse, BasicResponse } from '../types/api.types';
 import { uiStore } from '../stores/ui.store';
-import { cookiesConst } from '../shared/config/constants.config'; // en rouge car dossier local 'shared' != dossier du conteneur
+import { COOKIES_CONST } from '../shared/config/constants.config'; // en rouge car dossier local 'shared' != dossier du conteneur
+import { DEFAULT_ROUTE, AUTH_FALLBACK_ROUTE } from '../config/routes.config';
+import { REGISTERED_MSG } from '../config/messages.config';
 
 // ===========================================
 // USER SERVICE
@@ -55,7 +55,7 @@ export class UserService {
 	 * @returns {boolean} true si le cookie est présent, false sinon.
 	 */
 	public hasAuthCookie(): boolean {
-		return document.cookie.includes(`${cookiesConst.authStatusKey}=${cookiesConst.authStatusValue}`);
+		return document.cookie.includes(`${COOKIES_CONST.AUTH.STATUS_KEY}=${COOKIES_CONST.AUTH.STATUS_VALUE}`);
 	}
 
 	/**
@@ -206,13 +206,9 @@ export class UserService {
 				showError(result.errorMessage);
 				return;
 			}
-			
 			console.log(`[${this.constructor.name}] Utilisateur inscrit :`, result);
-			
-			// Redirection home
 			alert(REGISTERED_MSG);
-			uiStore.animateNavbarOut = true;
-			await router.redirect(defaultRoute);
+			await router.redirect(AUTH_FALLBACK_ROUTE);
 
 		} catch (err) {
 			console.error(`[${this.constructor.name}] Erreur réseau ou serveur`, err);
@@ -221,37 +217,54 @@ export class UserService {
 	}
 
 	/**
-	 * Authentifie un utilisateur.
+	 * Procède à la première étape de l'authentification.
 	 * 
 	 * Effectue une requête API pour connecter un utilisateur avec ses
-	 * informations d'identification. Si la connexion réussit, stocke 
-	 * l'utilisateur dans le store et le localStorage,
-	 * active l'animation d'entrée de la barre de navigation
-	 * et redirige vers la page d'accueil.
+	 * informations d'identification. Il s'agit de la première étape qui 
+	 * consiste à vérifier que son email existe et que son mot de passe est correct.
 	 * 
 	 * @param {Record<string, string>} data Informations de l'utilisateur à connecter.
-	 * @returns {Promise<void>} Promesse qui se résout lorsque l'opération est terminée.
+	 * @returns {Promise<AuthResponse>} Promesse qui se résout avec les informations de
+	 * l'utilisateur qui tente de se connecter ou un objet d'erreur.
 	 * @throws {Error} Si la requête échoue ou en cas d'erreur réseau.
 	 */
-	public async loginUser(data: Record<string, string>): Promise<void> {
+	public async loginUser(data: Record<string, string>): Promise<AuthResponse> {
 		try {
 			const result: AuthResponse = await userAuthApi.loginUser(data);
+
 			if (result.errorMessage) {
 				console.error(`[${this.constructor.name}] Erreur d'authentification :`, result);
 				showError(result.errorMessage);
-				return;
+				return { errorMessage: result.errorMessage };
 			}
-			
-			console.log(`[${this.constructor.name}] Utilisateur connecté :`, result);
-			
-			// Redirection home
-			uiStore.animateNavbarOut = true;
-			await router.redirect(defaultRoute);
+
+			// Pas de redirection ici: c’est LoginPage gère le popup
+			console.log(`[${this.constructor.name}] Authentification réussie (étape 1), 2FA requis`);
+			return result;
 
 		} catch (err) {
 			console.error(`[${this.constructor.name}] Erreur réseau ou serveur`, err);
 			showError('Erreur réseau');
+			return { errorMessage: 'Erreur réseau' };
 		}
+	}
+
+	/**
+	 * Envoie un code de vérification pour l'authentification à deux facteurs (2FA).
+	 * 
+	 * Si la vérification 2FA échoue, renvoie un objet contenant un message d'erreur.
+	 * Si la vérification réussit, renvoie un objet avec un message de confirmation.
+	 * 
+	 * @param {Record<string, string>} userData Informations de l'utilisateur à connecter.
+	 * @returns {Promise<AuthResponse>} Promesse qui se résout avec un objet contenant
+	 * un message d'erreur ou un message de confirmation.
+	 */
+	public async send2FA(userData: Record<string, string>): Promise<AuthResponse> {
+		const res2FA = await userAuthApi.send2FA(userData);
+		if (res2FA.errorMessage) {
+			return { errorMessage: res2FA.errorMessage || res2FA.message || 'Erreur inconnue' } as AuthResponse;
+		}
+		return res2FA as AuthResponse;
 	}
 	
 	/**
@@ -263,23 +276,121 @@ export class UserService {
 	 * et redirige vers la page d'accueil.
 	 * 
 	 * @param {Record<string, string>} data Informations de l'utilisateur à connecter.
-	 * @returns {Promise<void>} Promesse qui se résout lorsque l'opération est terminée.
+	 * @returns {Promise<AuthResponse>} Promesse qui se résout avec l'utilisateur
+	 *   authentifié ou un objet d'erreur.
 	 * @throws {Error} Si la requête échoue ou en cas d'erreur réseau.
 	 */
-	public async twofaConnectUser(data: Record<string, string>): Promise<void> {
+	public async twofaConnectUser(data: Record<string, string>): Promise<AuthResponse> {
 		try {
 			const result: AuthResponse = await userAuthApi.twofaConnectUser(data);
 			if (result.errorMessage) {
 				console.error(`[${this.constructor.name}] Erreur d'authentification :`, result);
-				showError(result.errorMessage);
-				return;
+				return { errorMessage: result.errorMessage };
 			}
-
 			console.log(`[${this.constructor.name}] Utilisateur connecté :`, result);
 
 			// Redirection home
 			uiStore.animateNavbarOut = true;
-			await router.redirect(defaultRoute);
+			await router.redirect(DEFAULT_ROUTE);
+
+			return result;
+		} catch (err) {
+			console.error(`[${this.constructor.name}] Erreur réseau ou serveur`, err);
+			showError('Erreur réseau');
+			return { errorMessage: 'Erreur réseau' };
+		}
+	}
+
+	/**
+	 * Initialise le bouton Google Sign-In.
+	 * 
+	 * Charge le script Google, crée le bouton Google Sign-In et l'attache au
+	 * document HTML. Une fois le script chargé, le bouton est mis en place.
+	 * 
+	 * @returns {Promise<void>} Une promesse qui se résout lorsque le bouton
+	 * est initialisé.
+	 */
+	public async initGoogleSignIn(): Promise<void> {
+		
+		// Charger le script Google
+		const script = document.createElement('script');
+		script.src = 'https://accounts.google.com/gsi/client';
+
+		// Attacher le callback pour initialiser le bouton Google une fois le script chargé
+		script.onload = () => {
+			this.setupGoogleButton();
+		};
+		document.head.appendChild(script);
+	}
+
+	/**
+	 * Initialise le bouton Google Sign-In.
+	 * 
+	 * Crée un bouton Google invisible, l'attache au document HTML et configure
+	 * le callback pour traiter la réponse de l'API Google.
+	 * 
+	 * Ensuite, attache notre bouton personnalisé au clic du bouton Google.
+	 * 
+	 * NB: `google.` fait référence à l'objet global google injecté dans la page 
+	 * par le script Google Identity Services.
+	 * 
+	 * @returns {void}
+	 */
+	private setupGoogleButton(): void {
+		const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+		if (!clientId) {
+			console.error('Google Client ID not found');
+			return;
+		}
+
+		// Créer un bouton Google invisible
+		const hiddenContainer = document.createElement('div');
+		hiddenContainer.style.display = 'none';
+		document.body.appendChild(hiddenContainer);
+		google.accounts.id.initialize({
+			client_id: clientId,
+			callback: this.handleCredentialResponse.bind(this)
+		});
+
+		google.accounts.id.renderButton(hiddenContainer, {});
+		
+		// Attacher notre bouton personnalisé au clic du bouton Google
+		const customButton = document.getElementById('custom-google-btn');
+		if (customButton) {
+			customButton.addEventListener('click', () => {
+				const googleButton = hiddenContainer.querySelector('[role="button"]') as HTMLElement;
+				if (googleButton) {
+					googleButton.click();
+				}
+			});
+		}
+	}
+
+	/**
+	 * Callback pour la réponse de l'API Google Identity Services.
+	 * 
+	 * - Extrait l'ID token de la réponse.
+	 * - Envoie une requête POST à la route API `/auth/google` pour connecter
+	 *   un utilisateur via Google avec l'ID token.
+	 * - Stocke l'utilisateur en mémoire vive avec email et en local storage
+	 *   sans email si la connexion réussit.
+	 * - Active l'animation de sortie de la barre de navigation.
+	 * - Redirige vers la page d'accueil.
+	 * 
+	 * @param {google.accounts.id.CredentialResponse} response - La réponse de l'API Google.
+	 * @returns {Promise<void>} Promesse qui se résout lorsque l'opération est terminée.
+	 */
+	public async handleCredentialResponse(response: google.accounts.id.CredentialResponse): Promise<void> {
+		const id_token = response.credential;
+		try {
+			const result = await userAuthApi.googleConnectUser(id_token);
+			if (result.errorMessage) {
+				console.error(`[${this.constructor.name}] Erreur Google Auth :`, result.errorMessage);
+				showError(result.errorMessage);
+				return;
+			}
+			uiStore.animateNavbarOut = true;
+			await router.redirect(DEFAULT_ROUTE);
 
 		} catch (err) {
 			console.error(`[${this.constructor.name}] Erreur réseau ou serveur`, err);
@@ -311,7 +422,7 @@ export class UserService {
 			
 			// Redirection SPA vers login
 			console.log(`[${this.constructor.name}] Déconnexion réussie. Redirection /login`);
-			await router.redirect(authFallbackRoute);
+			await router.redirect(AUTH_FALLBACK_ROUTE);
 
 		} catch (err) {
 			console.error(`[${this.constructor.name}] Erreur réseau ou serveur`, err);

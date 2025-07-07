@@ -3,7 +3,7 @@ import { RegisterInput } from '../types/zod/auth.zod';
 import { Game } from '../types/game.types';
 import { ChatMessage } from '../types/chat.types';
 import { searchNewName } from '../helpers/auth.helpers';
-import { UserPassword } from '../types/user.types';
+import { UserPassword, User2FA } from '../types/user.types';
 import { UserModel, UserBasic, UserWithAvatar, Friends } from '../shared/types/user.types'; // en rouge car dossier local 'shared' != dossier conteneur
 
 // retourne les infos d un user particulier - userId = le id de l user a afficher
@@ -54,7 +54,7 @@ export async function getUser2FA(email: string) {
 		`,
 		[email]
 	);
-	return user;
+	return user as User2FA;
 }
 	
 // pour choper les friends, mais implique qu un element chat soit forcement cree des qu on devient ami
@@ -135,17 +135,17 @@ export async function insertUser(user: (RegisterInput | {username: string, email
 		if (!is_google)
 		{
 			if(await getUser(null, user.username))
-				return {statusCode : 409, message : "username already used, you can choose :" + await (searchNewName(user.username))};
+				return {statusCode : 409, message : "Username already used, you can choose :" + await (searchNewName(user.username))};
 			
 			if (await getUser(null, user.email))
-				return {statusCode: 409, message : "email already used"};
+				return {statusCode: 409, message : "Email already used"};
 			const u = user as RegisterInput;
 			await db.run(`
 				INSERT INTO User (username, email, password, secret_question_number, secret_question_answer)
 				VALUES (?, ?, ?, ?, ?)
 				`,
 				[u.username, u.email, u.password, u.question, u.answer]
-		);
+			);
 		}
 		else 
 		{
@@ -201,7 +201,7 @@ export async function majLastlog(username: string)
 	[username]);
 }
 
-export async function insertCode2FA(email: string, code: string)
+export async function insertCode2FA(email: string, code: string): Promise<{statusCode: number, message: string}>
 {
 	const db = await getDb();
 	const end_time = Date.now() + 5 * 60 * 1000;
@@ -212,6 +212,7 @@ export async function insertCode2FA(email: string, code: string)
 		WHERE (email = ?)
 		`,
 	[code, end_time , email]);
+	return {statusCode : 201, message : 'code 2FA inserted'};
 }
 
 export async function eraseCode2FA(email: string)

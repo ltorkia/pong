@@ -1,6 +1,9 @@
 import { BasePage } from './base.page';
 import { RouteConfig } from '../types/routes.types';
 import { userService } from '../services/services';
+import { TwofaModalComponent } from '../components/twofa-modal/twofa-modal.component';
+import { ComponentConfig } from '../types/components.types';
+import { COMPONENT_NAMES, HTML_COMPONENT_CONTAINERS } from '../config/components.config';
 import { getHTMLElementById } from '../utils/dom.utils';
 
 // ===========================================
@@ -15,6 +18,7 @@ import { getHTMLElementById } from '../utils/dom.utils';
  */
 export class LoginPage extends BasePage {
 	protected form!: HTMLFormElement;
+	protected componentConfig?: ComponentConfig;
 
 	/**
 	 * Constructeur de la page de connexion.
@@ -26,6 +30,42 @@ export class LoginPage extends BasePage {
 	 */
 	constructor(config: RouteConfig) {
 		super(config);
+	}
+
+	protected async beforeMount(): Promise<void> {
+		if (!this.components) {
+			return;
+		}
+		const config = this.components[COMPONENT_NAMES.TWOFA_MODAL];
+		if (!config || !this.shouldRenderComponent(config)
+			|| !this.isValidConfig(config, false)) {
+			throw new Error(`Configuration du composant '${COMPONENT_NAMES.TWOFA_MODAL}' invalide`);
+		}
+		this.componentConfig = config;
+	}
+
+	/**
+	 * Méthode de montage de la page de connexion.
+	 *
+	 * Initialise le bouton de connexion Google en appelant la méthode
+	 * `initGoogleSignIn()` du service d'authentification.
+	 *
+	 * @returns {Promise<void>} Une promesse qui se résout lorsque le bouton
+	 * de connexion Google est initialisé.
+	 */
+	protected async mount(): Promise<void> {
+		await userService.initGoogleSignIn();
+	}
+
+	/**
+	 * Charge les composants propres à cette page.
+	 * 
+	 * Cette méthode charge les lignes du tableau de la liste des utilisateurs (user-row).
+	 * 
+	 * @returns {Promise<void>} Une promesse qui se résout lorsque les composants sont chargés.
+	 */
+	protected async loadSpecificComponents(): Promise<void> {
+		await this.injectTwofaModal();
 	}
 
 	/**
@@ -40,6 +80,24 @@ export class LoginPage extends BasePage {
 	}
 
 	/**
+	 * Injecte le composant de modal de double authentification dans la page.
+	 *
+	 * Cherche l'élément HTML qui contiendra le composant de modal, crée une
+	 * instance du composant, l'injecte dans l'élément HTML et enregistre
+	 * l'instance du composant dans la liste des instances de composants.
+	 *
+	 * @returns {Promise<void>} Une promesse qui se résout lorsque le composant
+	 * a été injecté.
+	 */
+	protected async injectTwofaModal(): Promise<void> {
+		const twofaModalContainer = getHTMLElementById(HTML_COMPONENT_CONTAINERS.TWOFA_MODAL_ID);
+		const twofaModal = new TwofaModalComponent(this.config, this.componentConfig!, twofaModalContainer);
+		await twofaModal.render();
+		this.addToComponentInstances(COMPONENT_NAMES.TWOFA_MODAL, twofaModal);
+		console.log(`[${this.constructor.name}] Composant '${this.componentConfig!.name}' généré`);
+	}
+
+	/**
 	 * Gestionnaire pour la soumission du formulaire de connexion.
 	 *
 	 * - Empêche le comportement par défaut de soumission HTML.
@@ -47,12 +105,32 @@ export class LoginPage extends BasePage {
 	 * - Appelle le service d'authentification pour connecter l'utilisateur.
 	 *
 	 * @param {Event} event L'événement de soumission du formulaire.
+	 * @returns {Promise<void>} Une promesse qui se résout lorsque la première étape de l'authentification est effectuée.
 	 */
 	protected handleLoginSubmit = async (event: Event): Promise<void> => {
 		event.preventDefault();
 		const formData = new FormData(this.form);
 		const data = Object.fromEntries(formData.entries()) as Record<string, string>;
-		await userService.loginUser(data);
+		const loginResult = await userService.loginUser(data);
+
+		// Affiche le modal 2FA seulement si login OK
+		if (!loginResult || loginResult.errorMessage) {
+			console.error('Erreur login ou 2FA:', loginResult?.errorMessage);
+			return;
+		}
+
+		// Récupère l’instance du composant 2FA
+		const modal = this.getComponentInstance<TwofaModalComponent>(COMPONENT_NAMES.TWOFA_MODAL);
+		if (!modal) {
+			console.error('Composant 2FA introuvable');
+			return;
+		}
+
+		// Injecte les infos de l'utilisateur qui tente de se connecter au modal
+		modal.setUserData(data);
+
+		// Affiche le modal
+		await modal.show();
 	};
 
 	/**

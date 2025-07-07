@@ -73,14 +73,14 @@ export class UserAuthApi {
 	 * Inscrit un nouvel utilisateur.
 	 * 
 	 * Envoie une requête POST à la route API `/auth/register` pour inscrire
-	 * un nouvel utilisateur avec les informations données dans l'objet `data`.
+	 * un nouvel utilisateur avec les informations données dans l'objet `userData`.
 	 * 
 	 * Si l'inscription réussit, stocke l'utilisateur en mémoire vive avec email, 
 	 * en localStorage sans email, et renvoie un objet avec la clé `user` contenant l'utilisateur
 	 * créé. Sinon, renvoie un objet avec la clé `errorMessage` contenant le message
 	 * d'erreur.
 	 * 
-	 * @param {Record<string, string>} data Informations de l'utilisateur à inscrire.
+	 * @param {Record<string, string>} userData Informations de l'utilisateur à inscrire.
 	 * @returns {Promise<AuthResponse>} Promesse qui se résout avec l'utilisateur créé
 	 *  ou un objet d'erreur.
 	 */
@@ -95,86 +95,121 @@ export class UserAuthApi {
 		});
 		// body: JSON.stringify(data),
 		const result: AuthResponse = await res.json();
-		if (!res.ok || result.errorMessage || !result.user) {
+		// if (!res.ok || result.errorMessage || !result.user) {
+			if (!res.ok || result.errorMessage) {
 			return { errorMessage: result.errorMessage || result.message || 'Erreur avec la récupération de l\'utilisateur' } as AuthResponse;
 		}
-		this.send2FA(data); // check ici
-		userStore.setCurrentUserFromServer(result.user);
-		return result as AuthResponse;
+		return data as AuthResponse;
 	}
 
 	/**
-	 * Connecte un utilisateur.
+	 * Procède à la première étape de l'authentification.
 	 * 
 	 * Envoie une requête POST à la route API `/auth/login` pour connecter
-	 * un utilisateur avec les informations fournies dans l'objet `data`.
+	 * un utilisateur avec les informations fournies dans l'objet `userData`.
+	 * Si la première "tape de l'authentification réussit, renvoie un objet contenant les informations
+	 * de l'utilisateur qui tente de se connecter. Sinon, renvoie un objet contenant un message d'erreur.
 	 * 
-	 * Si la connexion réussit, stocke l'utilisateur en mémoire vive avec email,
-	 * et localStorage sans email. Renvoie un objet avec la clé `user` contenant
-	 * l'utilisateur connecté. Sinon, renvoie un objet avec la clé `errorMessage`
-	 * contenant le message d'erreur.
-	 * 
-	 * @param {Record<string, string>} data Informations de l'utilisateur à connecter.
-	 * @returns {Promise<AuthResponse>} Promesse qui se résout avec l'utilisateur connecté
-	 *  ou un objet d'erreur.
+	 * @param {Record<string, string>} userData Informations de l'utilisateur à connecter.
+	 * @returns {Promise<AuthResponse>} Promesse qui se résout avec les informations de
+	 * l'utilisateur authentifié ou un message d'erreur.
 	 */
-	public async loginUser(data: Record<string, string>): Promise<AuthResponse> {
+	public async loginUser(userData: Record<string, string>): Promise<AuthResponse> {
 		const res: Response = await fetch('/api/auth/login', {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify(data),
+			body: JSON.stringify(userData),
 			credentials: 'include',
 		});
-		const result: AuthResponse = await res.json();
-		if (!res.ok || result.errorMessage || !result.user) {
-			return { errorMessage: result.errorMessage || result.message || 'Erreur avec la récupération de l\'utilisateur' } as AuthResponse;
+		const data: AuthResponse = await res.json();
+		if (!res.ok || data.errorMessage) {
+			return { errorMessage: data.errorMessage || data.message || 'Erreur inconnue' } as AuthResponse;
 		}
-		this.send2FA(data); // check ici
-		userStore.setCurrentUserFromServer(result.user);
-		return result as AuthResponse;
+		return data as AuthResponse;
+	}
+
+	/**
+	 * Envoie un code de vérification pour l'authentification à deux facteurs (2FA).
+	 * 
+	 * Si la vérification 2FA échoue, renvoie un objet contenant un message d'erreur.
+	 * Si la vérification réussit, renvoie un objet avec un message de confirmation.
+	 * 
+	 * @param {Record<string, string>} userData Informations de l'utilisateur à connecter.
+	 * @returns {Promise<AuthResponse>} Promesse résolue avec une fois que le code est envoyé.
+	 */
+	public async send2FA(userData: Record<string, string>): Promise<AuthResponse> {
+		const res: Response = await fetch('/api/auth/2FAsend', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify(userData),
+			credentials: 'include',
+		});
+		const data = await res.json();
+		if (!res.ok || data.errorMessage) {
+			return { errorMessage: data.errorMessage || data.message || 'Erreur inconnue' };
+		}
+		return data;
 	}
 
 	/**
 	 * Vérifie l'authentification à deux facteurs (2FA) pour un utilisateur.
 	 * 
-	 * Envoie une requête POST à la route API `/auth/2FAreceive` avec les
-	 * données fournies dans l'objet `data`. Si la vérification réussit, 
+	 * Envoie une requête POST à la route API `/auth/2FAreceive` avec le code
+	 * de vérification fournit dans l'objet `data`. Si la vérification réussit, 
 	 * renvoie un objet contenant les informations de l'utilisateur authentifié.
 	 * Sinon, renvoie un objet contenant un message d'erreur.
 	 * 
-	 * @param {Record<string, string>} data Informations nécessaires pour la vérification 2FA.
+	 * Si la vérification réussit, stocke l'utilisateur en mémoire vive avec email,
+	 * et localStorage sans email. Renvoie un objet avec la clé `user` contenant
+	 * l'utilisateur connecté. Sinon, renvoie un objet avec la clé `errorMessage`
+	 * contenant le message d'erreur.
+	 * 
+	 * @param {Record<string, string>} userData Informations de l'utilisateur à connecter.
 	 * @returns {Promise<AuthResponse>} Promesse résolue avec les informations de l'utilisateur
 	 * authentifié ou un message d'erreur.
 	 */
-	public async twofaConnectUser(data: Record<string, string>): Promise<AuthResponse> {
-		// const form = document.getElementById('register-form') as HTMLFormElement;		
+	public async twofaConnectUser(userData: Record<string, string>): Promise<AuthResponse> {
 		const res: Response = await fetch('/api/auth/2FAreceive', {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify(data),
+			body: JSON.stringify(userData),
 			credentials: 'include',
 		});
-		// body: JSON.stringify(data),
-		const result: AuthResponse = await res.json();
-		if (!res.ok || result.errorMessage) {
-			return { errorMessage: result.errorMessage || result.message || 'Erreur inconnue' };
+		const data: AuthResponse = await res.json();
+		if (!res.ok || data.errorMessage || !data.user) {
+			return { errorMessage: data.errorMessage || data.message || 'Erreur avec la récupération de l\'utilisateur' };
 		}
-		return result as AuthResponse;
+		userStore.setCurrentUserFromServer(data.user);
+		return data as AuthResponse;
 	}
 
-	public async send2FA(data: Record<string, string>): Promise<AuthResponse> {
-        const res = await fetch('/api/auth/2FAsend', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data),
-            credentials: 'include',
-        });
-        const result: AuthResponse = await res.json();
-        if (!res.ok || result.errorMessage) {
-            return { errorMessage: result.errorMessage || result.message || 'Erreur inconnue' };
-        }
-        return result;
-    }
+	/**
+	 * Connecte un utilisateur via Google.
+	 * 
+	 * Envoie une requête POST à la route API `/auth/google` pour connecter
+	 * un utilisateur via Google avec le token d'accès `id_token`.
+	 * Si la connexion réussit, stocke l'utilisateur en mémoire vive avec email,
+	 * et localStorage sans email. Renvoie un objet avec la clé `user` contenant
+	 * l'utilisateur connecté. Sinon, renvoie un objet avec la clé `errorMessage`
+	 * contenant le message d'erreur.
+	 * 
+	 * @param {string} id_token Le token d'accès Google.
+	 * @returns {Promise<AuthResponse>} Promesse qui se résout lorsque l'opération est terminée.
+	 */
+	public async googleConnectUser(id_token: string): Promise<AuthResponse> {
+		const res = await fetch('/api/auth/google', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ id_token }),
+			credentials: 'include',
+		});
+		const data: AuthResponse = await res.json();
+		if (!res.ok || data.errorMessage || !data.user) {
+			return { errorMessage: data.errorMessage || data.message || 'Erreur lors de la connexion Google' };
+		}
+		userStore.setCurrentUserFromServer(data.user);
+		return data as AuthResponse;
+	}
 
 	/**
 	 * Déconnecte l'utilisateur.
@@ -191,12 +226,12 @@ export class UserAuthApi {
 			method: 'POST',
 			credentials: 'include'
 		});
-		const result: BasicResponse = await res.json();
-		if (!res.ok || result.errorMessage) {
-			return { errorMessage: result.errorMessage || result.message || 'Erreur inconnue' } as BasicResponse;
+		const data: BasicResponse = await res.json();
+		if (!res.ok || data.errorMessage) {
+			return { errorMessage: data.errorMessage || data.message || 'Erreur inconnue' } as BasicResponse;
 		}
 		userStore.clearCurrentUser();
-		return result as BasicResponse;
+		return data as BasicResponse;
 	}
 
 }

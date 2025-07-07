@@ -7,9 +7,9 @@ import { uiStore } from '../../stores/ui.store';
 import { userService } from '../../services/services';
 import { RouteConfig } from '../../types/routes.types';
 import { ComponentConfig } from '../../types/components.types';
-import { routePaths, profileHTMLAnchor } from '../../config/routes.config';
 import { toggleClass } from '../../utils/dom.utils';
 import { getHTMLElementById, getHTMLAnchorElement, getHTMLElementByTagName } from '../../utils/dom.utils';
+import { ROUTE_PATHS, PROFILE_HTML_ANCHOR } from '../../config/routes.config';
 
 // ===========================================
 // NAVBAR COMPONENT
@@ -64,7 +64,7 @@ export class NavbarComponent extends BaseComponent {
 			anchor.classList.remove('active');
 			const linkPath = new URL(anchor.href).pathname;
 			if (linkPath === route
-				|| (route === routePaths.profile && linkPath === this.profileLink)) {
+				|| (route === ROUTE_PATHS.PROFILE && linkPath === this.profileLink)) {
 				anchor.classList.add('active');
 			}
 		});
@@ -91,7 +91,7 @@ export class NavbarComponent extends BaseComponent {
 			this.container.innerHTML = template;
 			console.log(`[${this.constructor.name}] Hot-reload actif`);
 		}
-		this.profileLink = this.setNavLink(profileHTMLAnchor, `/user/${this.profilePlaceholder}`);
+		this.profileLink = this.setNavLink(PROFILE_HTML_ANCHOR, `/user/${this.profilePlaceholder}`);
 		this.setActiveLink(this.routeConfig.path);
 		const main = document.querySelector('main');
 		if (main) {
@@ -127,7 +127,7 @@ export class NavbarComponent extends BaseComponent {
 	 */
 	protected attachListeners(): void {
 		this.burgerBtn = getHTMLElementById('burger-btn', this.container);
-		this.logoutLink = getHTMLAnchorElement(routePaths.logout, this.container);
+		this.logoutLink = getHTMLAnchorElement(ROUTE_PATHS.LOGOUT, this.container);
 
 		this.burgerBtn.addEventListener('click', this.handleBurgerClick);
 		this.logoutLink.addEventListener('click', this.handleLogoutClick);

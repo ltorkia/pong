@@ -2,11 +2,18 @@ PROJECT_NAME = transcendence
 APP_URL = https://localhost:8443
 
 DEV_COMPOSE_FILE = docker-compose.dev.yml
-PROD_COMPOSE_FILE = docker-compose.prod.yml
+PROD_COMPOSE_FILE = docker-compose.yml
 
 BACKEND_DIR = ./backend
-ENV_SOURCE = $(HOME)/ft_transcendence_env
-ENV_DEST = $(BACKEND_DIR)/.env
+ENV_BACK_SOURCE = $(HOME)/ft_transcendence_env
+ENV_BACK_DEST = $(BACKEND_DIR)/.env
+
+SHARED_DIR = ./shared
+ENV_SHARED_SOURCE = $(HOME)/ft_transcendence_shared_env
+ENV_SHARED_DEST = $(SHARED_DIR)/.env
+
+FRONTEND_DIR = ./frontend
+ENV_FRONT_DEST = $(FRONTEND_DIR)/.env
 
 GREEN = \033[32m
 YELLOW = \033[33m
@@ -35,16 +42,26 @@ prod: # Lance le projet en mode prod (compile les fichiers statiques, pas de hot
 	@sh -c 'echo "prod" > .mode'
 	@$(MAKE) build up copy-local
 
-check_env: # Vérifie l'existence du fichier .env et le copie dans le répertoire backend
-	@echo "$(COLOR_BLUE)Vérification du fichier .env...$(COLOR_RESET)"
-	@if [ ! -f "$(ENV_SOURCE)" ]; then \
-		echo "$(COLOR_RED)Erreur: Fichier $(ENV_SOURCE) introuvable!$(COLOR_RESET)"; \
+check_env: # Vérifie l'existence des fichiers .env et les copie dans les répertoires backend et frontend
+	@echo "$(COLOR_BLUE)Vérification des fichiers .env...$(COLOR_RESET)"
+	@if [ ! -f "$(ENV_BACK_SOURCE)" ]; then \
+		echo "$(COLOR_RED)Erreur: Fichier $(ENV_BACK_SOURCE) introuvable.$(COLOR_RESET)"; \
 		exit 1; \
 	fi
-	@echo "$(COLOR_BLUE)Copie du fichier .env...$(COLOR_RESET)"
-	@cp $(ENV_SOURCE) $(ENV_DEST)
-	@chmod 600 $(ENV_DEST)
-	@echo "$(COLOR_GREEN)Fichier .env copié avec succès!$(COLOR_RESET)"
+	@if [ ! -f "$(ENV_SHARED_SOURCE)" ]; then \
+		echo "$(COLOR_RED)Erreur: Fichier $(ENV_SHARED_SOURCE) introuvable.$(COLOR_RESET)"; \
+		exit 1; \
+	fi
+	@echo "$(COLOR_BLUE)Copie des fichiers .env...$(COLOR_RESET)"
+	@cp $(ENV_BACK_SOURCE) $(ENV_BACK_DEST)
+	@chmod 600 $(ENV_BACK_DEST)
+	@cp $(ENV_SHARED_SOURCE) $(ENV_SHARED_DEST)
+	@chmod 600 $(ENV_SHARED_DEST)
+	@echo "$(COLOR_GREEN)Fichiers .env copiés avec succès!$(COLOR_RESET)"
+
+sync-env: check_env # Synchronise les variables d'environnement entre les fichiers .env
+	@echo "$(COLOR_BLUE)Synchronisation des variables d'environnement...$(COLOR_RESET)"
+	@sh sync-env.sh
 
 copy-local: # Copie locale des fichiers statiques pour avoir un visuel en mode prod sans bind mount les volumes dans docker-compose.yml
 	@echo "$(GREEN)Copie des fichiers statiques du dossier /dist du docker frontend vers nginx local...$(NC)"
@@ -53,11 +70,11 @@ copy-local: # Copie locale des fichiers statiques pour avoir un visuel en mode p
 	@echo "$(GREEN)Copie des fichiers statiques du dossier /dist du docker backend vers backend local...$(NC)"
 	docker cp $$(docker compose -f $(COMPOSE_FILE) ps -q backend):/app/dist ./backend/dist || echo "Backend dist absent"
 
-build: # Construit les images Docker
+build: sync-env # Construit les images Docker
 	@echo "$(GREEN)Construction des images Docker...$(NC)"
 	COMPOSE_BAKE=true docker compose -f $(COMPOSE_FILE) build --no-cache
 
-up: check_env # Lance les services
+up: # Lance les services
 	@echo "$(GREEN)Lancement des services...$(NC)"
 	docker compose -f $(COMPOSE_FILE) up -d --remove-orphans
 	@echo "$(GREEN)App: $(APP_URL)$(NC)"
@@ -81,7 +98,7 @@ exec-nginx: # Rentre dans le Docker nginx
 
 clean: down # Nettoie les conteneurs et fichier .env mais conserve les images et volumes
 	@echo "$(COLOR_BLUE)Suppression du fichier .env...$(COLOR_RESET)"
-	rm -f $(ENV_DEST)
+	rm -f $(ENV_SHARED_DEST) $(ENV_FRONT_DEST) $(ENV_BACK_DEST)
 
 fclean: clean # Nettoyage profond: volumes, images et données persistantes et système Docker global
 	@echo "${YELLOW}Suppression des volumes...${NC}"
@@ -92,7 +109,7 @@ fclean: clean # Nettoyage profond: volumes, images et données persistantes et s
 	rm -rf frontend/src/shared backend/src/shared
 	rm -rf frontend/node_modules backend/node_modules
 	rm -rf backend/data backend/dist nginx/dist .mode
-	find frontend/public/img/avatars/ -type f ! -name 'default.png' -delete
+	find backend/uploads/avatars/ -type f ! -name 'default.png' -delete
 
 prune: fclean # Nettoyage complet y compris le système Docker global
 	@echo "$(YELLOW)⚠️ Suppression complète de tous les éléments Docker non utilisés...${NC}"

@@ -4,11 +4,10 @@ import { LoginPage } from '../pages/login.page';
 import { GamePage } from '../pages/game.page';
 import { UsersPage } from '../pages/users.page';
 import { ProfilePage } from '../pages/profile.page';
-import { TwofaPage } from '../pages/twofa.page';
 
 import { RouteConfig } from '../types/routes.types';
-import { componentNames } from './components.config';
 import { getComponentConfig } from '../utils/config.utils';
+import { COMPONENT_NAMES } from './components.config';
 
 // ===========================================
 // ROUTES CONFIG
@@ -28,7 +27,7 @@ import { getComponentConfig } from '../utils/config.utils';
  * Cette div est l'élément racine de l'application et est définie dans le fichier
  * index.html. Les routes injectent les templates HTML dans cette div.
  */
-export const appId: string = 'app';
+export const APP_ID: string = 'app';
 
 /**
  * Lien HTML vers le profil de l'utilisateur actuel.
@@ -37,74 +36,71 @@ export const appId: string = 'app';
  * Le lien est généré par le composant de la navbar qui remplace le placeholder {userId}
  * par l'id de l'utilisateur actuel dans 'user/{userId}'.
  */
-export const profileHTMLAnchor: string = '/profile';
+export const PROFILE_HTML_ANCHOR: string = '/profile';
 
 /**
  * Constantes pour les noms de pages.
  *
- * `pageNames` contient l'ensemble des noms de pages de l'application.
+ * `PAGE_NAMES` contient l'ensemble des noms de pages de l'application.
  * Chaque clé est une page de l'application.
  * La valeur associée à chaque clé est le nom de la page.
  */
-export const pageNames = {
-	home: 'Home',
-	register: 'Register',
-	login: 'Login',
-	game: 'Game',
-	users: 'Users',
-	profile: 'Profile',
-	twofa: 'Twofa',
+export const PAGE_NAMES = {
+	HOME: 'Home',
+	REGISTER: 'Register',
+	LOGIN: 'Login',
+	GAME: 'Game',
+	USERS: 'Users',
+	PROFILE: 'Profile',
 } as const;
 
 /**
  * Constantes pour les chemins de routes.
  *
- * `routePaths` contient l'ensemble des chemins de routes de l'application.
+ * `ROUTE_PATHS` contient l'ensemble des chemins de routes de l'application.
  * Chaque clé est une page de l'application.
  * La valeur associée à chaque clé est le chemin de route correspondant.
  */
-export const routePaths = {
-	home: '/',
-	register: '/register',
-	login: '/login',
-	game: '/game',
-	users: '/users',
-	profile: '/user/:id',
-	logout: '/logout',
-	twofa: '/twofa',
+export const ROUTE_PATHS = {
+	HOME: '/',
+	REGISTER: '/register',
+	LOGIN: '/login',
+	GAME: '/game',
+	USERS: '/users',
+	PROFILE: '/user/:id',
+	LOGOUT: '/logout',
 } as const;
 
 /**
  * Constantes pour les chemins de modèles HTML.
  *
- * `templatePaths` contient l'ensemble des chemins de modèles HTML de l'application.
+ * `TEMPLATE_PATHS` contient l'ensemble des chemins de modèles HTML de l'application.
  * Chaque clé est une page de l'application.
  * La valeur associée à chaque clé est le chemin de template correspondant.
  */
-export const templatePaths = {
-	home: '/templates/home.html',
-	register: '/templates/register.html',
-	login: '/templates/login.html',
-	game: '/templates/game.html',
-	users: '/templates/users.html',
-	profile: '/templates/profile.html',
-	twofa: '/templates/twofa.html',
+export const TEMPLATE_PATHS = {
+	HOME: '/templates/home.html',
+	REGISTER: '/templates/register.html',
+	LOGIN: '/templates/login.html',
+	GAME: '/templates/game.html',
+	USERS: '/templates/users.html',
+	PROFILE: '/templates/profile.html',
 } as const;
 
 /**
  * Route par défaut pour les redirections
  */
-export const defaultRoute = routePaths.home;
+export const DEFAULT_ROUTE = ROUTE_PATHS.HOME;
 
 /**
  * Route de fallback en cas d'erreur d'authentification
  */
-export const authFallbackRoute = routePaths.login;
+export const AUTH_FALLBACK_ROUTE = ROUTE_PATHS.LOGIN;
 
 /**
- * Route pour la page de double authentification (2FA)
+ * Route API pour les avatars
  */
-export const authTwofaRoute = '/twofa';
+export const AVATARS_ROUTE_API = '/uploads/avatars/';
 
 /**
  * Configuration statique des routes de l'application.
@@ -128,73 +124,66 @@ export const authTwofaRoute = '/twofa';
  */
 export const routesConfig: RouteConfig[] = [
 	{
-		path: routePaths.home,
-		name: pageNames.home,
+		path: ROUTE_PATHS.HOME,
+		name: PAGE_NAMES.HOME,
 		pageConstructor: HomePage,
-		templatePath: templatePaths.home,
+		templatePath: TEMPLATE_PATHS.HOME,
 		components: {
-			[componentNames.navbar]: getComponentConfig(componentNames.navbar)
+			[COMPONENT_NAMES.NAVBAR]: getComponentConfig(COMPONENT_NAMES.NAVBAR)
 		},
 		isPublic: false,
 		enableParticles: true
 	},
 	{
-		path: routePaths.register,
-		name: pageNames.register,
+		path: ROUTE_PATHS.REGISTER,
+		name: PAGE_NAMES.REGISTER,
 		pageConstructor: RegisterPage,
-		templatePath: templatePaths.register,
+		templatePath: TEMPLATE_PATHS.REGISTER,
 		components: {},
 		isPublic: true,
 		enableParticles: true
 	},
 	{
-		path: routePaths.login,
-		name: pageNames.login,
+		path: ROUTE_PATHS.LOGIN,
+		name: PAGE_NAMES.LOGIN,
 		pageConstructor: LoginPage,
-		templatePath: templatePaths.login,
-		components: {},
-		isPublic: true,
-		enableParticles: true
-	},
-	{
-		path: routePaths.twofa,
-		name: pageNames.twofa,
-		pageConstructor: TwofaPage,
-		templatePath: templatePaths.twofa,
-		components: {},
-		isPublic: true,
-		enableParticles: true
-	},
-	{
-		path: routePaths.game,
-		name: pageNames.game,
-		pageConstructor: GamePage,
-		templatePath: templatePaths.game,
+		templatePath: TEMPLATE_PATHS.LOGIN,
 		components: {
-			[componentNames.navbar]: getComponentConfig(componentNames.navbar)
+			[COMPONENT_NAMES.TWOFA_MODAL]: getComponentConfig(COMPONENT_NAMES.TWOFA_MODAL)
+		},
+		isPublic: true,
+		enableParticles: true
+	},
+	{
+		path: ROUTE_PATHS.GAME,
+		name: PAGE_NAMES.GAME,
+		pageConstructor: GamePage,
+		templatePath: TEMPLATE_PATHS.GAME,
+		components: {
+			[COMPONENT_NAMES.NAVBAR]: getComponentConfig(COMPONENT_NAMES.NAVBAR)
 		},
 		isPublic: false,
 		enableParticles: false
 	},
 	{
-		path: routePaths.users,
-		name: pageNames.users,
+		path: ROUTE_PATHS.USERS,
+		name: PAGE_NAMES.USERS,
 		pageConstructor: UsersPage,
-		templatePath: templatePaths.users,
+		templatePath: TEMPLATE_PATHS.USERS,
 		components: {
-			[componentNames.navbar]: getComponentConfig(componentNames.navbar),
-			[componentNames.userRow]: getComponentConfig(componentNames.userRow)
+			[COMPONENT_NAMES.NAVBAR]: getComponentConfig(COMPONENT_NAMES.NAVBAR),
+			[COMPONENT_NAMES.USER_ROW]: getComponentConfig(COMPONENT_NAMES.USER_ROW)
 		},
 		isPublic: false,
 		enableParticles: true
 	},
 	{
-		path: routePaths.profile,
-		name: pageNames.profile,
+		path: ROUTE_PATHS.PROFILE,
+		name: PAGE_NAMES.PROFILE,
 		pageConstructor: ProfilePage,
-		templatePath: templatePaths.profile,
+		templatePath: TEMPLATE_PATHS.PROFILE,
 		components: {
-			[componentNames.navbar]: getComponentConfig(componentNames.navbar)
+			[COMPONENT_NAMES.NAVBAR]: getComponentConfig(COMPONENT_NAMES.NAVBAR)
 		},
 		isPublic: false,
 		enableParticles: true

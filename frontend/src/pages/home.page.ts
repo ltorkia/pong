@@ -1,5 +1,6 @@
 import { BasePage } from './base.page';
 import { RouteConfig } from '../types/routes.types';
+import { AVATARS_ROUTE_API } from '../config/routes.config';
 import { getHTMLElementByClass } from '../utils/dom.utils';
 
 // ===========================================
@@ -61,7 +62,7 @@ export class HomePage extends BasePage {
 	private loadAvatar() {
 		const avatar = getHTMLElementByClass('avatar');
 		Object.assign(avatar.style, {
-			backgroundImage: `url('/img/avatars/${this.currentUser!.avatar}')`,
+			backgroundImage: `url('${AVATARS_ROUTE_API}${this.currentUser!.avatar}')`,
 			backgroundSize: "cover",
 			backgroundPosition: "center"
 		});

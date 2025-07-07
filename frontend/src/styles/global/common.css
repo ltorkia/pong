@@ -12,12 +12,20 @@
 
 	/* ERROR MESSAGES BOX */
 	#alert {
+		@apply mt-4;
+	}
+	#alert, #twofa-error {
 		@apply font-classic text-sm text-center
-		bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded;
+		border px-4 py-3 rounded;
 	}
 
 	.element:focus-within {
 		@apply outline-none;
+	}
+
+	/* SPINNER LOADER */
+	.spinner {
+		@apply w-5 h-5 border-2 border-t-transparent border-blue-500 rounded-full animate-spin mx-auto;
 	}
 
 	/* SITE LOGO */

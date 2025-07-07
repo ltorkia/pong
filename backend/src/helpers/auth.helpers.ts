@@ -1,8 +1,8 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { JwtPayload } from '../types/jwt.types';
-import { UserModel, PublicUser } from '../shared/types/user.types'; // en rouge car dossier local 'shared' != dossier conteneur
-import { cookiesConst } from '../shared/config/constants.config'; // en rouge car dossier local 'shared' != dossier conteneur
 import { getUser } from '../db/user';
+import { UserModel, PublicUser } from '../shared/types/user.types'; // en rouge car dossier local 'shared' != dossier conteneur
+import { COOKIES_CONST } from '../shared/config/constants.config'; // en rouge car dossier local 'shared' != dossier conteneur
 // import { majLastlog } from '../db/user';
 
 /*propose un nouveau nom pour register*/
@@ -37,7 +37,7 @@ export function generateJwt(app: FastifyInstance, user: JwtPayload) {
  * Personne ne peut s'emparer de la session d'un utilisateur.
  */
 export function setAuthCookie(reply: FastifyReply, token: string) {
-	reply.setCookie(cookiesConst.authTokenKey, token, {
+	reply.setCookie(COOKIES_CONST.AUTH.TOKEN_KEY, token, {
 		path: '/',
 		httpOnly: true,
 		sameSite: 'lax',
@@ -52,7 +52,7 @@ export function setAuthCookie(reply: FastifyReply, token: string) {
  * Il ne contient aucune information sensible, juste un indicateur booléen.
  */
 export function setStatusCookie(reply: FastifyReply) {
-	reply.setCookie(cookiesConst.authStatusKey, 'active', {
+	reply.setCookie(COOKIES_CONST.AUTH.STATUS_KEY, COOKIES_CONST.AUTH.STATUS_VALUE, {
 		path: '/',
 		httpOnly: false,
 		sameSite: 'lax',
@@ -67,7 +67,7 @@ export function setStatusCookie(reply: FastifyReply) {
  */
 export function clearAuthCookies(reply: FastifyReply) {
 	// le cookie principal (token JWT)
-	reply.clearCookie(cookiesConst.authTokenKey, {
+	reply.clearCookie(COOKIES_CONST.AUTH.TOKEN_KEY, {
 		path: '/',
 		httpOnly: true,
 		sameSite: 'lax',
@@ -75,7 +75,7 @@ export function clearAuthCookies(reply: FastifyReply) {
 	});
 	
 	// le cookie compagnon (statut)
-	reply.clearCookie(cookiesConst.authStatusKey, {
+	reply.clearCookie(COOKIES_CONST.AUTH.STATUS_KEY, {
 		path: '/',
 		httpOnly: false,
 		sameSite: 'lax',

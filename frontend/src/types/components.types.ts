@@ -1,6 +1,6 @@
 import { RouteConfig } from '../types/routes.types';
 import { BaseComponent } from '../components/base/base.component';
-import { componentNames, componentContainers, componentPaths } from '../config/components.config';
+import { COMPONENT_NAMES, HTML_COMPONENT_CONTAINERS, COMPONENT_PATHS } from '../config/components.config';
 import { User } from '../models/user.model';
 
 // ===========================================
@@ -63,9 +63,9 @@ export type ComponentConstructor = new (
  * Types pour les noms de composants.
  * 
  * `ComponentNamesMap` représente le type des noms de composants définis dans `componentNames`.
- * `ComponentName` représente une des valeurs possibles des noms de composants.
+ * `COMPONENT_NAMES` représente une des valeurs possibles des noms de composants.
  */
-export type ComponentNamesMap = typeof componentNames;
+export type ComponentNamesMap = typeof COMPONENT_NAMES;
 
 /**
  * Type pour les noms de composants.
@@ -79,14 +79,14 @@ export type ComponentName = ComponentNamesMap[keyof ComponentNamesMap];
  * Types pour les conteneurs HTML.
  * 
  * `ComponentContainersMap` représente le type des identifiants de conteneurs HTML définis dans `ComponentContainers`.
- * `HTMLContainer` représente une des valeurs possibles des identifiants de conteneurs HTML.
+ * `HTML_COMPONENT_CONTAINERS` représente une des valeurs possibles des identifiants de conteneurs HTML.
  */
-export type ComponentContainersMap = typeof componentContainers;
+export type ComponentContainersMap = typeof HTML_COMPONENT_CONTAINERS;
 
 /**
  * Type pour les identifiants de conteneurs HTML.
  * 
- * `HTMLContainer` représente une des valeurs possibles des identifiants de conteneurs HTML.
+ * `ComponentContainer` représente une des valeurs possibles des identifiants de conteneurs HTML.
  * Par exemple, si `ComponentContainers` contient l'entrée `"root": "#root"`, alors `HTMLContainer` peut valoir `"#root"`.
  */
 export type ComponentContainer = ComponentContainersMap[keyof ComponentContainersMap];
@@ -95,9 +95,9 @@ export type ComponentContainer = ComponentContainersMap[keyof ComponentContainer
  * Type pour les chemins de templates HTML.
  * 
  * `ComponentPathsMap` représente le type des chemins de templates définis dans `componentPaths`.
- * `ComponentPath` représente une des valeurs possibles des chemins de templates.
+ * `COMPONENT_PATHS` représente une des valeurs possibles des chemins de templates.
  */
-export type ComponentPathsMap = typeof componentPaths;
+export type ComponentPathsMap = typeof COMPONENT_PATHS;
 
 /**
  * Type pour les chemins de templates HTML.

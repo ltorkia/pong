@@ -8,11 +8,12 @@
 
 @import './components/form.css';
 @import './components/button.css';
+@import './components/modal.css';
 
+@import '../components/twofa-modal/twofa-modal.component.css';
 @import '../components/navbar/navbar.component.css';
 @import '../components/user-row/user-row.component.css';
 
-@import './pages/auth.css';
 @import './pages/home.css';
 
 @import './utilities/custom.css';

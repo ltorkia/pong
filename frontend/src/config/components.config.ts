@@ -1,3 +1,4 @@
+import { TwofaModalComponent } from '../components/twofa-modal/twofa-modal.component';
 import { NavbarComponent } from '../components/navbar/navbar.component';
 import { UserRowComponent } from '../components/user-row/user-row.component';
 import { ComponentConfig } from '../types/components.types';
@@ -21,39 +22,41 @@ import { ComponentConfig } from '../types/components.types';
 /**
  * Constantes pour les identifiants de conteneurs HTML de composants.
  *
- * `HTMLComponentContainers` contient l'ensemble des identifiants de conteneurs HTML
+ * `HTML_COMPONENT_CONTAINERS` contient l'ensemble des identifiants de conteneurs HTML
  * des composants de l'application.
  * Chaque clé est un identifiant de conteneur HTML.
  * La valeur associée à chaque clé est l'identifiant HTML correspondant.
  */
-export const componentContainers = {
-	navbarId: 'navbar',
-	userListId: 'user-list',
+export const HTML_COMPONENT_CONTAINERS = {
+	TWOFA_MODAL_ID: 'twofa-modal',
+	NAVBAR_ID: 'navbar',
+	USER_LIST_ID: 'user-list',
 } as const;
 
 /**
  * Constantes pour les noms de composants.
  *
- * `componentNames` contient l'ensemble des noms de composants de l'application.
+ * `COMPONENT_NAMES` contient l'ensemble des noms de composants de l'application.
  * Chaque clé est un nom de composant.
  * La valeur associée à chaque clé est le nom du composant.
  */
-export const componentNames = {
-	navbar: 'navbar',
-	userRow: 'user-row',
-	twofa: 'twofa',
+export const COMPONENT_NAMES = {
+	TWOFA_MODAL: 'twofa-modal',
+	NAVBAR: 'navbar',
+	USER_ROW: 'user-row',
 } as const;
 
 /**
  * Constantes pour les chemins de modèles HTML de composants.
  *
- * `componentPaths` contient l'ensemble des chemins de modèles HTML de composants de l'application.
+ * `COMPONENT_PATHS` contient l'ensemble des chemins de modèles HTML de composants de l'application.
  * Chaque clé est une page de l'application.
  * La valeur associée à chaque clé est le chemin de de modèle HTML du composant correspondant.
  */
-export const componentPaths = {
-	[componentNames.navbar]: '/components/common/navbar/navbar-component.html',
-	[componentNames.userRow]: '/components/user/users/user-row-component.html',
+export const COMPONENT_PATHS = {
+	[COMPONENT_NAMES.TWOFA_MODAL]: '/components/twofa-modal/twofa-modal.component.html',
+	[COMPONENT_NAMES.NAVBAR]: '/components/navbar/navbar.component.html',
+	[COMPONENT_NAMES.USER_ROW]: '/components/user-row/user-row.component.html',
 } as const;
 
 /**
@@ -80,20 +83,28 @@ export const componentPaths = {
 
 export const componentsConfig: ComponentConfig[] = [
 	{
-		name: componentNames.navbar,
+		name: COMPONENT_NAMES.TWOFA_MODAL,
+		componentConstructor: TwofaModalComponent,
+		templatePath: COMPONENT_PATHS[COMPONENT_NAMES.TWOFA_MODAL],
+		containerId: HTML_COMPONENT_CONTAINERS.TWOFA_MODAL_ID,
+		isPublic: true,
+		isPersistent: false
+	},
+	{
+		name: COMPONENT_NAMES.NAVBAR,
 		componentConstructor: NavbarComponent,
-		templatePath: componentPaths[componentNames.navbar],
-		containerId: componentContainers.navbarId,
+		templatePath: COMPONENT_PATHS[COMPONENT_NAMES.NAVBAR],
+		containerId: HTML_COMPONENT_CONTAINERS.NAVBAR_ID,
 		isPublic: false,
 		isPersistent: true,
 		destroy: true
 		// instance: créee et stockée ici lors de la connexion, undefined avant ça
 	},
 	{
-		name: componentNames.userRow,
+		name: COMPONENT_NAMES.USER_ROW,
 		componentConstructor: UserRowComponent,
-		templatePath: componentPaths[componentNames.userRow],
-		containerId: componentContainers.userListId,
+		templatePath: COMPONENT_PATHS[COMPONENT_NAMES.USER_ROW],
+		containerId: HTML_COMPONENT_CONTAINERS.USER_LIST_ID,
 		isPublic: false,
 		isPersistent: false
 	}

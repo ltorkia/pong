@@ -55,6 +55,23 @@ export default {
 				'body-bg-img': images.forestWallpaper
 			},
 			/**
+			 * Les padding et marges.
+			 */
+			spacing: {
+				'p': '0.5rem',
+				'p-tablet': '3rem',
+				'p-desktop': '3rem',
+				'p-wide': '3rem',
+				'p-extra-wide': '3rem',
+			},
+			/**
+			 * Les hauteurs des éléments.
+			 */
+			height: {
+				'navbar': '62px',
+				'footer': '34px',
+			},
+			/**
 			 * Les écrans pour le mode responsive.
 			 */
 			screens: {

@@ -1,9 +1,9 @@
 import { particlesService } from './services';
 import { uiStore } from '../stores/ui.store';
 import { getHTMLElementById } from '../utils/dom.utils';
-import { appId } from '../config/routes.config';
+import { APP_ID } from '../config/routes.config';
 import { RouteConfig, PageInstance } from '../types/routes.types';
-import { componentContainers } from '../config/components.config';
+import { HTML_COMPONENT_CONTAINERS } from '../config/components.config';
 
 // ===========================================
 // PAGE SERVICE
@@ -44,8 +44,8 @@ export class PageService {
 	public async renderPage(config: RouteConfig, page: PageInstance): Promise<void> {
 
 		this.toggleParticles(config);
-		const appDiv = getHTMLElementById(appId);
-		const navbarDiv = getHTMLElementById(componentContainers.navbarId);
+		const appDiv = getHTMLElementById(APP_ID);
+		const navbarDiv = getHTMLElementById(HTML_COMPONENT_CONTAINERS.NAVBAR_ID);
 		await this.pageTransitionOut(appDiv);
 		if (uiStore.animateNavbarOut === true) {
 			await this.navbarTransitionOut(navbarDiv);

@@ -2,9 +2,9 @@ import { BasePage } from './base.page';
 import { userCrudApi } from '../api/user/user.api';
 import { UserRowComponent } from '../components/user-row/user-row.component';
 import { getHTMLElementById } from '../utils/dom.utils';
-import { componentNames, componentContainers } from '../config/components.config';
 import { RouteConfig } from '../types/routes.types';
 import { ComponentConfig } from '../types/components.types';
+import { COMPONENT_NAMES, HTML_COMPONENT_CONTAINERS } from '../config/components.config';
 
 // ===========================================
 // USERS PAGE
@@ -43,23 +43,12 @@ export class UsersPage extends BasePage {
 			return;
 		}
 		this.checkUserLogged();
-		const config = this.components[componentNames.userRow];
+		const config = this.components[COMPONENT_NAMES.USER_ROW];
 		if (!config || !this.shouldRenderComponent(config)
 			|| !this.isValidConfig(config, false)) {
-			throw new Error(`Configuration du composant '${componentNames.userRow}' invalide`);
+			throw new Error(`Configuration du composant '${COMPONENT_NAMES.USER_ROW}' invalide`);
 		}
 		this.componentConfig = config;
-	}
-
-	/**
-	 * Méthode de montage de la page.
-	 * 
-	 * Appelle loadSpecificComponents() pour charger les composants propres à cette page.
-	 * 
-	 * @returns {Promise<void>} Une promesse qui se résout lorsque les composants sont chargés.
-	 */
-	protected async mount(): Promise<void> {
-		await this.loadSpecificComponents();
 	}
 
 	/**
@@ -90,7 +79,7 @@ export class UsersPage extends BasePage {
 	 */
 	protected async injectUserList(): Promise<void> {
 		const users = await userCrudApi.getUsers();
-		const userList = getHTMLElementById(componentContainers.userListId);
+		const userList = getHTMLElementById(HTML_COMPONENT_CONTAINERS.USER_LIST_ID);
 
 		let i = 1;
 		for (const user of users) {
@@ -100,7 +89,7 @@ export class UsersPage extends BasePage {
 
 			const tr = tempContainer.querySelector('tr');
 			if (tr) {
-				tr.id = `${componentNames.userRow}-${i}`;
+				tr.id = `${COMPONENT_NAMES.USER_ROW}-${i}`;
 				userList.appendChild(tr);
 			}
 			const instanceKey = `${this.componentConfig!.name}-${user.id}`;

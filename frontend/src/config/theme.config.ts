@@ -6,7 +6,7 @@
  *
  * Ce fichier est importé par :
  * - tailwind.config.mjs: pour définir des class personnalisées
- * - theme.config.ts: pour les couleurs des particules
+ * - particles.service.ts: pour les couleurs des particules
  *
  * Les configurations sont divisées en plusieurs constantes: les couleurs, les polices,
  * les images, etc.
@@ -34,6 +34,7 @@ export const fonts = {
 export const colorsTheme1 = {
     darkBlue: '#10131B',
     pastelBlue: '#3b4e7f',
+    googleBlue: '#3c6eed',
     white: '#FFFFFF',
     black: '#000000'
 } as const;
@@ -61,5 +62,5 @@ export const particleColors = {
  * Chaque clé représente un nom symbolique de l'image.
  */
 export const images = {
-    forestWallpaper: "url('/img/design/forest-bg.jpg')"
+    forestWallpaper: "url('/assets/img/design/forest-bg.jpg')"
 } as const;

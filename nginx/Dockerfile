@@ -15,7 +15,8 @@ COPY frontend/vite.config.ts ./
 COPY frontend/postcss.config.mjs ./
 COPY frontend/tailwind.config.mjs ./
 
-# Copier le code source
+# Copier le code source + env
+COPY frontend/.env ./
 COPY frontend/index.html ./
 COPY frontend/src ./src
 COPY shared /app/src/shared
@@ -35,7 +36,7 @@ FROM nginx:stable-alpine
 COPY --from=frontend-builder /app/dist /usr/share/nginx/html
 
 # Copier la config nginx personnalisée
-COPY nginx/nginx.prod.conf /etc/nginx/nginx.conf
+COPY nginx/nginx.conf /etc/nginx/nginx.conf
 
 # Installer openssl dans l'image
 RUN apk add --no-cache openssl bash

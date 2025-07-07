@@ -5,8 +5,8 @@
 				</div>
 			</div>
 
-			<div class="section-box register-box">
-				 <form class="form-box" id="register-form" enctype="multipart/form-data">
+			<div class="section-box auth-box">
+				<form class="form-box" id="register-form" enctype="multipart/form-data">
 
 					<div class="fields-container">
 
@@ -32,7 +32,7 @@
 						<div class="field-box">
 							<label for="question">Question <span class="important-field">*</span> :</label>
 							<select name="question" id="question" required>
-								<option value="">-- Select a secret question --</option>
+								<option value="-" disabled selected>-- Select a secret question --</option>
 								<option value="1">Your mother's name</option>
 								<option value="2">Your pet's name</option>
 								<option value="3">Your favourite color</option>
@@ -48,7 +48,7 @@
 						<!-- Avatar -->
 						<div class="field-box">
 							<label for="avatar">Avatar :</label>
-							<input type="file" id="avatar" name="avatar" accept="image/*" class="avatar-field">
+							<input type="file" id="avatar" name="avatar" class="avatar-field" accept="image/*">
 						</div>
 					</div> 
 
@@ -62,11 +62,15 @@
 					<div id="alert" aria-live="assertive" class="hidden"></div>
 				</form>
 
+				<hr class="form-separator mb-5">
+
 				<div class="btn-container btn-google-container">
-					<a href="/api/auth/google" class="btn-google " aria-label="Sign in with Google">
-						<img src="/img/design/google-icon.svg" alt="Google logo" class="google-logo" />
-						<span>Sign in with Google</span>
-					</a>
+					<button id="custom-google-btn" class="custom-google-button">
+						<div class="google-icon-wrapper">
+							<img src="/assets/img/design/google-icon.svg" alt="Google logo" class="google-icon" />
+						</div>
+						<span>Continue with Google</span>
+					</button>
 				</div>
 			</div>
 

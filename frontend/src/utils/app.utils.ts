@@ -1,6 +1,4 @@
 import { userStore } from '../stores/user.store';
-import { componentsConfig, componentNames } from '../config/components.config';
-import { NavbarComponent } from '../components/navbar/navbar.component';
 
 
 // ===========================================

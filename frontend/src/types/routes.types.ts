@@ -1,6 +1,6 @@
 import { BasePage } from '../pages/base.page';
 import { ComponentName, ComponentConfig } from './components.types';
-import { pageNames, routePaths, templatePaths } from '../config/routes.config';
+import { PAGE_NAMES, ROUTE_PATHS, TEMPLATE_PATHS } from '../config/routes.config';
 
 // ===========================================
 // ROUTES TYPES
@@ -86,10 +86,10 @@ export interface PageInstance {
 /**
  * Type pour les chemins de routes.
  * 
- * `RoutePathsMap` représente le type des chemins de routes définis dans `routePaths`.
+ * `RoutePathsMap` représente le type des chemins de routes définis dans `ROUTE_PATHS`.
  * `RoutePath` représente une des valeurs possibles des chemins de routes.
  */
-export type RoutePathsMap = typeof routePaths;
+export type RoutePathsMap = typeof ROUTE_PATHS;
 
 /**
  * Type pour les chemins de routes.
@@ -102,10 +102,10 @@ export type RoutePath = RoutePathsMap[keyof RoutePathsMap];
 /**
  * Types pour les noms de pages.
  * 
- * `PageNamesMap` représente le type des noms de pages définis dans `pageNames`.
+ * `PageNamesMap` représente le type des noms de pages définis dans `PAGE_NAMES`.
  * `PageName` représente une des valeurs possibles des noms de pages.
  */
-export type PageNamesMap = typeof pageNames;
+export type PageNamesMap = typeof PAGE_NAMES;
 
 /**
  * Type pour les noms de pages.
@@ -118,10 +118,10 @@ export type PageName = PageNamesMap[keyof PageNamesMap];
 /**
  * Type pour les chemins de templates HTML.
  * 
- * `TemplatePathsMap` représente le type des chemins de templates définis dans `templatePaths`.
+ * `TemplatePathsMap` représente le type des chemins de templates définis dans `TEMPLATE_PATHS`.
  * `TemplatePath` représente une des valeurs possibles des chemins de templates.
  */
-export type TemplatePathsMap = typeof templatePaths;
+export type TemplatePathsMap = typeof TEMPLATE_PATHS;
 
 /**
  * Type pour les chemins de templates HTML.
