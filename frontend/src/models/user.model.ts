@@ -24,7 +24,7 @@ export class User {
 		public avatar: string,
 		public email: string,
 		public registration: string,
-		public lastlog: string,
+		public begin_log: string,
 		public tournament: number,
 		public game_played: number,
 		public game_win: number,
@@ -58,7 +58,7 @@ export class User {
 	}
 
 	get formattedLastLog(): string {
-		return this.lastlog ? new Date(this.lastlog).toLocaleString() : 'User has never logged in';
+		return this.begin_log ? new Date(this.begin_log).toLocaleString() : 'User has never logged in';
 	}
 
 	// ============================================================================
@@ -98,7 +98,7 @@ export class User {
 			username: this.username,
 			avatar: this.avatar,
 			registration: this.registration,
-			lastlog: this.lastlog,
+			begin_log: this.begin_log,
 			tournament: this.tournament,
 			game_played: this.game_played,
 			game_win: this.game_win,
@@ -125,7 +125,8 @@ export class User {
 			avatar: this.avatar,
 			email: this.email,
 			registration: this.registration,
-			lastlog: this.lastlog,
+			begin_log: this.begin_log,
+			// end_log: this.end_log,
 			tournament: this.tournament,
 			game_played: this.game_played,
 			game_win: this.game_win,
@@ -162,7 +163,8 @@ export class User {
 			data.avatar ?? 'default.png',
 			data.email ?? '',
 			data.registration ?? '',
-			data.lastlog ?? '',
+			data.begin_log ?? '',
+			// data.end_log ?? '',
 			data.tournament ?? 0,
 			data.game_played ?? 0,
 			data.game_win ?? 0,
@@ -204,7 +206,8 @@ export class User {
 			data.avatar ?? 'default.png',
 			'', // Email vide pour les données publiques
 			'', // Registration vide
-			'', // Lastlog vide
+			'', // begin_log vide
+			// '', end_log vide
 			0,  // Tournament à 0
 			data.game_played ?? 0,
 			data.game_win ?? 0,

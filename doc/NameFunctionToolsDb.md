@@ -15,7 +15,7 @@ retourne les infos de tous les users pour l authentification sans password
 accessible sur '/api/users'
 
 --------- getUserFriends(userId: number) -----------
-retourne les potes de l'userID -> pour le moment juste le nom, avatar et lastlog. 
+retourne les potes de l'userID -> pour le moment juste le nom, avatar et begin_log. 
 accessible sur '/api/users:id/friends'
 
 ---------------------- getUserGames(id) ----------------

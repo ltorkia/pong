@@ -1,6 +1,9 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
-import { getAllUsers, getUser, getUserFriends, getUserGames, getUserChat } from '../db/user';
+// import { getAllUsers, getUser, getUserFriends, getUserGames, getUserChat } from '../db/user';
+import { getAllUsers, getUser, getUserFriends, getUserGames, getUserChat, getAvatar } from '../db/user';
 import { requireAuth } from '../helpers/auth.helpers';
+import fs from 'fs/promises';
+import path from 'path';
 
 export async function usersRoutes(app: FastifyInstance) {
 	// pour afficher tous les users : nom + email
@@ -66,5 +69,28 @@ export async function usersRoutes(app: FastifyInstance) {
 			return reply.code(404).send({ Error : 'User not found'});
 		return chat;
 	})
+// -       //pour takeback l avatar en base 64 stocke dans le serveur 
+// -       app.get('/:id/avatar', async(request: FastifyRequest, reply: FastifyReply) => {
+// -               const jwtUser = requireAuth(request, reply);
+// -               if (!jwtUser) {
+// -                       return;
+// -               }               
+// -               const { id } = request.params as { id: number };
+// -               const avatarPath = await getAvatar(id);
+// -               console.log(avatarPath);
+// -               if (!avatarPath)
+// -                       return reply.code(210).send({ Error : 'avatar not found'});
+// -
+// -               try {
+// -                       const data = await fs.readFile(avatarPath.avatar);
+// -                       const data64 = data.toString('base64');
+// -                   reply.status(200).send({
+// -                       avatar: data64,
+// -                               // Content-Type: image/png
+// -               });
+// -               } catch (error) {
+// -       reply.status(500).send({ error: 'Impossible de lire l\'avatar' });
+// -               }
+// -       })
 };
 
