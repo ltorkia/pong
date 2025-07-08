@@ -173,7 +173,6 @@ export class UserService {
 	 * @param {number} userId - ID de l'utilisateur dont la session doit être validée.
 	 * @returns {Promise<boolean>} true si la session est valide, false sinon.
 	 */
-
 	private async validateUserSession(userId: number): Promise<boolean> {
 		try {
 			const response = await userAuthApi.validateSession(userId);
