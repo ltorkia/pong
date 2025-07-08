@@ -67,7 +67,6 @@ async function GetAvatarFromFront(user: Partial<UserPassword>, reply: FastifyRep
 
 	// rename l image
 	const filename = user.username! + extension[avatarType];
-
 	// Telechargement de l avatar
 	// const fileStreamNew = avatarFile.file;
 	// const avatarBuffer = await fileStreamNew.toBuffer();
@@ -222,7 +221,6 @@ export async function authRoutes(app: FastifyInstance) {
 			// !!!TODO PIPELINE A SECURISER PEUT FOUTRE LA MERDE
 			if (avatarFile) {
 				await GetAvatarFromFront(user, reply, avatarFile);
-				return;
 			}
 			// si on veut skip la double auth -> decommenter ligne suivante
 			// ProcessAuth(app, userAuth, reply);
@@ -250,13 +248,9 @@ export async function authRoutes(app: FastifyInstance) {
 		} catch (err) {
 			request.log.error(err);
 			return reply.status(500).send({
-				errorMessage: 'Erreur serveur lors de l’inscription',
+				errorMessage: 'Erreur serveur lors de l\'inscription',
 			});
 		}
-		return reply.status(200).send({
-			statusCode: 200,
-			message: 'Successful registration.'
-		});
 	});
 
 	// LOGIN

@@ -94,7 +94,6 @@ export class RegisterPage extends BasePage {
 	protected handleRegisterSubmit = async (event: Event): Promise<void> => {
 		event.preventDefault();
 		const formData = new FormData(this.form);
-		// const data = Object.fromEntries(formData.entries()) as Record<string, string>;
 		await userService.registerUser(formData);
 	};
 }

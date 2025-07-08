@@ -75,29 +75,22 @@ export class UserAuthApi {
 	 * Envoie une requête POST à la route API `/auth/register` pour inscrire
 	 * un nouvel utilisateur avec les informations données dans l'objet `userData`.
 	 * 
-	 * Si l'inscription réussit, stocke l'utilisateur en mémoire vive avec email, 
-	 * en localStorage sans email, et renvoie un objet avec la clé `user` contenant l'utilisateur
-	 * créé. Sinon, renvoie un objet avec la clé `errorMessage` contenant le message
+	 * En cas d'erreur, renvoie un objet avec la clé `errorMessage` contenant le message
 	 * d'erreur.
 	 * 
-	 * @param {Record<string, string>} userData Informations de l'utilisateur à inscrire.
+	 * @param {FormData} formData Les données utilisateur extraites du formulaire.
 	 * @returns {Promise<AuthResponse>} Promesse qui se résout avec l'utilisateur créé
 	 *  ou un objet d'erreur.
 	 */
-	public async registerUser(data: Record<string, string>): Promise<AuthResponse> {
-		const form = document.getElementById('register-form') as HTMLFormElement;
-		const formData = new FormData(form);
+	public async registerUser(formData: FormData): Promise<AuthResponse> {
 		const res: Response = await fetch('/api/auth/register', {
 			method: 'POST',
-			// headers: { 'Content-Type': 'application/json' },
 			body: formData,
 			credentials: 'include',
 		});
-		// body: JSON.stringify(data),
-		const result: AuthResponse = await res.json();
-		// if (!res.ok || result.errorMessage || !result.user) {
-			if (!res.ok || result.errorMessage) {
-			return { errorMessage: result.errorMessage || result.message || 'Erreur avec la récupération de l\'utilisateur' } as AuthResponse;
+		const data: AuthResponse = await res.json();
+			if (!res.ok || data.errorMessage) {
+			return { errorMessage: data.errorMessage || data.message || 'Erreur avec la récupération de l\'utilisateur' } as AuthResponse;
 		}
 		return data as AuthResponse;
 	}

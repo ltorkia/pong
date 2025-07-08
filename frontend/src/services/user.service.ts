@@ -191,17 +191,16 @@ export class UserService {
 	 * Inscription d'un utilisateur
 	 * 
 	 * Fait une requête API pour inscrire un utilisateur.
-	 * Si la requête réussit, stocke l'utilisateur dans le store et le localStorage,
-	 * affiche un message de confirmation, active l'animation d'entrée de la barre de navigation
-	 * et redirige vers la page d'accueil.
+	 * Si la requête réussit, redirige vers la page d'accueil.
+	 * Sinon affiche le contenu de 'errorMessage' ou 'Erreur réseau'.
 	 * 
-	 * @param {Record<string, string>} data Informations de l'utilisateur à inscrire.
+	 * @param {FormData} formData Les données utilisateur extraites du formulaire.
 	 * @returns {Promise<void>} Promesse qui se résout lorsque l'opération est terminée.
 	 * @throws {Error} Si la requête échoue.
 	 */
-	public async registerUser(data: FormData): Promise<void> {
+	public async registerUser(formData: FormData): Promise<void> {
 		try {
-			const result: AuthResponse = await userAuthApi.registerUser(data);
+			const result: AuthResponse = await userAuthApi.registerUser(formData);
 			if (result.errorMessage) {
 				console.error(`[${this.constructor.name}] Erreur d\'inscription :`, result);
 				showAlert(result.errorMessage);
@@ -224,14 +223,14 @@ export class UserService {
 	 * informations d'identification. Il s'agit de la première étape qui 
 	 * consiste à vérifier que son email existe et que son mot de passe est correct.
 	 * 
-	 * @param {Record<string, string>} data Informations de l'utilisateur à connecter.
+	 * @param {Record<string, string>} userData Informations de l'utilisateur à connecter.
 	 * @returns {Promise<AuthResponse>} Promesse qui se résout avec les informations de
 	 * l'utilisateur qui tente de se connecter ou un objet d'erreur.
 	 * @throws {Error} Si la requête échoue ou en cas d'erreur réseau.
 	 */
-	public async loginUser(data: Record<string, string>): Promise<AuthResponse> {
+	public async loginUser(userData: Record<string, string>): Promise<AuthResponse> {
 		try {
-			const result: AuthResponse = await userAuthApi.loginUser(data);
+			const result: AuthResponse = await userAuthApi.loginUser(userData);
 
 			if (result.errorMessage) {
 				console.error(`[${this.constructor.name}] Erreur d'authentification :`, result);
@@ -261,7 +260,7 @@ export class UserService {
 	 * un message d'erreur ou un message de confirmation.
 	 */
 	public async send2FA(userData: Record<string, string>): Promise<AuthResponse> {
-		const res2FA = await userAuthApi.send2FA(userData);
+		const res2FA: AuthResponse = await userAuthApi.send2FA(userData);
 		if (res2FA.errorMessage) {
 			return { errorMessage: res2FA.errorMessage || res2FA.message || 'Erreur inconnue' } as AuthResponse;
 		}
@@ -276,14 +275,14 @@ export class UserService {
 	 * active l'animation d'entrée de la barre de navigation
 	 * et redirige vers la page d'accueil.
 	 * 
-	 * @param {Record<string, string>} data Informations de l'utilisateur à connecter.
+	 * @param {Record<string, string>} userData Informations de l'utilisateur à connecter.
 	 * @returns {Promise<AuthResponse>} Promesse qui se résout avec l'utilisateur
 	 *   authentifié ou un objet d'erreur.
 	 * @throws {Error} Si la requête échoue ou en cas d'erreur réseau.
 	 */
-	public async twofaConnectUser(data: Record<string, string>): Promise<AuthResponse> {
+	public async twofaConnectUser(userData: Record<string, string>): Promise<AuthResponse> {
 		try {
-			const result: AuthResponse = await userAuthApi.twofaConnectUser(data);
+			const result: AuthResponse = await userAuthApi.twofaConnectUser(userData);
 			if (result.errorMessage) {
 				console.error(`[${this.constructor.name}] Erreur d'authentification :`, result);
 				return { errorMessage: result.errorMessage };

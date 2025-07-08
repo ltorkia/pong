@@ -19,7 +19,7 @@ async function start() {
 	// Instanciation de Fastify
 	const app = Fastify({ 
 		logger: true,
-		ignoreTrailingSlash: true // ignore les / à la fin des urls
+		ignoreTrailingSlash: true, // ignore les / à la fin des urls
 	});
 
 	// Sécurise
