@@ -142,4 +142,16 @@ export class LoginPage extends BasePage {
 	protected removeListeners(): void {
 		this.form.removeEventListener('submit', this.handleLoginSubmit);
 	}
+
+	/**
+	 * Surcharge de la méthode cleanup de BasePage.
+	 * 
+	 * Nettoie les ressources spécifiques à cette page (Google Sign-In),
+	 * puis appelle la méthode cleanup de la classe parent.
+	 */
+	public async cleanup(): Promise<void> {
+		console.log(`[${this.constructor.name}] Nettoyage Google sign in...`);
+		userService.cleanupGoogleSignIn();
+		await super.cleanup();
+	}
 }

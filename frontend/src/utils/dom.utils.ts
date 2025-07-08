@@ -41,78 +41,6 @@ export async function loadTemplate(path: string): Promise<string> {
 }
 
 /**
- * Renvoie l'élément HTML portant l'identifiant (id) passé en paramètre, dans le conteneur
- * passé en paramètre (par défaut, c'est le document courant).
- * Si l'élément n'est pas trouvé, lance une erreur.
- *
- * @param {string} elementId - Identifiant (id) de l'élément à chercher.
- * @param {Document | ParentNode} [container=document] - Conteneur dans lequel chercher l'élément.
- * @returns {HTMLElement} - L'élément HTML portant l'identifiant (id) demandé.
- * @throws {Error} - Si l'élément n'est pas trouvé dans le DOM.
- */
-export function getHTMLElementById(elementId: string, container: Document | ParentNode = document): HTMLElement {
-	const element = container.querySelector(`#${elementId}`);
-	if (!(element instanceof HTMLElement)) {
-		throw new Error(`Elément #${elementId} introuvable dans le DOM`);
-	}
-	return element;
-}
-
-/**
- * Renvoie l'élément HTML portant la classe CSS passée en paramètre, dans le conteneur
- * passé en paramètre (par défaut, c'est le document courant).
- * Si l'élément n'est pas trouvé, lance une erreur.
- *
- * @param {string} elementClass - Nom de la classe CSS de l'élément à chercher.
- * @param {Document | ParentNode} [container=document] - Conteneur dans lequel chercher l'élément.
- * @returns {HTMLElement} - L'élément HTML portant la classe CSS demandée.
- * @throws {Error} - Si l'élément n'est pas trouvé dans le DOM.
- */
-export function getHTMLElementByClass(elementClass: string, container: Document | ParentNode = document): HTMLElement {
-	const element = container.querySelector(`.${elementClass}`);
-	if (!(element instanceof HTMLElement)) {
-		throw new Error(`Elément .${elementClass} introuvable dans le DOM`);
-	}
-	return element;
-}
-
-/**
- * Renvoie l'élément HTML portant la balise HTML passée en paramètre, dans le conteneur
- * passé en paramètre (par défaut, c'est le document courant).
- * Si l'élément n'est pas trouvé, lance une erreur.
- *
- * @param {string} elementTag - Nom de la balise HTML de l'élément à chercher.
- * @param {Document | ParentNode} [container=document] - Conteneur dans lequel chercher l'élément.
- * @returns {HTMLElement} - L'élément HTML portant la balise HTML demandée.
- * @throws {Error} - Si l'élément n'est pas trouvé dans le DOM.
- */
-export function getHTMLElementByTagName(elementTag: string, container: Document | ParentNode = document): HTMLElement {
-	const element = container.querySelector(`${elementTag}`);
-	if (!(element instanceof HTMLElement)) {
-		throw new Error(`Elément ${elementTag} introuvable dans le DOM`);
-	}
-	return element;
-}
-
-/**
- * Retourne un élément HTML de type <a> ayant l'attribut href donné, dans le conteneur
- * passé en paramètre (par défaut, le document).
- * Si l'élément n'existe pas, lance une erreur.
- *
- * @param {string} hrefValue - Valeur de l'attribut href du lien à chercher (ex: "/logout").
- * @param {(Document | ParentNode)} [container=document] - Conteneur dans lequel chercher l'élément.
- * @returns {HTMLAnchorElement} - L'élément <a> trouvé.
- * @throws {Error} - Si l'élément n'est pas trouvé.
- */
-export function getHTMLAnchorElement(hrefValue: string, container: Document | ParentNode = document): HTMLAnchorElement {
-	const element = container.querySelector(`a[href="${hrefValue}"]`);
-	if (!(element instanceof HTMLAnchorElement)) {
-		throw new Error(`Elément a[href="${hrefValue}"] introuvable dans le DOM`);
-	}
-	return element;
-}
-
-/**
  * Alterne entre deux classes CSS sur un élément, avec une classe optionnelle.
  * Si l'élément a la classe `classA`, elle est remplacée par `classB` (et `classC` ajoutée si fournie).
  * Sinon, `classB` (et `classC`) sont retirées, et `classA` ajoutée.
@@ -185,4 +113,94 @@ export function hideSpinner(id: string = 'twofa-spinner'): void {
 	const el = getHTMLElementById(id);
 	el.classList.add('hidden');
 	el.setAttribute('aria-hidden', 'true');
+}
+
+/**
+ * Renvoie l'élément HTML portant l'identifiant (id) passé en paramètre, dans le conteneur
+ * passé en paramètre (par défaut, c'est le document courant).
+ * Si l'élément n'est pas trouvé, lance une erreur.
+ *
+ * @param {string} elementId - Identifiant (id) de l'élément à chercher.
+ * @param {Document | ParentNode} [container=document] - Conteneur dans lequel chercher l'élément.
+ * @returns {HTMLElement} - L'élément HTML portant l'identifiant (id) demandé.
+ * @throws {Error} - Si l'élément n'est pas trouvé dans le DOM.
+ */
+export function getHTMLElementById(elementId: string, container: Document | ParentNode = document): HTMLElement {
+	const element = container.querySelector(`#${elementId}`);
+	if (!(element instanceof HTMLElement)) {
+		throw new Error(`Elément #${elementId} introuvable dans le DOM`);
+	}
+	return element;
+}
+
+/**
+ * Renvoie l'élément HTML portant la classe CSS passée en paramètre, dans le conteneur
+ * passé en paramètre (par défaut, c'est le document courant).
+ * Si l'élément n'est pas trouvé, lance une erreur.
+ *
+ * @param {string} elementClass - Nom de la classe CSS de l'élément à chercher.
+ * @param {Document | ParentNode} [container=document] - Conteneur dans lequel chercher l'élément.
+ * @returns {HTMLElement} - L'élément HTML portant la classe CSS demandée.
+ * @throws {Error} - Si l'élément n'est pas trouvé dans le DOM.
+ */
+export function getHTMLElementByClass(elementClass: string, container: Document | ParentNode = document): HTMLElement {
+	const element = container.querySelector(`.${elementClass}`);
+	if (!(element instanceof HTMLElement)) {
+		throw new Error(`Elément .${elementClass} introuvable dans le DOM`);
+	}
+	return element;
+}
+
+/**
+ * Renvoie l'élément HTML portant la balise HTML passée en paramètre, dans le conteneur
+ * passé en paramètre (par défaut, c'est le document courant).
+ * Si l'élément n'est pas trouvé, lance une erreur.
+ *
+ * @param {string} elementTag - Nom de la balise HTML de l'élément à chercher.
+ * @param {Document | ParentNode} [container=document] - Conteneur dans lequel chercher l'élément.
+ * @returns {HTMLElement} - L'élément HTML portant la balise HTML demandée.
+ * @throws {Error} - Si l'élément n'est pas trouvé dans le DOM.
+ */
+export function getHTMLElementByTagName(elementTag: string, container: Document | ParentNode = document): HTMLElement {
+	const element = container.querySelector(`${elementTag}`);
+	if (!(element instanceof HTMLElement)) {
+		throw new Error(`Elément ${elementTag} introuvable dans le DOM`);
+	}
+	return element;
+}
+
+/**
+ * Retourne un élément HTML de type <a> ayant l'attribut href donné, dans le conteneur
+ * passé en paramètre (par défaut, le document).
+ * Si l'élément n'existe pas, lance une erreur.
+ *
+ * @param {string} hrefValue - Valeur de l'attribut href du lien à chercher (ex: "/logout").
+ * @param {(Document | ParentNode)} [container=document] - Conteneur dans lequel chercher l'élément.
+ * @returns {HTMLAnchorElement} - L'élément <a> trouvé.
+ * @throws {Error} - Si l'élément n'est pas trouvé.
+ */
+export function getHTMLAnchorElement(hrefValue: string, container: Document | ParentNode = document): HTMLAnchorElement {
+	const element = container.querySelector(`a[href="${hrefValue}"]`);
+	if (!(element instanceof HTMLAnchorElement)) {
+		throw new Error(`Elément a[href="${hrefValue}"] introuvable dans le DOM`);
+	}
+	return element;
+}
+
+/**
+ * Retourne un élément HTML de type <script> ayant l'attribut src donné, dans le conteneur
+ * passé en paramètre (par défaut, le document).
+ * Si l'élément n'existe pas, lance une erreur.
+ *
+ * @param {string} srcValue - Valeur de l'attribut src du script à chercher (ex: "https://accounts.google.com/gsi/client").
+ * @param {(Document | ParentNode)} [container=document] - Conteneur dans lequel chercher l'élément.
+ * @returns {HTMLScriptElement} - L'élément <script> trouvé.
+ * @throws {Error} - Si l'élément n'est pas trouvé.
+ */
+export function getHTMLScriptElement(srcValue: string, container: Document | ParentNode = document): HTMLScriptElement {
+	const element = container.querySelector(`script[src="${srcValue}"]`);
+	if (!(element instanceof HTMLScriptElement)) {
+		throw new Error(`Élément script[src="${srcValue}"] introuvable dans le DOM`);
+	}
+	return element;
 }

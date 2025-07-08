@@ -12,8 +12,8 @@ declare namespace google {
 			callback: (response: CredentialResponse) => void;
 			use_fedcm_for_prompt?: boolean;
 		}): void;
-
 		function renderButton(parent: HTMLElement, options: any): void;
+		function disableAutoSelect(): void;
 
 		interface CredentialResponse {
 			credential: string;

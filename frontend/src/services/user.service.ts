@@ -5,6 +5,7 @@ import { userStore } from '../stores/user.store';
 import { userAuthApi } from '../api/user/user.api';
 import { AuthResponse, BasicResponse } from '../types/api.types';
 import { uiStore } from '../stores/ui.store';
+import { getHTMLElementById, getHTMLScriptElement } from '../utils/dom.utils';
 import { COOKIES_CONST } from '../shared/config/constants.config'; // en rouge car dossier local 'shared' != dossier du conteneur
 import { DEFAULT_ROUTE, AUTH_FALLBACK_ROUTE } from '../config/routes.config';
 import { REGISTERED_MSG } from '../config/messages.config';
@@ -304,14 +305,15 @@ export class UserService {
 	/**
 	 * Initialise le bouton Google Sign-In.
 	 * 
-	 * Charge le script Google, crée le bouton Google Sign-In et l'attache au
+	 * Charge le script Google s'il n'existe pas,
+	 * crée le bouton Google Sign-In et l'attache au
 	 * document HTML. Une fois le script chargé, le bouton est mis en place.
 	 * 
 	 * @returns {Promise<void>} Une promesse qui se résout lorsque le bouton
 	 * est initialisé.
 	 */
 	public async initGoogleSignIn(): Promise<void> {
-		
+
 		// Charger le script Google
 		const script = document.createElement('script');
 		script.src = 'https://accounts.google.com/gsi/client';
@@ -345,11 +347,12 @@ export class UserService {
 
 		// Créer un bouton Google invisible
 		const hiddenContainer = document.createElement('div');
+		hiddenContainer.id = 'google-signin-container';
 		hiddenContainer.style.display = 'none';
 		document.body.appendChild(hiddenContainer);
 		google.accounts.id.initialize({
 			client_id: clientId,
-			callback: this.handleCredentialResponse.bind(this)
+			callback: this.googleConnectUser.bind(this)
 		});
 
 		google.accounts.id.renderButton(hiddenContainer, {});
@@ -367,6 +370,42 @@ export class UserService {
 	}
 
 	/**
+	 * Nettoie les ressources Google Sign-In.
+	 * 
+	 * Supprime le script Google, le conteneur du bouton,
+	 * le lien CSS + styles ajoutés automatiquement par Google,
+	 * et le meta origin-trial ajouté dans le <head>.
+	 * 
+	 * @returns {void}
+	 */
+	public cleanupGoogleSignIn(): void {
+		// Supprimer le conteneur du bouton Google
+		const container = getHTMLElementById('google-signin-container');
+		container.remove();
+		console.log(`[${this.constructor.name}] Conteneur Google Sign-In supprimé`);
+
+		// Supprimer le script Google
+		const script = getHTMLScriptElement('https://accounts.google.com/gsi/client');
+		script.remove();
+		console.log(`[${this.constructor.name}] Script Google Sign-In supprimé`);
+
+		// Supprimer le lien CSS + styles ajoutés automatiquement par Google
+		const googleLink = getHTMLElementById('googleidentityservice');
+		googleLink.remove();
+		console.log(`[${this.constructor.name}] Lien CSS Google Identity Service supprimé`);
+		const googleButtonStyles = getHTMLElementById('googleidentityservice_button_styles');
+		googleButtonStyles.remove();
+		console.log(`[${this.constructor.name}] Style CSS Google Button supprimé`);
+
+		// Supprimer le meta origin-trial ajouté automatiquement par Google dans le <head>
+		const originTrialMeta = document.querySelector('meta[http-equiv="origin-trial"]');
+		if (originTrialMeta) {
+			originTrialMeta.remove();
+			console.log(`[${this.constructor.name}] Meta origin-trial Google supprimé`);
+		}
+	}
+
+	/**
 	 * Callback pour la réponse de l'API Google Identity Services.
 	 * 
 	 * - Extrait l'ID token de la réponse.
@@ -380,7 +419,7 @@ export class UserService {
 	 * @param {google.accounts.id.CredentialResponse} response - La réponse de l'API Google.
 	 * @returns {Promise<void>} Promesse qui se résout lorsque l'opération est terminée.
 	 */
-	public async handleCredentialResponse(response: google.accounts.id.CredentialResponse): Promise<void> {
+	public async googleConnectUser(response: google.accounts.id.CredentialResponse): Promise<void> {
 		const id_token = response.credential;
 		try {
 			const result = await userAuthApi.googleConnectUser(id_token);
