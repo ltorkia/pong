@@ -13,5 +13,5 @@ export const alertStyles = {
 	},
 } as const;
 
-export type AlertColor = keyof typeof alertStyles;
-export type AlertStyle = typeof alertStyles[AlertColor];
+export type AlertTheme = keyof typeof alertStyles;
+export type AlertStyle = typeof alertStyles[AlertTheme];

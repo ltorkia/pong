@@ -56,9 +56,9 @@ export abstract class BasePage {
 	/**
 	 * Méthode principale de rendu de la page.
 	 * 
-	 * - Vérifie l'authentification de l'utilisateur si la page est privée.
-	 * - Exécute les étapes de pré-rendering avec `beforeMount()`.
+	 * - Vérifie les conditions de pré-rendering avant le montage de la page.
 	 * - Charge le template HTML et l'injecte dans le conteneur.
+	 * - Exécute les étapes de pré-rendering avec `beforeMount()`.
 	 * - Charge et rend les composants persistants - comme la navbar - si besoin.
 	 * - Charge et rend les composants spécifiques à la page.
 	 * - Exécute les opérations de montage spécifiques à la page.
@@ -70,22 +70,50 @@ export abstract class BasePage {
 	public async render(): Promise<void> {
 		try {
 			console.log(`[${this.constructor.name}] Début du rendu...`);
-			this.checkUserLogged();
+
+			this.preRenderCheck();
+			await this.loadTemplate();
 			await this.beforeMount();
-			const html = await loadTemplate(this.templatePath);
-			this.container.innerHTML = html;
-			console.log(`[${this.constructor.name}] HTML injecté`);
 			await this.loadPersistentComponents();
 			await this.loadSpecificComponents();
 			await this.mount();
-			console.log(`[${this.constructor.name}] Page montée, rendu terminé`);
 			this.attachListeners();
-			console.log(`[${this.constructor.name}] Listeners attachés`);
+
+			console.log(`[${this.constructor.name}] Page montée, rendu terminé`);
 
 		} catch (error) {
 			console.error(`Erreur lors du rendu de ${this.constructor.name}: `, error);
 			this.container.innerHTML = this.getErrorMessage();
 		}
+	}
+
+	/**
+	 * Procède aux vérifications nécessaires avant le montage de la page.
+	 * 
+	 * Vérifie que l'utilisateur est bien authentifié si la page est privée.
+	 * Si l'utilisateur n'est pas trouvé, une erreur est levée.
+	 * Les sous-classes peuvent réutiliser cette méthode et ajouter leurs propres checks.
+	 * Pour garder aussi celui-ci, ajouter super.preRenderCheck();
+	 */
+	protected preRenderCheck(): void {
+		this.checkUserLogged();
+	}
+
+	/**
+	 * Charge le template HTML correspondant au chemin de template stocké
+	 * dans la propriété templatePath de la page.
+	 * 
+	 * Si le template est déjà en cache, le récupère directement.
+	 * Sinon, fetch le template et le stocke en cache.
+	 * Injecte le contenu HTML dans le conteneur de la page.
+	 * 
+	 * @returns {Promise<void>} Une promesse qui se résout lorsque le template
+	 * est chargé et injecté dans le conteneur.
+	 */
+	protected async loadTemplate(): Promise<void> {
+		const html = await loadTemplate(this.templatePath);
+		this.container.innerHTML = html;
+		console.log(`[${this.constructor.name}] HTML injecté`);
 	}
 
 	/**

@@ -11,7 +11,7 @@ import { userCrudApi } from '../api/user/user.api';
  * d'un utilisateur.
  */
 export class ProfilePage extends BasePage {
-	protected userId?: number | RouteParams;
+	private userId?: number | RouteParams;
 
 	/**
 	 * Constructeur de la page de profil.
@@ -25,7 +25,11 @@ export class ProfilePage extends BasePage {
 	}
 	
 	// TODO: Tout virer et créer des components
-	
+
+	// ===========================================
+	// METHODES OVERRIDES DE BASEPAGE
+	// ===========================================
+
 	/**
 	 * Méthode de montage de la page de profil utilisateur.
 	 *
@@ -90,4 +94,8 @@ export class ProfilePage extends BasePage {
 		// }
 		profileSection.appendChild(clone);
 	}
+
+	// ===========================================
+	// METHODES PRIVATES
+	// ===========================================
 }

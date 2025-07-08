@@ -12,4 +12,12 @@ export class StatsPage extends BasePage {
 	constructor(config: RouteConfig) {
 		super(config);
 	}
+
+	// ===========================================
+	// METHODES OVERRIDES DE BASEPAGE
+	// ===========================================
+
+	// ===========================================
+	// METHODES PRIVATES
+	// ===========================================
 }

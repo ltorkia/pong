@@ -1,4 +1,4 @@
-import { AlertColor, alertStyles } from '../types/ui-styles.types';
+import { AlertTheme, alertStyles } from '../types/ui-styles.types';
 
 // ===========================================
 // DOM UTILS
@@ -68,15 +68,15 @@ export function toggleClass(el: Element | null, classA: string, classB: string, 
 }
 
 /**
- * Affiche un message d'erreur sur la page actuelle.
+ * Affiche un message d'alerte sur la page actuelle.
  *
  * Récupère un élément HTML et y injecte le message préfixé d'une icône.
  *
- * @param {string} message - Le message d'erreur à afficher.
- * @param {string} [containerId='alert'] - ID de l'élément HTML qui affichera le message d'erreur.
- * @param {AlertColor} [type='error'] - La couleur du style à appliquer (par défaut 'error').
+ * @param {string} message - Le message d'alerte à afficher.
+ * @param {string} [containerId='alert'] - ID de l'élément HTML qui affichera le message.
+ * @param {AlertTheme} [type='error'] - Le thème à appliquer (par défaut 'error').
  */
-export function showAlert(message: string, containerId: string = 'alert', type: AlertColor = 'error'): void {
+export function showAlert(message: string, containerId: string = 'alert', type: AlertTheme = 'error'): void {
 	const alertDiv = getHTMLElementById(containerId);
 
 	// Supprime toutes les classes de style précédentes

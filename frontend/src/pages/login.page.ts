@@ -17,8 +17,8 @@ import { getHTMLElementById } from '../utils/dom.utils';
  * effectuer la connexion.
  */
 export class LoginPage extends BasePage {
-	protected form!: HTMLFormElement;
-	protected componentConfig?: ComponentConfig;
+	private form!: HTMLFormElement;
+	private componentConfig?: ComponentConfig;
 
 	/**
 	 * Constructeur de la page de connexion.
@@ -32,6 +32,19 @@ export class LoginPage extends BasePage {
 		super(config);
 	}
 
+	// ===========================================
+	// METHODES OVERRIDES DE BASEPAGE
+	// ===========================================
+	
+	/**
+	 * Prépare la page avant le montage des composants.
+	 * 
+	 * Vérifie que la configuration du composant 'twofaModal' est valide avant de le monter.
+	 * Si la configuration est invalide, une erreur est lancée.
+	 * 
+	 * @returns {Promise<void>} Une promesse qui se résout lorsque les composants sont chargés.
+	 * @throws {Error} Lance une erreur si la configuration du composant 'twofaModal' est invalide.
+	 */
 	protected async beforeMount(): Promise<void> {
 		if (!this.components) {
 			return;
@@ -45,7 +58,7 @@ export class LoginPage extends BasePage {
 	}
 
 	/**
-	 * Méthode de montage de la page de connexion.
+	 * Montage de la page de connexion.
 	 *
 	 * Initialise le bouton de connexion Google en appelant la méthode
 	 * `initGoogleSignIn()` du service d'authentification.
@@ -60,7 +73,7 @@ export class LoginPage extends BasePage {
 	/**
 	 * Charge les composants propres à cette page.
 	 * 
-	 * Cette méthode charge les lignes du tableau de la liste des utilisateurs (user-row).
+	 * Cette méthode injecte le composant de modal de double authentification.
 	 * 
 	 * @returns {Promise<void>} Une promesse qui se résout lorsque les composants sont chargés.
 	 */
@@ -69,7 +82,7 @@ export class LoginPage extends BasePage {
 	}
 
 	/**
-	 * Ajoute les gestionnaires d'événement à la page de connexion.
+	 * Attacher les gestionnaires d'événement.
 	 *
 	 * Ajoute un gestionnaire d'événement pour la soumission du formulaire
 	 * de connexion, qui est géré par la méthode handleLoginSubmit.
@@ -78,6 +91,32 @@ export class LoginPage extends BasePage {
 		this.form = getHTMLElementById('login-form') as HTMLFormElement;
 		this.form.addEventListener('submit', this.handleLoginSubmit);
 	}
+
+	/**
+	 * Supprime les gestionnaires d'événement.
+	 *
+	 * - pour la soumission du formulaire de connexion.
+	 */
+	protected removeListeners(): void {
+		this.form.removeEventListener('submit', this.handleLoginSubmit);
+	}
+
+	/**
+	 * Surcharge de la méthode cleanup de BasePage
+	 * (PUBLIQUE pour permettre le nettoyage des ressources dans page.service.ts)
+	 * 
+	 * Nettoie les ressources spécifiques à cette page (Google Sign-In),
+	 * puis appelle la méthode cleanup de la classe parent.
+	 */
+	public async cleanup(): Promise<void> {
+		console.log(`[${this.constructor.name}] Nettoyage Google sign in...`);
+		userService.cleanupGoogleSignIn();
+		await super.cleanup();
+	}
+
+	// ===========================================
+	// METHODES PRIVATES
+	// ===========================================
 
 	/**
 	 * Injecte le composant de modal de double authentification dans la page.
@@ -89,7 +128,7 @@ export class LoginPage extends BasePage {
 	 * @returns {Promise<void>} Une promesse qui se résout lorsque le composant
 	 * a été injecté.
 	 */
-	protected async injectTwofaModal(): Promise<void> {
+	private async injectTwofaModal(): Promise<void> {
 		const twofaModalContainer = getHTMLElementById(HTML_COMPONENT_CONTAINERS.TWOFA_MODAL_ID);
 		const twofaModal = new TwofaModalComponent(this.config, this.componentConfig!, twofaModalContainer);
 		await twofaModal.render();
@@ -107,7 +146,7 @@ export class LoginPage extends BasePage {
 	 * @param {Event} event L'événement de soumission du formulaire.
 	 * @returns {Promise<void>} Une promesse qui se résout lorsque la première étape de l'authentification est effectuée.
 	 */
-	protected handleLoginSubmit = async (event: Event): Promise<void> => {
+	private handleLoginSubmit = async (event: Event): Promise<void> => {
 		event.preventDefault();
 		const formData = new FormData(this.form);
 		const data = Object.fromEntries(formData.entries()) as Record<string, string>;
@@ -132,26 +171,4 @@ export class LoginPage extends BasePage {
 		// Affiche le modal
 		await modal.show();
 	};
-
-	/**
-	 * Supprime les gestionnaires d'événement ajoutés par la page de connexion.
-	 *
-	 * Supprime le gestionnaire d'événement pour la soumission du formulaire
-	 * de connexion.
-	 */
-	protected removeListeners(): void {
-		this.form.removeEventListener('submit', this.handleLoginSubmit);
-	}
-
-	/**
-	 * Surcharge de la méthode cleanup de BasePage.
-	 * 
-	 * Nettoie les ressources spécifiques à cette page (Google Sign-In),
-	 * puis appelle la méthode cleanup de la classe parent.
-	 */
-	public async cleanup(): Promise<void> {
-		console.log(`[${this.constructor.name}] Nettoyage Google sign in...`);
-		userService.cleanupGoogleSignIn();
-		await super.cleanup();
-	}
 }

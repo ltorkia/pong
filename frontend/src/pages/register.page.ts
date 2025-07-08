@@ -12,7 +12,7 @@ import { getHTMLElementById } from '../utils/dom.utils';
  * Gère la page d'inscription en ajouter des gestionnaires d'événement.
  */
 export class RegisterPage extends BasePage {
-	protected form!: HTMLFormElement;
+	private form!: HTMLFormElement;
 
 	/**
 	 * Constructeur de la page d'inscription.
@@ -22,6 +22,10 @@ export class RegisterPage extends BasePage {
 	constructor(config: RouteConfig) {
 		super(config);
 	}
+
+	// ===========================================
+	// METHODES OVERRIDES DE BASEPAGE
+	// ===========================================
 
 	/**
 	 * Méthode de montage de la page d'inscription.
@@ -48,6 +52,33 @@ export class RegisterPage extends BasePage {
 	}
 
 	/**
+	 * Supprime les gestionnaires d'événement ajoutés par la page d'inscription.
+	 *
+	 * Supprime le gestionnaire d'événement pour la soumission du formulaire
+	 * d'inscription.
+	 */
+	protected removeListeners(): void {
+		this.form.removeEventListener('submit', this.handleRegisterSubmit);
+	}
+
+	/**
+	 * Surcharge de la méthode cleanup de BasePage
+	 * (PUBLIQUE pour permettre le nettoyage des ressources dans page.service.ts)
+	 * 
+	 * Nettoie les ressources spécifiques à cette page (Google Sign-In),
+	 * puis appelle la méthode cleanup de la classe parent.
+	 */
+	public async cleanup(): Promise<void> {
+		console.log(`[${this.constructor.name}] Nettoyage Google sign in...`);
+		userService.cleanupGoogleSignIn();
+		await super.cleanup();
+	}
+
+	// ===========================================
+	// METHODES PRIVATES
+	// ===========================================
+
+	/**
 	 * Gestionnaire pour la soumission du formulaire d'inscription.
 	 *
 	 * - Empêche le comportement par défaut de soumission HTML.
@@ -62,26 +93,4 @@ export class RegisterPage extends BasePage {
 		const data = Object.fromEntries(formData.entries()) as Record<string, string>;
 		await userService.registerUser(data);
 	};
-
-	/**
-	 * Supprime les gestionnaires d'événement ajoutés par la page d'inscription.
-	 *
-	 * Supprime le gestionnaire d'événement pour la soumission du formulaire
-	 * d'inscription.
-	 */
-	protected removeListeners(): void {
-		this.form.removeEventListener('submit', this.handleRegisterSubmit);
-	}
-
-	/**
-	 * Surcharge de la méthode cleanup de BasePage.
-	 * 
-	 * Nettoie les ressources spécifiques à cette page (Google Sign-In),
-	 * puis appelle la méthode cleanup de la classe parent.
-	 */
-	public async cleanup(): Promise<void> {
-		console.log(`[${this.constructor.name}] Nettoyage Google sign in...`);
-		userService.cleanupGoogleSignIn();
-		await super.cleanup();
-	}
 }

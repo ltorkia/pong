@@ -25,6 +25,10 @@ export class HomePage extends BasePage {
 		super(config);
 	}
 
+	// ===========================================
+	// METHODES OVERRIDES DE BASEPAGE
+	// ===========================================
+
 	/**
 	 * Montage du composant de la page d'accueil.
 	 *
@@ -37,6 +41,10 @@ export class HomePage extends BasePage {
 		this.loadAvatar();
 		this.welcomeUser();
 	}
+
+	// ===========================================
+	// METHODES PRIVATES
+	// ===========================================
 
 	/**
 	 * Modifie le titre de la page d'accueil pour afficher un message de

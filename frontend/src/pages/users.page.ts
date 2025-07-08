@@ -15,7 +15,7 @@ import { COMPONENT_NAMES, HTML_COMPONENT_CONTAINERS } from '../config/components
  * Permet d'afficher la liste des utilisateurs enregistrés sur le site.
  */
 export class UsersPage extends BasePage {
-	protected componentConfig?: ComponentConfig;
+	private componentConfig?: ComponentConfig;
 
 	/**
 	 * Constructeur de la page des utilisateurs.
@@ -27,6 +27,10 @@ export class UsersPage extends BasePage {
 	constructor(config: RouteConfig) {
 		super(config);
 	}
+
+	// ===========================================
+	// METHODES OVERRIDES DE BASEPAGE
+	// ===========================================
 
 	/**
 	 * Préparation avant le montage de la page des utilisateurs.
@@ -42,7 +46,6 @@ export class UsersPage extends BasePage {
 		if (!this.components) {
 			return;
 		}
-		this.checkUserLogged();
 		const config = this.components[COMPONENT_NAMES.USER_ROW];
 		if (!config || !this.shouldRenderComponent(config)
 			|| !this.isValidConfig(config, false)) {
@@ -61,6 +64,10 @@ export class UsersPage extends BasePage {
 	protected async loadSpecificComponents(): Promise<void> {
 		await this.injectUserList();
 	}
+
+	// ===========================================
+	// METHODES PRIVATES
+	// ===========================================
 
 	/**
 	 * Injecte les lignes du tableau de la liste des utilisateurs (user-row) dans le DOM.
