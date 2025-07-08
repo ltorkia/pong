@@ -5,6 +5,7 @@ import { BaseComponent } from '../components/base/base.component';
 import { NavbarComponent } from '../components/navbar/navbar.component';
 import { ComponentName, ComponentConfig } from '../types/components.types';
 import { loadTemplate, getHTMLElementById } from '../utils/dom.utils';
+import { getContainerApp } from '../utils/dom.utils';
 import { APP_ID } from '../config/routes.config';
 import { COMPONENT_NAMES } from '../config/components.config';
 import { LOADING_PAGE_ERR } from '../config/messages.config';
@@ -37,7 +38,7 @@ export abstract class BasePage {
 	 */
 	constructor(config: RouteConfig) {
 		this.config = config;
-		this.container = this.getContainerApp();
+		this.container = getContainerApp();
 		this.currentUser = userStore.getCurrentUser();
 		this.templatePath = this.config.templatePath;
 		this.components = this.config.components;
@@ -269,16 +270,6 @@ export abstract class BasePage {
 		if (componentConfig.name === COMPONENT_NAMES.NAVBAR && componentConfig.instance instanceof NavbarComponent) {
 			componentConfig.instance.setActiveLink(this.config.path);
 		}
-	}
-
-	/**
-	 * Retourne l'élément HTML du conteneur principal de l'application.
-	 *
-	 * @returns {HTMLElement} L'élément HTML correspondant à l'ID spécifié.
-	 * @throws {Error} Si l'élément n'est pas trouvé dans le DOM.
-	 */
-	protected getContainerApp(): HTMLElement {
-		return getHTMLElementById(APP_ID);
 	}
 
 	/**

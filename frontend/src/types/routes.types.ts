@@ -46,7 +46,6 @@ export interface RouteConfig {
  *
  * Chaque page doit hériter de BasePage et avoir un constructeur avec ces paramètres:
  * - routeConfig: configuration complète de la route (de type RouteConfig)
- * - container: élément HTML dans lequel injecter le contenu
  * - param: paramètre optionnel associé à la route (ex: ID dans /user/:id)
  */
 export type PageConstructor = new (

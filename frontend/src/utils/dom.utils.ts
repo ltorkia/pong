@@ -1,4 +1,5 @@
 import { AlertTheme, alertStyles } from '../types/ui-styles.types';
+import { APP_ID } from '../config/routes.config';
 
 // ===========================================
 // DOM UTILS
@@ -39,6 +40,16 @@ export async function loadTemplate(path: string): Promise<string> {
 	templateCache.set(path, html);
 	return html;
 }
+
+	/**
+	 * Retourne l'élément HTML du conteneur principal de l'application.
+	 *
+	 * @returns {HTMLElement} L'élément HTML correspondant à l'ID spécifié.
+	 * @throws {Error} Si l'élément n'est pas trouvé dans le DOM.
+	 */
+	export function getContainerApp(): HTMLElement {
+		return getHTMLElementById(APP_ID);
+	}
 
 /**
  * Alterne entre deux classes CSS sur un élément, avec une classe optionnelle.
