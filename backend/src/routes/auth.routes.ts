@@ -73,7 +73,8 @@ async function GetAvatarFromFront(user: Partial<UserPassword>, reply: FastifyRep
 	await fs.promises.mkdir('./uploads/avatars/', { recursive: true });
 	await pipeline(avatarFile.file, fs.createWriteStream(`./uploads/avatars/${filename}`))
 	insertAvatar(filename, user.username!)
-	return (reply.status(200).send({ statusCode: "200", message: "avatar added" }));
+	return;
+	// return (reply.status(200).send({ statusCode: "200", message: "avatar added" }));
 	// return reply.status(200).send({statusCode: "200", message:"avatar added"});	
 }
 
@@ -221,6 +222,7 @@ export async function authRoutes(app: FastifyInstance) {
 			// !!!TODO PIPELINE A SECURISER PEUT FOUTRE LA MERDE
 			if (avatarFile) {
 				await GetAvatarFromFront(user, reply, avatarFile);
+				// return;
 			}
 			// si on veut skip la double auth -> decommenter ligne suivante
 			// ProcessAuth(app, userAuth, reply);

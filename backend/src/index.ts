@@ -29,8 +29,8 @@ async function start() {
 	// dans les requêtes et réponses
 	app.register(fastifyCookie);
 
-       // pour uploader des avatars
-       app.register(fastifyMultipart);
+	// pour uploader des avatars
+	app.register(fastifyMultipart);
 
 	// Enregistrement du plugin JWT
 	const jwtSecret = process.env.JWT_SECRET;

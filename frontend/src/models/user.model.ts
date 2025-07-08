@@ -25,6 +25,7 @@ export class User {
 		public email: string,
 		public registration: string,
 		public begin_log: string,
+		public end_log: string,
 		public tournament: number,
 		public game_played: number,
 		public game_win: number,
@@ -99,6 +100,7 @@ export class User {
 			avatar: this.avatar,
 			registration: this.registration,
 			begin_log: this.begin_log,
+			end_log: this.end_log,
 			tournament: this.tournament,
 			game_played: this.game_played,
 			game_win: this.game_win,
@@ -126,7 +128,7 @@ export class User {
 			email: this.email,
 			registration: this.registration,
 			begin_log: this.begin_log,
-			// end_log: this.end_log,
+			end_log: this.end_log,
 			tournament: this.tournament,
 			game_played: this.game_played,
 			game_win: this.game_win,
@@ -164,7 +166,7 @@ export class User {
 			data.email ?? '',
 			data.registration ?? '',
 			data.begin_log ?? '',
-			// data.end_log ?? '',
+			data.end_log ?? '',
 			data.tournament ?? 0,
 			data.game_played ?? 0,
 			data.game_win ?? 0,
@@ -207,7 +209,7 @@ export class User {
 			'', // Email vide pour les données publiques
 			'', // Registration vide
 			'', // begin_log vide
-			// '', end_log vide
+			'', // end_log vide
 			0,  // Tournament à 0
 			data.game_played ?? 0,
 			data.game_win ?? 0,
