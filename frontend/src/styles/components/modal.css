@@ -1,6 +1,6 @@
 .modal {
 	@apply fixed inset-0 w-full h-full
-	bg-black bg-opacity-80 flex items-center justify-center z-[1000]
+	bg-black bg-opacity-50 flex items-center justify-center z-[1000]
 	transition-opacity duration-200 ease-out opacity-0;
 }
 .modal-active {
