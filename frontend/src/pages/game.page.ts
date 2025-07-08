@@ -130,6 +130,7 @@ export class GamePage extends BasePage {
 	private ball = new GamePage.Ball(this.canvasCtx);
 	private frameReq: number = 0;
 	private gameStarted: boolean = false;
+	private hitAnimationOn: boolean = false;
 	private inputs: {[key: string]: boolean} = {
 		"w": false,
 		"s": false,
@@ -161,6 +162,38 @@ export class GamePage extends BasePage {
 		});
 	}
 
+	private createHitElement() {
+		const x: number = this.ball.x;
+		const y: number = this.ball.y;
+		let radius: number = 10;
+
+		return {
+			getRadius() {
+				radius += 1;
+				return (radius);
+			},
+			getX() { return x; },
+			getY() { return y; }
+		}
+	};
+
+	private hitAnimation(): void {
+		let hit;
+		if (!this.hitAnimationOn)
+		{
+			this.hitAnimationOn = true;
+			hit = this.createHitElement();
+		}
+		if (hit != undefined)
+		{
+			this.canvasCtx.strokeStyle = "green";
+			this.canvasCtx.beginPath();
+			this.canvasCtx.arc(hit.getX(), hit.getY(), hit.getRadius(), 0, Math.PI * 2, true);
+			this.canvasCtx.stroke();
+			console.log(hit.getRadius());
+		}
+	}
+
     private clearScreen(ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement): void {
 		this.canvasCtx.globalCompositeOperation = 'destination-out';
 		this.canvasCtx.fillStyle = "rgba(0, 0, 0, 0.3)";
@@ -176,7 +209,10 @@ export class GamePage extends BasePage {
 				window.cancelAnimationFrame(this.frameReq);
 			}
 			else
+			{
+				this.hitAnimation();
 				this.ball.horizontalCollision();
+			}
 		} else if (this.ball.isGoingLeft() && this.ball.x <= this.playerOne.x + this.playerOne.w)
 		{
 			if ((this.ball.y < this.playerOne.y - this.playerOne.h / 2) || (this.ball.y > this.playerOne.y + this.playerOne.h / 2)) {
@@ -184,7 +220,10 @@ export class GamePage extends BasePage {
 				console.log("player one lost !");
 			}
 			else
+			{
+				this.hitAnimation
 				this.ball.horizontalCollision();
+			}
 		}
 		else if (this.ball.y <= 0 || this.ball.y >= this.gameCanvas.height)
 			this.ball.verticalCollision();
@@ -213,6 +252,8 @@ export class GamePage extends BasePage {
 		this.checkPlayerMovement();
 		this.ball.move();
 		this.ball.draw();
+		if (this.hitAnimationOn)
+			this.hitAnimation();
 		this.canvasCtx.filter = 'none';
         requestAnimationFrame(this.gameLoop);
 	}
