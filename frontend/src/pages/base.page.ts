@@ -1,11 +1,11 @@
 import { RouteConfig } from '../types/routes.types';
 import { User } from '../models/user.model';
 import { userStore } from '../stores/user.store';
+import { checkUserLogged } from '../utils/app.utils'; 
 import { BaseComponent } from '../components/base/base.component';
 import { NavbarComponent } from '../components/navbar/navbar.component';
 import { ComponentName, ComponentConfig } from '../types/components.types';
-import { loadTemplate, getHTMLElementById } from '../utils/dom.utils';
-import { getContainerApp } from '../utils/dom.utils';
+import { loadTemplate, getContainerApp, getHTMLElementById } from '../utils/dom.utils';
 import { APP_ID } from '../config/routes.config';
 import { COMPONENT_NAMES } from '../config/components.config';
 import { LOADING_PAGE_ERR } from '../config/messages.config';
@@ -101,20 +101,7 @@ export abstract class BasePage {
 	 * Pour garder aussi celui-ci, ajouter super.preRenderCheck();
 	 */
 	protected preRenderCheck(): void {
-		this.checkUserLogged();
-	}
-
-	/**
-	 * Vérifie qu'un utilisateur est bien authentifié si la page est privée.
-	 *
-	 * Si la page est privée, cette méthode vérifie que l'utilisateur est
-	 * bien authentifié en vérifiant l'existence de l'utilisateur courant.
-	 * Si l'utilisateur n'est pas trouvé, une erreur est levée.
-	 */
-	protected checkUserLogged(): void {
-		if (!this.config.isPublic && !this.currentUser) {
-			throw new Error(`La récupération du user a échoué`);
-		}
+		checkUserLogged(this.config.isPublic);
 	}
 
 	/**

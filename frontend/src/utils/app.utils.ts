@@ -1,6 +1,5 @@
 import { userStore } from '../stores/user.store';
 
-
 // ===========================================
 // APP UTILS
 // ===========================================
@@ -10,6 +9,22 @@ import { userStore } from '../stores/user.store';
  * diverses parties de l'application frontend. Cela inclut
  * gérer les requêtes HTTP sécurisées, paramétrer des promesses, etc.
  */
+
+/**
+ * Vérifie qu'un utilisateur est bien authentifié si la page est privée.
+ *
+ * Si la page est privée, cette méthode vérifie que l'utilisateur est
+ * bien authentifié en vérifiant l'existence de l'utilisateur courant.
+ * Si l'utilisateur n'est pas trouvé, une erreur est levée.
+ * 
+ * @param {boolean} isPublic La configuration du composant à charger.
+ */
+export function checkUserLogged(isPublic: boolean): void {
+	const currentUser = userStore.getCurrentUser();
+	if (!isPublic && !currentUser) {
+		throw new Error(`La récupération du user a échoué`);
+	}
+}
 
 /**
  * Wrapper sur la fonction native fetch() qui vérifie si l'utilisateur est connecté

@@ -1,5 +1,6 @@
 import { User } from '../../models/user.model';
 import { userStore } from '../../stores/user.store';
+import { checkUserLogged } from '../../utils/app.utils'; 
 import { RouteConfig } from '../../types/routes.types';
 import { ComponentConfig } from '../../types/components.types';
 import { loadTemplate } from '../../utils/dom.utils';
@@ -91,20 +92,7 @@ export abstract class BaseComponent {
 	 * Pour garder aussi celui-ci, ajouter super.preRenderCheck();
 	 */
 	protected preRenderCheck(): void {
-		this.checkUserLogged();
-	}
-
-	/**
-	 * Vérifie qu'un utilisateur est bien authentifié si la page est privée.
-	 *
-	 * Si la page est privée, cette méthode vérifie que l'utilisateur est
-	 * bien authentifié en vérifiant l'existence de l'utilisateur courant.
-	 * Si l'utilisateur n'est pas trouvé, une erreur est levée.
-	 */
-	protected checkUserLogged(): void {
-		if (!this.routeConfig.isPublic && !this.currentUser) {
-			throw new Error(`La récupération du user a échoué`);
-		}
+		checkUserLogged(this.componentConfig.isPublic);
 	}
 
 	/**
