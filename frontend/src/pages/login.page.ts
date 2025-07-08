@@ -101,6 +101,10 @@ export class LoginPage extends BasePage {
 		this.form.removeEventListener('submit', this.handleLoginSubmit);
 	}
 
+	// ===========================================
+	// METHODES PUBLICS
+	// ===========================================
+
 	/**
 	 * Surcharge de la méthode cleanup de BasePage
 	 * (PUBLIQUE pour permettre le nettoyage des ressources dans page.service.ts)
@@ -135,6 +139,10 @@ export class LoginPage extends BasePage {
 		this.addToComponentInstances(COMPONENT_NAMES.TWOFA_MODAL, twofaModal);
 		console.log(`[${this.constructor.name}] Composant '${this.componentConfig!.name}' généré`);
 	}
+
+	// ===========================================
+	// LISTENER HANDLERS
+	// ===========================================
 
 	/**
 	 * Gestionnaire pour la soumission du formulaire de connexion.

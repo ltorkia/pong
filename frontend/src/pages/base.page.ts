@@ -53,6 +53,10 @@ export abstract class BasePage {
 	protected attachListeners(): void {}
 	protected removeListeners(): void {}
 
+	// ===========================================
+	// RENDER -> MODELE SUIVI PAR LES SOUS-CLASSES
+	// ===========================================
+
 	/**
 	 * Méthode principale de rendu de la page.
 	 * 
@@ -61,7 +65,7 @@ export abstract class BasePage {
 	 * - Exécute les étapes de pré-rendering avec `beforeMount()`.
 	 * - Charge et rend les composants persistants - comme la navbar - si besoin.
 	 * - Charge et rend les composants spécifiques à la page.
-	 * - Exécute les opérations de montage spécifiques à la page.
+	 * - Exécute les opérations de montage spécifiques à la page (injection dynamique d'infos).
 	 * - Attache les écouteurs d'événements nécessaires.
 	 * - En cas d'erreur, affiche un message d'erreur dans le conteneur.
 	 * 
@@ -97,6 +101,19 @@ export abstract class BasePage {
 	 */
 	protected preRenderCheck(): void {
 		this.checkUserLogged();
+	}
+
+	/**
+	 * Vérifie qu'un utilisateur est bien authentifié si la page est privée.
+	 *
+	 * Si la page est privée, cette méthode vérifie que l'utilisateur est
+	 * bien authentifié en vérifiant l'existence de l'utilisateur courant.
+	 * Si l'utilisateur n'est pas trouvé, une erreur est levée.
+	 */
+	protected checkUserLogged(): void {
+		if (!this.config.isPublic && !this.currentUser) {
+			throw new Error(`La récupération du user a échoué`);
+		}
 	}
 
 	/**
@@ -236,19 +253,6 @@ export abstract class BasePage {
 	 */
 	protected getComponentInstance<T>(name: string): T | undefined {
 		return this.componentInstances[name] as T;
-	}
-
-	/**
-	 * Vérifie qu'un utilisateur est bien authentifié si la page est privée.
-	 *
-	 * Si la page est privée, cette méthode vérifie que l'utilisateur est
-	 * bien authentifié en vérifiant l'existence de l'utilisateur courant.
-	 * Si l'utilisateur n'est pas trouvé, une erreur est levée.
-	 */
-	protected checkUserLogged(): void {
-		if (!this.config.isPublic && !this.currentUser) {
-			throw new Error(`La récupération du user a échoué`);
-		}
 	}
 
 	/**

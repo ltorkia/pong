@@ -1,5 +1,5 @@
 // Pour hot reload Vite
-import template from './navbar.component.html?raw'
+import template from './navbar.component.html?raw';
 
 import { BaseComponent } from '../base/base.component';
 import { userStore } from '../../stores/user.store';
@@ -24,10 +24,11 @@ import { ROUTE_PATHS, PROFILE_HTML_ANCHOR } from '../../config/routes.config';
  * par le service de routing pour la mise à jour visuelle du lien actif.
  */
 export class NavbarComponent extends BaseComponent {
-	protected profilePlaceholder: string;
-	protected profileLink?: string;
-	protected burgerBtn?: HTMLElement;
-	protected logoutLink?: HTMLAnchorElement;
+	private profilePlaceholder: string;
+	private profileLink!: string;
+	private burgerBtn!: HTMLElement;
+	private logoutLink!: HTMLAnchorElement;
+	private mainSection!: HTMLElement;
 
 	/**
 	 * Constructeur du composant de la navbar.
@@ -44,6 +45,77 @@ export class NavbarComponent extends BaseComponent {
 		this.currentUser = userStore.getCurrentUser();
 		this.profilePlaceholder = '{userId}';
 	}
+
+	// ===========================================
+	// METHODES OVERRIDES DE BASECOMPONENT
+	// ===========================================
+
+	/**
+	 * Procède aux vérifications nécessaires avant le montage du composant.
+	 *
+	 * Exécute les vérifications de base de la classe parente (`BaseComponent`).
+	 * Charge le template HTML du composant en mode développement via `loadTemplateDev()`.
+	 *
+	 * @returns {Promise<void>} Une promesse qui se résout lorsque les vérifications sont terminées.
+	 */
+	protected async preRenderCheck(): Promise<void> {
+		super.preRenderCheck();
+		await this.loadTemplateDev();
+	}
+
+	/**
+	 * Méthode de pré-rendering du composant de la navbar.
+	 * 
+	 * Stocke les éléments HTML utiles pour le fonctionnement du composant
+	 * dans les propriétés de l'objet.
+	 * 
+	 * @returns {Promise<void>} Une promesse qui se résout lorsque les éléments HTML ont été stockés.
+	 */
+	protected async beforeMount(): Promise<void> {
+		this.burgerBtn = getHTMLElementById('burger-btn', this.container);
+		this.logoutLink = getHTMLAnchorElement(ROUTE_PATHS.LOGOUT, this.container);
+		this.profileLink = this.setNavLink(PROFILE_HTML_ANCHOR, `/user/${this.profilePlaceholder}`);
+		this.mainSection = getHTMLElementByTagName('main');
+	}
+
+	/**
+	 * Méthode de montage du composant de la navbar.
+	 * 
+	 * Met à jour le lien actif de la navigation au premier chargement de la page.
+	 * Ajoute un margin à la balise 'main' qui correspond à la hauteur de la navbar.
+	 * 
+	 * @returns {Promise<void>} Une promesse qui se résout quand le composant est monté.
+	 */
+	protected async mount(): Promise<void> {
+		this.setActiveLink(this.routeConfig.path);
+		this.mainSection.classList.add('mt-main');
+	}
+
+	/**
+	 * Attribue les listeners aux éléments de la navbar.
+	 * 
+	 * - Attribue un listener au bouton burger pour le menu mobile.
+	 * - Attribue un listener au bouton de déconnexion.
+	 */
+	protected attachListeners(): void {
+		this.burgerBtn.addEventListener('click', this.handleBurgerClick);
+		this.logoutLink.addEventListener('click', this.handleLogoutClick);
+	}
+
+	/**
+	 * Enlève les listeners attribués aux éléments de la navbar.
+	 *
+	 * - Enlève le listener du bouton burger pour le menu mobile.
+	 * - Enlève le listener du bouton de déconnexion.
+	 */
+	protected removeListeners(): void {
+		this.burgerBtn.removeEventListener('click', this.handleBurgerClick);
+		this.logoutLink.removeEventListener('click', this.handleLogoutClick);
+	}
+
+	// ===========================================
+	// METHODES PUBLICS
+	// ===========================================
 
 	/**
 	 * Met à jour la navigation active sur la navbar.
@@ -70,33 +142,23 @@ export class NavbarComponent extends BaseComponent {
 		});
 	}
 
+	// ===========================================
+	// METHODES PRIVATES
+	// ===========================================
+
 	/**
-	 * Méthode de montage du composant de la navbar.
-	 * 
-	 * Vérifie qu'un utilisateur est connecté si la page est privée.
+	 * Charge le template HTML du composant en mode développement
+	 * (hot-reload Vite).
 	 *
-	 * En mode DEV, charge le template HTML du composant en hot-reload
-	 * via `template` (importé en tant que raw string par Vite).
-	 * Ensuite, génère le lien du profil en remplaçant le placeholder {userId}
-	 * par l'id du current user.
-	 * Met à jour le lien actif de la navigation au premier chargement de la page.
-	 * Enfin, ajoute un margin à la balise 'main' qui correspond à la hauteur
-	 * de la navbar.
-	 * 
-	 * @returns {Promise<void>} Une promesse qui se résout quand le composant est monté.
+	 * Si le hot-reload est actif (en mode développement), charge le
+	 * template HTML du composant en remplaçant le contenu du conteneur
+	 * par le template. Sinon, ne fait rien.
+	 *
+	 * @returns {Promise<void>} Une promesse qui se résout lorsque le
+	 * template est chargé et injecté dans le conteneur.
 	 */
-	protected async mount(): Promise<void> {
-		this.checkUserLogged();
-		if (import.meta.env.DEV === true) {
-			this.container.innerHTML = template;
-			console.log(`[${this.constructor.name}] Hot-reload actif`);
-		}
-		this.profileLink = this.setNavLink(PROFILE_HTML_ANCHOR, `/user/${this.profilePlaceholder}`);
-		this.setActiveLink(this.routeConfig.path);
-		const main = document.querySelector('main');
-		if (main) {
-			main.classList.add('mt-main');
-		}
+	private async loadTemplateDev(): Promise<void> {
+		this.loadTemplate(template);
 	}
 
 	/**
@@ -109,7 +171,7 @@ export class NavbarComponent extends BaseComponent {
 	 * @param {string} linkTemplate - Le template de lien qui sera modifié.
 	 * @returns {string} Le lien modifié.
 	 */
-	protected setNavLink(hrefValue: string, linkTemplate: string): string {
+	private setNavLink(hrefValue: string, linkTemplate: string): string {
 		const navLink = getHTMLAnchorElement(hrefValue, this.container);
 		let link = linkTemplate;
 		if (this.currentUser && this.currentUser.id && linkTemplate.includes(this.profilePlaceholder)) {
@@ -119,19 +181,9 @@ export class NavbarComponent extends BaseComponent {
 		return link;
 	}
 
-	/**
-	 * Attribue les listeners aux éléments de la navbar.
-	 * 
-	 * - Attribue un listener au bouton burger pour le menu mobile.
-	 * - Attribue un listener au bouton de déconnexion.
-	 */
-	protected attachListeners(): void {
-		this.burgerBtn = getHTMLElementById('burger-btn', this.container);
-		this.logoutLink = getHTMLAnchorElement(ROUTE_PATHS.LOGOUT, this.container);
-
-		this.burgerBtn.addEventListener('click', this.handleBurgerClick);
-		this.logoutLink.addEventListener('click', this.handleLogoutClick);
-	}
+	// ===========================================
+	// LISTENER HANDLERS
+	// ===========================================
 
 	/**
 	 * Basculle le menu burger pour la navigation mobile.
@@ -142,7 +194,7 @@ export class NavbarComponent extends BaseComponent {
 	 * 
 	 * @param {MouseEvent} event L'événement de clic.
 	 */
-	protected handleBurgerClick = (event: MouseEvent): void => {
+	private handleBurgerClick = (event: MouseEvent): void => {
 		const navbarMenu = getHTMLElementById('navbar-menu', this.container);
 		const icon = getHTMLElementByTagName('i', this.burgerBtn);
 		toggleClass(icon, 'fa-bars', 'fa-xmark', 'text-blue-300');
@@ -159,21 +211,10 @@ export class NavbarComponent extends BaseComponent {
 	 * @param {MouseEvent} event L'événement de clic.
 	 * @returns {Promise<void>} Promesse qui se résout lorsque l'opération est terminée.
 	 */
-	protected handleLogoutClick = async (event: MouseEvent): Promise<void> => {
+	private handleLogoutClick = async (event: MouseEvent): Promise<void> => {
 		event.preventDefault();
 		this.componentConfig.destroy = true;
 		uiStore.animateNavbarOut = true;
 		await userService.logoutUser();
 	};
-
-	/**
-	 * Enlève les listeners attribués aux éléments de la navbar.
-	 *
-	 * - Enlève le listener du bouton burger pour le menu mobile.
-	 * - Enlève le listener du bouton de déconnexion.
-	 */
-	protected removeListeners(): void {
-		this.burgerBtn?.removeEventListener('click', this.handleBurgerClick);
-		this.logoutLink?.removeEventListener('click', this.handleLogoutClick);
-	}
 }

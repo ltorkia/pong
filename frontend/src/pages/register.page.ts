@@ -61,6 +61,10 @@ export class RegisterPage extends BasePage {
 		this.form.removeEventListener('submit', this.handleRegisterSubmit);
 	}
 
+	// ===========================================
+	// METHODES PUBLICS
+	// ===========================================
+
 	/**
 	 * Surcharge de la méthode cleanup de BasePage
 	 * (PUBLIQUE pour permettre le nettoyage des ressources dans page.service.ts)
@@ -75,7 +79,7 @@ export class RegisterPage extends BasePage {
 	}
 
 	// ===========================================
-	// METHODES PRIVATES
+	// METHODES PRIVATES / LISTENER HANDLERS
 	// ===========================================
 
 	/**

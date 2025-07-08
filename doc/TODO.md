@@ -31,6 +31,8 @@ FRONT
 - Ajouter lien home sur logo pong navbar
 - Mettre logo appareil photo au hover de l'avatar sur Home pour pouvoir en changer dans les settings
 - Faire un petit hover sur le bouton/icon previous de register et du modal
+- Déplacer des méthodes de base.page.ts pour alléger (updateNavigation, checkUserLogged, méthodes relatives aux components,
+getContainerApp, getErrorMessage() etc)
 
 - check MAJ package.json :
  @tsparticles/engine         ^3.0.2  →   ^3.8.1

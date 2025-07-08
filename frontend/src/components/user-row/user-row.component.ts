@@ -24,6 +24,9 @@ import { User } from '../../models/user.model';
  */
 export class UserRowComponent extends BaseComponent {
 	protected user?: User | null = null;
+	private avatarImg!: HTMLImageElement;
+	private usernameLink!: HTMLAnchorElement;
+	private levelCell!: HTMLElement;
 
 	/**
 	 * Constructeur du composant de ligne d'utilisateur.
@@ -41,6 +44,42 @@ export class UserRowComponent extends BaseComponent {
 		this.user = user;
 	}
 
+	// ===========================================
+	// METHODES OVERRIDES DE BASECOMPONENT
+	// ===========================================
+
+	/**
+	 * Vérifie les préconditions avant le rendu du composant de ligne d'utilisateur.
+	 *
+	 * Cette méthode surcharge `preRenderCheck` de BaseComponent pour effectuer
+	 * des vérifications spécifiques au composant de ligne d'utilisateur.
+	 * Elle charge le template en mode développement et s'assure qu'un utilisateur
+	 * est fourni. Si aucun utilisateur n'est fourni, une erreur est levée.
+	 *
+	 * @throws {Error} Lance une erreur si aucun utilisateur n'est fourni.
+	 */
+	protected preRenderCheck(): void {
+		super.preRenderCheck();
+		this.loadTemplateDev();
+		if (!this.user) {
+			throw new Error('Aucun utilisateur fourni');
+		}
+	}
+
+	/**
+	 * Méthode de pré-rendering du composant de ligne d'utilisateur.
+	 *
+	 * Stocke les éléments HTML utiles pour le fonctionnement du composant
+	 * dans les propriétés de l'objet.
+	 *
+	 * @returns {Promise<void>} Une promesse qui se résout lorsque les éléments HTML ont été stockés.
+	 */
+	protected async beforeMount(): Promise<void> {
+		this.avatarImg = this.container.querySelector('.avatar-img') as HTMLImageElement;
+		this.usernameLink = this.container.querySelector('.username-link') as HTMLAnchorElement;
+		this.levelCell = this.container.querySelector('.level-cell') as HTMLElement;
+	}
+
 	/**
 	 * Méthode de montage du composant de la ligne d'utilisateur.
 	 *
@@ -54,34 +93,37 @@ export class UserRowComponent extends BaseComponent {
 	 * @returns {Promise<void>} Une promesse qui se résout lorsque le composant est monté.
 	 */
 	protected async mount(): Promise<void> {
-		this.checkUserLogged();
-		if (import.meta.env.DEV === true) {
-			this.container.innerHTML = template;
-			console.log(`[${this.constructor.name}] Hot-reload actif`);
-		}
+		this.avatarImg.setAttribute('src', `${AVATARS_ROUTE_API}${this.user!.avatar}`);
+		this.avatarImg.setAttribute('alt', `${this.user!.username}'s avatar`);
 
-		const avatarImg = this.container.querySelector('.avatar-img') as HTMLImageElement;
-		const usernameLink = this.container.querySelector('.username-link') as HTMLAnchorElement;
-		const levelCell = this.container.querySelector('.level-cell') as HTMLElement;
+		this.usernameLink.setAttribute('href', `/user/${this.user!.id}`);
+		this.usernameLink.textContent = this.user!.username;
 
-		if (this.user) {
-			if (avatarImg) {
-				avatarImg.setAttribute('src', `${AVATARS_ROUTE_API}${this.user.avatar}`);
-				avatarImg.setAttribute('alt', `${this.user.username}'s avatar`);
-			}
-
-			if (usernameLink) {
-				usernameLink.setAttribute('href', `/user/${this.user.id}`);
-				usernameLink.textContent = this.user.username;
-			}
-
-			if (levelCell) {
-				if ('winRate' in this.user && this.user.winRate !== undefined) {
-					levelCell.textContent = `Win rate: ${this.user.winRate}%`;
-				} else {
-					levelCell.textContent = 'No stats';
-				}
+		if (this.levelCell) {
+			if ('winRate' in this.user! && this.user.winRate !== undefined) {
+				this.levelCell.textContent = `Win rate: ${this.user.winRate}%`;
+			} else {
+				this.levelCell.textContent = 'No stats';
 			}
 		}
+	}
+
+	// ===========================================
+	// METHODES PRIVATES
+	// ===========================================
+
+	/**
+	 * Charge le template HTML du composant en mode développement
+	 * (hot-reload Vite).
+	 *
+	 * Si le hot-reload est actif (en mode développement), charge le
+	 * template HTML du composant en remplaçant le contenu du conteneur
+	 * par le template. Sinon, ne fait rien.
+	 *
+	 * @returns {Promise<void>} Une promesse qui se résout lorsque le
+	 * template est chargé et injecté dans le conteneur.
+	 */
+	private async loadTemplateDev(): Promise<void> {
+		this.loadTemplate(template);
 	}
 }

@@ -49,32 +49,49 @@ export abstract class BaseComponent {
 	 */	
 
 	protected async beforeMount(): Promise<void> {}
-	protected abstract mount(): Promise<void>;
+	protected async mount(): Promise<void> {}
 	protected attachListeners(): void {}
 	protected removeListeners(): void {}
+
+	// ===========================================
+	// RENDER -> MODELE SUIVI PAR LES SOUS-CLASSES
+	// ===========================================
 
 	/**
 	 * Méthode principale de rendu d'un composant.
 	 *
 	 * Exécute les étapes suivantes:
-	 * 1. Appelle la méthode `beforeMount()` pour effectuer les étapes de pré-rendering.
-	 * 2. Charge le HTML du composant via `loadTemplate()` si le hot-reload est inactif (en production).
-	 *    Si le template est en cache, on ne le fetch pas.
-	 * 3. Injecte le HTML dans le conteneur du composant.
-	 * 4. Appelle la méthode `mount()` pour effectuer les opérations de rendu propres au composant.
-	 * 5. Appelle la méthode `attachListeners()` pour attacher les event listeners.
+	 * 1. Vérifie les conditions de pré-rendering avant le montage du composant.
+	 * 2. Charge le HTML du composant via `loadTemplate()`.
+	 * 3. Appelle `beforeMount()` pour effectuer les étapes de pré-rendering.
+	 * 4. Injecte le HTML dans le conteneur du composant.
+	 * 5. Appelle `mount()` pour effectuer les opérations de rendu propres au composant (injection dynamique d'infos).
+	 * 6. Attache les écouteurs d'événements nécessaires.
 	 *
 	 * @returns {Promise<void>} Une promesse qui se résout lorsque le composant est entièrement rendu.
 	 */
 	public async render(): Promise<void> {
+		this.preRenderCheck();
+		await this.loadTemplate();
 		await this.beforeMount();
-		if (import.meta.env.PROD === true) {
-			let html = await loadTemplate(this.templatePath);
-			this.container.innerHTML = html;
-			console.log(`[${this.constructor.name}] Hot-reload inactif`);
-		}
 		await this.mount();
 		this.attachListeners();
+	}
+
+	// ===========================================
+	// METHODES PROTECTED
+	// ===========================================
+
+	/**
+	 * Procède aux vérifications nécessaires avant le montage du composant.
+	 * 
+	 * Vérifie que l'utilisateur est bien authentifié si la page est privée.
+	 * Si l'utilisateur n'est pas trouvé, une erreur est levée.
+	 * Les sous-classes peuvent réutiliser cette méthode et ajouter leurs propres checks.
+	 * Pour garder aussi celui-ci, ajouter super.preRenderCheck();
+	 */
+	protected preRenderCheck(): void {
+		this.checkUserLogged();
 	}
 
 	/**
@@ -89,6 +106,34 @@ export abstract class BaseComponent {
 			throw new Error(`La récupération du user a échoué`);
 		}
 	}
+
+	/**
+	 * Charge le template HTML du composant.
+	 *
+	 * Si le hot-reload est inactif (en production), fetch le template HTML
+	 * depuis le chemin de template stocké dans la propriété `templatePath`
+	 * ou récupère le template HTML en cache.
+	 * Sinon, injecte le template HTML?raw fourni en paramètre dans le conteneur
+	 * pour permettre le hot-reload avec Vite.
+	 *
+	 * @param {string} [template=''] Le template HTML à injecter.
+	 * @returns {Promise<void>} Une promesse qui se résout lorsque le template est injecté.
+	 */
+	protected async loadTemplate(template: string = ''): Promise<void> {
+		if (import.meta.env.PROD === true && template === '') {
+			let html = await loadTemplate(this.templatePath);
+			this.container.innerHTML = html;
+			console.log(`[${this.constructor.name}] Hot-reload inactif`);
+		}
+		if (import.meta.env.DEV === true && template !== '') {
+			this.container.innerHTML = template;
+			console.log(`[${this.constructor.name}] Hot-reload actif`);
+		}
+	}
+
+	// ===========================================
+	// METHODES PUBLICS
+	// ===========================================
 
 	/**
 	 * Nettoyage du composant:
