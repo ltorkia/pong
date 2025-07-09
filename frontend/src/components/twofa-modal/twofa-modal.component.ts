@@ -1,7 +1,7 @@
 // Pour hot reload Vite
 import template from './twofa-modal.component.html?raw'
 
-import { userService } from '../../services/services';
+import { authService } from '../../services/services';
 import { BaseComponent } from '../base/base.component';
 import { RouteConfig } from '../../types/routes.types';
 import { ComponentConfig } from '../../types/components.types';
@@ -217,7 +217,7 @@ export class TwofaModalComponent extends BaseComponent {
 
 	private async handleSendEmailCode(): Promise<void> {
 		showSpinner('twofa-spinner');
-		const res = await userService.send2FA(this.userData);
+		const res = await authService.send2FA(this.userData);
 		if (res.errorMessage) {
 			showAlert(res.errorMessage, 'twofa-error');
 			this.qrcodeContainer.classList.add('hidden');
@@ -247,7 +247,7 @@ export class TwofaModalComponent extends BaseComponent {
 			this.errorMsg.classList.remove('hidden');
 			return;
 		}
-		const res = await userService.twofaConnectUser({
+		const res = await authService.twofaConnectUser({
 			email: this.userData.email,
 			password: code,
 		});

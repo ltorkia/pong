@@ -4,7 +4,7 @@ import template from './navbar.component.html?raw';
 import { BaseComponent } from '../base/base.component';
 import { userStore } from '../../stores/user.store';
 import { uiStore } from '../../stores/ui.store';
-import { userService } from '../../services/services';
+import { authService } from '../../services/services';
 import { RouteConfig } from '../../types/routes.types';
 import { ComponentConfig } from '../../types/components.types';
 import { toggleClass } from '../../utils/dom.utils';
@@ -265,7 +265,7 @@ export class NavbarComponent extends BaseComponent {
 	 * 
 	 * Lors d'un clic sur le bouton logout, on annule l'événement de navigation,
 	 * on enclenche la destruction de la navbar, on active sa transition de sortie,
-	 * et on appelle la méthode logoutUser() du UserService pour déconnecter l'utilisateur.
+	 * et on appelle la méthode logoutUser() du AuthService pour déconnecter l'utilisateur.
 	 * 
 	 * @param {MouseEvent} event L'événement de clic.
 	 * @returns {Promise<void>} Promesse qui se résout lorsque l'opération est terminée.
@@ -274,6 +274,6 @@ export class NavbarComponent extends BaseComponent {
 		event.preventDefault();
 		this.componentConfig.destroy = true;
 		uiStore.animateNavbarOut = true;
-		await userService.logoutUser();
+		await authService.logoutUser();
 	};
 }

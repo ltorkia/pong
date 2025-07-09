@@ -6,8 +6,8 @@ import { UserQueryApi } from './user-query.api';
 // USER API - SINGLETONS
 // ===========================================
 /**
- * Ce fichier contient les instances uniques des classes UserAuthApi, UserCrudApi
- * et UserQueryApi. Ces instances fournissent des méthodes pour interagir avec l'API
+ * Instances uniques des classes UserAuthApi, UserCrudApi
+ * et UserQueryApi qui fournissent des méthodes pour interagir avec l'API
  * de l'utilisateur, y compris l'authentification, la gestion des utilisateurs
  * et les requêtes basées sur des critères de recherche.
  */

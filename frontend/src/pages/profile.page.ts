@@ -1,7 +1,7 @@
 import { BasePage } from './base.page';
 import { RouteConfig, RouteParams } from '../types/routes.types';
 import { AVATARS_ROUTE_API } from '../config/routes.config';
-import { userCrudApi } from '../api/user/user.api';
+import { userCrudApi } from '../api/user/user-index.api';
 
 // ===========================================
 // PROFILE PAGE

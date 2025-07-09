@@ -1,9 +1,9 @@
-import { particlesService } from './services';
-import { uiStore } from '../stores/ui.store';
-import { getHTMLElementById } from '../utils/dom.utils';
-import { APP_ID } from '../config/routes.config';
-import { RouteConfig, PageInstance } from '../types/routes.types';
-import { HTML_COMPONENT_CONTAINERS } from '../config/components.config';
+import { particlesService } from '../services';
+import { uiStore } from '../../stores/ui.store';
+import { getHTMLElementById } from '../../utils/dom.utils';
+import { APP_ID } from '../../config/routes.config';
+import { RouteConfig, PageInstance } from '../../types/routes.types';
+import { HTML_COMPONENT_CONTAINERS } from '../../config/components.config';
 
 // ===========================================
 // PAGE SERVICE

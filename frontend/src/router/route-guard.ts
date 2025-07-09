@@ -1,4 +1,4 @@
-import { userService } from '../services/services';
+import { sessionService } from '../services/services';
 import { userStore } from '../stores/user.store';
 import { DEFAULT_ROUTE, AUTH_FALLBACK_ROUTE } from '../config/routes.config';
 import { isPublicRoute } from '../utils/routes.utils';
@@ -35,7 +35,7 @@ export class RouteGuard {
 			const isPublic = isPublicRoute(route);
 
 			// Vérifie si un utilisateur est déjà chargé avec le cookie compagnon
-			const authCookieIsActive = userService.hasAuthCookie();
+			const authCookieIsActive = sessionService.hasAuthCookie();
 			
 			// LOGIQUE DE REDIRECTION
 			// Si route privée et user pas authentifié, redirection vers /login
@@ -58,7 +58,7 @@ export class RouteGuard {
 				
 				// Si pas en store mais cookie présent, essayer de restaurer
 				// via localStorage puis fallback API
-				const user = await userService.loadOrRestoreUser();
+				const user = await sessionService.loadOrRestoreUser();
 				if (user) {
 					console.log(`[${this.constructor.name}] Utilisateur restauré -> redirection vers /`);
 					await router.redirect(DEFAULT_ROUTE);
@@ -69,7 +69,7 @@ export class RouteGuard {
 
 			// Pour les routes privées avec cookie présent, on restaure via localStorage puis fallback API
 			if (!isPublic && authCookieIsActive) {
-				const user = await userService.loadOrRestoreUser();
+				const user = await sessionService.loadOrRestoreUser();
 				if (!user) {
 					// Cookie présent mais pas d'utilisateur valide
 					// (cas de désynchronisation ou session expirée côté serveur)

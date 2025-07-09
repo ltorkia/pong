@@ -1,8 +1,8 @@
-import { Router } from '../router/router';
-import { routingService, particlesService } from './services';
+import { Router } from '../../router/router';
+import { routingService, particlesService } from '../services';
 import { loadFull } from "tsparticles";
 import { tsParticles } from "@tsparticles/engine";
-import { wait } from '../utils/app.utils';
+import { wait } from '../../utils/app.utils';
 // import { userService } from './services';
 
 // ===========================================

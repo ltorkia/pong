@@ -1,6 +1,6 @@
 import { BasePage } from './base.page';
 import { RouteConfig } from '../types/routes.types';
-import { ImageService } from '../services/image.service';
+import { ImageService } from '../services/core/image.service';
 import { AVATARS_ROUTE_API } from '../config/routes.config';
 import { getHTMLElementById, showAlert, showSpinner, hideSpinner } from '../utils/dom.utils';
 

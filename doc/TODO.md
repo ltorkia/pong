@@ -32,8 +32,6 @@ FRONT
 - scinder user.service.ts en user-auth.service.ts / user-crud.service.ts / user-session.service.ts (donc changer la doc et la logique de singleton dans services.ts)
 - Déléguer logique métier de user.modele dans user.service !
 - Changer typage User qui peut être null dans le constructeur de usersPage et de userRowComponent: ne devrait jamais être null ici
-- Ajouter lien home sur logo pong navbar
-- Mettre logo appareil photo au hover de l'avatar sur Home pour pouvoir en changer dans les settings
 - Faire un petit hover sur le bouton/icon previous de register et du modal
 - Déplacer des méthodes de base.page.ts pour alléger (updateNavigation, checkUserLogged, méthodes relatives aux components,
 getContainerApp, getErrorMessage() etc)

@@ -1,5 +1,5 @@
 import { User } from '../../models/user.model';
-import { userCrudApi } from './user.api';
+import { userCrudApi } from './user-index.api';
 
 // ===========================================
 // USER QUERY API

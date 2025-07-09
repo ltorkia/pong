@@ -1,5 +1,5 @@
 import { tsParticles } from "@tsparticles/engine";
-import { particleColors, colorsTheme1 } from '../config/theme.config';
+import { particleColors, colorsTheme1 } from '../../config/theme.config';
 
 // ===========================================
 // PARTICLES SERVICE
