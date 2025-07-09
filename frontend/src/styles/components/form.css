@@ -2,7 +2,7 @@
 
 	/* FORMS - GENERAL */
 	.form-box {
-		@apply w-full mx-auto px-4 space-y-8 text-xl
+		@apply w-full mx-auto px-4 space-y-8 text-xl select-none
 		mobile:max-w-sm
 		tablet:px-7
 		desktop:px-9;
@@ -29,6 +29,9 @@
 	}
 	.form-separator {
 		@apply border-0 border-t-8 border-solid border-white/20 w-full my-4;
+	}
+	.auth-box span:not(#custom-google-btn span) {
+		@apply cursor-default;
 	}
 
 	/* REGISTER PAGE */

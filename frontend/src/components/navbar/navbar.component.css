@@ -7,6 +7,10 @@
 	}
 	
 	/* LOGO + NAVBAR + NOTIFBAR */
+	 #pong-navbar {
+		@apply cursor-pointer;
+	}
+
 	.navbar-content {
 		@apply h-[--navbar-height]
 		w-screen top-0 left-0 space-x-10

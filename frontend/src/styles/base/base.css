@@ -32,7 +32,7 @@
 		@apply w-screen flex items-center justify-center
 		font-classic text-xs bg-white/10 backdrop-blur-xl border border-white/20
 		shadow-md text-white text-center text-shadow-black
-		h-[--footer-height];
+		h-[--footer-height] cursor-default;
 	}
 	footer div {
 		@apply h-full flex justify-center items-center;

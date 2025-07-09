@@ -24,6 +24,8 @@ import { ROUTE_PATHS, PROFILE_HTML_ANCHOR } from '../../config/routes.config';
  * par le service de routing pour la mise à jour visuelle du lien actif.
  */
 export class NavbarComponent extends BaseComponent {
+	private homeLogoLink!: HTMLElement;
+	private homeLink!: HTMLElement;
 	private burgerBtn!: HTMLElement;
 	private navbarMenu!: HTMLElement;
 	private navLinks!: NodeListOf<HTMLAnchorElement>;
@@ -75,6 +77,8 @@ export class NavbarComponent extends BaseComponent {
 	 * @returns {Promise<void>} Une promesse qui se résout lorsque les éléments HTML ont été stockés.
 	 */
 	protected async beforeMount(): Promise<void> {
+		this.homeLogoLink = getHTMLElementById('pong-navbar', this.container);
+		this.homeLink = this.container.querySelector('a[href="/"]') as HTMLAnchorElement;
 		this.burgerBtn = getHTMLElementById('burger-btn', this.container);
 		this.navbarMenu = getHTMLElementById('navbar-menu', this.container);
 		this.icon = getHTMLElementByTagName('i', this.burgerBtn);
@@ -100,11 +104,13 @@ export class NavbarComponent extends BaseComponent {
 	/**
 	 * Attribue les listeners aux éléments de la navbar.
 	 * 
+	 * - Attribue un listener au lien de logo de la navbar.
 	 * - Attribue un listener au bouton burger pour le menu mobile.
 	 * - Attribue un listener aux liens de navigation.
 	 * - Attribue un listener au bouton de déconnexion.
 	 */
 	protected attachListeners(): void {
+		this.homeLogoLink.addEventListener('click', this.handleHomeLogoClick);
 		this.burgerBtn.addEventListener('click', this.handleBurgerClick);
 		this.navLinks.forEach(link => {
 			link.addEventListener('click', this.handleNavLinkClick);
@@ -115,11 +121,13 @@ export class NavbarComponent extends BaseComponent {
 	/**
 	 * Enlève les listeners attribués aux éléments de la navbar.
 	 *
+	 * - Enlève le listener au lien de logo de la navbar.
 	 * - Enlève le listener du bouton burger pour le menu mobile.
 	 * - Enlève le listener aux liens de navigation.
 	 * - Enlève le listener du bouton de déconnexion.
 	 */
 	protected removeListeners(): void {
+		this.homeLogoLink.removeEventListener('click', this.handleHomeLogoClick);
 		this.burgerBtn.removeEventListener('click', this.handleBurgerClick);
 		this.navLinks.forEach(link => {
 			link.removeEventListener('click', this.handleNavLinkClick);
@@ -209,6 +217,22 @@ export class NavbarComponent extends BaseComponent {
 	// ===========================================
 	// LISTENER HANDLERS
 	// ===========================================
+
+	/**
+	 * Listener sur le logo de la navbar.
+	 * 
+	 * Gère le clic sur le logo de la navbar pour rediriger vers la page d'accueil.
+	 * Empêche le menu burger de s'ouvrir si tablet ou mobile.
+	 * 
+	 * @param {MouseEvent} event L'événement de clic.
+	 */
+	private handleHomeLogoClick = (event: MouseEvent): void => {
+		event.preventDefault();
+		this.homeLink.click();
+		if (window.innerWidth < 1024 && this.navbarMenu.classList.contains('show')) {
+			this.toggleDropdown();
+		}
+	};
 
 	/**
 	 * Basculle le menu burger pour la navigation mobile.

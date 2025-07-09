@@ -7,7 +7,7 @@
 	.btn {
 		@apply min-w-64 px-6 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20
 		text-white tracking-widest font-semibold uppercase text-sm text-center shadow-md 
-		hover:bg-white/20 hover:shadow-lg transition duration-300
+		hover:bg-white/20 hover:shadow-lg transition duration-300 select-none
 		
 		mobile:min-w-80 mobile:text-lg;
 	}

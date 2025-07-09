@@ -12,12 +12,12 @@
 	}
 	.page-title {
 		@apply font-title text-center tracking-widest font-semibold text-2xl
-		mb-4 animate-logo-glow
+		mb-4 animate-logo-glow cursor-default select-none
 		
 		desktop:text-3xl;
 	}
 	.under-title {
-		@apply text-xl border-t pt-5 mb-4 text-center
+		@apply text-xl border-t pt-5 mb-4 text-center cursor-default select-none
 		
 		mobile:text-2xl px-5
 		desktop:px-20;
