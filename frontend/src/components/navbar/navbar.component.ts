@@ -24,9 +24,12 @@ import { ROUTE_PATHS, PROFILE_HTML_ANCHOR } from '../../config/routes.config';
  * par le service de routing pour la mise à jour visuelle du lien actif.
  */
 export class NavbarComponent extends BaseComponent {
+	private burgerBtn!: HTMLElement;
+	private navbarMenu!: HTMLElement;
+	private navLinks!: NodeListOf<HTMLAnchorElement>;
 	private profilePlaceholder: string;
 	private profileLink!: string;
-	private burgerBtn!: HTMLElement;
+	private icon!: HTMLElement;
 	private logoutLink!: HTMLAnchorElement;
 	private mainSection!: HTMLElement;
 
@@ -73,6 +76,9 @@ export class NavbarComponent extends BaseComponent {
 	 */
 	protected async beforeMount(): Promise<void> {
 		this.burgerBtn = getHTMLElementById('burger-btn', this.container);
+		this.navbarMenu = getHTMLElementById('navbar-menu', this.container);
+		this.icon = getHTMLElementByTagName('i', this.burgerBtn);
+		this.navLinks = this.container.querySelectorAll('.navbar-content a[data-link]');
 		this.logoutLink = getHTMLAnchorElement(ROUTE_PATHS.LOGOUT, this.container);
 		this.profileLink = this.setNavLink(PROFILE_HTML_ANCHOR, `/user/${this.profilePlaceholder}`);
 		this.mainSection = getHTMLElementByTagName('main');
@@ -95,10 +101,14 @@ export class NavbarComponent extends BaseComponent {
 	 * Attribue les listeners aux éléments de la navbar.
 	 * 
 	 * - Attribue un listener au bouton burger pour le menu mobile.
+	 * - Attribue un listener aux liens de navigation.
 	 * - Attribue un listener au bouton de déconnexion.
 	 */
 	protected attachListeners(): void {
 		this.burgerBtn.addEventListener('click', this.handleBurgerClick);
+		this.navLinks.forEach(link => {
+			link.addEventListener('click', this.handleNavLinkClick);
+		});
 		this.logoutLink.addEventListener('click', this.handleLogoutClick);
 	}
 
@@ -106,10 +116,14 @@ export class NavbarComponent extends BaseComponent {
 	 * Enlève les listeners attribués aux éléments de la navbar.
 	 *
 	 * - Enlève le listener du bouton burger pour le menu mobile.
+	 * - Enlève le listener aux liens de navigation.
 	 * - Enlève le listener du bouton de déconnexion.
 	 */
 	protected removeListeners(): void {
 		this.burgerBtn.removeEventListener('click', this.handleBurgerClick);
+		this.navLinks.forEach(link => {
+			link.removeEventListener('click', this.handleNavLinkClick);
+		});
 		this.logoutLink.removeEventListener('click', this.handleLogoutClick);
 	}
 
@@ -181,6 +195,17 @@ export class NavbarComponent extends BaseComponent {
 		return link;
 	}
 
+	/**
+	 * Bascule le menu burger pour la navigation mobile.
+	 * 
+	 * Fait basculer l'icône entre le symbole 'bars' et 'x'.
+	 * Fait basculer la visibilité du menu de la navbar.
+	 */
+	private toggleDropdown(): void {
+		toggleClass(this.icon, 'fa-bars', 'fa-xmark', 'text-blue-300');
+		toggleClass(this.navbarMenu, 'show', 'hide');
+	};
+
 	// ===========================================
 	// LISTENER HANDLERS
 	// ===========================================
@@ -195,11 +220,21 @@ export class NavbarComponent extends BaseComponent {
 	 * @param {MouseEvent} event L'événement de clic.
 	 */
 	private handleBurgerClick = (event: MouseEvent): void => {
-		const navbarMenu = getHTMLElementById('navbar-menu', this.container);
-		const icon = getHTMLElementByTagName('i', this.burgerBtn);
-		toggleClass(icon, 'fa-bars', 'fa-xmark', 'text-blue-300');
-		toggleClass(navbarMenu, 'show', 'hide');
+		this.toggleDropdown();
 	}
+
+	/**
+	 * Handler qui gère le clic sur un lien de la navbar en mode tablet/mobile.
+	 * 
+	 * Si on est sur un petit écran (moins de 1024px), on ferme le menu déroulant.
+	 * 
+	 * @param {MouseEvent} event L'événement de clic.
+	 */
+	private handleNavLinkClick = (event: MouseEvent): void => {
+		if (window.innerWidth < 1024) {
+			this.toggleDropdown();
+		}
+	};
 
 	/**
 	 * Listener sur le bouton logout de la navbar.
