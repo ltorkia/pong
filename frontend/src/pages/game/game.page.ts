@@ -1,5 +1,5 @@
-import { BasePage } from './base.page';
-import { RouteConfig } from '../types/routes.types';
+import { BasePage } from '../base.page';
+import { RouteConfig } from '../../types/routes.types';
 
 // ===========================================
 // GAME PAGE
@@ -130,7 +130,7 @@ export class GamePage extends BasePage {
 	private ball = new GamePage.Ball(this.canvasCtx);
 	private frameReq: number = 0;
 	private gameStarted: boolean = false;
-	private hitAnimationOn: boolean = false;
+	// private hitAnimationOn: boolean = false;
 	private inputs: {[key: string]: boolean} = {
 		"w": false,
 		"s": false,
@@ -162,37 +162,37 @@ export class GamePage extends BasePage {
 		});
 	}
 
-	private createHitElement() {
-		const x: number = this.ball.x;
-		const y: number = this.ball.y;
-		let radius: number = 10;
+	// private createHitElement() {
+	// 	const x: number = this.ball.x;
+	// 	const y: number = this.ball.y;
+	// 	let radius: number = 10;
 
-		return {
-			getRadius() {
-				radius += 1;
-				return (radius);
-			},
-			getX() { return x; },
-			getY() { return y; }
-		}
-	};
+	// 	return {
+	// 		getRadius() {
+	// 			radius += 1;
+	// 			return (radius);
+	// 		},
+	// 		getX() { return x; },
+	// 		getY() { return y; }
+	// 	}
+	// };
 
-	private hitAnimation(): void {
-		let hit;
-		if (!this.hitAnimationOn)
-		{
-			this.hitAnimationOn = true;
-			hit = this.createHitElement();
-		}
-		if (hit != undefined)
-		{
-			this.canvasCtx.strokeStyle = "green";
-			this.canvasCtx.beginPath();
-			this.canvasCtx.arc(hit.getX(), hit.getY(), hit.getRadius(), 0, Math.PI * 2, true);
-			this.canvasCtx.stroke();
-			console.log(hit.getRadius());
-		}
-	}
+	// private hitAnimation(): void {
+	// 	let hit;
+	// 	if (!this.hitAnimationOn)
+	// 	{
+	// 		this.hitAnimationOn = true;
+	// 		hit = this.createHitElement();
+	// 	}
+	// 	if (hit != undefined)
+	// 	{
+	// 		this.canvasCtx.strokeStyle = "green";
+	// 		this.canvasCtx.beginPath();
+	// 		this.canvasCtx.arc(hit.getX(), hit.getY(), hit.getRadius(), 0, Math.PI * 2, true);
+	// 		this.canvasCtx.stroke();
+	// 		console.log(hit.getRadius());
+	// 	}
+	// }
 
     private clearScreen(ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement): void {
 		this.canvasCtx.globalCompositeOperation = 'destination-out';
@@ -210,7 +210,7 @@ export class GamePage extends BasePage {
 			}
 			else
 			{
-				this.hitAnimation();
+				// this.hitAnimation();
 				this.ball.horizontalCollision();
 			}
 		} else if (this.ball.isGoingLeft() && this.ball.x <= this.playerOne.x + this.playerOne.w)
@@ -221,7 +221,7 @@ export class GamePage extends BasePage {
 			}
 			else
 			{
-				this.hitAnimation
+				// this.hitAnimation
 				this.ball.horizontalCollision();
 			}
 		}
@@ -252,8 +252,8 @@ export class GamePage extends BasePage {
 		this.checkPlayerMovement();
 		this.ball.move();
 		this.ball.draw();
-		if (this.hitAnimationOn)
-			this.hitAnimation();
+		// if (this.hitAnimationOn)
+			// this.hitAnimation();
 		this.canvasCtx.filter = 'none';
         requestAnimationFrame(this.gameLoop);
 	}

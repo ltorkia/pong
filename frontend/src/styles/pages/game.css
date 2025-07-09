@@ -1,5 +1,0 @@
-@layer components {
-	.game-section {
-		@apply w-full h-full;
-	}
-}

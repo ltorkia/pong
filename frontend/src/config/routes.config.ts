@@ -1,7 +1,7 @@
 import { HomePage } from '../pages/home.page';
 import { RegisterPage } from '../pages/register.page';
 import { LoginPage } from '../pages/login.page';
-import { GamePage } from '../pages/game.page';
+// import { GamePage } from '../pages/game/game.page';
 import { UsersPage } from '../pages/users.page';
 import { ProfilePage } from '../pages/profile.page';
 import { TwofaPage } from '../pages/twofa.page';
@@ -9,6 +9,7 @@ import { TwofaPage } from '../pages/twofa.page';
 import { RouteConfig } from '../types/routes.types';
 import { getComponentConfig } from '../utils/config.utils';
 import { COMPONENT_NAMES } from './components.config';
+import { GameMenuLocal } from '../pages/game/game.local.page';
 
 // ===========================================
 // ROUTES CONFIG
@@ -50,7 +51,7 @@ export const PAGE_NAMES = {
 	HOME: 'Home',
 	REGISTER: 'Register',
 	LOGIN: 'Login',
-	GAME: 'Game',
+	GAME_LOCAL: 'Local Game',
 	USERS: 'Users',
 	PROFILE: 'Profile',
 	TWOFA: 'Twofa',
@@ -67,7 +68,7 @@ export const ROUTE_PATHS = {
 	HOME: '/',
 	REGISTER: '/register',
 	LOGIN: '/login',
-	GAME: '/game',
+	GAME_LOCAL: '/game/local',
 	USERS: '/users',
 	PROFILE: '/user/:id',
 	LOGOUT: '/logout',
@@ -85,7 +86,7 @@ export const TEMPLATE_PATHS = {
 	HOME: '/templates/home.html',
 	REGISTER: '/templates/register.html',
 	LOGIN: '/templates/login.html',
-	GAME: '/templates/game.html',
+	GAME: '/templates/game_local.html',
 	USERS: '/templates/users.html',
 	PROFILE: '/templates/profile.html',
 	TWOFA: '/templates/twofa.html',
@@ -166,9 +167,9 @@ export const routesConfig: RouteConfig[] = [
 		enableParticles: true
 	},
 	{
-		path: ROUTE_PATHS.GAME,
-		name: PAGE_NAMES.GAME,
-		pageConstructor: GamePage,
+		path: ROUTE_PATHS.GAME_LOCAL,
+		name: PAGE_NAMES.GAME_LOCAL,
+		pageConstructor: GameMenuLocal,
 		templatePath: TEMPLATE_PATHS.GAME,
 		components: {
 			[COMPONENT_NAMES.NAVBAR]: getComponentConfig(COMPONENT_NAMES.NAVBAR)
