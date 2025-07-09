@@ -2,6 +2,7 @@ import { UserService } from './user.service';
 import { RoutingService } from './routing.service';
 import { PageService } from './page.service';
 import { ParticlesService } from './particles.service';
+import { ImageService } from './image.service';
 
 // ===========================================
 // SERVICES - SINGLETONS
@@ -49,6 +50,26 @@ const pageService = new PageService();
  */
 const particlesService = new ParticlesService();
 
+
+/**
+ * Instance unique du service de gestion des images.
+ * 
+ * Ce service est responsable de:
+ * - valider les fichiers image
+ * - convertir les fichiers en URL de prévisualisation
+ * - uploader et supprimer des avatars
+ * - récupérer l'URL de l'avatar actuel
+ */
+const imageService = new ImageService();
+
+const services = {
+	userService,
+	routingService,
+	pageService,
+	particlesService,
+	imageService
+};
+
 /**
  * Export des services principaux de l'application.
  * 
@@ -56,5 +77,6 @@ const particlesService = new ParticlesService();
  * - routingService: Gère le routage et la navigation.
  * - pageService: Gère le cycle de vie et le rendu des pages.
  * - particlesService: Gère les effets de particules d'arrière-plan.
+ * - imageService: Gère les images et les avatars.
  */
-export { userService, routingService, pageService, particlesService };
+export { userService, routingService, pageService, particlesService, imageService };

@@ -8,6 +8,10 @@ BACK
 - créer un cookie pour sauvegarder l'email de l'utilisateur (à afficher sur form de connexion si l'utilisateur a cliqué sur "se souvenir de moi") ?
 - Vérifier systeme middleware/hook pour auth jwt verif des routes
 - Voir si on parametre 2FA pour qu il soit actif qu a la premiere connexion
+- QR code
+- Stocker url images Google complètes dans db
+- Protections avatars. Les fichiers de plus de 100ko (pas lourds) font ramer puis erreur réseau.
+
 
 COMMUN
 
@@ -33,6 +37,7 @@ FRONT
 - Faire un petit hover sur le bouton/icon previous de register et du modal
 - Déplacer des méthodes de base.page.ts pour alléger (updateNavigation, checkUserLogged, méthodes relatives aux components,
 getContainerApp, getErrorMessage() etc)
+- Gestion affichage des avatars selon Google ou local
 
 - check MAJ package.json :
  @tsparticles/engine         ^3.0.2  →   ^3.8.1

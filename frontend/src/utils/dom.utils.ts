@@ -107,10 +107,10 @@ export function showAlert(message: string, containerId: string = 'alert', type: 
 /**
  * Affiche le spinner d'attente (par défaut, l'élément HTML #twofa-spinner).
  *
- * @param {string} [id='twofa-spinner'] - ID de l'élément HTML du spinner.
+ * @param {string} containerId - ID de l'élément HTML du spinner.
  */
-export function showSpinner(id: string = 'twofa-spinner'): void {
-	const el = getHTMLElementById(id);
+export function showSpinner(containerId: string): void {
+	const el = getHTMLElementById(containerId);
 	el.classList.remove('hidden');
 	el.setAttribute('aria-hidden', 'false');
 }
@@ -118,10 +118,10 @@ export function showSpinner(id: string = 'twofa-spinner'): void {
 /**
  * Cache le spinner d'attente (par défaut, l'élément HTML #twofa-spinner).
  *
- * @param {string} [id='twofa-spinner'] - ID de l'élément HTML du spinner.
+ * @param {string} containerId - ID de l'élément HTML du spinner.
  */
-export function hideSpinner(id: string = 'twofa-spinner'): void {
-	const el = getHTMLElementById(id);
+export function hideSpinner(containerId: string): void {
+	const el = getHTMLElementById(containerId);
 	el.classList.add('hidden');
 	el.setAttribute('aria-hidden', 'true');
 }
