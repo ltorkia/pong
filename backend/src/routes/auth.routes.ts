@@ -78,69 +78,6 @@ type AvatarMimeType = 'image/jpeg' | 'image/png' | 'image/jpg' | 'image/webp' | 
 // 	// return (reply.status(200).send({ statusCode: "200", message: "avatar added" }));
 // 	// return reply.status(200).send({statusCode: "200", message:"avatar added"});	
 // }
-type AvatarResult =
-	| { success: true }
-	| { success: false; errorMessage: string; statusCode?: number };
-async function GetAvatarFromFront(user: Partial<UserPassword>, reply: FastifyReply, avatarFile: MultipartFile): Promise<AvatarResult> {
-	try {
-		console.log('🔄 Début traitement avatar');
-
-		const extension: Record<AvatarMimeType, string> = {
-			'image/jpeg': '.jpeg',
-			'image/png': '.png',
-			'image/jpg': '.jpg',
-			'image/webp': '.webp',
-			'image/gif': '.gif',
-		};
-
-		const avatarType = avatarFile.mimetype as AvatarMimeType;
-		if (!(avatarType in extension)) {
-			return { success: false, errorMessage: 'Type d’avatar non supporté', statusCode: 400 };
-		}
-
-		console.log('📝 Extension:', extension[avatarType]);
-
-		// Création du répertoire
-		const uploadsDir = './uploads/avatars';
-		console.log('📂 Répertoire uploads:', uploadsDir);
-		
-		await fs.promises.mkdir(uploadsDir, { recursive: true });
-		console.log('✅ Répertoire créé/vérifié');
-
-		// Nom du fichier
-		const filename = user.username! + extension[avatarType];
-
-	try {
-		await fs.promises.mkdir('./uploads/avatars/', { recursive: true });
-		await pipeline(avatarFile.file, fs.createWriteStream(`./uploads/avatars/${filename}`));
-		await insertAvatar(filename, user.username!);
-		return { success: true };
-	} catch (err) {
-		console.error('❌ Erreur lors de l’enregistrement de l’avatar :', err);
-		return { success: false, errorMessage: 'Erreur serveur lors de l’upload de l’avatar', statusCode: 500 };
-	}
-
-		// const filepath = path.join(uploadsDir, filename);
-		// console.log('📄 Nom de fichier:', filename);
-		// console.log('📍 Chemin complet:', filepath);
-
-		// // Sauvegarde du fichier
-		// console.log('💾 Début sauvegarde fichier...');
-		// await pipeline(avatarFile.file, fs.createWriteStream(filepath));
-		// console.log('✅ Fichier sauvegardé');
-
-		// // Insertion en base
-		// console.log('🔄 Insertion en base...');
-		// await insertAvatar(filename, user.username!);
-		// console.log('✅ Avatar inséré en base');
-
-		// return { success: true, message: "Avatar ajouté avec succès", filename };
-
-	} catch (error) {
-		console.error('❌ Erreur dans GetAvatarFromFront:', error);
-		throw error; // Re-lancer l'erreur pour que la route principale la gère
-	}
-}
 
 const PORT = 3001;
 
@@ -318,7 +255,431 @@ async function doubleAuth(app: FastifyInstance) {
 // 		}
 // 	});
 
+
+type AvatarResult =
+	| { success: true }
+	| { success: false; errorMessage: string; statusCode?: number };
+async function GetAvatarFromFront(user: Partial<UserPassword>, reply: FastifyReply, avatarFile: MultipartFile): Promise<AvatarResult> {
+	try {
+		console.log('🔄 Début traitement avatar');
+
+		const extension: Record<AvatarMimeType, string> = {
+			'image/jpeg': '.jpeg',
+			'image/png': '.png',
+			'image/jpg': '.jpg',
+			'image/webp': '.webp',
+			'image/gif': '.gif',
+		};
+
+		const avatarType = avatarFile.mimetype as AvatarMimeType;
+		if (!(avatarType in extension)) {
+			return { success: false, errorMessage: 'Type d’avatar non supporté', statusCode: 400 };
+		}
+
+		console.log('📝 Extension:', extension[avatarType]);
+
+		// Création du répertoire
+		const uploadsDir = './uploads/avatars';
+		console.log('📂 Répertoire uploads:', uploadsDir);
+		
+		await fs.promises.mkdir(uploadsDir, { recursive: true });
+		console.log('✅ Répertoire créé/vérifié');
+
+		// Nom du fichier
+		const filename = user.username! + extension[avatarType];
+
+	try {
+		await fs.promises.mkdir('./uploads/avatars/', { recursive: true });
+		await pipeline(avatarFile.file, fs.createWriteStream(`./uploads/avatars/${filename}`));
+		await insertAvatar(filename, user.username!);
+		return { success: true };
+	} catch (err) {
+		console.error('❌ Erreur lors de l’enregistrement de l’avatar :', err);
+		return { success: false, errorMessage: 'Erreur serveur lors de l’upload de l’avatar', statusCode: 500 };
+	}
+
+	} catch (error) {
+		console.error('❌ Erreur dans GetAvatarFromFront:', error);
+		throw error; // Re-lancer l'erreur pour que la route principale la gère
+	}
+}
+
 export async function authRoutes(app: FastifyInstance) {
+
+	// REGISTER
+	app.post('/register', async (request: FastifyRequest, reply: FastifyReply) => {
+		try {
+			console.log('🔄 Début traitement inscription');
+			console.log('📊 Content-Length:', request.headers['content-length']);
+			console.log('📋 Content-Type:', request.headers['content-type']);
+
+			const elements = await request.parts();
+			const formData: Record<string, string> = {};
+			let avatarSaved = false;
+
+			// Répertoire des avatars
+			const uploadsDir = './uploads/avatars';
+			await fs.promises.mkdir(uploadsDir, { recursive: true });
+
+			// Lecture immédiate des parts
+			for await (const element of elements) {
+				if (element.type === 'file') {
+					const username = formData['username'];
+					if (!username) {
+						// username non encore reçu : impossible de traiter maintenant
+						// Tu peux :
+						// - rejeter la requête
+						// - ou consommer mais ne pas sauvegarder le fichier, ou
+						// - stocker le flux dans un buffer temporaire (complexe)
+						return reply.status(400).send({ errorMessage: "Username requis avant l'avatar" });
+					}
+
+					// traitement immédiat du fichier avec pipeline
+					const allowedTypes = { /* ... */ };
+					const ext = allowedTypes[part.mimetype];
+					if (!ext) {
+						// type non supporté
+						continue;
+					}
+
+					const filename = username + ext;
+					const filepath = path.join('./uploads/avatars', filename);
+					await fs.promises.mkdir('./uploads/avatars', { recursive: true });
+
+					try {
+						await pipeline(part.file, fs.createWriteStream(filepath));
+						await insertAvatar(filename, username);
+						avatarProcessed = true;
+					} catch (err) {
+						console.error('Erreur sauvegarde avatar:', err);
+						// ne bloque pas l'inscription, mais log
+					}
+					console.log('🖼️ Avatar détecté:', element.filename, element.mimetype);
+
+					const allowedTypes: Record<AvatarMimeType, string> = {
+						'image/jpeg': '.jpeg',
+						'image/png': '.png',
+						'image/jpg': '.jpg',
+						'image/webp': '.webp',
+						'image/gif': '.gif',
+					};
+
+					const extension = allowedTypes[element.mimetype as AvatarMimeType];
+					if (!extension) {
+						console.warn('❌ Type avatar non supporté');
+						continue;
+					}
+
+					// Nécessite d’avoir reçu le username avant
+					const username = formData['username'];
+					if (!username) {
+						console.warn('❌ Username manquant pour sauver l’avatar');
+						continue;
+					}
+
+					const filename = username + extension;
+					const filepath = path.join(uploadsDir, filename);
+					console.log('💾 Enregistrement avatar sur', filepath);
+
+					try {
+						await pipeline(element.file, fs.createWriteStream(filepath));
+						await insertAvatar(filename, username);
+						console.log('✅ Avatar sauvegardé');
+						avatarSaved = true;
+					} catch (err) {
+						console.error('❌ Erreur enregistrement avatar:', err);
+						// Ne bloque pas l’inscription
+					}
+				} else if (element.type === 'field' && typeof element.value === 'string') {
+					formData[element.fieldname] = element.value;
+				}
+			}
+
+			console.log('📋 Données formulaire:', formData);
+
+			// Champs obligatoires
+			const required = ['username', 'email', 'password', 'question', 'answer'];
+			const missing = required.filter(f => !formData[f]);
+			if (missing.length > 0) {
+				return reply.status(400).send({
+					statusCode: 400,
+					message: `Champs manquants: ${missing.join(', ')}`
+				});
+			}
+
+			// Création utilisateur
+			const user = {
+				username: formData.username,
+				email: formData.email,
+				password: formData.password,
+				question: formData.question,
+				answer: formData.answer,
+			};
+
+			const registrationResult = await insertUser(user, null);
+			if (registrationResult.statusCode !== 201) {
+				return reply.status(registrationResult.statusCode).send({
+					statusCode: registrationResult.statusCode,
+					errorMessage: registrationResult.message || 'Erreur lors de l’insertion de l’utilisateur',
+				});
+			}
+
+			console.log('🎉 Utilisateur inscrit, avatar sauvegardé:', avatarSaved);
+			return reply.status(200).send({
+				statusCode: 200,
+				message: 'Successful registration.',
+			});
+
+		} catch (err) {
+			console.error('❌ Erreur serveur:', err);
+			return reply.status(500).send({
+				statusCode: 500,
+				message: 'Erreur interne du serveur',
+			});
+		}
+
+		try {
+			const elements = await request.parts(); //separe les differents elements recuperes
+			let dataText: Record<string, string> = {}; //stockera les elements textes
+			const uploadsDir = './uploads/avatars'; // Répertoire des avatars
+			await fs.promises.mkdir(uploadsDir, { recursive: true });
+
+
+			//preparsing qui dispatch datatext d un cote et l avatar de l autre
+			for await (const element of elements) {
+				console.log(element);
+				if (element.type === 'file' && element.fieldname === 'avatar' && element.filename != '') {
+					console.log('🖼️ Avatar détecté:', element.filename, element.mimetype);
+
+					const allowedTypes: Record<AvatarMimeType, string> = {
+						'image/jpeg': '.jpeg',
+						'image/png': '.png',
+						'image/jpg': '.jpg',
+						'image/webp': '.webp',
+						'image/gif': '.gif',
+					};
+
+					const extension = allowedTypes[element.mimetype as AvatarMimeType];
+					if (!extension) {
+						console.warn('❌ Type avatar non supporté');
+						continue;
+					}
+
+					// Nécessite d’avoir reçu le username avant
+					const username = dataText['username'];
+					if (!username) {
+						console.warn('❌ Username manquant pour sauver l’avatar');
+						continue;
+					}
+
+					const filename = username + extension;
+					const filepath = path.join(uploadsDir, filename);
+					console.log('💾 Enregistrement avatar sur', filepath);
+
+					try {
+						await pipeline(element.file, fs.createWriteStream(filepath));
+						await insertAvatar(filename, username);
+						console.log('✅ Avatar sauvegardé');
+					} catch (err) {
+						console.error('❌ Erreur enregistrement avatar:', err);
+						// Ne bloque pas l’inscription
+					}
+				} else if (element.type === 'field' && typeof element.value === 'string') {
+					dataText[element.fieldname] = element.value;
+				}
+			}
+
+			//check les datas texts pour voir si elles correspondent a ce qu on attend
+			const result = RegisterInputSchema.safeParse(dataText);
+			// const result = RegisterInputSchema.safeParse(request.body);
+			if (!result.success) {
+				const error = result.error.errors[0];
+				return reply.status(400).send({ statusCode: 400, errorMessage: error.message + " in " + error.path });
+			}
+			//on cree l user avec les donnees a inserer une fois le safeparse effectue
+			let userToInsert = result.data; //datatext
+
+			//on hash le password dans un souci de confidentialite
+
+			userToInsert.password = await bcrypt.hash(userToInsert.password, 10);
+
+			//logique a ameliorer pour eviter de faire +ieurs requetes a la db MAIS EN ATTENDANT
+			// >
+			// on insere les donnes de l user dans la dbet on check si c est ok
+
+			const resultinsert = await insertUser(userToInsert, null);
+			if (resultinsert.statusCode !== 201) {
+				return reply.status(resultinsert.statusCode).send({
+					statusCode: resultinsert.statusCode,
+					errorMessage: resultinsert.message || 'Erreur lors de l’insertion de l’utilisateur',
+				});
+			}
+
+
+			const user: UserModel = await getUser(null, userToInsert.email);
+
+			// !!!TODO PIPELINE A SECURISER PEUT FOUTRE LA MERDE
+			if (avatarFile) {
+				await GetAvatarFromFront(user, reply, avatarFile);
+				
+				console.log('📦 Élément reçu:', avatarFile.type, avatarFile.fieldname);
+
+				// Démarre immédiatement le traitement du stream
+				const avatarType = avatarFile.mimetype as AvatarMimeType;
+				const extension = {
+					'image/jpeg': '.jpeg',
+					'image/png': '.png',
+					'image/jpg': '.jpg',
+					'image/webp': '.webp',
+					'image/gif': '.gif',
+				};
+
+				if (!(avatarType in extension)) {
+					return reply.status(400).send({ statusCode: 400, message: 'Type de fichier non supporté' });
+				}
+
+				const filename = user.username + extension[avatarType];
+				const filepath = `./uploads/avatars/${filename}`;
+				await fs.promises.mkdir('./uploads/avatars/', { recursive: true });
+
+				await pipeline(avatarFile.file, fs.createWriteStream(filepath));
+				await insertAvatar(filename, user.username);
+
+				console.log('✅ Fichier avatar enregistré:', filename);
+			}
+			return reply.status(200).send({
+				statusCode: 200,
+				message: 'Successful registration.'
+			});
+
+		} catch (err) {
+			request.log.error(err);
+			return reply.status(500).send({
+				errorMessage: 'Erreur serveur lors de l\'inscription',
+			});
+		}
+	});
+
+	// // Route d'inscription avec meilleure gestion des erreurs
+	// app.post('/register', async (request: FastifyRequest, reply: FastifyReply) => {
+	// 	try {
+	// 		console.log('🔄 Début traitement inscription');
+	// 		console.log('📊 Content-Length:', request.headers['content-length']);
+	// 		console.log('📋 Content-Type:', request.headers['content-type']);
+			
+	// 		// Parse des données multipart
+	// 		const elements = await request.parts();
+	// 		const formData: any = {};
+	// 		let avatarFile: MultipartFile | null = null;
+
+	// 		for await (const element of elements) {
+	// 			// console.log('📦 Élément reçu:', element.type, element.fieldname);
+				
+	// 			// if (element.type === 'file') {
+	// 			// 	avatarFile = element;
+	// 			// 	console.log('🖼️ Avatar détecté:', element.filename, element.mimetype);
+	// 			// } else {
+	// 			// 	formData[element.fieldname] = element.value;
+	// 			// }
+				
+	// 			console.log('📦 Élément reçu:', element.type, element.fieldname);
+
+	// 			if (element.type === 'file') {
+	// 				// Démarre immédiatement le traitement du stream
+	// 				const avatarType = element.mimetype as AvatarMimeType;
+	// 				const extension = {
+	// 					'image/jpeg': '.jpeg',
+	// 					'image/png': '.png',
+	// 					'image/jpg': '.jpg',
+	// 					'image/webp': '.webp',
+	// 					'image/gif': '.gif',
+	// 				};
+
+	// 				if (!(avatarType in extension)) {
+	// 					return reply.status(400).send({ statusCode: 400, message: 'Type de fichier non supporté' });
+	// 				}
+
+	// 				const filename = formData.username + extension[avatarType];
+	// 				const filepath = `./uploads/avatars/${filename}`;
+	// 				await fs.promises.mkdir('./uploads/avatars/', { recursive: true });
+
+	// 				await pipeline(element.file, fs.createWriteStream(filepath));
+	// 				await insertAvatar(filename, formData.username);
+
+	// 				console.log('✅ Fichier avatar enregistré:', filename);
+	// 			} else {
+	// 				formData[element.fieldname] = element.value;
+	// 			}
+	// 		}
+
+	// 		console.log('📋 Données du formulaire:', Object.keys(formData));
+			
+	// 		// Validation des champs requis
+	// 		const requiredFields = ['username', 'email', 'password', 'question', 'answer'];
+	// 		const missingFields = requiredFields.filter(field => !formData[field]);
+			
+	// 		if (missingFields.length > 0) {
+	// 			console.log('❌ Champs manquants:', missingFields);
+	// 			return reply.status(400).send({
+	// 				statusCode: 400,
+	// 				message: `Champs manquants: ${missingFields.join(', ')}`
+	// 			});
+	// 		}
+
+	// 		// Création de l'utilisateur
+	// 		const user = {
+	// 			username: formData.username,
+	// 			email: formData.email,
+	// 			password: formData.password,
+	// 			question: formData.question,
+	// 			answer: formData.answer
+	// 		};
+
+	// 		console.log('👤 Création utilisateur:', user.username);
+			
+	// 		// Inscription de l'utilisateur
+	// 		const registrationResult = await insertUser(user, null);
+			
+	// 		if (registrationResult.statusCode !== 201) {
+	// 			return reply.status(registrationResult.statusCode).send({
+	// 				statusCode: registrationResult.statusCode,
+	// 				errorMessage: registrationResult.message || 'Erreur lors de l’insertion de l’utilisateur',
+	// 			});
+	// 		}
+
+	// 		// Traitement de l'avatar si présent
+	// 		if (avatarFile) {
+	// 			console.log('🖼️ Traitement avatar...');
+	// 			try {
+	// 				const avatarResult = await GetAvatarFromFront(user, reply, avatarFile);
+	// 				console.log('✅ Avatar traité:', avatarResult);
+	// 				if (!avatarResult.success) {
+	// 					console.error('❌ Erreur avatar:', avatarResult.errorMessage);
+	// 					// Tu peux ignorer ou logger selon le besoin
+	// 				}
+	// 			} catch (error) {
+	// 				console.error('❌ Erreur traitement avatar:', error);
+	// 				// Ne pas faire échouer l'inscription si l'avatar échoue
+	// 			}
+	// 		}
+
+	// 		// Réponse finale
+	// 		console.log('🎉 Inscription terminée avec succès');
+	// 		return reply.status(200).send({
+	// 			statusCode: 200,
+	// 			message: 'Successful registration.'
+	// 		});
+
+	// 	} catch (error) {
+	// 		console.error('❌ Erreur serveur inscription:', error);
+	// 		return reply.status(500).send({
+	// 			statusCode: 500,
+	// 			message: 'Erreur interne du serveur'
+	// 		});
+	// 	}
+	// });
+
+// export async function authRoutes(app: FastifyInstance) {
 	// Route d'inscription avec meilleure gestion des erreurs
 	app.post('/register', async (request: FastifyRequest, reply: FastifyReply) => {
 		try {
