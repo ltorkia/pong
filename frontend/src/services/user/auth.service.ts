@@ -28,10 +28,38 @@ export class AuthService {
 	 */
 	public async registerUser(formData: FormData): Promise<void> {
 		try {
-			const result: AuthResponse = await userAuthApi.registerUser(formData);
-			if (result.errorMessage) {
-				console.error(`[${this.constructor.name}] Erreur d\'inscription :`, result);
-				showAlert(result.errorMessage);
+			// Vérification de l'avatar
+			const avatarFile = formData.get('avatar') as File | null;
+			
+			if (avatarFile && avatarFile.size > 0) {
+				console.log('📁 Taille avatar:', avatarFile.size, 'bytes');
+				
+				if (avatarFile.size > 5 * 1024 * 1024) {
+					alert('Avatar trop lourd (5 Mo max)');
+					return;
+				}
+				
+				if (!avatarFile.type.startsWith('image/')) {
+					alert('Seuls les fichiers images sont autorisés');
+					return;
+				}
+			}
+
+			let result: AuthResponse;
+
+			try {
+				result = await userAuthApi.registerUser(formData);
+			} catch (error: any) {
+				// Cas : échec JSON ou 504 (gateway timeout) HTML
+				const isResponseError = error instanceof SyntaxError || (error?.message?.includes?.('Unexpected token') ?? false);
+
+				console.error(`[${this.constructor.name}] Erreur serveur ou parsing JSON`, error);
+
+				if (isResponseError) {
+					showAlert("Le serveur a mis trop de temps à répondre. Essayez avec un avatar plus léger.");
+				} else {
+					showAlert("Erreur réseau ou serveur. Veuillez réessayer.");
+				}
 				return;
 			}
 			console.log(`[${this.constructor.name}] Utilisateur inscrit :`, result);

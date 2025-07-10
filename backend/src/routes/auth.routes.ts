@@ -6,6 +6,7 @@ import { generateJwt, setAuthCookie, setStatusCookie, clearAuthCookies } from '.
 import { GoogleUserInfo, UserPassword, User2FA } from '../types/user.types';
 import { UserModel } from '../shared/types/user.types'; // en rouge car dossier local 'shared' != dossier conteneur
 import nodemailer from 'nodemailer';
+import path from 'node:path';
 
 async function ProcessAuth(app: FastifyInstance, user: Partial<UserPassword>, reply: FastifyReply) {
 	// const user = await getUser(null, userToGet);
@@ -45,39 +46,101 @@ function CheckFormatAvatar(reply: FastifyReply, avatarFile: MultipartFile)
 
 
 type AvatarMimeType = 'image/jpeg' | 'image/png' | 'image/jpg' | 'image/webp' | 'image/gif';
-async function GetAvatarFromFront(user: Partial<UserPassword>, reply: FastifyReply, avatarFile: MultipartFile) {
+// async function GetAvatarFromFront(user: Partial<UserPassword>, reply: FastifyReply, avatarFile: MultipartFile) {
 
-	// // check du format
-	const extension: Record<AvatarMimeType, string> = {
-		'image/jpeg': '.jpeg',
-		'image/png': '.png',
-		'image/jpg': '.jpg',
-		'image/webp': '.webp',
-		'image/gif': '.gif'
-	};
+// 	// // check du format
+// 	const extension: Record<AvatarMimeType, string> = {
+// 		'image/jpeg': '.jpeg',
+// 		'image/png': '.png',
+// 		'image/jpg': '.jpg',
+// 		'image/webp': '.webp',
+// 		'image/gif': '.gif'
+// 	};
 
-	// //check format via mimetype, + a voir si on decide de lire le fichier aussi pour s assurer du truc 
-	// // const fileStream = avatarFile.file;
-	// // const detectedType = await fileTypeFromStream(fileStream);
-	const avatarType = avatarFile.mimetype as AvatarMimeType;
+// 	// //check format via mimetype, + a voir si on decide de lire le fichier aussi pour s assurer du truc 
+// 	// // const fileStream = avatarFile.file;
+// 	// // const detectedType = await fileTypeFromStream(fileStream);
+// 	const avatarType = avatarFile.mimetype as AvatarMimeType;
 
-	// // if (!detectedType || detectedType.mime != avatarType || !(avatarType in extension))
-	// if (!(avatarType in extension))
-	// 	return reply.status(400).send({ statusCode: "400", message: "file no supported" });
+// 	// // if (!detectedType || detectedType.mime != avatarType || !(avatarType in extension))
+// 	// if (!(avatarType in extension))
+// 	// 	return reply.status(400).send({ statusCode: "400", message: "file no supported" });
 
-	// rename l image
-	const filename = user.username! + extension[avatarType];
-	// Telechargement de l avatar
-	// const fileStreamNew = avatarFile.file;
-	// const avatarBuffer = await fileStreamNew.toBuffer();
-	await fs.promises.mkdir('./uploads/avatars/', { recursive: true });
-	await pipeline(avatarFile.file, fs.createWriteStream(`./uploads/avatars/${filename}`))
-	insertAvatar(filename, user.username!)
-	return;
-	// return (reply.status(200).send({ statusCode: "200", message: "avatar added" }));
-	// return reply.status(200).send({statusCode: "200", message:"avatar added"});	
+// 	// rename l image
+// 	const filename = user.username! + extension[avatarType];
+// 	// Telechargement de l avatar
+// 	// const fileStreamNew = avatarFile.file;
+// 	// const avatarBuffer = await fileStreamNew.toBuffer();
+// 	await fs.promises.mkdir('./uploads/avatars/', { recursive: true });
+// 	await pipeline(avatarFile.file, fs.createWriteStream(`./uploads/avatars/${filename}`))
+// 	insertAvatar(filename, user.username!)
+// 	return;
+// 	// return (reply.status(200).send({ statusCode: "200", message: "avatar added" }));
+// 	// return reply.status(200).send({statusCode: "200", message:"avatar added"});	
+// }
+type AvatarResult =
+	| { success: true }
+	| { success: false; errorMessage: string; statusCode?: number };
+async function GetAvatarFromFront(user: Partial<UserPassword>, reply: FastifyReply, avatarFile: MultipartFile): Promise<AvatarResult> {
+	try {
+		console.log('🔄 Début traitement avatar');
+
+		const extension: Record<AvatarMimeType, string> = {
+			'image/jpeg': '.jpeg',
+			'image/png': '.png',
+			'image/jpg': '.jpg',
+			'image/webp': '.webp',
+			'image/gif': '.gif',
+		};
+
+		const avatarType = avatarFile.mimetype as AvatarMimeType;
+		if (!(avatarType in extension)) {
+			return { success: false, errorMessage: 'Type d’avatar non supporté', statusCode: 400 };
+		}
+
+		console.log('📝 Extension:', extension[avatarType]);
+
+		// Création du répertoire
+		const uploadsDir = './uploads/avatars';
+		console.log('📂 Répertoire uploads:', uploadsDir);
+		
+		await fs.promises.mkdir(uploadsDir, { recursive: true });
+		console.log('✅ Répertoire créé/vérifié');
+
+		// Nom du fichier
+		const filename = user.username! + extension[avatarType];
+
+	try {
+		await fs.promises.mkdir('./uploads/avatars/', { recursive: true });
+		await pipeline(avatarFile.file, fs.createWriteStream(`./uploads/avatars/${filename}`));
+		await insertAvatar(filename, user.username!);
+		return { success: true };
+	} catch (err) {
+		console.error('❌ Erreur lors de l’enregistrement de l’avatar :', err);
+		return { success: false, errorMessage: 'Erreur serveur lors de l’upload de l’avatar', statusCode: 500 };
+	}
+
+		// const filepath = path.join(uploadsDir, filename);
+		// console.log('📄 Nom de fichier:', filename);
+		// console.log('📍 Chemin complet:', filepath);
+
+		// // Sauvegarde du fichier
+		// console.log('💾 Début sauvegarde fichier...');
+		// await pipeline(avatarFile.file, fs.createWriteStream(filepath));
+		// console.log('✅ Fichier sauvegardé');
+
+		// // Insertion en base
+		// console.log('🔄 Insertion en base...');
+		// await insertAvatar(filename, user.username!);
+		// console.log('✅ Avatar inséré en base');
+
+		// return { success: true, message: "Avatar ajouté avec succès", filename };
+
+	} catch (error) {
+		console.error('❌ Erreur dans GetAvatarFromFront:', error);
+		throw error; // Re-lancer l'erreur pour que la route principale la gère
+	}
 }
-
 
 const PORT = 3001;
 
@@ -164,93 +227,184 @@ async function doubleAuth(app: FastifyInstance) {
     });
 }
 
-export async function authRoutes(app: FastifyInstance) {
+// export async function authRoutes(app: FastifyInstance) {
 
-	// REGISTER
+// 	// REGISTER
+// 	app.post('/register', async (request: FastifyRequest, reply: FastifyReply) => {
+// 		try {
+// 			const elements = await request.parts(); //separe les differents elements recuperes
+// 			let dataText: Record<string, string> = {}; //stockera les elements textes
+// 			// const fs = require('node:fs') //permet de creer dossier et fichiers
+// 			// const { pipeline } = require('node:stream/promises') //pour transferer fichier ? 
+// 			let avatarFile; //stockera le file de l avatar
+
+
+// 			//preparsing qui dispatch datatext d un cote et l avatar de l autre
+// 			for await (const element of elements) {
+// 				console.log(element);
+// 				if (element.type === 'file' && element.fieldname === 'avatar' && element.filename != '') {
+// 					avatarFile = element;
+// 				} else if (element.type === 'field' && typeof element.value === 'string') {
+// 					dataText[element.fieldname] = element.value;
+// 				}
+// 			}
+
+// 			//check les datas texts pour voir si elles correspondent a ce qu on attend
+// 			const result = RegisterInputSchema.safeParse(dataText);
+// 			// const result = RegisterInputSchema.safeParse(request.body);
+// 			if (!result.success) {
+// 				const error = result.error.errors[0];
+// 				return reply.status(400).send({ statusCode: 400, errorMessage: error.message + " in " + error.path });
+// 			}
+// 			//on cree l user avec les donnees a inserer une fois le safeparse effectue
+// 			let userToInsert = result.data; //datatext
+
+// 			//on hash le password dans un souci de confidentialite
+
+// 			userToInsert.password = await bcrypt.hash(userToInsert.password, 10);
+
+// 			//logique a ameliorer pour eviter de faire +ieurs requetes a la db MAIS EN ATTENDANT
+// 			// >
+// 			// on insere les donnes de l user dans la dbet on check si c est ok
+
+// 			const resultinsert = await insertUser(userToInsert, null);
+// 			if (resultinsert.statusCode !== 201) {
+// 				return reply.status(resultinsert.statusCode).send({
+// 					statusCode: resultinsert.statusCode,
+// 					errorMessage: resultinsert.message || 'Erreur lors de l’insertion de l’utilisateur',
+// 				});
+// 			}
+
+// 			// if (resultinsert.statusCode === 201) 
+// 			// {
+// 			const user: UserModel = await getUser(null, userToInsert.email);
+// 			const userAuth: Partial<UserPassword> = {
+// 				id: user.id,
+// 				username: user.username
+// 			}
+// 			// !!!TODO PIPELINE A SECURISER PEUT FOUTRE LA MERDE
+// 			if (avatarFile) {
+// 				await GetAvatarFromFront(user, reply, avatarFile);
+// 				// return;
+// 			}
+// 			// si on veut skip la double auth -> decommenter ligne suivante
+// 			// ProcessAuth(app, userAuth, reply);
+// 			// 	return reply.status(200).send({
+// 			// 		message: 'Successful registration.',
+// 			// 		user: user,
+// 			// 		statusCode: 200 // -> convention json pour donner toutes les infos au front
+// 			// // if (resultinsert.statusCode !== 201) {
+// 			// // 	return reply.status(resultinsert.statusCode).send({
+// 			// // 		statusCode: resultinsert.statusCode,
+// 			// // 		errorMessage: resultinsert.message || 'Erreur lors de l’insertion de l’utilisateur',
+// 			// 	});
+// 			// }
+// 			// return reply.status(200).send({
+// 			// 	statusCode: 200,
+// 			// 	message: 'Successful registration.'
+// 			// });
+// 			return reply.status(200).send({
+// 				statusCode: 200,
+// 				message: 'Successful registration.'
+// 			});
+// 			// }
+// 			// }
+
+// 		} catch (err) {
+// 			request.log.error(err);
+// 			return reply.status(500).send({
+// 				errorMessage: 'Erreur serveur lors de l\'inscription',
+// 			});
+// 		}
+// 	});
+
+export async function authRoutes(app: FastifyInstance) {
+	// Route d'inscription avec meilleure gestion des erreurs
 	app.post('/register', async (request: FastifyRequest, reply: FastifyReply) => {
 		try {
-			const elements = await request.parts(); //separe les differents elements recuperes
-			let dataText: Record<string, string> = {}; //stockera les elements textes
-			// const fs = require('node:fs') //permet de creer dossier et fichiers
-			// const { pipeline } = require('node:stream/promises') //pour transferer fichier ? 
-			let avatarFile; //stockera le file de l avatar
+			console.log('🔄 Début traitement inscription');
+			console.log('📊 Content-Length:', request.headers['content-length']);
+			console.log('📋 Content-Type:', request.headers['content-type']);
+			
+			// Parse des données multipart
+			const elements = await request.parts();
+			const formData: any = {};
+			let avatarFile: MultipartFile | null = null;
 
-
-			//preparsing qui dispatch datatext d un cote et l avatar de l autre
 			for await (const element of elements) {
-				console.log(element);
-				if (element.type === 'file' && element.fieldname === 'avatar' && element.filename != '') {
+				console.log('📦 Élément reçu:', element.type, element.fieldname);
+				
+				if (element.type === 'file') {
 					avatarFile = element;
-				} else if (element.type === 'field' && typeof element.value === 'string') {
-					dataText[element.fieldname] = element.value;
+					console.log('🖼️ Avatar détecté:', element.filename, element.mimetype);
+				} else {
+					formData[element.fieldname] = element.value;
 				}
 			}
 
-			//check les datas texts pour voir si elles correspondent a ce qu on attend
-			const result = RegisterInputSchema.safeParse(dataText);
-			// const result = RegisterInputSchema.safeParse(request.body);
-			if (!result.success) {
-				const error = result.error.errors[0];
-				return reply.status(400).send({ statusCode: 400, errorMessage: error.message + " in " + error.path });
-			}
-			//on cree l user avec les donnees a inserer une fois le safeparse effectue
-			let userToInsert = result.data; //datatext
-
-			//on hash le password dans un souci de confidentialite
-
-			userToInsert.password = await bcrypt.hash(userToInsert.password, 10);
-
-			//logique a ameliorer pour eviter de faire +ieurs requetes a la db MAIS EN ATTENDANT
-			// >
-			// on insere les donnes de l user dans la dbet on check si c est ok
-
-			const resultinsert = await insertUser(userToInsert, null);
-			if (resultinsert.statusCode !== 201) {
-				return reply.status(resultinsert.statusCode).send({
-					statusCode: resultinsert.statusCode,
-					errorMessage: resultinsert.message || 'Erreur lors de l’insertion de l’utilisateur',
+			console.log('📋 Données du formulaire:', Object.keys(formData));
+			
+			// Validation des champs requis
+			const requiredFields = ['username', 'email', 'password', 'question', 'answer'];
+			const missingFields = requiredFields.filter(field => !formData[field]);
+			
+			if (missingFields.length > 0) {
+				console.log('❌ Champs manquants:', missingFields);
+				return reply.status(400).send({
+					statusCode: 400,
+					message: `Champs manquants: ${missingFields.join(', ')}`
 				});
 			}
 
-			// if (resultinsert.statusCode === 201) 
-			// {
-			const user: UserModel = await getUser(null, userToInsert.email);
-			const userAuth: Partial<UserPassword> = {
-				id: user.id,
-				username: user.username
+			// Création de l'utilisateur
+			const user = {
+				username: formData.username,
+				email: formData.email,
+				password: formData.password,
+				question: formData.question,
+				answer: formData.answer
+			};
+
+			console.log('👤 Création utilisateur:', user.username);
+			
+			// Inscription de l'utilisateur
+			const registrationResult = await insertUser(user, null);
+			
+			if (registrationResult.statusCode !== 201) {
+				return reply.status(registrationResult.statusCode).send({
+					statusCode: registrationResult.statusCode,
+					errorMessage: registrationResult.message || 'Erreur lors de l’insertion de l’utilisateur',
+				});
 			}
-			// !!!TODO PIPELINE A SECURISER PEUT FOUTRE LA MERDE
+
+			// Traitement de l'avatar si présent
 			if (avatarFile) {
-				await GetAvatarFromFront(user, reply, avatarFile);
-				// return;
+				console.log('🖼️ Traitement avatar...');
+				try {
+					const avatarResult = await GetAvatarFromFront(user, reply, avatarFile);
+					console.log('✅ Avatar traité:', avatarResult);
+					if (!avatarResult.success) {
+						console.error('❌ Erreur avatar:', avatarResult.errorMessage);
+						// Tu peux ignorer ou logger selon le besoin
+					}
+				} catch (error) {
+					console.error('❌ Erreur traitement avatar:', error);
+					// Ne pas faire échouer l'inscription si l'avatar échoue
+				}
 			}
-			// si on veut skip la double auth -> decommenter ligne suivante
-			// ProcessAuth(app, userAuth, reply);
-			// 	return reply.status(200).send({
-			// 		message: 'Successful registration.',
-			// 		user: user,
-			// 		statusCode: 200 // -> convention json pour donner toutes les infos au front
-			// // if (resultinsert.statusCode !== 201) {
-			// // 	return reply.status(resultinsert.statusCode).send({
-			// // 		statusCode: resultinsert.statusCode,
-			// // 		errorMessage: resultinsert.message || 'Erreur lors de l’insertion de l’utilisateur',
-			// 	});
-			// }
-			// return reply.status(200).send({
-			// 	statusCode: 200,
-			// 	message: 'Successful registration.'
-			// });
+
+			// Réponse finale
+			console.log('🎉 Inscription terminée avec succès');
 			return reply.status(200).send({
 				statusCode: 200,
 				message: 'Successful registration.'
 			});
-			// }
-			// }
 
-		} catch (err) {
-			request.log.error(err);
+		} catch (error) {
+			console.error('❌ Erreur serveur inscription:', error);
 			return reply.status(500).send({
-				errorMessage: 'Erreur serveur lors de l\'inscription',
+				statusCode: 500,
+				message: 'Erreur interne du serveur'
 			});
 		}
 	});
