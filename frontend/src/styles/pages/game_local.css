@@ -11,4 +11,8 @@
 		transform: translateY(2px) translateX(2px);
 		box-shadow: 3px 3px 0px rgb(180, 180, 180);
 	}
+
+	#counter {
+		@apply font-title text-8xl
+	}
 }

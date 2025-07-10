@@ -1,5 +1,6 @@
 import { BasePage } from '../base.page';
 import { RouteConfig } from '../../types/routes.types';
+import { BaseGame } from '../../components/game/BaseGame.component';
 
 export class GameMenuLocal extends BasePage {
 
@@ -14,9 +15,8 @@ export class GameMenuLocal extends BasePage {
         const mainContainer = document.querySelector("#pong-section");
         while (mainContainer?.lastChild)
             mainContainer.removeChild(mainContainer.lastChild);
-        const counter = document.createElement("div");
-        counter.id = "counter";
-        mainContainer?.append(counter);
+        const gameInstance = new BaseGame(2);
+        gameInstance.initGame();
     }
 
     protected attachListeners(): any {
@@ -25,8 +25,7 @@ export class GameMenuLocal extends BasePage {
             if (event.key === " ") {
                 return this.launchGame();
             }
-            for (const node of nodes)
-            {
+            for (const node of nodes) {
                 if (node.dataset.key == event.key)
                     node.classList.add("button-press");
             }
@@ -34,8 +33,7 @@ export class GameMenuLocal extends BasePage {
         );
         document.addEventListener("keyup", (event) => {
             const nodes: NodeListOf<HTMLElement> = document.querySelectorAll(".control");
-            for (const node of nodes)
-            {
+            for (const node of nodes) {
                 if (node.dataset.key == event.key)
                     node.classList.remove("button-press");
             }
