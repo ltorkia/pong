@@ -33,19 +33,6 @@ export class HomePage extends BasePage {
 	// ===========================================
 
 	/**
-	 * Montage du composant de la page d'accueil.
-	 *
-	 * Cette méthode charge l'avatar de l'utilisateur et affiche un message
-	 * de bienvenue avec le nom de l'utilisateur.
-	 *
-	 * @returns Une promesse qui se r solve lorsque le composant est mont .
-	 */
-	protected async mount(): Promise<void> {
-		this.welcomeUser();
-		this.loadAvatar();
-	}
-
-	/**
 	 * Récupère les éléments HTML de la page d'accueil avant de la monter.
 	 * 
 	 * Stocke les éléments HTML suivants dans les propriétés de l'objet:
@@ -59,6 +46,19 @@ export class HomePage extends BasePage {
 		this.welcomeContainer = getHTMLElementById('welcome-username');
 		this.avatarInput = document.getElementById('avatar-input') as HTMLInputElement;
 		this.avatarContainer = document.getElementById('avatar-container') as HTMLElement;
+	}
+
+	/**
+	 * Montage du composant de la page d'accueil.
+	 *
+	 * Cette méthode charge l'avatar de l'utilisateur et affiche un message
+	 * de bienvenue avec le nom de l'utilisateur.
+	 *
+	 * @returns Une promesse qui se r solve lorsque le composant est mont .
+	 */
+	protected async mount(): Promise<void> {
+		this.welcomeUser();
+		this.loadAvatar();
 	}
 
 	/**
