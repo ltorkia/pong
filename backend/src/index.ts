@@ -4,6 +4,7 @@ import fastifyCookie from '@fastify/cookie';
 import fastifyJwt from '@fastify/jwt';
 import websocket from '@fastify/websocket';
 import fastifyMultipart from '@fastify/multipart';
+import { IMAGE_CONST } from './shared/config/constants.config';
 // import { SocketStream } from '@fastify/websocket';
 
 // Database
@@ -19,10 +20,10 @@ async function start() {
 	// Instanciation de Fastify
 	const app = Fastify({ 
 		logger: true,
-		ignoreTrailingSlash: true, // ignore les / à la fin des urls
-		bodyLimit: 10 * 1024 * 1024, // 10 Mo pour toutes les requêtes
-		connectionTimeout: 120000,    // 2 minutes
-		keepAliveTimeout: 120000      // 2 minutes
+		ignoreTrailingSlash: true,		// ignore les / à la fin des urls
+		bodyLimit: 10 * 1024 * 1024,	// 10 Mo pour toutes les requêtes
+		connectionTimeout: 120000,		// 2 minutes
+		keepAliveTimeout: 120000		// 2 minutes
 	});
 
 	// Sécurise
@@ -35,12 +36,12 @@ async function start() {
 	// pour uploader des avatars
 	app.register(fastifyMultipart, {
 		limits: {
-			fileSize: 5 * 1024 * 1024,    // 5 Mo par fichier
-			files: 1,                     // 1 fichier max
-			fieldNameSize: 100,           // Taille max du nom de champ
-			fieldSize: 100,               // Taille max de la valeur de champ
-			fields: 10,                   // Nombre max de champs
-			headerPairs: 2000            // Nombre max de paires headers
+			fileSize: IMAGE_CONST.MAX_SIZE,	// 5 Mo par fichier
+			files: 1,						// 1 fichier max
+			fieldNameSize: 100,				// Taille max du nom de champ
+			fieldSize: 100,					// Taille max de la valeur de champ
+			fields: 10,						// Nombre max de champs
+			headerPairs: 2000				// Nombre max de paires headers
 		}
 	});
 
