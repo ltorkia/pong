@@ -1,8 +1,8 @@
-import { BasePage } from './base.page';
-import { RouteConfig, RouteParams } from '../types/routes.types';
-import { userCrudApi } from '../api/user/user-index.api';
-import { User } from '../models/user.model';
-import { ImageService } from '../services/services';
+import { BasePage } from '../base/base.page';
+import { RouteConfig, RouteParams } from '../../types/routes.types';
+import { userCrudApi } from '../../api/user/user-index.api';
+import { User } from '../../models/user.model';
+import { ImageService } from '../../services/services';
 
 // ===========================================
 // PROFILE PAGE

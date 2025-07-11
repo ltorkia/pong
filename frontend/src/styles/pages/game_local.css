@@ -1,0 +1,18 @@
+@layer components {
+	.control {
+		@apply w-20 h-20 bg-black flex items-center justify-center;
+		border-radius: 5%;
+		box-shadow: 5px 5px 0px white;
+		/* transition: box-shadow 0.2s; */
+		transition: transform box-shadow ease-in 0.2s;
+	}
+
+	.button-press {
+		transform: translateY(2px) translateX(2px);
+		box-shadow: 3px 3px 0px rgb(180, 180, 180);
+	}
+
+	#counter {
+		@apply font-title text-8xl
+	}
+}

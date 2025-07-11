@@ -1,10 +1,10 @@
-import { BasePage } from './base.page';
-import { RouteConfig } from '../types/routes.types';
-import { authService, googleService } from '../services/services';
-import { TwofaModalComponent } from '../components/twofa-modal/twofa-modal.component';
-import { ComponentConfig } from '../types/components.types';
-import { COMPONENT_NAMES, HTML_COMPONENT_CONTAINERS } from '../config/components.config';
-import { getHTMLElementById } from '../utils/dom.utils';
+import { BasePage } from '../base/base.page';
+import { RouteConfig } from '../../types/routes.types';
+import { authService, googleService } from '../../services/services';
+import { TwofaModalComponent } from '../../components/twofa-modal/twofa-modal.component';
+import { ComponentConfig } from '../../types/components.types';
+import { COMPONENT_NAMES, HTML_COMPONENT_CONTAINERS } from '../../config/components.config';
+import { getHTMLElementById } from '../../utils/dom.utils';
 
 // ===========================================
 // LOGIN PAGE

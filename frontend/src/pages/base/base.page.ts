@@ -1,15 +1,15 @@
-import { RouteConfig } from '../types/routes.types';
-import { User } from '../models/user.model';
-import { dataService } from '../services/services';
-import { checkUserLogged } from '../utils/app.utils'; 
-import { BaseComponent } from '../components/base/base.component';
-import { NavbarComponent } from '../components/navbar/navbar.component';
-import { ComponentName, ComponentConfig } from '../types/components.types';
-import { loadTemplate, getContainerApp, getHTMLElementById } from '../utils/dom.utils';
-import { ImageService } from '../services/services';
-import { APP_ID } from '../config/routes.config';
-import { COMPONENT_NAMES } from '../config/components.config';
-import { LOADING_PAGE_ERR } from '../config/messages.config';
+import { RouteConfig } from '../../types/routes.types';
+import { User } from '../../models/user.model';
+import { dataService } from '../../services/services';
+import { checkUserLogged } from '../../utils/app.utils'; 
+import { BaseComponent } from '../../components/base/base.component';
+import { NavbarComponent } from '../../components/navbar/navbar.component';
+import { ComponentName, ComponentConfig } from '../../types/components.types';
+import { loadTemplate, getContainerApp, getHTMLElementById } from '../../utils/dom.utils';
+import { ImageService } from '../../services/services';
+import { APP_ID } from '../../config/routes.config';
+import { COMPONENT_NAMES } from '../../config/components.config';
+import { LOADING_PAGE_ERR } from '../../config/messages.config';
 
 // ===========================================
 // BASE PAGE
