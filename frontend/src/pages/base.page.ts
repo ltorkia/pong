@@ -78,7 +78,7 @@ export abstract class BasePage {
 		try {
 			console.log(`[${this.constructor.name}] Début du rendu...`);
 
-			this.preRenderCheck();
+			await this.preRenderCheck();
 			await this.loadTemplate();
 			await this.beforeMount();
 			await this.loadPersistentComponents();

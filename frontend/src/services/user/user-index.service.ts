@@ -14,6 +14,3 @@ import { SessionService } from './session.service';
 export const authService = new AuthService();
 export const googleService = new GoogleService();
 export const sessionService = new SessionService();
-
-/* Export des classes pour les fonctions statiques */
-export { AuthService, GoogleService, SessionService };

@@ -6,6 +6,7 @@ import { ProcessAuth, clearAuthCookies } from '../helpers/auth.helpers';
 import { GetAvatarFromBuffer, bufferizeStream } from '../helpers/image.helpers';
 import { GoogleUserInfo, UserPassword, User2FA } from '../types/user.types';
 import { UserModel } from '../shared/types/user.types'; // en rouge car dossier local 'shared' != dossier conteneur
+import { DB_CONST } from '../shared/config/constants.config'; // en rouge car dossier local 'shared' != dossier conteneur
 import { Buffer } from 'buffer';
 import nodemailer from 'nodemailer';
 
@@ -172,7 +173,7 @@ export async function authRoutes(app: FastifyInstance) {
 				});
 			}
 
-			if (validUser && validUser.register_from == 'google') {
+			if (validUser && validUser.register_from === DB_CONST.USER.REGISTER_FROM.GOOGLE) {
 				return reply.status(402).send({
 					statusCode: 402,
 					errorMessage: 'Email already register from Google.'
@@ -242,20 +243,21 @@ export async function authRoutes(app: FastifyInstance) {
 
 			const email = payloadDecoded.email;
 			const username = payloadDecoded.given_name ?? payloadDecoded.name?.split(' ')[0] ?? 'GoogleUser';
-			const avatar = payloadDecoded.picture ?? '';
-
+			const avatar = payloadDecoded.picture ?? DB_CONST.USER.DEFAULT_AVATAR;
 			let user = await getUserP(email);
 			if (user && user.password) {
 				return reply.status(403).send({ errorMessage: 'Account already registered with a local password.' });
 			}
 
 			if (!user) {
-				await insertUser({ email, username, avatar }, true);
+				await insertUser({ email, username }, true);
 				user = await getUserP(email);
 				if (!user) {
 					return reply.status(500).send({ errorMessage: 'An error occurred while creating your Google account.' });
 				}
 			}
+			// On update l'avatar Google en bdd à chaque reconnexion
+			await insertAvatar(avatar, username);
 
 			ProcessAuth(app, user, reply);
 			const userData: UserModel = await getUser(null, email);

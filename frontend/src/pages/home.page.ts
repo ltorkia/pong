@@ -1,7 +1,6 @@
 import { BasePage } from './base.page';
 import { RouteConfig } from '../types/routes.types';
 import { ImageService } from '../services/services';
-import { IMAGE_CONST } from '../shared/config/constants.config'; // en rouge car dossier local 'shared' != dossier conteneur
 import { getHTMLElementById, showAlert, hideSpinner } from '../utils/dom.utils';
 
 // ===========================================
@@ -103,7 +102,7 @@ export class HomePage extends BasePage {
 	 */
 	private loadAvatar() {
 		Object.assign(this.avatarContainer.style, {
-			backgroundImage: `url('${this.currentUserAvatarURL}')`,
+			backgroundImage: `url('${this.currentUserAvatarURL!}')`,
 			backgroundSize: "cover",
 			backgroundPosition: "center"
 		});
@@ -116,9 +115,11 @@ export class HomePage extends BasePage {
 	 * @param {string} imageUrl - L'URL de l'image d'avatar.
 	 */
 	private setAvatarPreview(imageUrl: string): void {
-		this.avatarContainer.style.backgroundImage = `url(${imageUrl})`;
-		this.avatarContainer.style.backgroundSize = 'cover';
-		this.avatarContainer.style.backgroundPosition = 'center';
+		Object.assign(this.avatarContainer.style, {
+			backgroundImage: `url('${imageUrl}')`,
+			backgroundSize: "cover",
+			backgroundPosition: "center"
+		});
 	}
 
 	/**
@@ -126,7 +127,7 @@ export class HomePage extends BasePage {
 	 * de l'utilisateur actuel et en remettant à zéro l'input de type fichier.
 	 */
 	private resetAvatar(): void {
-		this.avatarContainer.style.backgroundImage = `url('${IMAGE_CONST.ROUTE_API}${this.currentUser!.avatar}')`;
+		this.avatarContainer.style.backgroundImage = `url('${this.currentUserAvatarURL!}')`;
 		this.avatarInput.value = '';
 	}
 

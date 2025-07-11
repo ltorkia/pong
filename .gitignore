@@ -1,6 +1,7 @@
 # Shared dirs
 frontend/src/shared/
 backend/src/shared/
+backend/uploads/
 
 # Dependencies
 node_modules/

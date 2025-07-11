@@ -19,7 +19,6 @@ import { User } from 'src/models/user.model';
 // TODO: Faire requête API dans dossier api pour update image
 
 export class ImageService {
-	// TODO: Réunir types IMAGE avec backend dans shared + check size
 	private static readonly UPLOAD_ENDPOINT = '/upload-avatar';
 
 	/**
@@ -45,11 +44,11 @@ export class ImageService {
 			return false;
 		}
 		if (avatarFile!.size > IMAGE_CONST.MAX_SIZE) {
-			showAlert('Image size must be less than 5MB.');
+			showAlert(IMAGE_CONST.MAX_SIZE);
 			return false;
 		}
 		if (!(avatarFile!.type in IMAGE_CONST.EXTENSIONS)) {
-			showAlert('Select a valid image (JPG, PNG, GIF, WebP).');
+			showAlert(IMAGE_CONST.TYPE_ERROR);
 			return false;
 		}
 		return true;
@@ -202,14 +201,15 @@ export class ImageService {
 	 */
 	public static async getUserAvatarURL(user: User): Promise<string> {
 		const defaultUrl = `${IMAGE_CONST.ROUTE_API}${DB_CONST.USER.DEFAULT_AVATAR}`;
-
 		if (!user.avatar) {
 			return defaultUrl;
 		}
-
+		console.log(user.registerFrom);
+		if (user.registerFrom === DB_CONST.USER.REGISTER_FROM.GOOGLE) {
+			return user.avatar;
+		}
 		const avatarUrl = `${IMAGE_CONST.ROUTE_API}${user.avatar}`;
 		const exists = await this.checkImageExists(avatarUrl);
 		return exists ? avatarUrl : defaultUrl;
 	}
-
 }

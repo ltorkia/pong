@@ -4,6 +4,7 @@ import { AvatarMimeType } from '../shared/types/user.types'; // en rouge car dos
 import { IMAGE_CONST } from '../shared/config/constants.config'; // en rouge car dossier local 'shared' != dossier conteneur
 import { MultipartFile } from '@fastify/multipart';
 import { Buffer } from 'buffer';
+import path from 'node:path';
 import fs from 'node:fs'; // pour commande creation de dossier
 
 /**
@@ -31,10 +32,14 @@ export async function GetAvatarFromBuffer(user: Partial<UserPassword>, avatarFil
 	try {
 		const avatarType = avatarFile.mimetype as AvatarMimeType;
 		if (!(avatarType in IMAGE_CONST.EXTENSIONS))
-			return { success: false, errorMessage: 'Only image files are allowed', statusCode: 400 };
+			return { success: false, errorMessage: IMAGE_CONST.ERRORS.TYPE_ERROR, statusCode: 400 };
+		if (buffer.length > IMAGE_CONST.MAX_SIZE) {
+			return { success: false, errorMessage: IMAGE_CONST.ERRORS.SIZE_LIMIT, statusCode: 400 };
+		}
 
-		const filename = user.username! + IMAGE_CONST.EXTENSIONS[avatarType];
-		const filepath = `${IMAGE_CONST.ROUTE_API}${filename}`;
+		const filename = (user.username! + IMAGE_CONST.EXTENSIONS[avatarType]).toLowerCase();
+		const resolvedPath = path.resolve(`.${IMAGE_CONST.ROUTE_API}`);
+		const filepath = path.join(resolvedPath, filename);
 
 		try {
 			await fs.promises.mkdir(IMAGE_CONST.ROUTE_API, { recursive: true });

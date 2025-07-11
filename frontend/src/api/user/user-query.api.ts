@@ -43,4 +43,18 @@ export class UserQueryApi {
 		return User.getOnlineUsers(users) as User[];
 	}
 
+	/**
+	 * Récupère l'URL de l'avatar d'un utilisateur.
+	 * 
+	 * Envoie une requête pour obtenir l'utilisateur par son identifiant,
+	 * puis renvoie l'URL de son avatar.
+	 * 
+	 * @param {number} id Identifiant de l'utilisateur pour lequel récupérer l'avatar.
+	 * @returns {Promise<string>} Promesse qui se résout avec l'URL de l'avatar de l'utilisateur.
+	 */
+	public async getUserAvatar(id: number): Promise<string> {
+		const user: User = await userCrudApi.getUserById(id);
+		return user.avatar;
+	}
+
 }

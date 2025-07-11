@@ -24,17 +24,17 @@ export class User {
 		public avatar: string,
 		public email: string,
 		public registration: string,
-		public begin_log: string,
-		public end_log: string,
+		public beginLog: string,
+		public endLog: string,
 		public tournament: number,
-		public game_played: number,
-		public game_win: number,
-		public game_loose: number,
-		public time_played: number,
-		public n_friends: number,
+		public gamePlayed: number,
+		public gameWin: number,
+		public gameLoose: number,
+		public timePlayed: number,
+		public nFriends: number,
 		public status: UserStatus,
-		public is_deleted: boolean,
-		public register_from: RegisterMethod
+		public isDeleted: boolean,
+		public registerFrom: RegisterMethod
 	) {}
 
 	// ============================================================================
@@ -42,12 +42,12 @@ export class User {
 	// ============================================================================
 	
 	get winRate(): number {
-		if (!this.game_played || this.game_played === 0) return 0;
-		return Math.round((this.game_win / this.game_played) * 100);
+		if (!this.gamePlayed || this.gamePlayed === 0) return 0;
+		return Math.round((this.gameWin / this.gamePlayed) * 100);
 	}
 
 	get isActive(): boolean {
-		return !this.is_deleted;
+		return !this.isDeleted;
 	}
 
 	get displayName(): string {
@@ -59,7 +59,7 @@ export class User {
 	}
 
 	get formattedLastLog(): string {
-		return this.begin_log ? new Date(this.begin_log).toLocaleString() : 'User has never logged in';
+		return this.beginLog ? new Date(this.beginLog).toLocaleString() : 'User has never logged in';
 	}
 
 	// ============================================================================
@@ -78,11 +78,11 @@ export class User {
 			id: this.id,
 			username: this.username,
 			avatar: this.avatar,
-			game_played: this.game_played,
-			game_win: this.game_win,
-			game_loose: this.game_loose,
-			time_played: this.time_played,
-			n_friends: this.n_friends,
+			game_played: this.gamePlayed,
+			game_win: this.gameWin,
+			game_loose: this.gameLoose,
+			time_played: this.timePlayed,
+			n_friends: this.nFriends,
 		};
 	}
 
@@ -99,17 +99,17 @@ export class User {
 			username: this.username,
 			avatar: this.avatar,
 			registration: this.registration,
-			begin_log: this.begin_log,
-			end_log: this.end_log,
+			begin_log: this.beginLog,
+			end_log: this.endLog,
 			tournament: this.tournament,
-			game_played: this.game_played,
-			game_win: this.game_win,
-			game_loose: this.game_loose,
-			time_played: this.time_played,
-			n_friends: this.n_friends,
+			game_played: this.gamePlayed,
+			game_win: this.gameWin,
+			game_loose: this.gameLoose,
+			time_played: this.timePlayed,
+			n_friends: this.nFriends,
 			status: this.status,
-			is_deleted: this.is_deleted,
-			register_from: this.register_from
+			is_deleted: this.isDeleted,
+			register_from: this.registerFrom
 		};
 	}
 
@@ -127,17 +127,17 @@ export class User {
 			avatar: this.avatar,
 			email: this.email,
 			registration: this.registration,
-			begin_log: this.begin_log,
-			end_log: this.end_log,
+			begin_log: this.beginLog,
+			end_log: this.endLog,
 			tournament: this.tournament,
-			game_played: this.game_played,
-			game_win: this.game_win,
-			game_loose: this.game_loose,
-			time_played: this.time_played,
-			n_friends: this.n_friends,
+			game_played: this.gamePlayed,
+			game_win: this.gameWin,
+			game_loose: this.gameLoose,
+			time_played: this.timePlayed,
+			n_friends: this.nFriends,
 			status: this.status,
-			is_deleted: this.is_deleted,
-			register_from: this.register_from
+			is_deleted: this.isDeleted,
+			register_from: this.registerFrom
 		};
 	}
 
@@ -208,17 +208,17 @@ export class User {
 			data.avatar ?? 'default.png',
 			'', // Email vide pour les données publiques
 			'', // Registration vide
-			'', // begin_log vide
-			'', // end_log vide
+			'', // beginLog vide
+			'', // endLog vide
 			0,  // Tournament à 0
-			data.game_played ?? 0,
+			data.game_layed ?? 0,
 			data.game_win ?? 0,
 			data.game_loose ?? 0,
 			data.time_played ?? 0,
 			data.n_friends ?? 0,
 			'offline', // Status par défaut
-			false, // is_deleted par défaut
-			'local' // register_from par défaut
+			false, // isDeleted par défaut
+			'local' // registerFrom par défaut
 		);
 	}
 

@@ -1,42 +1,41 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
-// import { getAllUsers, getUser, getUserFriends, getUserGames, getUserChat } from '../db/user';
-import { getAllUsers, getUser, getUserFriends, getUserGames, getUserChat, getAvatar } from '../db/user';
+import { getAllUsers, getAllUsersInfos, getUser, getUserFriends, getUserGames, getUserChat, getAvatar } from '../db/user';
 import { requireAuth } from '../helpers/auth.helpers';
-import fs from 'fs/promises';
-import path from 'path';
+import { UserModel, SafeUserModel, PublicUser, Friends } from '../shared/types/user.types';
 
 export async function usersRoutes(app: FastifyInstance) {
-	// pour afficher tous les users : nom + email
-	app.get('/', async (request: FastifyRequest, reply: FastifyReply) => {
+	// pour afficher tous les users
+	app.get('/', async (request: FastifyRequest, reply: FastifyReply): Promise<SafeUserModel[] | void> => {
 		const jwtUser = requireAuth(request, reply);
 		if (!jwtUser) {
 			return;
 		}
-		const users = await getAllUsers();
+		// const users: UserBasic[] = await getAllUsers();
+		const users: SafeUserModel[] = await getAllUsersInfos();
 		return users;
 	})
 
 	// pour afficher des infos detaillees sur un user specifique sans le password
-	app.get('/:id', async (request: FastifyRequest, reply: FastifyReply) => {
+	app.get('/:id', async (request: FastifyRequest, reply: FastifyReply): Promise<SafeUserModel | void> => {
 		const jwtUser = requireAuth(request, reply);
 		if (!jwtUser) {
 			return;
 		}
 		const { id } = request.params as { id: number };
-		const user = await getUser(id);
+		const user: SafeUserModel = await getUser(id);
 		if (!user)
 			return reply.code(404).send({ Error : 'User not found'});
 		return user;
 	})
 
 	// pour afficher les potos de klk1 -> id = la personne concernee
-	app.get('/:id/friends', async(request: FastifyRequest, reply: FastifyReply) => {
+	app.get('/:id/friends', async(request: FastifyRequest, reply: FastifyReply): Promise<Friends[] | void> => {
 		const jwtUser = requireAuth(request, reply);
 		if (!jwtUser) {
 			return;
 		}
 		const { id } = request.params as { id: number };
-		const friends = await getUserFriends(id);
+		const friends: Friends[] = await getUserFriends(id);
 		if (!friends)
 			return reply.code(404).send({ Error : 'User not found'});
 		return friends;

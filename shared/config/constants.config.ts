@@ -1,5 +1,3 @@
-import path from 'node:path';
-
 // ===========================================
 // CONSTANTS CONFIG
 // ===========================================
@@ -60,5 +58,13 @@ export const IMAGE_CONST = {
 	 * Correspond à la route exposée par le serveur via NGINX.
 	 * Exemple : '/uploads/avatars/bla.jpeg'
 	 */
-	ROUTE_API: '/uploads/avatars/'
+	ROUTE_API: '/uploads/avatars/',
+	/**
+	 * Erreurs possibles lors de l'enregistrement d'un avatar.
+	 */
+	ERRORS: {
+		EMPTY_FILE: 'The selected image is empty.',
+		SIZE_LIMIT: 'Image size must be less than 5MB.',
+		TYPE_ERROR: 'Select a valid image (JPG, PNG, GIF, WebP).'
+	}
 }
