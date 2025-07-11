@@ -204,7 +204,6 @@ export class ImageService {
 		if (!user.avatar) {
 			return defaultUrl;
 		}
-		console.log(user.registerFrom);
 		if (user.registerFrom === DB_CONST.USER.REGISTER_FROM.GOOGLE) {
 			return user.avatar;
 		}

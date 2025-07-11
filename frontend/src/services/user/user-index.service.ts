@@ -1,6 +1,7 @@
 import { AuthService } from './auth.service';
 import { GoogleService } from './google.service';
 import { SessionService } from './session.service';
+import { DataService } from './data.service';
 
 // ===========================================
 // USER INDEX SERVICE - SINGLETONS
@@ -14,3 +15,5 @@ import { SessionService } from './session.service';
 export const authService = new AuthService();
 export const googleService = new GoogleService();
 export const sessionService = new SessionService();
+export const dataService = new DataService();
+export { DataService };

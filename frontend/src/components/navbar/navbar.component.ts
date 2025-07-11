@@ -2,7 +2,6 @@
 import template from './navbar.component.html?raw';
 
 import { BaseComponent } from '../base/base.component';
-import { userStore } from '../../stores/user.store';
 import { uiStore } from '../../stores/ui.store';
 import { authService } from '../../services/services';
 import { RouteConfig } from '../../types/routes.types';
@@ -38,8 +37,8 @@ export class NavbarComponent extends BaseComponent {
 	/**
 	 * Constructeur du composant de la navbar.
 	 *
-	 * Au moment de la construction, le composant stocke la configuration de la route
-	 * actuelle et l'utilisateur actuel dans ses propriétés.
+	 * Stocke la configuration de la route actuelle, la configuration du composant,
+	 * et le container HTML.
 	 *
 	 * @param {RouteConfig} routeConfig La configuration de la route actuelle.
 	 * @param {ComponentConfig} componentConfig La configuration du composant.
@@ -47,7 +46,6 @@ export class NavbarComponent extends BaseComponent {
 	 */
 	constructor(routeConfig: RouteConfig, componentConfig: ComponentConfig, container: HTMLElement) {
 		super(routeConfig, componentConfig, container);
-		this.currentUser = userStore.getCurrentUser();
 		this.profilePlaceholder = '{userId}';
 	}
 

@@ -1,5 +1,5 @@
 import { routingService, pageService, particlesService, ImageService } from './core/core-index.service';
-import { authService, googleService, sessionService } from './user/user-index.service';
+import { authService, googleService, sessionService, dataService, DataService } from './user/user-index.service';
 // import { gameServices } from './game/game-index.service';
 
 // ===========================================
@@ -10,4 +10,4 @@ import { authService, googleService, sessionService } from './user/user-index.se
  */
 
 export { routingService, pageService, particlesService, ImageService };
-export { authService, googleService, sessionService };
+export { authService, googleService, sessionService, dataService, DataService };

@@ -1,6 +1,7 @@
 import { BasePage } from './base.page';
 import { RouteConfig } from '../types/routes.types';
 import { ImageService } from '../services/services';
+import { IMAGE_CONST } from '../shared/config/constants.config';
 import { getHTMLElementById, showAlert, hideSpinner } from '../utils/dom.utils';
 
 // ===========================================

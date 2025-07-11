@@ -1,5 +1,6 @@
 import { User } from '../../models/user.model';
 import { userCrudApi } from './user-index.api';
+import { DataService } from '../../services/services';
 
 // ===========================================
 // USER QUERY API
@@ -27,7 +28,7 @@ export class UserQueryApi {
 	 */
 	public async getActiveUsers(): Promise<User[]> {
 		const users: User[] = await userCrudApi.getUsers();
-		return User.getActiveUsers(users) as User[];
+		return DataService.getActiveUsers(users) as User[];
 	}
 
 	/**
@@ -40,7 +41,7 @@ export class UserQueryApi {
 	 */
 	public async getOnlineUsers(): Promise<User[]> {
 		const users: User[] = await userCrudApi.getUsers();
-		return User.getOnlineUsers(users) as User[];
+		return DataService.getOnlineUsers(users) as User[];
 	}
 
 	/**

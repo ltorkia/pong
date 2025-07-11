@@ -1,5 +1,5 @@
 import { sessionService } from '../services/services';
-import { userStore } from '../stores/user.store';
+import { dataService } from '../services/services';
 import { DEFAULT_ROUTE, AUTH_FALLBACK_ROUTE } from '../config/routes.config';
 import { isPublicRoute } from '../utils/routes.utils';
 import { router } from './router';
@@ -40,7 +40,7 @@ export class RouteGuard {
 			// LOGIQUE DE REDIRECTION
 			// Si route privée et user pas authentifié, redirection vers /login
 			if (!isPublic && !authCookieIsActive) {
-				userStore.clearCurrentUser();
+				dataService.clearCurrentUser();
 				console.log(`[${this.constructor.name}] Non connecté -> redirection vers /login`);
 				await router.redirect(AUTH_FALLBACK_ROUTE);
 				return true;
@@ -50,7 +50,7 @@ export class RouteGuard {
 			if (isPublic && authCookieIsActive) {
 
 				// Vérification dans le store d'abord
-				if (userStore.getCurrentUser()) {
+				if (dataService.getCurrentUser()) {
 					console.log(`[${this.constructor.name}] Utilisateur déjà en store -> redirection vers /`);
 					await router.redirect(DEFAULT_ROUTE);
 					return true;
@@ -83,7 +83,7 @@ export class RouteGuard {
 
 		} catch (err) {
 			console.error(`[${this.constructor.name}] Erreur critique`, err);
-			userStore.clearCurrentUser();
+			dataService.clearCurrentUser();
 			await router.redirect(AUTH_FALLBACK_ROUTE);
 			return true;
 		}

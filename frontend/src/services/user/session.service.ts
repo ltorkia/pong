@@ -1,5 +1,5 @@
 import { User } from '../../models/user.model';
-import { userStore } from '../../stores/user.store';
+import { dataService } from '../services';
 import { userAuthApi } from '../../api/user/user-index.api';
 import { uiStore } from '../../stores/ui.store';
 import { COOKIES_CONST } from '../../shared/config/constants.config'; // en rouge car dossier local 'shared' != dossier du conteneur
@@ -55,13 +55,13 @@ export class SessionService {
 	 */
 	public async loadOrRestoreUser(): Promise<User | null> {
 		const hasCookie = this.hasAuthCookie();
-		const storedUser = userStore.getCurrentUser();
+		const storedUser = dataService.getCurrentUser();
 
 		// Pas de cookie = pas connecté
 		if (!hasCookie) {
 			if (storedUser) {
 				console.log(`[${this.constructor.name}] Cookie supprimé, nettoyage store`);
-				userStore.clearCurrentUser();
+				dataService.clearCurrentUser();
 			}
 			return null;
 		}
@@ -92,7 +92,7 @@ export class SessionService {
 	private async restoreUser(): Promise<User | null> {
 
 		// Essayer localStorage d'abord
-		const user = userStore.restoreFromStorage();
+		const user = dataService.restoreUser();
 		if (user) {
 			console.log(`[${this.constructor.name}] Utilisateur localStorage trouvé, validation serveur en cours...`);
 			uiStore.animateNavbarOut = true;
@@ -103,7 +103,7 @@ export class SessionService {
 		try {
 			const apiUser = await userAuthApi.getMe();
 			if (apiUser) {
-				const user = userStore.getCurrentUser();
+				const user = dataService.getCurrentUser();
 				uiStore.animateNavbarOut = true;
 				console.log(`[${this.constructor.name}] Utilisateur chargé via API`);
 				return user;
@@ -138,7 +138,7 @@ export class SessionService {
 				// Si la validation échoue, c'est que l'utilisateur
 				// n'est plus authentifié côté serveur.
 				console.log(`[${this.constructor.name}] Session expirée côté serveur → nettoyage`);
-				userStore.clearCurrentUser();
+				dataService.clearCurrentUser();
 				return null;
 			}
 		} catch (err) {

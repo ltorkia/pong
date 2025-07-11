@@ -1,6 +1,6 @@
 import { RouteConfig } from '../types/routes.types';
 import { User } from '../models/user.model';
-import { userStore } from '../stores/user.store';
+import { dataService } from '../services/services';
 import { checkUserLogged } from '../utils/app.utils'; 
 import { BaseComponent } from '../components/base/base.component';
 import { NavbarComponent } from '../components/navbar/navbar.component';
@@ -41,7 +41,7 @@ export abstract class BasePage {
 	constructor(config: RouteConfig) {
 		this.config = config;
 		this.container = getContainerApp();
-		this.currentUser = userStore.getCurrentUser();
+		this.currentUser = dataService.getCurrentUser();
 		this.templatePath = this.config.templatePath;
 		this.components = this.config.components;
 		this.componentInstances = {};

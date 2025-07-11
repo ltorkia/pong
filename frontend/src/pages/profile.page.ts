@@ -69,6 +69,8 @@ export class ProfilePage extends BasePage {
 		const img = document.createElement('img');
 		img.classList.add('avatar-img');
 		img.setAttribute('src', await ImageService.getUserAvatarURL(this.user!));
+		img.setAttribute('loading', 'lazy');
+
 		img.alt = `${this.user!.username}'s avatar`;
 		userAvatar.appendChild(img);
 

@@ -1,6 +1,6 @@
 import { User } from '../../models/user.model';
 import { UserModel } from '../../shared/types/user.types';	// en rouge car dossier local 'shared' != dossier conteneur
-import { userStore } from '../../stores/user.store';
+import { dataService } from '../../services/services';
 import { BasicResponse, AuthResponse } from '../../types/api.types';
 import { secureFetch } from '../../utils/app.utils';
 
@@ -41,10 +41,10 @@ export class UserAuthApi {
 		const data: UserModel = await res.json();
 		
 		// Stockage sécurisé via le store
-		userStore.setCurrentUserFromServer(data);
+		dataService.setCurrentUserFromServer(data);
 
 		// Instance avec email en mémoire
-		return userStore.getCurrentUser() as User;
+		return dataService.getCurrentUser() as User;
 	}
 
 	/**
@@ -172,7 +172,7 @@ export class UserAuthApi {
 		if (!res.ok || data.errorMessage || !data.user) {
 			return { errorMessage: data.errorMessage || data.message || 'Erreur avec la récupération de l\'utilisateur' };
 		}
-		userStore.setCurrentUserFromServer(data.user);
+		dataService.setCurrentUserFromServer(data.user);
 		return data as AuthResponse;
 	}
 
@@ -200,7 +200,7 @@ export class UserAuthApi {
 		if (!res.ok || data.errorMessage || !data.user) {
 			return { errorMessage: data.errorMessage || data.message || 'Erreur lors de la connexion Google' };
 		}
-		userStore.setCurrentUserFromServer(data.user);
+		dataService.setCurrentUserFromServer(data.user);
 		return data as AuthResponse;
 	}
 
@@ -223,7 +223,7 @@ export class UserAuthApi {
 		if (!res.ok || data.errorMessage) {
 			return { errorMessage: data.errorMessage || data.message || 'Erreur inconnue' } as BasicResponse;
 		}
-		userStore.clearCurrentUser();
+		dataService.clearCurrentUser();
 		return data as BasicResponse;
 	}
 

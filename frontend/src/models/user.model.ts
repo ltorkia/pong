@@ -12,9 +12,9 @@ import { SafeUserModel, UserModel, PublicUser, UserStatus, RegisterMethod } from
  * manipuler ces données.
  * 
  * Lors des requêtes API, l'utilisateur
- * est temporairement stocké en mémoire vive, puis ses données
+ * est temporairement stocké en mémoire vive (services/user/user.service.ts), puis ses données
  * sont conservées sans l'email dans le localStorage pour un accès
- * ultérieur.
+ * ultérieur (stores/user.store.ts).
  */
 export class User {
 
@@ -40,18 +40,13 @@ export class User {
 	// ============================================================================
 	// GETTERS POUR L'AFFICHAGE
 	// ============================================================================
-	
-	get winRate(): number {
-		if (!this.gamePlayed || this.gamePlayed === 0) return 0;
-		return Math.round((this.gameWin / this.gamePlayed) * 100);
+
+	get displayName(): string {
+		return this.username;
 	}
 
 	get isActive(): boolean {
 		return !this.isDeleted;
-	}
-
-	get displayName(): string {
-		return this.username;
 	}
 
 	isOnline(): boolean {
@@ -60,6 +55,11 @@ export class User {
 
 	get formattedLastLog(): string {
 		return this.beginLog ? new Date(this.beginLog).toLocaleString() : 'User has never logged in';
+	}
+	
+	get winRate(): number {
+		if (!this.gamePlayed || this.gamePlayed === 0) return 0;
+		return Math.round((this.gameWin / this.gamePlayed) * 100);
 	}
 
 	// ============================================================================
@@ -285,55 +285,5 @@ export class User {
 	 */
 	static toFullJSONArray(users: User[]): UserModel[] {
 		return users.map(user => user.toFullJSON());
-	}
-
-	// ============================================================================
-	// FILTRES & RECHERCHE DANS UN TABLEAU
-	// ============================================================================
-
-	/**
-	 * Filtre les utilisateurs actifs (non supprimés).
-	 * 
-	 * @param users - Tableau d'instances User
-	 * @returns {User[]} - Tableau d'utilisateurs actifs
-	 */
-	static getActiveUsers(users: User[]): User[] {
-		return users.filter(user => user.isActive);
-	}
-
-	/**
-	 * Filtre les utilisateurs en ligne.
-	 * 
-	 * @param users - Tableau d'instances User
-	 * @returns {User[]} - Tableau d'utilisateurs en ligne
-	 */
-	static getOnlineUsers(users: User[]): User[] {
-		return users.filter(user => user.isOnline());
-	}
-
-	/**
-	 * Filtre les utilisateurs par statut.
-	 * 
-	 * @param users - Tableau d'instances User
-	 * @param status - Statut à filtrer
-	 * @returns {User[]} - Tableau d'utilisateurs avec le statut spécifié
-	 */
-	static getUsersByStatus(users: User[], status: 'online' | 'offline' | 'in-game'): User[] {
-		return users.filter(user => user.status === status);
-	}
-
-	// ============================================================================
-	// MÉTHODES D’INSTANCE POUR MANIPULATION
-	// ============================================================================
-
-	/**
-	 * Met à jour les propriétés de l'utilisateur avec de nouvelles données.
-	 * 
-	 * @param updates - Objet contenant les propriétés à mettre à jour
-	 * @returns {User} - Instance mise à jour (pour chaînage)
-	 */
-	update(updates: Partial<UserModel>): User {
-		Object.assign(this, updates);
-		return this;
 	}
 }

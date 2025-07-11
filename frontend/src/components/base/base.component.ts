@@ -1,5 +1,5 @@
 import { User } from '../../models/user.model';
-import { userStore } from '../../stores/user.store';
+import { dataService } from '../../services/services';
 import { checkUserLogged } from '../../utils/app.utils'; 
 import { RouteConfig } from '../../types/routes.types';
 import { ComponentConfig } from '../../types/components.types';
@@ -41,7 +41,7 @@ export abstract class BaseComponent {
 		this.container = container;
 		this.templatePath = this.componentConfig.templatePath;
 		this.routeConfig = routeConfig;
-		this.currentUser = userStore.getCurrentUser();
+		this.currentUser = dataService.getCurrentUser();
 	}
 
 	/**
