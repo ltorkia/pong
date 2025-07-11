@@ -30,7 +30,9 @@ async function start() {
 	app.register(fastifyCookie);
 
 	// pour uploader des avatars
-	app.register(fastifyMultipart);
+	app.register(fastifyMultipart, {  limits: {
+    fileSize: 5 * 1024 * 1024, // 5 MB max (exemple)
+  }});
 
 	// Enregistrement du plugin JWT
 	const jwtSecret = process.env.JWT_SECRET;

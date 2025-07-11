@@ -1,11 +1,15 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import bcrypt from 'bcrypt';
 import { RegisterInputSchema, LoginInputSchema } from '../types/zod/auth.zod';
-import { insertUser, getUser, getUserP, majLastlog, eraseCode2FA, insertCode2FA, getUser2FA, insertAvatar } from '../db/user';
+import { insertUser, getUser, getUserP, getUser2FA} from '../db/user';
+import {majLastlog, eraseCode2FA, insertCode2FA, insertAvatar} from '../db/usermaj';
 import { generateJwt, setAuthCookie, setStatusCookie, clearAuthCookies } from '../helpers/auth.helpers';
 import { GoogleUserInfo, UserPassword, User2FA } from '../types/user.types';
 import { UserModel } from '../shared/types/user.types'; // en rouge car dossier local 'shared' != dossier conteneur
 import nodemailer from 'nodemailer';
+import { MultipartFile } from '@fastify/multipart';
+import fs from 'node:fs'; // pour commande creation de dossier
+import { pipeline } from 'node:stream/promises'; // pour telechargement du fichier
 
 async function ProcessAuth(app: FastifyInstance, user: Partial<UserPassword>, reply: FastifyReply) {
 	// const user = await getUser(null, userToGet);
@@ -21,9 +25,6 @@ async function ProcessAuth(app: FastifyInstance, user: Partial<UserPassword>, re
 	await majLastlog(username);
 }
 
-import { MultipartFile } from '@fastify/multipart';
-import fs from 'node:fs'; // pour commande creation de dossier
-import { pipeline } from 'node:stream/promises'; // pour telechargement du fichier
 // import { fileTypeFromStream } from 'file-type'; //pour checker si a la lecture du fichier on a ce qui est attendu en fonction du type
 
 
@@ -67,6 +68,7 @@ async function GetAvatarFromFront(user: Partial<UserPassword>, reply: FastifyRep
 
 	// rename l image
 	const filename = user.username! + extension[avatarType];
+	console.log("filename is : " + filename);
 	// Telechargement de l avatar
 	// const fileStreamNew = avatarFile.file;
 	// const avatarBuffer = await fileStreamNew.toBuffer();
@@ -164,12 +166,57 @@ async function doubleAuth(app: FastifyInstance) {
     });
 }
 
+// export async function formdataParsing(request: FastifyRequest, reply: FastifyReply) => {
+// try {
+// 			const elements = await request.parts({
+// 				limits: {
+//     			fileSize: 5 * 1024 * 1024}
+// 			}); //separe les differents elements recuperes
+
+// 			let dataText: Record<string, string> = {}; //stockera les elements textes
+// 			// const fs = require('node:fs') //permet de creer dossier et fichiers
+// 			// const { pipeline } = require('node:stream/promises') //pour transferer fichier ? 
+// 			let avatarFile; //stockera le file de l avatar
+
+
+// 			//preparsing qui dispatch datatext d un cote et l avatar de l autre
+// 			for await (const element of elements) {
+// 				console.log(element);
+// 				if (element.type === 'file' && element.fieldname === 'avatar' && element.filename != '') {
+// 					avatarFile = element;
+// 					break ;
+// 				} else if (element.type === 'field' && typeof element.value === 'string') {
+// 					dataText[element.fieldname] = element.value;
+// 				}
+// 			}
+
+// 			//check les datas texts pour voir si elles correspondent a ce qu on attend
+// 			const result = RegisterInputSchema.safeParse(dataText);
+// 			// const result = RegisterInputSchema.safeParse(request.body);
+// 			if (!result.success) {
+// 				const error = result.error.errors[0];
+// 				return reply.status(400).send({ statusCode: 400, errorMessage: error.message + " in " + error.path });
+// 			}
+// 		} catch (err) {
+// 			request.log.error(err);
+// 			return reply.status(500).send({
+// 				errorMessage: 'Erreur serveur lors de l\'inscription',
+// 			});
+// 		}
+		
+
+// }
+
 export async function authRoutes(app: FastifyInstance) {
 
 	// REGISTER
 	app.post('/register', async (request: FastifyRequest, reply: FastifyReply) => {
 		try {
-			const elements = await request.parts(); //separe les differents elements recuperes
+			const elements = await request.parts({
+				limits: {
+    			fileSize: 5 * 1024 * 1024}
+			}); //separe les differents elements recuperes
+
 			let dataText: Record<string, string> = {}; //stockera les elements textes
 			// const fs = require('node:fs') //permet de creer dossier et fichiers
 			// const { pipeline } = require('node:stream/promises') //pour transferer fichier ? 
@@ -181,6 +228,7 @@ export async function authRoutes(app: FastifyInstance) {
 				console.log(element);
 				if (element.type === 'file' && element.fieldname === 'avatar' && element.filename != '') {
 					avatarFile = element;
+					break ;
 				} else if (element.type === 'field' && typeof element.value === 'string') {
 					dataText[element.fieldname] = element.value;
 				}

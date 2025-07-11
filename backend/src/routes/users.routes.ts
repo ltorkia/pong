@@ -69,28 +69,21 @@ export async function usersRoutes(app: FastifyInstance) {
 			return reply.code(404).send({ Error : 'User not found'});
 		return chat;
 	})
-// -       //pour takeback l avatar en base 64 stocke dans le serveur 
-// -       app.get('/:id/avatar', async(request: FastifyRequest, reply: FastifyReply) => {
-// -               const jwtUser = requireAuth(request, reply);
-// -               if (!jwtUser) {
-// -                       return;
-// -               }               
-// -               const { id } = request.params as { id: number };
-// -               const avatarPath = await getAvatar(id);
-// -               console.log(avatarPath);
-// -               if (!avatarPath)
-// -                       return reply.code(210).send({ Error : 'avatar not found'});
-// -
-// -               try {
-// -                       const data = await fs.readFile(avatarPath.avatar);
-// -                       const data64 = data.toString('base64');
-// -                   reply.status(200).send({
-// -                       avatar: data64,
-// -                               // Content-Type: image/png
-// -               });
-// -               } catch (error) {
-// -       reply.status(500).send({ error: 'Impossible de lire l\'avatar' });
-// -               }
-// -       })
+
+	app.get('/:id/moduser', async(request: FastifyRequest, reply: FastifyReply) => {
+	const jwtUser = requireAuth(request, reply);
+	if (!jwtUser) {
+		return;
+	}
+	const { id } = request.params as { id: number };
+	// 1. parsing des infos donnees
+	
+	// 2. en fonction des elements retrouves ->
+	// 3. if password -> check si password donne ok + hasshing du nouveau + update
+	// 4. if username -> check si nouveau exist deja sinon block
+	// 5. if email -> check si nouveau exist deja sinon block
+	// 6. avatar -> chope les fonctions de lee avant update
+
+	})
 };
 
