@@ -174,6 +174,7 @@ export class BaseGame {
 
     private gameLoop(): void {
         if (!this.gameStarted) return;
+        const limits = {x0: this.players[0].w, x1: this.gameCanvas.width - this.players[0].w};
         this.clearScreen();
         this.checkPlayerMovement();
         for (const player of this.players)
@@ -192,7 +193,11 @@ export class BaseGame {
         if (this.playersCount == 2 && (this.ball.y >= this.gameCanvas.height || this.ball.y <= 0)) {
             this.ball.verticalCollision();
         }
-        requestAnimationFrame(this.gameLoop.bind(this));
+        if (this.ball.x + this.ball.radius < limits.x0 || this.ball.x > limits.x1 + this.ball.radius) {
+            this.gameStarted = false;
+            cancelAnimationFrame(this.frameReq);
+        }
+        this.frameReq = requestAnimationFrame(this.gameLoop.bind(this));
     };
 
     private initSizePos(): void {
