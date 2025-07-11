@@ -135,7 +135,7 @@ export async function insertUser(user: (RegisterInput | {username: string, email
 		if (!is_google)
 		{
 			if(await getUser(null, user.username))
-				return {statusCode : 409, message : "Username already used, you can choose :" + await (searchNewName(user.username))};
+				return {statusCode : 409, message : "Username already used.<br><b>" + await (searchNewName(user.username)) + "</b> is available."};
 			
 			if (await getUser(null, user.email))
 				return {statusCode: 409, message : "Email already used"};

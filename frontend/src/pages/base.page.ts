@@ -6,6 +6,7 @@ import { BaseComponent } from '../components/base/base.component';
 import { NavbarComponent } from '../components/navbar/navbar.component';
 import { ComponentName, ComponentConfig } from '../types/components.types';
 import { loadTemplate, getContainerApp, getHTMLElementById } from '../utils/dom.utils';
+import { ImageService } from '../services/services';
 import { APP_ID } from '../config/routes.config';
 import { COMPONENT_NAMES } from '../config/components.config';
 import { LOADING_PAGE_ERR } from '../config/messages.config';
@@ -21,6 +22,7 @@ export abstract class BasePage {
 	protected config: RouteConfig;
 	protected container: HTMLElement;
 	protected currentUser: User | null = null;
+	protected currentUserAvatarURL: string | null = null;
 	protected templatePath: string;
 	protected components?: Partial<Record<ComponentName, ComponentConfig>>;
 	protected componentInstances: Record<ComponentName | string, BaseComponent> = {};
@@ -96,12 +98,18 @@ export abstract class BasePage {
 	 * Procède aux vérifications nécessaires avant le montage de la page.
 	 * 
 	 * Vérifie que l'utilisateur est bien authentifié si la page est privée.
+	 * Si oui, on récupère l'URL de son avatar.
 	 * Si l'utilisateur n'est pas trouvé, une erreur est levée.
 	 * Les sous-classes peuvent réutiliser cette méthode et ajouter leurs propres checks.
 	 * Pour garder aussi celui-ci, ajouter super.preRenderCheck();
+	 * 
+	 * @returns {Promise<void>} Une promesse qui se résout lorsque les checks sont terminées.
 	 */
-	protected preRenderCheck(): void {
+	protected async preRenderCheck(): Promise<void> {
 		checkUserLogged(this.config.isPublic);
+		if (this.currentUser) {
+			this.currentUserAvatarURL = await ImageService.getUserAvatarURL(this.currentUser);
+		}
 	}
 
 	/**

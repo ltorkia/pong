@@ -42,7 +42,7 @@ export const particlesService = new ParticlesService();
 
 
 /**
- * Instance unique du service de gestion des images.
+ * Classe statique du service de gestion des images.
  * 
  * Ce service est responsable de:
  * - valider les fichiers image
@@ -50,4 +50,4 @@ export const particlesService = new ParticlesService();
  * - uploader et supprimer des avatars
  * - récupérer l'URL de l'avatar actuel
  */
-export const imageService = new ImageService();
+export { ImageService };

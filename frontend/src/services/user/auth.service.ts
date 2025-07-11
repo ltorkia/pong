@@ -3,6 +3,7 @@ import { showAlert } from '../../utils/dom.utils';
 import { userAuthApi } from '../../api/user/user-index.api';
 import { AuthResponse, BasicResponse } from '../../types/api.types';
 import { uiStore } from '../../stores/ui.store';
+import { ImageService } from '../services';
 import { DEFAULT_ROUTE, AUTH_FALLBACK_ROUTE } from '../../config/routes.config';
 import { REGISTERED_MSG } from '../../config/messages.config';
 
@@ -19,6 +20,7 @@ export class AuthService {
 	 * Inscription d'un utilisateur
 	 * 
 	 * Fait une requête API pour inscrire un utilisateur.
+	 * Si image fournie pour l'avatar, vérifie sa validé (taille et type).
 	 * Si la requête réussit, redirige vers la page d'accueil.
 	 * Sinon affiche le contenu de 'errorMessage' ou 'Erreur réseau'.
 	 * 
@@ -28,38 +30,13 @@ export class AuthService {
 	 */
 	public async registerUser(formData: FormData): Promise<void> {
 		try {
-			// Vérification de l'avatar
 			const avatarFile = formData.get('avatar') as File | null;
-			
-			if (avatarFile && avatarFile.size > 0) {
-				console.log('📁 Taille avatar:', avatarFile.size, 'bytes');
-				
-				if (avatarFile.size > 5 * 1024 * 1024) {
-					alert('Avatar trop lourd (5 Mo max)');
-					return;
-				}
-				
-				if (!avatarFile.type.startsWith('image/')) {
-					alert('Seuls les fichiers images sont autorisés');
-					return;
-				}
-			}
+			ImageService.isValidImage(avatarFile, true);
 
-			let result: AuthResponse;
-
-			try {
-				result = await userAuthApi.registerUser(formData);
-			} catch (error: any) {
-				// Cas : échec JSON ou 504 (gateway timeout) HTML
-				const isResponseError = error instanceof SyntaxError || (error?.message?.includes?.('Unexpected token') ?? false);
-
-				console.error(`[${this.constructor.name}] Erreur serveur ou parsing JSON`, error);
-
-				if (isResponseError) {
-					showAlert("Le serveur a mis trop de temps à répondre. Essayez avec un avatar plus léger.");
-				} else {
-					showAlert("Erreur réseau ou serveur. Veuillez réessayer.");
-				}
+			const result: AuthResponse = await userAuthApi.registerUser(formData);
+			if (result.errorMessage) {
+				console.error(`[${this.constructor.name}] Erreur d\'inscription :`, result);
+				showAlert(result.errorMessage);
 				return;
 			}
 			console.log(`[${this.constructor.name}] Utilisateur inscrit :`, result);

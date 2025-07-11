@@ -89,7 +89,7 @@ export class UserAuthApi {
 			credentials: 'include',
 		});
 		const data: AuthResponse = await res.json();
-			if (!res.ok || data.errorMessage) {
+		if (!res.ok || data.errorMessage) {
 			return { errorMessage: data.errorMessage || data.message || 'Erreur avec la récupération de l\'utilisateur' } as AuthResponse;
 		}
 		return data as AuthResponse;

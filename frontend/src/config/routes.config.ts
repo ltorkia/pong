@@ -98,11 +98,6 @@ export const DEFAULT_ROUTE = ROUTE_PATHS.HOME;
 export const AUTH_FALLBACK_ROUTE = ROUTE_PATHS.LOGIN;
 
 /**
- * Route API pour les avatars
- */
-export const AVATARS_ROUTE_API = '/uploads/avatars/';
-
-/**
  * Configuration statique des routes de l'application.
  * 
  * Chaque route est définie par un objet contenant:

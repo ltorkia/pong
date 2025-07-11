@@ -1,4 +1,4 @@
-import { DB_CONST } from '../config/constants.config';
+import { DB_CONST, IMAGE_CONST } from '../config/constants.config';
 
 // ===========================================
 // USER TYPES
@@ -25,6 +25,14 @@ export type UserStatus =
  */
 export type RegisterMethod =
 	typeof DB_CONST.USER.REGISTER_FROM[keyof typeof DB_CONST.USER.REGISTER_FROM];
+
+
+/**
+ * Type MIME des formats d'image supportés pour les avatars.
+ */
+
+export type AvatarMimeType = keyof typeof IMAGE_CONST.EXTENSIONS;  // 'image/jpeg' | 'image/png' | ...
+export type AvatarExtension = typeof IMAGE_CONST.EXTENSIONS[AvatarMimeType];  // '.jpeg' | '.png' | ...
 
 /**
  * Interface représentant le modèle de base de l'utilisateur.

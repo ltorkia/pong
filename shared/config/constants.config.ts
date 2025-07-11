@@ -1,3 +1,5 @@
+import path from 'node:path';
+
 // ===========================================
 // CONSTANTS CONFIG
 // ===========================================
@@ -32,3 +34,31 @@ export const DB_CONST = {
 		},
 	},
 } as const;
+
+/**
+ * Constantes utilisées pour stocker des informations
+ * relatives aux images d'avatar.
+ */
+export const IMAGE_CONST = {
+	/**
+	 * Associe les types MIME d'images d'avatar pris en charge à leurs extensions de fichier correspondantes.
+	 */
+	EXTENSIONS: {
+		'image/jpeg': '.jpeg',
+		'image/png': '.png',
+		'image/jpg': '.jpg',
+		'image/webp': '.webp',
+		'image/gif': '.gif'
+	} as const,
+	/**
+	 * Taille maximale autorisée pour une image d'avatar, en octets.
+	 * La valeur est exprimée en bytes.
+	 */
+	MAX_SIZE: 5 * 1024 * 1024,
+	/**
+	 * URL publique des avatars, utilisée dans les balises <img src="..."> côté frontend.
+	 * Correspond à la route exposée par le serveur via NGINX.
+	 * Exemple : '/uploads/avatars/bla.jpeg'
+	 */
+	ROUTE_API: '/uploads/avatars/'
+}
