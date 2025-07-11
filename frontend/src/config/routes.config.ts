@@ -2,6 +2,7 @@ import { HomePage } from '../pages/home.page';
 import { RegisterPage } from '../pages/register.page';
 import { LoginPage } from '../pages/login.page';
 // import { GamePage } from '../pages/game/game.page';
+import { BoidsPage  } from '../pages/game/boids.page';
 import { UsersPage } from '../pages/users.page';
 import { ProfilePage } from '../pages/profile.page';
 import { TwofaPage } from '../pages/twofa.page';
@@ -52,6 +53,7 @@ export const PAGE_NAMES = {
 	REGISTER: 'Register',
 	LOGIN: 'Login',
 	GAME_LOCAL: 'Local Game',
+	BOIDS: 'Boids',
 	USERS: 'Users',
 	PROFILE: 'Profile',
 	TWOFA: 'Twofa',
@@ -69,6 +71,7 @@ export const ROUTE_PATHS = {
 	REGISTER: '/register',
 	LOGIN: '/login',
 	GAME_LOCAL: '/game/local',
+	BOIDS: '/game/boids',
 	USERS: '/users',
 	PROFILE: '/user/:id',
 	LOGOUT: '/logout',
@@ -87,6 +90,7 @@ export const TEMPLATE_PATHS = {
 	REGISTER: '/templates/register.html',
 	LOGIN: '/templates/login.html',
 	GAME: '/templates/game_local.html',
+	BOIDS: '/templates/boids.html',
 	USERS: '/templates/users.html',
 	PROFILE: '/templates/profile.html',
 	TWOFA: '/templates/twofa.html',
@@ -171,6 +175,17 @@ export const routesConfig: RouteConfig[] = [
 		name: PAGE_NAMES.GAME_LOCAL,
 		pageConstructor: GameMenuLocal,
 		templatePath: TEMPLATE_PATHS.GAME,
+		components: {
+			[COMPONENT_NAMES.NAVBAR]: getComponentConfig(COMPONENT_NAMES.NAVBAR)
+		},
+		isPublic: false,
+		enableParticles: true
+	},
+	{
+		path: ROUTE_PATHS.BOIDS,
+		name: PAGE_NAMES.BOIDS,
+		pageConstructor: BoidsPage,
+		templatePath: TEMPLATE_PATHS.BOIDS,
 		components: {
 			[COMPONENT_NAMES.NAVBAR]: getComponentConfig(COMPONENT_NAMES.NAVBAR)
 		},

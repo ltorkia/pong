@@ -1,3 +1,5 @@
+const clamp = (val: number, min: number, max: number) => { return Math.min(Math.max(val, min), max) };
+
 export class PlayerBar {
     public x: number;
     public y: number;
@@ -11,7 +13,7 @@ export class PlayerBar {
 
     public draw(): void {
         this.ctx.fillStyle = "rgba(255, 0, 0)";
-        this.ctx.fillRect(this.x, this.y - (this.h / 2), this.w, this.h);
+        this.ctx.fillRect(this.x - this.w / 2, this.y - (this.h / 2), this.w, this.h);
         this.ctx.fillStyle = "rgba(0, 255, 0)";
         this.ctx.fillRect(this.x, this.y, 1, 1);
     };
@@ -75,14 +77,29 @@ export class Ball {
         this.vAngle = (180 - this.vAngle + 360) % 360;
     }
     isGoingRight() {
-        if ((this.vAngle >= 0 && this.vAngle <= 90) || (this.vAngle >= 270 && this.vAngle <= 360))
-            return true;
-        return false;
+        return ((this.vAngle >= 0 && this.vAngle < 90) || (this.vAngle >= 270 && this.vAngle <= 360));
     };
     isGoingLeft() {
-        if (this.vAngle >= 90 && this.vAngle < 270)
-            return true;
-        return false;
+        return (this.vAngle >= 90 && this.vAngle < 270);
+    };
+    isGoingUp() {
+        return (this.vAngle >= 180 && this.vAngle < 360);
+    }
+    isGoingDown() {
+        return (this.vAngle >= 0 && this.vAngle < 180);
+    }
+    public checkPlayerCollision(players: PlayerBar[]): boolean {
+        for (const player of players) {
+            const playerBounds = {
+                xRange: { x0: player.x - player.w / 2, x1: player.x + player.w / 2 },
+                yRange: { y0: player.y - player.h / 2, y1: player.y + player.h / 2 }
+            }
+            const xClamp = clamp(this.x, playerBounds.xRange.x0, playerBounds.xRange.x1);
+            const yClamp = clamp(this.y, playerBounds.yRange.y0, playerBounds.yRange.y1);
+            if (Math.sqrt(Math.pow(this.x - xClamp, 2) + (Math.pow(this.y - yClamp, 2))) <= this.radius / 2)
+                return (true);
+        }
+        return (false);
     };
 
     constructor(ctx: CanvasRenderingContext2D) {
@@ -161,24 +178,42 @@ export class BaseGame {
         this.checkPlayerMovement();
         for (const player of this.players)
             player.draw();
-        console.log("coucou")
+        this.ball.draw();
+        this.ball.move();
+        const collision: boolean = this.ball.checkPlayerCollision(this.players);
+        if (collision && (this.ball.isGoingRight() || this.ball.isGoingLeft())) {
+            console.log("HORIZONTAL");
+            this.ball.horizontalCollision();
+        }
+        else if (collision && (this.ball.isGoingUp() || this.ball.isGoingDown())) {
+            console.log("VERTICAL");
+            this.ball.verticalCollision();
+        }
+        if (this.playersCount == 2 && (this.ball.y >= this.gameCanvas.height || this.ball.y <= 0)) {
+            this.ball.verticalCollision();
+        }
         requestAnimationFrame(this.gameLoop.bind(this));
     };
 
-    private initPlayersSizePos(): void {
+    private initSizePos(): void {
         if (this.playersCount == 2) {
-            this.players[0].y = this.players[1].y = this.gameCanvas.height / 2;
-            this.players[1].x = this.gameCanvas.width - this.players[1].w;
+            this.players[0].x = this.players[0].w / 2;
+            this.players[0].y = this.gameCanvas.height / 2;
+            this.players[1].x = this.gameCanvas.width - this.players[1].w / 2;
+            this.players[1].y = this.gameCanvas.height / 2;
         }
+        this.ball.x = this.gameCanvas.width / 2;
+        this.ball.y = this.gameCanvas.height / 2;
     };
 
     public async initGame(): Promise<void> {
         const canvasContainer: HTMLElement = document.getElementById("pong-section")!;
         this.gameCanvas.height = canvasContainer.getBoundingClientRect().height;    // will need to update that every frame later (responsiveness)
         this.gameCanvas.width = canvasContainer.getBoundingClientRect().width;
-        this.initPlayersSizePos();
+        this.gameCanvas.style.border = "1px solid black";
+        this.initSizePos();
         canvasContainer.append(this.gameCanvas);
-        await this.counter();
+        // await this.counter();
         this.clearFillStyle = 0.3;
         this.attachListeners();
         this.gameStarted = true;
