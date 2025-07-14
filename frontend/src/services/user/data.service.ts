@@ -105,9 +105,9 @@ export class DataService {
 	 * 
 	 */
 	public clearCurrentUser() {
-		// if (!this.currentUser) {
-		// 	return;
-		// }
+		if (!this.currentUser) {
+			return;
+		}
 		this.currentUser = null;
 		userStore.clearCurrentUser();
 		console.log(`[${this.constructor.name}] Utilisateur supprimé`);
