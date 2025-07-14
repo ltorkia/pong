@@ -105,9 +105,9 @@ export class DataService {
 	 * 
 	 */
 	public clearCurrentUser() {
-		if (!this.currentUser) {
-			return;
-		}
+		// if (!this.currentUser) {
+		// 	return;
+		// }
 		this.currentUser = null;
 		userStore.clearCurrentUser();
 		console.log(`[${this.constructor.name}] Utilisateur supprimé`);
@@ -124,8 +124,13 @@ export class DataService {
 	 */
 	// TODO: Prévoir le cas où le user est restauré sans email dans la mémoire vive (faire un fallback api)
 	public restoreUser(): User | null {
-		const storedUser: SafeUserModel = userStore.restoreFromStorage();
-		this.currentUser = User.fromSafeJSON(storedUser);
+		const storedUser: SafeUserModel | null = userStore.restoreFromStorage();
+		if (!storedUser) {
+			console.log(`[${this.constructor.name}] Pas d'utilisateur stocké localement`);
+			return null;
+		}
+		const user = User.fromSafeJSON(storedUser);
+		this.setCurrentUser(user);
 		console.log(`[${this.constructor.name}] User restauré:`, this.currentUser);
 		return this.currentUser;
 	}

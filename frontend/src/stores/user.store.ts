@@ -50,8 +50,11 @@ export class UserStore {
 	 */
 	// TODO: Prévoir le cas où le user est restauré sans email dans la mémoire vive (faire un fallback api)
 	public restoreFromStorage(): SafeUserModel | null {
+		if (this.storedUser) {
+			return this.storedUser;
+		}
 		const storedUserStr = localStorage.getItem('currentUser');
-		if (this.storedUser || !storedUserStr) {
+		if (!storedUserStr) {
 			return null;
 		}
 		this.storedUser = JSON.parse(storedUserStr);

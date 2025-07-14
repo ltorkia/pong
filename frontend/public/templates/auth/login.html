@@ -1,0 +1,70 @@
+			<div class="bloc-title">
+				<div class="pong-logo group">
+					<div class="title group-hover:scale-105">
+						<span class="animate-letter-float-1">P</span>
+						<span class="animate-letter-float-2">
+							O
+							<img src="/assets/img/design/magical-ball.png" class="magical-ball" alt="Magical ball">
+
+						</span>
+						<span class="animate-letter-float-3">N</span>
+						<span class="animate-letter-float-4">G</span>
+					</div>
+				</div>
+				<div class="under-title">
+					<span>A very special game</span>
+				</div>
+			</div>
+
+			<div class="section-box auth-box">
+				<form class="form-box" id="login-form">
+					<div class="fields-container">
+						
+						<!-- Email -->
+						<div class="field-box">
+							<label for="email">Email :</label>
+							<input type="email" id="email" name="email" autocomplete="email" required>
+						</div>
+
+						<!-- Password -->
+						<div class="field-box">
+							<label for="password">Password :</label>
+							<input type="password" id="password" name="password" autocomplete="current-password" required>
+						</div>
+					</div>
+
+					<!-- Submit -->
+					<div class="btn-container">
+						<button type="submit" class="btn form-btn">
+							Login
+						</button>
+					</div>
+
+					<div id="alert" aria-live="assertive" class="hidden"></div>
+				</form>
+				
+				<hr class="form-separator">
+
+				<div>
+					<span>Not registered yet ?</span>
+					<div class="btn-container">
+						<a href="/register" class="btn smaller-btn" data-link>
+							Sign up
+						</a>
+					</div>
+				</div>
+
+				<hr class="form-separator mb-5">
+
+				<div class="btn-container btn-google-container">
+					<button id="custom-google-btn" class="custom-google-button">
+						<div class="google-icon-wrapper">
+							<img src="/assets/img/design/google-icon.svg" alt="Google logo" class="google-icon" />
+						</div>
+						<span>Continue with Google</span>
+					</button>
+				</div>
+				
+			</div>
+
+			<div id="twofa-modal" class="modal hidden"></div>

@@ -82,10 +82,15 @@ export class RouteGuard {
 			return false;
 
 		} catch (err) {
-			console.error(`[${this.constructor.name}] Erreur critique`, err);
-			dataService.clearCurrentUser();
-			await router.redirect(AUTH_FALLBACK_ROUTE);
-			return true;
+			if (route !== AUTH_FALLBACK_ROUTE) {
+				dataService.clearCurrentUser();
+				await router.redirect(AUTH_FALLBACK_ROUTE);
+				return true;
+			} else {
+				// On est déjà sur /login, on évite la suppression et la redirection
+				console.warn(`[${this.constructor.name}] Erreur critique sur la page de login.`);
+				return false;
+			}
 		}
 	}
 	
