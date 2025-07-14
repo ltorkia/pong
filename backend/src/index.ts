@@ -2,7 +2,6 @@ import Fastify from 'fastify';
 import fastifyHelmet from '@fastify/helmet';
 import fastifyCookie from '@fastify/cookie';
 import fastifyJwt from '@fastify/jwt';
-import websocket from '@fastify/websocket';
 import fastifyMultipart from '@fastify/multipart';
 import { IMAGE_CONST } from './shared/config/constants.config';
 // import { SocketStream } from '@fastify/websocket';

@@ -10,6 +10,7 @@ import { RouteConfig } from '../types/routes.types';
 import { getComponentConfig } from '../utils/config.utils';
 import { COMPONENT_NAMES } from './components.config';
 import { GameMenuLocal } from '../pages/game/game.local.page';
+import { GameMenuMulti } from '../pages/game/game.multi.page';
 
 // ===========================================
 // ROUTES CONFIG
@@ -52,6 +53,7 @@ export const PAGE_NAMES = {
 	REGISTER: 'Register',
 	LOGIN: 'Login',
 	GAME_LOCAL: 'Local Game',
+    GAME_MULTI: 'Multiplayer game',
 	BOIDS: 'Boids',
 	USERS: 'Users',
 	PROFILE: 'Profile',
@@ -69,6 +71,7 @@ export const ROUTE_PATHS = {
 	REGISTER: '/register',
 	LOGIN: '/login',
 	GAME_LOCAL: '/game/local',
+    GAME_MULTI: '/game/multi',
 	BOIDS: '/game/boids',
 	USERS: '/users',
 	PROFILE: '/user/:id',
@@ -86,7 +89,8 @@ export const TEMPLATE_PATHS = {
 	HOME: '/templates/home.html',
 	REGISTER: '/templates/register.html',
 	LOGIN: '/templates/login.html',
-	GAME: '/templates/game_local.html',
+	GAME_LOCAL: '/templates/game_local.html',
+    GAME_MULTI: '/templates/game_multi.html',
 	BOIDS: '/templates/boids.html',
 	USERS: '/templates/users.html',
 	PROFILE: '/templates/profile.html',
@@ -158,7 +162,18 @@ export const routesConfig: RouteConfig[] = [
 		path: ROUTE_PATHS.GAME_LOCAL,
 		name: PAGE_NAMES.GAME_LOCAL,
 		pageConstructor: GameMenuLocal,
-		templatePath: TEMPLATE_PATHS.GAME,
+		templatePath: TEMPLATE_PATHS.GAME_LOCAL,
+		components: {
+			[COMPONENT_NAMES.NAVBAR]: getComponentConfig(COMPONENT_NAMES.NAVBAR)
+		},
+		isPublic: false,
+		enableParticles: true
+	},
+    {
+		path: ROUTE_PATHS.GAME_MULTI,
+		name: PAGE_NAMES.GAME_MULTI,
+		pageConstructor: GameMenuMulti,
+		templatePath: TEMPLATE_PATHS.GAME_MULTI,
 		components: {
 			[COMPONENT_NAMES.NAVBAR]: getComponentConfig(COMPONENT_NAMES.NAVBAR)
 		},
