@@ -1,8 +1,6 @@
 import { FastifyRequest, FastifyReply, FastifyInstance } from 'fastify';
 import { JwtPayload } from '../types/jwt.types';
 import { clearAuthCookies } from '../helpers/auth.helpers';
-// import { FastifyPluginAsync } from 'fastify';
-// import { SocketStream } from '@fastify/websocket';
 
 // ROUTES
 import { healthRoutes } from './health.routes';

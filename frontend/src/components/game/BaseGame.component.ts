@@ -216,13 +216,13 @@ export class BaseGame {
         this.gameCanvas.height = canvasContainer.getBoundingClientRect().height;    // will need to update that every frame later (responsiveness)
         this.gameCanvas.width = canvasContainer.getBoundingClientRect().width;
         this.gameCanvas.style.border = "1px solid black";
-        this.initSizePos();
         canvasContainer.append(this.gameCanvas);
+        // this.initSizePos();
         // await this.counter();
-        this.clearFillStyle = 0.3;
-        this.attachListeners();
-        this.gameStarted = true;
-        this.frameReq = requestAnimationFrame(this.gameLoop.bind(this));
+        // this.clearFillStyle = 0.3;
+        // this.attachListeners();
+        // this.gameStarted = true;
+        // this.frameReq = requestAnimationFrame(this.gameLoop.bind(this));
     };
 
     constructor(playersCount: number) {
