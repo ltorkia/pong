@@ -1,0 +1,30 @@
+@layer components {
+
+	/* AVATAR SETTINGS */
+	#avatar-container::before {
+		@apply absolute inset-0 bg-black opacity-0 transition-opacity duration-300 ease-in-out;
+		content: '';
+		z-index: 1;
+	}
+
+	#avatar-container::before {
+		@apply opacity-60;
+	}
+
+	#avatar-container .camera-icon {
+		@apply absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-gray-300 text-3xl opacity-0 transition-opacity duration-300 ease-in-out;
+		z-index: 2;
+	}
+
+	#avatar-container .camera-icon {
+		@apply opacity-100;
+	}
+
+	.avatar-input {
+		@apply hidden;
+	}
+
+	#avatar-container {
+		@apply cursor-pointer;
+	}
+}

@@ -5,6 +5,7 @@ import { LoginPage } from '../pages/auth/login.page';
 import { BoidsPage  } from '../pages/game/boids.page';
 import { UsersPage } from '../pages/user/users.page';
 import { ProfilePage } from '../pages/user/profile.page';
+import { SettingsPage } from '../pages/user/settings.page';
 
 import { RouteConfig } from '../types/routes.types';
 import { getComponentConfig } from '../utils/config.utils';
@@ -55,6 +56,7 @@ export const PAGE_NAMES = {
 	BOIDS: 'Boids',
 	USERS: 'Users',
 	PROFILE: 'Profile',
+	SETTINGS: 'Settings',
 } as const;
 
 /**
@@ -73,6 +75,7 @@ export const ROUTE_PATHS = {
 	USERS: '/users',
 	PROFILE: '/user/:id',
 	LOGOUT: '/logout',
+	SETTINGS: '/settings',
 } as const;
 
 /**
@@ -90,6 +93,7 @@ export const TEMPLATE_PATHS = {
 	BOIDS: '/templates/game/boids.html',
 	USERS: '/templates/user/users.html',
 	PROFILE: '/templates/user/profile.html',
+	SETTINGS: '/templates/user/settings.html',
 } as const;
 
 /**
@@ -193,6 +197,17 @@ export const routesConfig: RouteConfig[] = [
 		name: PAGE_NAMES.PROFILE,
 		pageConstructor: ProfilePage,
 		templatePath: TEMPLATE_PATHS.PROFILE,
+		components: {
+			[COMPONENT_NAMES.NAVBAR]: getComponentConfig(COMPONENT_NAMES.NAVBAR)
+		},
+		isPublic: false,
+		enableParticles: true
+	},
+	{
+		path: ROUTE_PATHS.SETTINGS,
+		name: PAGE_NAMES.SETTINGS,
+		pageConstructor: SettingsPage,
+		templatePath: TEMPLATE_PATHS.SETTINGS,
 		components: {
 			[COMPONENT_NAMES.NAVBAR]: getComponentConfig(COMPONENT_NAMES.NAVBAR)
 		},
