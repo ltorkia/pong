@@ -63,7 +63,7 @@ export class GoogleService {
 		document.body.appendChild(hiddenContainer);
 		google.accounts.id.initialize({
 			client_id: clientId,
-			callback: this.googleConnectUser.bind(this)
+			callback: (response) => this.googleConnectUser(response)
 		});
 
 		google.accounts.id.renderButton(hiddenContainer, {});
