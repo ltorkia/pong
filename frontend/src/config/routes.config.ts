@@ -83,13 +83,13 @@ export const ROUTE_PATHS = {
  * La valeur associée à chaque clé est le chemin de template correspondant.
  */
 export const TEMPLATE_PATHS = {
-	HOME: '/templates/home.html',
-	REGISTER: '/templates/register.html',
-	LOGIN: '/templates/login.html',
-	GAME: '/templates/game_local.html',
-	BOIDS: '/templates/boids.html',
-	USERS: '/templates/users.html',
-	PROFILE: '/templates/profile.html',
+	HOME: '/templates/user/home.html',
+	REGISTER: '/templates/auth/register.html',
+	LOGIN: '/templates/auth/login.html',
+	GAME: '/templates/game/game_local.html',
+	BOIDS: '/templates/game/boids.html',
+	USERS: '/templates/user/users.html',
+	PROFILE: '/templates/user/profile.html',
 } as const;
 
 /**
