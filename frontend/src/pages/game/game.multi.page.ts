@@ -8,7 +8,18 @@ export class GameMenuMulti extends BasePage {
     constructor(config: RouteConfig) {
         super(config);
     }
+
+    protected insertNetworkError(): void {
+        const errorDiv = document.createElement("div");
+        errorDiv.textContent = "Network error. Please try again later";
+        document.getElementById("pong-section")!.append(errorDiv);
+    }
     
+    protected initLobby(): void {
+        const lobby = document.createElement("div").textContent = "Waiting for other players to connect...";
+        document.getElementById("pong-section")?.append(lobby);
+    }
+
     protected async mount(): Promise<void> {
         this.openWebSocket();
     }
@@ -25,15 +36,12 @@ export class GameMenuMulti extends BasePage {
     private openWebSocket(): void {
         this.webSocket = new WebSocket("wss://localhost:8443/api/ws/multiplayer");
         this.webSocket.onopen = () => {
-            console.log('Connected!');
-            // this.webSocket!.send('Hello Server!');
+            this.initLobby();
         };
         this.webSocket.onerror = (event) => {
-            console.log(event.target);
+            this.insertNetworkError();
+            if (this.webSocket != null)
+                this.webSocket.close();
         }
-        const id = setInterval(() => {
-            const player: PositionObj = {x: 0, y: 1};
-            this.webSocket!.send(JSON.stringify(player));
-        }, 1000);
     }
 }

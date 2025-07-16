@@ -217,12 +217,12 @@ export class BaseGame {
         this.gameCanvas.width = canvasContainer.getBoundingClientRect().width;
         this.gameCanvas.style.border = "1px solid black";
         canvasContainer.append(this.gameCanvas);
-        // this.initSizePos();
-        // await this.counter();
-        // this.clearFillStyle = 0.3;
-        // this.attachListeners();
-        // this.gameStarted = true;
-        // this.frameReq = requestAnimationFrame(this.gameLoop.bind(this));
+        this.initSizePos();
+        await this.counter();
+        this.clearFillStyle = 0.3;
+        this.attachListeners();
+        this.gameStarted = true;
+        this.frameReq = requestAnimationFrame(this.gameLoop.bind(this));
     };
 
     constructor(playersCount: number) {
