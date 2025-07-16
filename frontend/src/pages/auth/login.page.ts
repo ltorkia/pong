@@ -1,10 +1,10 @@
-import { BasePage } from './base.page';
-import { RouteConfig } from '../types/routes.types';
-import { userService } from '../services/services';
-import { TwofaModalComponent } from '../components/twofa-modal/twofa-modal.component';
-import { ComponentConfig } from '../types/components.types';
-import { COMPONENT_NAMES, HTML_COMPONENT_CONTAINERS } from '../config/components.config';
-import { getHTMLElementById } from '../utils/dom.utils';
+import { BasePage } from '../base/base.page';
+import { RouteConfig } from '../../types/routes.types';
+import { authService, googleService } from '../../services/services';
+import { TwofaModalComponent } from '../../components/twofa-modal/twofa-modal.component';
+import { ComponentConfig } from '../../types/components.types';
+import { COMPONENT_NAMES, HTML_COMPONENT_CONTAINERS } from '../../config/components.config';
+import { getHTMLElementById } from '../../utils/dom.utils';
 
 // ===========================================
 // LOGIN PAGE
@@ -67,7 +67,7 @@ export class LoginPage extends BasePage {
 	 * de connexion Google est initialisé.
 	 */
 	protected async mount(): Promise<void> {
-		await userService.initGoogleSignIn();
+		await googleService.initGoogleSignIn();
 	}
 
 	/**
@@ -114,7 +114,7 @@ export class LoginPage extends BasePage {
 	 */
 	public async cleanup(): Promise<void> {
 		console.log(`[${this.constructor.name}] Nettoyage Google sign in...`);
-		userService.cleanupGoogleSignIn();
+		googleService.cleanupGoogleSignIn();
 		await super.cleanup();
 	}
 
@@ -158,7 +158,7 @@ export class LoginPage extends BasePage {
 		event.preventDefault();
 		const formData = new FormData(this.form);
 		const data = Object.fromEntries(formData.entries()) as Record<string, string>;
-		const loginResult = await userService.loginUser(data);
+		const loginResult = await authService.loginUser(data);
 
 		// Affiche le modal 2FA seulement si login OK
 		if (!loginResult || loginResult.errorMessage) {

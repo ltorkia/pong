@@ -62,7 +62,7 @@ prod: # Lance le projet en mode prod (compile les fichiers statiques, pas de hot
 # - Crée le dossier ~/.docker dans /goinfre si nécessaire
 # - Ajoute automatiquement la ligne "export DOCKER_CONFIG=/goinfre/login/.docker" dans ~/.zshrc
 #    -> permet à Docker rootless d'utiliser un espace avec droits d'écriture,
-#   	persistant entre les sessions et compatible avec les bind mounts
+#   	persistant entre les sessions et de ne pas prendre d'espace sur le disque dur (Home)
 prepare-docker:
 	@if [ -d "/goinfre" ]; then \
 		echo "\n$(YELLOW)• Configuration de $(GOINFRE_DOCKER_DIR) pour Docker rootless...$(NC)"; \

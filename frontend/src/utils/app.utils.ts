@@ -1,4 +1,4 @@
-import { userStore } from '../stores/user.store';
+import { dataService } from '../services/services';
 
 // ===========================================
 // APP UTILS
@@ -20,7 +20,7 @@ import { userStore } from '../stores/user.store';
  * @param {boolean} isPublic La configuration du composant à charger.
  */
 export function checkUserLogged(isPublic: boolean): void {
-	const currentUser = userStore.getCurrentUser();
+	const currentUser = dataService.getCurrentUser();
 	if (!isPublic && !currentUser) {
 		throw new Error(`La récupération du user a échoué`);
 	}
@@ -43,7 +43,7 @@ export async function secureFetch(url: string, options?: RequestInit): Promise<R
 
 		// Token invalide/expiré → nettoyage local uniquement
 		// + redirection '/login'
-		userStore.clearCurrentUser();
+		dataService.clearCurrentUser();
 		console.warn(`[secureFetch] Session invalide (status ${res.status})`);
 		throw new Error('Session expirée ou non autorisée');
 	}

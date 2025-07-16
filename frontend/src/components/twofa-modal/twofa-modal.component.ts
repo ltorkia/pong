@@ -1,11 +1,11 @@
 // Pour hot reload Vite
 import template from './twofa-modal.component.html?raw'
 
-import { userService } from '../../services/services';
+import { authService } from '../../services/services';
 import { BaseComponent } from '../base/base.component';
 import { RouteConfig } from '../../types/routes.types';
 import { ComponentConfig } from '../../types/components.types';
-import { showAlert, showSpinner, hideSpinner } from '../../utils/dom.utils';
+import { showAlert, showSpinner, hideSpinner, getHTMLElementById } from '../../utils/dom.utils';
 
 // ===========================================
 // TWOFA MODAL COMPONENT
@@ -13,12 +13,12 @@ import { showAlert, showSpinner, hideSpinner } from '../../utils/dom.utils';
 
 export class TwofaModalComponent extends BaseComponent {
 	private userData!: Record<string, string>;
+	private form!: HTMLFormElement;
 	private codeInput!: HTMLInputElement;
 	private errorMsg!: HTMLElement;
 	private twofaMethodSelect!: HTMLSelectElement;
 	private emailContainer!: HTMLElement;
 	private qrcodeContainer!: HTMLElement;
-	private submitEmailCodeBtn!: HTMLButtonElement;
 	private resendEmailCodeBtn!: HTMLButtonElement;
 	private twofaBackBtn!: HTMLButtonElement;
 
@@ -62,14 +62,14 @@ export class TwofaModalComponent extends BaseComponent {
 	 * @returns {Promise<void>} Une promesse qui se résout lorsque les éléments ont été stockés.
 	 */
 	protected async beforeMount(): Promise<void> {
-		this.codeInput = this.container.querySelector('#twofa-code')!;
-		this.errorMsg = this.container.querySelector('#twofa-error')!;
-		this.twofaMethodSelect = this.container.querySelector('#twofa-method')!;
-		this.emailContainer = this.container.querySelector('#twofa-email-container')!;
-		this.qrcodeContainer = this.container.querySelector('#twofa-qrcode-container')!;
-		this.submitEmailCodeBtn = this.container.querySelector('#twofa-email-code-submit-btn')!;
-		this.resendEmailCodeBtn = this.container.querySelector('#twofa-email-resend-btn')!;
-		this.twofaBackBtn = this.container.querySelector('#twofa-back-btn')!;
+		this.form = getHTMLElementById('twofa-form', this.container) as HTMLFormElement;
+		this.codeInput = getHTMLElementById('twofa-code', this.form) as HTMLInputElement;
+		this.errorMsg = getHTMLElementById('twofa-error', this.form) as HTMLElement;
+		this.twofaMethodSelect = getHTMLElementById('twofa-method', this.form) as HTMLSelectElement;
+		this.emailContainer = getHTMLElementById('twofa-email-container', this.form) as HTMLElement;
+		this.qrcodeContainer = getHTMLElementById('twofa-qrcode-container', this.form) as HTMLElement;
+		this.resendEmailCodeBtn = getHTMLElementById('twofa-email-resend-btn', this.emailContainer) as HTMLButtonElement;
+		this.twofaBackBtn = getHTMLElementById('twofa-back-btn', this.form) as HTMLButtonElement;
 	}
 
 	/**
@@ -84,7 +84,7 @@ export class TwofaModalComponent extends BaseComponent {
 	protected attachListeners(): void {
 		this.twofaMethodSelect.addEventListener('change', this.handleMethodChange);
 		this.resendEmailCodeBtn.addEventListener('click', this.handleResendEmailCode);
-		this.submitEmailCodeBtn.addEventListener('click', this.handleSubmit);
+		this.form.addEventListener('submit', this.handleSubmit);
 		this.container.addEventListener('click', this.handleBackgroundClick);
 		this.twofaBackBtn.addEventListener('click', this.leaveOnBtnClick);
 	}
@@ -95,8 +95,8 @@ export class TwofaModalComponent extends BaseComponent {
 	protected removeListeners(): void {
 		this.twofaMethodSelect.removeEventListener('change', this.handleMethodChange);
 		this.resendEmailCodeBtn.removeEventListener('click', this.handleResendEmailCode);
+		this.form.addEventListener('submit', this.handleSubmit);
 		this.container.removeEventListener('click', this.handleBackgroundClick);
-		this.submitEmailCodeBtn.removeEventListener('click', this.handleSubmit);
 		this.twofaBackBtn.removeEventListener('click', this.leaveOnBtnClick);
 	}
 
@@ -217,7 +217,7 @@ export class TwofaModalComponent extends BaseComponent {
 
 	private async handleSendEmailCode(): Promise<void> {
 		showSpinner('twofa-spinner');
-		const res = await userService.send2FA(this.userData);
+		const res = await authService.send2FA(this.userData);
 		if (res.errorMessage) {
 			showAlert(res.errorMessage, 'twofa-error');
 			this.qrcodeContainer.classList.add('hidden');
@@ -235,11 +235,11 @@ export class TwofaModalComponent extends BaseComponent {
 	 * qu'utilisateur et ferme le modal. Si le code est invalide, affiche un message
 	 * d'erreur.
 	 * 
-	 * @param {MouseEvent} event L'événement de soumission du formulaire.
+	 * @param {SubmitEvent} event L'événement de soumission du formulaire.
 	 * @returns {Promise<void>} Une promesse qui se résout une fois que la connexion
 	 *                          est terminée.
 	 */
-	private handleSubmit = async (event: MouseEvent): Promise<void> => {
+	private handleSubmit = async (event: SubmitEvent): Promise<void> => {
 		event.preventDefault();
 		const code = this.codeInput.value.trim();
 		if (!code) {
@@ -247,7 +247,7 @@ export class TwofaModalComponent extends BaseComponent {
 			this.errorMsg.classList.remove('hidden');
 			return;
 		}
-		const res = await userService.twofaConnectUser({
+		const res = await authService.twofaConnectUser({
 			email: this.userData.email,
 			password: code,
 		});

@@ -1,8 +1,8 @@
-import { pageService } from './services';
-import { routesConfig } from '../config/routes.config';
-import { router, Router } from '../router/router';
-import { RouteConfig, RouteParams } from '../types/routes.types';
-import { hasParams } from '../router/router.helper';
+import { pageService } from '../services';
+import { routesConfig } from '../../config/routes.config';
+import { router, Router } from '../../router/router';
+import { RouteConfig, RouteParams } from '../../types/routes.types';
+import { hasParams } from '../../router/router.helper';
 
 // ===========================================
 // ROUTING SERVICE

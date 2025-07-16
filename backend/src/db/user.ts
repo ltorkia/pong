@@ -4,7 +4,8 @@ import { Game } from '../types/game.types';
 import { ChatMessage } from '../types/chat.types';
 import { searchNewName } from '../helpers/auth.helpers';
 import { UserPassword, User2FA } from '../types/user.types';
-import { UserModel, UserBasic, UserWithAvatar, Friends } from '../shared/types/user.types'; // en rouge car dossier local 'shared' != dossier conteneur
+import { DB_CONST } from '../shared/config/constants.config'; // en rouge car dossier local 'shared' != dossier conteneur
+import { UserModel, SafeUserModel, UserBasic, UserWithAvatar, Friends } from '../shared/types/user.types'; // en rouge car dossier local 'shared' != dossier conteneur
 
 // retourne les infos d un user particulier - userId = le id de l user a afficher
 // a priori ? protegerait contre les insertions sql
@@ -22,14 +23,25 @@ export async function getUser(userId : number | null = null, search : string | n
 	return user as UserModel;
 }
 
-// retourne les infos de tous les users pour l authentification 
+// retourne les infos de tous les users
 export async function getAllUsers() {
 	const db = await getDb();
 	const users = await db.all(`
-		SELECT id, username, email, avatar 
+		SELECT id, username, avatar 
 		FROM User 
 	`);
 	return users as UserBasic[];
+}
+
+export async function getAllUsersInfos() {
+	const db = await getDb();
+	const users = await db.all(`
+		SELECT id, username, registration, 
+		begin_log, end_log, tournament, avatar, game_played, game_win, 
+		game_loose, time_played, n_friends, status, is_deleted, register_from 
+		FROM User 
+	`);
+	return users as SafeUserModel[];
 }
 
 // retourne les infos de tous les users pour l authentification 
@@ -128,14 +140,14 @@ export async function getUserChat(userId1: number, userId2: number) {
 	};
 }
 	
-export async function insertUser(user: (RegisterInput | {username: string, email: string, avatar?: string}), is_google: (boolean | null)) {
+export async function insertUser(user: (RegisterInput | {username: string, email: string}), is_google: (boolean | null)) {
 	try {
 		const db = await getDb();
 		
 		if (!is_google)
 		{
 			if(await getUser(null, user.username))
-				return {statusCode : 409, message : "Username already used, you can choose :" + await (searchNewName(user.username))};
+				return {statusCode : 409, message : "Username already used.<br><b>" + await (searchNewName(user.username)) + "</b> is available."};
 			
 			if (await getUser(null, user.email))
 				return {statusCode: 409, message : "Email already used"};
@@ -156,7 +168,7 @@ export async function insertUser(user: (RegisterInput | {username: string, email
 				INSERT INTO User (username, email, register_from)
 				VALUES (?, ?, ?)
 				`,
-				[user.username, user.email, 'google']
+				[user.username, user.email, DB_CONST.USER.REGISTER_FROM.GOOGLE]
 			);	
 		}
 		return {statusCode : 201, message : 'user add'};

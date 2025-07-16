@@ -1,27 +1,9 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { JwtPayload } from '../types/jwt.types';
 import { getUser } from '../db/user';
-import { UserModel, PublicUser } from '../shared/types/user.types'; // en rouge car dossier local 'shared' != dossier conteneur
+import { UserPassword } from '../types/user.types';
 import { COOKIES_CONST } from '../shared/config/constants.config'; // en rouge car dossier local 'shared' != dossier conteneur
-// import { majLastlog } from '../db/user';
-
-/*propose un nouveau nom pour register*/
-export async function searchNewName(username: string) {
-	const now = Date.now();
-	const digits = now.toString().split('');
-	const len = digits.length;
-	console.log( now + " " + digits + " " + len);
-	
-	for (let i = 0; i < len; i++)
-	{
-		if (i === 0)
-			username += "_";
-		username += digits[i];
-		if (!await getUser(null, username))
-			break ;
-	}
-	return username;
-} 
+import { majLastlog } from '../db/user';
 
 /**
  * Génère un token JWT pour un utilisateur donné
@@ -29,6 +11,27 @@ export async function searchNewName(username: string) {
  */
 export function generateJwt(app: FastifyInstance, user: JwtPayload) {
 	return app.jwt.sign(user, { expiresIn: '7d' });
+}
+
+/**
+ * Génère un token JWT pour l'utilisateur, le stocke dans un cookie sécurisé
+ * et met à jour le timestamp de la dernière connexion dans la base.
+ * @param app Instance de Fastify
+ * @param user Informations de l'utilisateur
+ * @param reply Réponse HTTP
+ */
+export async function ProcessAuth(app: FastifyInstance, user: Partial<UserPassword>, reply: FastifyReply) {
+	// const user = await getUser(null, userToGet);
+	// Création d'un token JWT qui sera utilisé par le frontend pour les requêtes authentifiées
+	// JWT = JSON Web Token = format pour transporter des informations de manière sécurisée entre deux parties, ici le frontend et le backend.
+	const userId = user.id!;
+	const username = user.username!;
+	const token = generateJwt(app, {
+		id: userId
+	});
+	setAuthCookie(reply, token);
+	setStatusCookie(reply);
+	await majLastlog(username);
 }
 
 /**
@@ -96,18 +99,20 @@ export function requireAuth(request: FastifyRequest, reply: FastifyReply): JwtPa
 	return user;
 }
 
-/**
- * Définit les propriétés user safe à envoyer au front après login réussi
- */
-export function setPublicUserInfos(user: UserModel): PublicUser {
-	return {
-		id: user.id,
-		username: user.username,
-		avatar: user.avatar,
-		game_played: user.game_played,
-		game_win: user.game_win,
-		game_loose: user.game_loose,
-		time_played: user.time_played,
-		n_friends: user.n_friends
-	};
+/*propose un nouveau nom pour register*/
+export async function searchNewName(username: string) {
+	const now = Date.now();
+	const digits = now.toString().split('');
+	const len = digits.length;
+	console.log( now + " " + digits + " " + len);
+	
+	for (let i = 0; i < len; i++)
+	{
+		if (i === 0)
+			username += "_";
+		username += digits[i];
+		if (!await getUser(null, username))
+			break ;
+	}
+	return username;
 }

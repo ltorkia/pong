@@ -4,8 +4,9 @@ import template from './user-row.component.html?raw'
 import { BaseComponent } from '../base/base.component';
 import { RouteConfig } from '../../types/routes.types';
 import { ComponentConfig } from '../../types/components.types';
-import { AVATARS_ROUTE_API } from '../../config/routes.config';
+import { ImageService } from '../../services/core/image.service';
 import { User } from '../../models/user.model';
+import { IMAGE_CONST } from '../../shared/config/constants.config';
 
 // ===========================================
 // USER ROW COMPONENT
@@ -83,18 +84,17 @@ export class UserRowComponent extends BaseComponent {
 	/**
 	 * Méthode de montage du composant de la ligne d'utilisateur.
 	 *
-	 * Vérifie qu'un utilisateur est bien authentifié.
-	 * En mode développement, utilise le hot-reload Vite pour charger
-	 * le template HTML du composant. Ensuite, met à jour le contenu visuel
-	 * de la ligne d'utilisateur avec les informations de l'utilisateur
-	 * fourni, en ajustant l'avatar, le lien du nom d'utilisateur et le
+	 * Met à jour le contenu visuel de la ligne d'utilisateur avec
+	 * les informations de l'utilisateur fourni,
+	 * en ajustant l'avatar, le lien du nom d'utilisateur et le
 	 * niveau (taux de victoire) si disponible.
 	 *
 	 * @returns {Promise<void>} Une promesse qui se résout lorsque le composant est monté.
 	 */
 	protected async mount(): Promise<void> {
-		this.avatarImg.setAttribute('src', `${AVATARS_ROUTE_API}${this.user!.avatar}`);
+		this.avatarImg.setAttribute('src', await ImageService.getUserAvatarURL(this.user!));
 		this.avatarImg.setAttribute('alt', `${this.user!.username}'s avatar`);
+		this.avatarImg.setAttribute('loading', 'lazy');
 
 		this.usernameLink.setAttribute('href', `/user/${this.user!.id}`);
 		this.usernameLink.textContent = this.user!.username;

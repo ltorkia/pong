@@ -12,9 +12,9 @@ import { SafeUserModel, UserModel, PublicUser, UserStatus, RegisterMethod } from
  * manipuler ces données.
  * 
  * Lors des requêtes API, l'utilisateur
- * est temporairement stocké en mémoire vive, puis ses données
+ * est temporairement stocké en mémoire vive (services/user/user.service.ts), puis ses données
  * sont conservées sans l'email dans le localStorage pour un accès
- * ultérieur.
+ * ultérieur (stores/user.store.ts).
  */
 export class User {
 
@@ -24,34 +24,29 @@ export class User {
 		public avatar: string,
 		public email: string,
 		public registration: string,
-		public begin_log: string,
-		public end_log: string,
+		public beginLog: string,
+		public endLog: string,
 		public tournament: number,
-		public game_played: number,
-		public game_win: number,
-		public game_loose: number,
-		public time_played: number,
-		public n_friends: number,
+		public gamePlayed: number,
+		public gameWin: number,
+		public gameLoose: number,
+		public timePlayed: number,
+		public nFriends: number,
 		public status: UserStatus,
-		public is_deleted: boolean,
-		public register_from: RegisterMethod
+		public isDeleted: boolean,
+		public registerFrom: RegisterMethod
 	) {}
 
 	// ============================================================================
 	// GETTERS POUR L'AFFICHAGE
 	// ============================================================================
-	
-	get winRate(): number {
-		if (!this.game_played || this.game_played === 0) return 0;
-		return Math.round((this.game_win / this.game_played) * 100);
-	}
-
-	get isActive(): boolean {
-		return !this.is_deleted;
-	}
 
 	get displayName(): string {
 		return this.username;
+	}
+
+	get isActive(): boolean {
+		return !this.isDeleted;
 	}
 
 	isOnline(): boolean {
@@ -59,7 +54,12 @@ export class User {
 	}
 
 	get formattedLastLog(): string {
-		return this.begin_log ? new Date(this.begin_log).toLocaleString() : 'User has never logged in';
+		return this.beginLog ? new Date(this.beginLog).toLocaleString() : 'User has never logged in';
+	}
+	
+	get winRate(): number {
+		if (!this.gamePlayed || this.gamePlayed === 0) return 0;
+		return Math.round((this.gameWin / this.gamePlayed) * 100);
 	}
 
 	// ============================================================================
@@ -78,11 +78,11 @@ export class User {
 			id: this.id,
 			username: this.username,
 			avatar: this.avatar,
-			game_played: this.game_played,
-			game_win: this.game_win,
-			game_loose: this.game_loose,
-			time_played: this.time_played,
-			n_friends: this.n_friends,
+			game_played: this.gamePlayed,
+			game_win: this.gameWin,
+			game_loose: this.gameLoose,
+			time_played: this.timePlayed,
+			n_friends: this.nFriends,
 		};
 	}
 
@@ -99,17 +99,17 @@ export class User {
 			username: this.username,
 			avatar: this.avatar,
 			registration: this.registration,
-			begin_log: this.begin_log,
-			end_log: this.end_log,
+			begin_log: this.beginLog,
+			end_log: this.endLog,
 			tournament: this.tournament,
-			game_played: this.game_played,
-			game_win: this.game_win,
-			game_loose: this.game_loose,
-			time_played: this.time_played,
-			n_friends: this.n_friends,
+			game_played: this.gamePlayed,
+			game_win: this.gameWin,
+			game_loose: this.gameLoose,
+			time_played: this.timePlayed,
+			n_friends: this.nFriends,
 			status: this.status,
-			is_deleted: this.is_deleted,
-			register_from: this.register_from
+			is_deleted: this.isDeleted,
+			register_from: this.registerFrom
 		};
 	}
 
@@ -127,17 +127,17 @@ export class User {
 			avatar: this.avatar,
 			email: this.email,
 			registration: this.registration,
-			begin_log: this.begin_log,
-			end_log: this.end_log,
+			begin_log: this.beginLog,
+			end_log: this.endLog,
 			tournament: this.tournament,
-			game_played: this.game_played,
-			game_win: this.game_win,
-			game_loose: this.game_loose,
-			time_played: this.time_played,
-			n_friends: this.n_friends,
+			game_played: this.gamePlayed,
+			game_win: this.gameWin,
+			game_loose: this.gameLoose,
+			time_played: this.timePlayed,
+			n_friends: this.nFriends,
 			status: this.status,
-			is_deleted: this.is_deleted,
-			register_from: this.register_from
+			is_deleted: this.isDeleted,
+			register_from: this.registerFrom
 		};
 	}
 
@@ -208,17 +208,17 @@ export class User {
 			data.avatar ?? 'default.png',
 			'', // Email vide pour les données publiques
 			'', // Registration vide
-			'', // begin_log vide
-			'', // end_log vide
+			'', // beginLog vide
+			'', // endLog vide
 			0,  // Tournament à 0
-			data.game_played ?? 0,
+			data.game_layed ?? 0,
 			data.game_win ?? 0,
 			data.game_loose ?? 0,
 			data.time_played ?? 0,
 			data.n_friends ?? 0,
 			'offline', // Status par défaut
-			false, // is_deleted par défaut
-			'local' // register_from par défaut
+			false, // isDeleted par défaut
+			'local' // registerFrom par défaut
 		);
 	}
 
@@ -285,55 +285,5 @@ export class User {
 	 */
 	static toFullJSONArray(users: User[]): UserModel[] {
 		return users.map(user => user.toFullJSON());
-	}
-
-	// ============================================================================
-	// FILTRES & RECHERCHE DANS UN TABLEAU
-	// ============================================================================
-
-	/**
-	 * Filtre les utilisateurs actifs (non supprimés).
-	 * 
-	 * @param users - Tableau d'instances User
-	 * @returns {User[]} - Tableau d'utilisateurs actifs
-	 */
-	static getActiveUsers(users: User[]): User[] {
-		return users.filter(user => user.isActive);
-	}
-
-	/**
-	 * Filtre les utilisateurs en ligne.
-	 * 
-	 * @param users - Tableau d'instances User
-	 * @returns {User[]} - Tableau d'utilisateurs en ligne
-	 */
-	static getOnlineUsers(users: User[]): User[] {
-		return users.filter(user => user.isOnline());
-	}
-
-	/**
-	 * Filtre les utilisateurs par statut.
-	 * 
-	 * @param users - Tableau d'instances User
-	 * @param status - Statut à filtrer
-	 * @returns {User[]} - Tableau d'utilisateurs avec le statut spécifié
-	 */
-	static getUsersByStatus(users: User[], status: 'online' | 'offline' | 'in-game'): User[] {
-		return users.filter(user => user.status === status);
-	}
-
-	// ============================================================================
-	// MÉTHODES D’INSTANCE POUR MANIPULATION
-	// ============================================================================
-
-	/**
-	 * Met à jour les propriétés de l'utilisateur avec de nouvelles données.
-	 * 
-	 * @param updates - Objet contenant les propriétés à mettre à jour
-	 * @returns {User} - Instance mise à jour (pour chaînage)
-	 */
-	update(updates: Partial<UserModel>): User {
-		Object.assign(this, updates);
-		return this;
 	}
 }

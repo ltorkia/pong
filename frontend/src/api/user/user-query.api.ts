@@ -1,5 +1,6 @@
 import { User } from '../../models/user.model';
-import { userCrudApi } from './user.api';
+import { userCrudApi } from './user-index.api';
+import { DataService } from '../../services/services';
 
 // ===========================================
 // USER QUERY API
@@ -27,7 +28,7 @@ export class UserQueryApi {
 	 */
 	public async getActiveUsers(): Promise<User[]> {
 		const users: User[] = await userCrudApi.getUsers();
-		return User.getActiveUsers(users) as User[];
+		return DataService.getActiveUsers(users) as User[];
 	}
 
 	/**
@@ -40,7 +41,21 @@ export class UserQueryApi {
 	 */
 	public async getOnlineUsers(): Promise<User[]> {
 		const users: User[] = await userCrudApi.getUsers();
-		return User.getOnlineUsers(users) as User[];
+		return DataService.getOnlineUsers(users) as User[];
+	}
+
+	/**
+	 * Récupère l'URL de l'avatar d'un utilisateur.
+	 * 
+	 * Envoie une requête pour obtenir l'utilisateur par son identifiant,
+	 * puis renvoie l'URL de son avatar.
+	 * 
+	 * @param {number} id Identifiant de l'utilisateur pour lequel récupérer l'avatar.
+	 * @returns {Promise<string>} Promesse qui se résout avec l'URL de l'avatar de l'utilisateur.
+	 */
+	public async getUserAvatar(id: number): Promise<string> {
+		const user: User = await userCrudApi.getUserById(id);
+		return user.avatar;
 	}
 
 }

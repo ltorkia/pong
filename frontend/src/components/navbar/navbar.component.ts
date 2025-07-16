@@ -2,9 +2,8 @@
 import template from './navbar.component.html?raw';
 
 import { BaseComponent } from '../base/base.component';
-import { userStore } from '../../stores/user.store';
 import { uiStore } from '../../stores/ui.store';
-import { userService } from '../../services/services';
+import { authService } from '../../services/services';
 import { RouteConfig } from '../../types/routes.types';
 import { ComponentConfig } from '../../types/components.types';
 import { toggleClass } from '../../utils/dom.utils';
@@ -38,8 +37,8 @@ export class NavbarComponent extends BaseComponent {
 	/**
 	 * Constructeur du composant de la navbar.
 	 *
-	 * Au moment de la construction, le composant stocke la configuration de la route
-	 * actuelle et l'utilisateur actuel dans ses propriétés.
+	 * Stocke la configuration de la route actuelle, la configuration du composant,
+	 * et le container HTML.
 	 *
 	 * @param {RouteConfig} routeConfig La configuration de la route actuelle.
 	 * @param {ComponentConfig} componentConfig La configuration du composant.
@@ -47,7 +46,6 @@ export class NavbarComponent extends BaseComponent {
 	 */
 	constructor(routeConfig: RouteConfig, componentConfig: ComponentConfig, container: HTMLElement) {
 		super(routeConfig, componentConfig, container);
-		this.currentUser = userStore.getCurrentUser();
 		this.profilePlaceholder = '{userId}';
 	}
 
@@ -265,7 +263,7 @@ export class NavbarComponent extends BaseComponent {
 	 * 
 	 * Lors d'un clic sur le bouton logout, on annule l'événement de navigation,
 	 * on enclenche la destruction de la navbar, on active sa transition de sortie,
-	 * et on appelle la méthode logoutUser() du UserService pour déconnecter l'utilisateur.
+	 * et on appelle la méthode logoutUser() du AuthService pour déconnecter l'utilisateur.
 	 * 
 	 * @param {MouseEvent} event L'événement de clic.
 	 * @returns {Promise<void>} Promesse qui se résout lorsque l'opération est terminée.
@@ -274,6 +272,6 @@ export class NavbarComponent extends BaseComponent {
 		event.preventDefault();
 		this.componentConfig.destroy = true;
 		uiStore.animateNavbarOut = true;
-		await userService.logoutUser();
+		await authService.logoutUser();
 	};
 }

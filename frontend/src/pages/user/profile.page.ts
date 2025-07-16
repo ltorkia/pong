@@ -1,7 +1,8 @@
-import { BasePage } from './base.page';
-import { RouteConfig, RouteParams } from '../types/routes.types';
-import { AVATARS_ROUTE_API } from '../config/routes.config';
-import { userCrudApi } from '../api/user/user.api';
+import { BasePage } from '../base/base.page';
+import { RouteConfig, RouteParams } from '../../types/routes.types';
+import { userCrudApi } from '../../api/user/user-index.api';
+import { User } from '../../models/user.model';
+import { ImageService } from '../../services/services';
 
 // ===========================================
 // PROFILE PAGE
@@ -12,6 +13,7 @@ import { userCrudApi } from '../api/user/user.api';
  */
 export class ProfilePage extends BasePage {
 	private userId?: number | RouteParams;
+	private user: User | null = null;
 
 	/**
 	 * Constructeur de la page de profil.
@@ -29,6 +31,13 @@ export class ProfilePage extends BasePage {
 	// ===========================================
 	// METHODES OVERRIDES DE BASEPAGE
 	// ===========================================
+	
+	protected async beforeMount(): Promise<void> {
+		if (typeof this.userId !== 'number') {
+			throw new Error('User ID invalide ou manquant');
+		}
+		this.user = await userCrudApi.getUserById(this.userId);
+	}
 
 	/**
 	 * Méthode de montage de la page de profil utilisateur.
@@ -50,34 +59,31 @@ export class ProfilePage extends BasePage {
 	 * @throws {Error} Si l'ID utilisateur est invalide ou manquant.
 	 */
 	protected async mount(): Promise<void> {
-		if (typeof this.userId !== 'number') {
-			throw new Error('User ID invalide ou manquant');
-		}
-		const user = await userCrudApi.getUserById(this.userId);
 		const profileSection = document.getElementById('profile-section') as HTMLDivElement;
 		const template = document.getElementById('user-template') as HTMLTemplateElement;
-		if (!profileSection || !template || !user) return;
+		if (!profileSection || !template) return;
 
 		const clone = template.content.cloneNode(true) as DocumentFragment;
 
 		const userAvatar = clone.querySelector('.avatar-cell') as HTMLElement;
 		const img = document.createElement('img');
 		img.classList.add('avatar-img');
-		img.src = `${AVATARS_ROUTE_API}${user.avatar}`;
-		img.alt = `${user.username}'s avatar`;
+		img.setAttribute('src', await ImageService.getUserAvatarURL(this.user!));
+		img.setAttribute('loading', 'lazy');
+
+		img.alt = `${this.user!.username}'s avatar`;
 		userAvatar.appendChild(img);
 
 		const userName = clone.querySelector('.name-cell') as HTMLElement;
-		const a = document.createElement('a');
-		a.href = `/users/${user.id}`;
-		a.textContent = user.username;
-		userName.appendChild(a);
+		const span = document.createElement('span');
+		span.textContent = this.user!.username;
+		userName.appendChild(span);
 
 		const userLevel = clone.querySelector('.level-cell') as HTMLElement;
-		userLevel.textContent = user.winRate !== undefined ? `Win rate: ${user.winRate}%` : "No stats";
+		userLevel.textContent = this.user!.winRate !== undefined ? `Win rate: ${this.user!.winRate}%` : "No stats";
 
 		// const userFriendList = clone.querySelector('#friend-list') as HTMLElement;
-		// const userFriends = await getUserFriends(user.id);
+		// const userFriends = await getUserFriends(this.user.id);
 		// if (userFriends.length > 0) {
 		// 	for (const friend of userFriends) {
 		// 		const friendLi = document.createElement('li');

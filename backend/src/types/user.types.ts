@@ -23,3 +23,7 @@ export interface User2FA {
 	code_2FA_expire_at: number;
 	register_from: RegisterMethod;
 }
+
+export type AvatarResult =
+	| { success: true }
+	| { success: false; errorMessage: string; statusCode?: number };

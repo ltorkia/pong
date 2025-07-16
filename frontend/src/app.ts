@@ -1,5 +1,5 @@
 import './styles/main.css';
-import { AppService } from './services/app.service';
+import { AppService } from './services/core/app.service';
 
 /**
  * Point d'entrée principal de l'app.

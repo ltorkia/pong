@@ -11,34 +11,11 @@
 		tablet:mt-4 tablet:mb-6;
 	}
 
-	/* AVATAR OVERLAY */
+	/* AVATAR */
 	.avatar {
 		@apply w-32 h-32 rounded-full border border-white/65
 		absolute -top-12 left-1/2 -translate-x-1/2
 		tablet:w-36 tablet:h-36 tablet:-top-16
-		cursor-pointer overflow-hidden;
-	}
-
-	.avatar::before {
-		@apply absolute inset-0 bg-black opacity-0 transition-opacity duration-300 ease-in-out;
-		content: '';
-		z-index: 1;
-	}
-
-	.avatar:hover::before {
-		@apply opacity-60;
-	}
-
-	.avatar .camera-icon {
-		@apply absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-gray-300 text-3xl opacity-0 transition-opacity duration-300 ease-in-out;
-		z-index: 2;
-	}
-
-	.avatar:hover .camera-icon {
-		@apply opacity-100;
-	}
-
-	.avatar-input {
-		@apply hidden;
+		overflow-hidden;
 	}
 }

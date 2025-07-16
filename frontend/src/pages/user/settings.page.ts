@@ -1,19 +1,15 @@
-import { BasePage } from './base.page';
-import { RouteConfig } from '../types/routes.types';
-import { ImageService } from '../services/image.service';
-import { AVATARS_ROUTE_API } from '../config/routes.config';
-import { getHTMLElementById, showAlert, showSpinner, hideSpinner } from '../utils/dom.utils';
+import { BasePage } from '../base/base.page';
+import { RouteConfig } from '../../types/routes.types';
+import { ImageService } from '../../services/services';
+import { getHTMLElementById, showAlert, hideSpinner } from '../../utils/dom.utils';
 
 // ===========================================
-// HOME PAGE
+// SETTINGS PAGE
 // ===========================================
 /**
- * La page d'accueil est chargée lorsque l'utilisateur se connecte.
- * Elle affiche un message de bienvenue avec le nom de l'utilisateur et
- * charge son avatar.
+ * L'utilisateur peut changer ses informations personnelles ici, notamment son avatar.
  */
-export class HomePage extends BasePage {
-	private welcomeContainer!: HTMLElement;
+export class SettingsPage extends BasePage {
 	private avatarInput!: HTMLInputElement;
 	private avatarContainer!: HTMLElement;
 
@@ -34,19 +30,6 @@ export class HomePage extends BasePage {
 	// ===========================================
 
 	/**
-	 * Montage du composant de la page d'accueil.
-	 *
-	 * Cette méthode charge l'avatar de l'utilisateur et affiche un message
-	 * de bienvenue avec le nom de l'utilisateur.
-	 *
-	 * @returns Une promesse qui se r solve lorsque le composant est mont .
-	 */
-	protected async mount(): Promise<void> {
-		this.welcomeUser();
-		this.loadAvatar();
-	}
-
-	/**
 	 * Récupère les éléments HTML de la page d'accueil avant de la monter.
 	 * 
 	 * Stocke les éléments HTML suivants dans les propriétés de l'objet:
@@ -57,9 +40,20 @@ export class HomePage extends BasePage {
 	 * @returns {Promise<void>} Une promesse qui se résout lorsque les éléments HTML ont été stockés.
 	 */
 	protected async beforeMount(): Promise<void> {
-		this.welcomeContainer = getHTMLElementById('welcome-username');
 		this.avatarInput = document.getElementById('avatar-input') as HTMLInputElement;
 		this.avatarContainer = document.getElementById('avatar-container') as HTMLElement;
+	}
+
+	/**
+	 * Montage du composant de la page d'accueil.
+	 *
+	 * Cette méthode charge l'avatar de l'utilisateur et affiche un message
+	 * de bienvenue avec le nom de l'utilisateur.
+	 *
+	 * @returns Une promesse qui se r solve lorsque le composant est mont .
+	 */
+	protected async mount(): Promise<void> {
+		this.loadAvatar();
 	}
 
 	/**
@@ -88,14 +82,6 @@ export class HomePage extends BasePage {
 	// ===========================================
 
 	/**
-	 * Modifie le titre de la page d'accueil pour afficher un message de
-	 * bienvenue personnalisé avec le nom d'utilisateur.
-	 */
-	private welcomeUser() {
-		this.welcomeContainer.textContent = `Hi ${this.currentUser!.username} !`;
-	}
-
-	/**
 	 * Charge l'image d'avatar de l'utilisateur actuel.
 	 *
 	 * Recherche l'élément HTML de classe "avatar" et y applique
@@ -103,7 +89,7 @@ export class HomePage extends BasePage {
 	 */
 	private loadAvatar() {
 		Object.assign(this.avatarContainer.style, {
-			backgroundImage: `url('${AVATARS_ROUTE_API}${this.currentUser!.avatar}')`,
+			backgroundImage: `url('${this.currentUserAvatarURL!}')`,
 			backgroundSize: "cover",
 			backgroundPosition: "center"
 		});
@@ -116,9 +102,11 @@ export class HomePage extends BasePage {
 	 * @param {string} imageUrl - L'URL de l'image d'avatar.
 	 */
 	private setAvatarPreview(imageUrl: string): void {
-		this.avatarContainer.style.backgroundImage = `url(${imageUrl})`;
-		this.avatarContainer.style.backgroundSize = 'cover';
-		this.avatarContainer.style.backgroundPosition = 'center';
+		Object.assign(this.avatarContainer.style, {
+			backgroundImage: `url('${imageUrl}')`,
+			backgroundSize: "cover",
+			backgroundPosition: "center"
+		});
 	}
 
 	/**
@@ -126,7 +114,7 @@ export class HomePage extends BasePage {
 	 * de l'utilisateur actuel et en remettant à zéro l'input de type fichier.
 	 */
 	private resetAvatar(): void {
-		this.avatarContainer.style.backgroundImage = `url('${AVATARS_ROUTE_API}${this.currentUser!.avatar}')`;
+		this.avatarContainer.style.backgroundImage = `url('${this.currentUserAvatarURL!}')`;
 		this.avatarInput.value = '';
 	}
 
@@ -165,9 +153,8 @@ export class HomePage extends BasePage {
 
 		try {
 			// Validation
-			const validation = ImageService.validateImage(file);
-			if (!validation.isValid) {
-				showAlert(validation.errorMessage!, 'avatar-error');
+			const isValidImage = ImageService.isValidImage(file);
+			if (!isValidImage) {
 				return;
 			}
 

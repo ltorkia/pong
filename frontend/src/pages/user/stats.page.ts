@@ -1,5 +1,5 @@
-import { BasePage } from './base.page';
-import { RouteConfig } from '../types/routes.types';
+import { BasePage } from '../base/base.page';
+import { RouteConfig } from '../../types/routes.types';
 
 // ===========================================
 // STATS PAGE

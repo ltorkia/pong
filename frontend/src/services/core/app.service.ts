@@ -1,9 +1,8 @@
-import { Router } from '../router/router';
-import { routingService, particlesService } from './services';
+import { Router } from '../../router/router';
+import { routingService, particlesService } from '../services';
 import { loadFull } from "tsparticles";
 import { tsParticles } from "@tsparticles/engine";
-import { wait } from '../utils/app.utils';
-// import { userService } from './services';
+import { wait } from '../../utils/app.utils';
 
 // ===========================================
 // APP SERVICE
@@ -30,7 +29,6 @@ export class AppService {
 	 */
 	public async start(): Promise<void> {
 		console.log('=== DEMARRAGE APP ===');
-		// userService.loadUser();
 		await this.tsParticlesInit();
 		await wait(100);
 		document.body.classList.remove('load');

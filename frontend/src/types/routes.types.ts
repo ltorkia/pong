@@ -1,4 +1,4 @@
-import { BasePage } from '../pages/base.page';
+import { BasePage } from '../pages/base/base.page';
 import { ComponentName, ComponentConfig } from './components.types';
 import { PAGE_NAMES, ROUTE_PATHS, TEMPLATE_PATHS } from '../config/routes.config';
 

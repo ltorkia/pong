@@ -1,4 +1,5 @@
-import { AlertTheme, alertStyles } from '../types/ui-styles.types';
+import { alertStyles } from '../config/ui-styles.config';
+import { AlertTheme } from '../types/ui-styles.types';
 import { APP_ID } from '../config/routes.config';
 
 // ===========================================

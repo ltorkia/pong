@@ -1,5 +1,5 @@
-import { userService } from '../services/services';
-import { userStore } from '../stores/user.store';
+import { sessionService } from '../services/services';
+import { dataService } from '../services/services';
 import { DEFAULT_ROUTE, AUTH_FALLBACK_ROUTE } from '../config/routes.config';
 import { isPublicRoute } from '../utils/routes.utils';
 import { router } from './router';
@@ -35,12 +35,12 @@ export class RouteGuard {
 			const isPublic = isPublicRoute(route);
 
 			// Vérifie si un utilisateur est déjà chargé avec le cookie compagnon
-			const authCookieIsActive = userService.hasAuthCookie();
+			const authCookieIsActive = sessionService.hasAuthCookie();
 			
 			// LOGIQUE DE REDIRECTION
 			// Si route privée et user pas authentifié, redirection vers /login
 			if (!isPublic && !authCookieIsActive) {
-				userStore.clearCurrentUser();
+				dataService.clearCurrentUser();
 				console.log(`[${this.constructor.name}] Non connecté -> redirection vers /login`);
 				await router.redirect(AUTH_FALLBACK_ROUTE);
 				return true;
@@ -50,7 +50,7 @@ export class RouteGuard {
 			if (isPublic && authCookieIsActive) {
 
 				// Vérification dans le store d'abord
-				if (userStore.getCurrentUser()) {
+				if (dataService.getCurrentUser()) {
 					console.log(`[${this.constructor.name}] Utilisateur déjà en store -> redirection vers /`);
 					await router.redirect(DEFAULT_ROUTE);
 					return true;
@@ -58,7 +58,7 @@ export class RouteGuard {
 				
 				// Si pas en store mais cookie présent, essayer de restaurer
 				// via localStorage puis fallback API
-				const user = await userService.loadOrRestoreUser();
+				const user = await sessionService.loadOrRestoreUser();
 				if (user) {
 					console.log(`[${this.constructor.name}] Utilisateur restauré -> redirection vers /`);
 					await router.redirect(DEFAULT_ROUTE);
@@ -69,7 +69,7 @@ export class RouteGuard {
 
 			// Pour les routes privées avec cookie présent, on restaure via localStorage puis fallback API
 			if (!isPublic && authCookieIsActive) {
-				const user = await userService.loadOrRestoreUser();
+				const user = await sessionService.loadOrRestoreUser();
 				if (!user) {
 					// Cookie présent mais pas d'utilisateur valide
 					// (cas de désynchronisation ou session expirée côté serveur)
@@ -82,10 +82,15 @@ export class RouteGuard {
 			return false;
 
 		} catch (err) {
-			console.error(`[${this.constructor.name}] Erreur critique`, err);
-			userStore.clearCurrentUser();
-			await router.redirect(AUTH_FALLBACK_ROUTE);
-			return true;
+			if (route !== AUTH_FALLBACK_ROUTE) {
+				dataService.clearCurrentUser();
+				await router.redirect(AUTH_FALLBACK_ROUTE);
+				return true;
+			} else {
+				// On est déjà sur /login, on évite la suppression et la redirection
+				console.warn(`[${this.constructor.name}] Erreur critique sur la page de login.`);
+				return false;
+			}
 		}
 	}
 	

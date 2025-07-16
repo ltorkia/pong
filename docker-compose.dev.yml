@@ -13,7 +13,7 @@ services:
       - frontend
     volumes:
       - ./nginx/nginx.dev.conf:/etc/nginx/nginx.conf:ro
-      - ./backend/uploads:/usr/share/nginx/html/uploads
+      - ./backend/uploads:/usr/share/nginx/html/uploads:ro
     networks:
       - transcendence
 

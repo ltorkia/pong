@@ -1,5 +1,5 @@
 import { User } from '../../models/user.model';
-import { SafeUserModel, PublicUser } from '../../shared/types/user.types';	// en rouge car dossier local 'shared' != dossier conteneur
+import { SafeUserModel, Friends } from '../../shared/types/user.types';	// en rouge car dossier local 'shared' != dossier conteneur
 import { secureFetch } from '../../utils/app.utils';
 import { BasicResponse } from 'src/types/api.types';
 
@@ -51,7 +51,7 @@ export class UserCrudApi {
 	 *
 	 * Si la requête réussit, renvoie un tableau d'instances `User` contenant
 	 * les informations de tous les utilisateurs stockés en base de données,
-	 * sans email (type `PublicUser`).
+	 * sans email (type `SafeUserModel`).
 	 * Sinon, lève une erreur.
 	 *
 	 * @returns {Promise<User[]>} Promesse qui se résout avec un tableau d'instances `User`.
@@ -61,8 +61,8 @@ export class UserCrudApi {
 		if (!res.ok) {
 			throw new Error('Erreur de l’API');
 		}
-		const data: PublicUser[] = await res.json();
-		return User.fromPublicJSONArray(data) as User[];
+		const data: SafeUserModel[] = await res.json();
+		return User.fromSafeJSONArray(data) as User[];
 	}
 
 	/**
@@ -73,7 +73,7 @@ export class UserCrudApi {
 	 *
 	 * Si la requête réussit, renvoie un tableau d'instances `User` contenant
 	 * les informations des amis de l'utilisateur stockés en base de données,
-	 * sans email (type `PublicUser`).
+	 * sans email (type `Friends`).
 	 * Sinon, lève une erreur.
 	 *
 	 * @param {number} id Identifiant de l'utilisateur pour lequel récupérer la liste des amis.
@@ -84,7 +84,7 @@ export class UserCrudApi {
 		if (!res.ok) {
 			throw new Error('Erreur de l’API');
 		}
-		const data: PublicUser[] = await res.json();
+		const data: Friends[] = await res.json();
 		return User.fromPublicJSONArray(data) as User[];
 	}
 

@@ -1,87 +1,14 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import bcrypt from 'bcrypt';
-import { RegisterInputSchema, LoginInputSchema } from '../types/zod/auth.zod';
-import { insertUser, getUser, getUserP, getUser2FA} from '../db/user';
-import {majLastlog, eraseCode2FA, insertCode2FA, insertAvatar} from '../db/usermaj';
-import { generateJwt, setAuthCookie, setStatusCookie, clearAuthCookies } from '../helpers/auth.helpers';
+import { RegisterInput, RegisterInputSchema, LoginInputSchema } from '../types/zod/auth.zod';
+import { insertUser, getUser, getUserP, eraseCode2FA, insertCode2FA, getUser2FA, insertAvatar } from '../db/user';
+import { ProcessAuth, clearAuthCookies } from '../helpers/auth.helpers';
+import { GetAvatarFromBuffer, bufferizeStream } from '../helpers/image.helpers';
 import { GoogleUserInfo, UserPassword, User2FA } from '../types/user.types';
 import { UserModel } from '../shared/types/user.types'; // en rouge car dossier local 'shared' != dossier conteneur
+import { DB_CONST } from '../shared/config/constants.config'; // en rouge car dossier local 'shared' != dossier conteneur
+import { Buffer } from 'buffer';
 import nodemailer from 'nodemailer';
-import { MultipartFile } from '@fastify/multipart';
-import fs from 'node:fs'; // pour commande creation de dossier
-import { pipeline } from 'node:stream/promises'; // pour telechargement du fichier
-
-async function ProcessAuth(app: FastifyInstance, user: Partial<UserPassword>, reply: FastifyReply) {
-	// const user = await getUser(null, userToGet);
-	// Création d'un token JWT qui sera utilisé par le frontend pour les requêtes authentifiées
-	// JWT = JSON Web Token = format pour transporter des informations de manière sécurisée entre deux parties, ici le frontend et le backend.
-	const userId = user.id!;
-	const username = user.username!;
-	const token = generateJwt(app, {
-		id: userId
-	});
-	setAuthCookie(reply, token);
-	setStatusCookie(reply);
-	await majLastlog(username);
-}
-
-// import { fileTypeFromStream } from 'file-type'; //pour checker si a la lecture du fichier on a ce qui est attendu en fonction du type
-
-
-function CheckFormatAvatar(reply: FastifyReply, avatarFile: MultipartFile)
-{
-	const extension: Record<AvatarMimeType, string> = {
-		'image/jpeg': '.jpeg',
-		'image/png': '.png',
-		'image/jpg': '.jpg',
-		'image/webp': '.webp',
-		'image/gif': '.gif'
-	};
-	const avatarType = avatarFile.mimetype as AvatarMimeType;
-	if (!(avatarType in extension))
-		return reply.status(400).send({ statusCode: "400", errorMessage: "file no supported" });
-	else
-		return;
-}
-
-
-type AvatarMimeType = 'image/jpeg' | 'image/png' | 'image/jpg' | 'image/webp' | 'image/gif';
-async function GetAvatarFromFront(user: Partial<UserPassword>, reply: FastifyReply, avatarFile: MultipartFile) {
-
-	// // check du format
-	const extension: Record<AvatarMimeType, string> = {
-		'image/jpeg': '.jpeg',
-		'image/png': '.png',
-		'image/jpg': '.jpg',
-		'image/webp': '.webp',
-		'image/gif': '.gif'
-	};
-
-	// //check format via mimetype, + a voir si on decide de lire le fichier aussi pour s assurer du truc 
-	// // const fileStream = avatarFile.file;
-	// // const detectedType = await fileTypeFromStream(fileStream);
-	const avatarType = avatarFile.mimetype as AvatarMimeType;
-
-	// // if (!detectedType || detectedType.mime != avatarType || !(avatarType in extension))
-	// if (!(avatarType in extension))
-	// 	return reply.status(400).send({ statusCode: "400", message: "file no supported" });
-
-	// rename l image
-	const filename = user.username! + extension[avatarType];
-	console.log("filename is : " + filename);
-	// Telechargement de l avatar
-	// const fileStreamNew = avatarFile.file;
-	// const avatarBuffer = await fileStreamNew.toBuffer();
-	await fs.promises.mkdir('./uploads/avatars/', { recursive: true });
-	await pipeline(avatarFile.file, fs.createWriteStream(`./uploads/avatars/${filename}`))
-	insertAvatar(filename, user.username!)
-	return;
-	// return (reply.status(200).send({ statusCode: "200", message: "avatar added" }));
-	// return reply.status(200).send({statusCode: "200", message:"avatar added"});	
-}
-
-
-const PORT = 3001;
 
 async function doubleAuth(app: FastifyInstance) {
     app.post('/2FAsend', async (request: FastifyRequest, reply: FastifyReply) => {
@@ -208,7 +135,6 @@ async function doubleAuth(app: FastifyInstance) {
 // }
 
 export async function authRoutes(app: FastifyInstance) {
-
 	// REGISTER
 	app.post('/register', async (request: FastifyRequest, reply: FastifyReply) => {
 		try {
@@ -218,9 +144,8 @@ export async function authRoutes(app: FastifyInstance) {
 			}); //separe les differents elements recuperes
 
 			let dataText: Record<string, string> = {}; //stockera les elements textes
-			// const fs = require('node:fs') //permet de creer dossier et fichiers
-			// const { pipeline } = require('node:stream/promises') //pour transferer fichier ? 
 			let avatarFile; //stockera le file de l avatar
+			let avatarBuffer: Buffer | null = null; //buffer de l'avatar pour la sauvegarde en deux parties
 
 
 			//preparsing qui dispatch datatext d un cote et l avatar de l autre
@@ -228,7 +153,7 @@ export async function authRoutes(app: FastifyInstance) {
 				console.log(element);
 				if (element.type === 'file' && element.fieldname === 'avatar' && element.filename != '') {
 					avatarFile = element;
-					break ;
+					avatarBuffer = await bufferizeStream(element.file);
 				} else if (element.type === 'field' && typeof element.value === 'string') {
 					dataText[element.fieldname] = element.value;
 				}
@@ -236,21 +161,15 @@ export async function authRoutes(app: FastifyInstance) {
 
 			//check les datas texts pour voir si elles correspondent a ce qu on attend
 			const result = RegisterInputSchema.safeParse(dataText);
-			// const result = RegisterInputSchema.safeParse(request.body);
 			if (!result.success) {
 				const error = result.error.errors[0];
 				return reply.status(400).send({ statusCode: 400, errorMessage: error.message + " in " + error.path });
 			}
 			//on cree l user avec les donnees a inserer une fois le safeparse effectue
-			let userToInsert = result.data; //datatext
+			let userToInsert = result.data as RegisterInput; //datatext
 
 			//on hash le password dans un souci de confidentialite
-
 			userToInsert.password = await bcrypt.hash(userToInsert.password, 10);
-
-			//logique a ameliorer pour eviter de faire +ieurs requetes a la db MAIS EN ATTENDANT
-			// >
-			// on insere les donnes de l user dans la dbet on check si c est ok
 
 			const resultinsert = await insertUser(userToInsert, null);
 			if (resultinsert.statusCode !== 201) {
@@ -260,40 +179,14 @@ export async function authRoutes(app: FastifyInstance) {
 				});
 			}
 
-			// if (resultinsert.statusCode === 201) 
-			// {
 			const user: UserModel = await getUser(null, userToInsert.email);
-			const userAuth: Partial<UserPassword> = {
-				id: user.id,
-				username: user.username
+			if (avatarFile && avatarBuffer) {
+				await GetAvatarFromBuffer(user, avatarFile, avatarBuffer);
 			}
-			// !!!TODO PIPELINE A SECURISER PEUT FOUTRE LA MERDE
-			if (avatarFile) {
-				await GetAvatarFromFront(user, reply, avatarFile);
-				// return;
-			}
-			// si on veut skip la double auth -> decommenter ligne suivante
-			// ProcessAuth(app, userAuth, reply);
-			// 	return reply.status(200).send({
-			// 		message: 'Successful registration.',
-			// 		user: user,
-			// 		statusCode: 200 // -> convention json pour donner toutes les infos au front
-			// // if (resultinsert.statusCode !== 201) {
-			// // 	return reply.status(resultinsert.statusCode).send({
-			// // 		statusCode: resultinsert.statusCode,
-			// // 		errorMessage: resultinsert.message || 'Erreur lors de l’insertion de l’utilisateur',
-			// 	});
-			// }
-			// return reply.status(200).send({
-			// 	statusCode: 200,
-			// 	message: 'Successful registration.'
-			// });
 			return reply.status(200).send({
 				statusCode: 200,
 				message: 'Successful registration.'
 			});
-			// }
-			// }
 
 		} catch (err) {
 			request.log.error(err);
@@ -324,7 +217,7 @@ export async function authRoutes(app: FastifyInstance) {
 				});
 			}
 
-			if (validUser && validUser.register_from == 'google') {
+			if (validUser && validUser.register_from === DB_CONST.USER.REGISTER_FROM.GOOGLE) {
 				return reply.status(402).send({
 					statusCode: 402,
 					errorMessage: 'Email already register from Google.'
@@ -394,20 +287,21 @@ export async function authRoutes(app: FastifyInstance) {
 
 			const email = payloadDecoded.email;
 			const username = payloadDecoded.given_name ?? payloadDecoded.name?.split(' ')[0] ?? 'GoogleUser';
-			const avatar = payloadDecoded.picture ?? '';
-
+			const avatar = payloadDecoded.picture ?? DB_CONST.USER.DEFAULT_AVATAR;
 			let user = await getUserP(email);
 			if (user && user.password) {
 				return reply.status(403).send({ errorMessage: 'Account already registered with a local password.' });
 			}
 
 			if (!user) {
-				await insertUser({ email, username, avatar }, true);
+				await insertUser({ email, username }, true);
 				user = await getUserP(email);
 				if (!user) {
 					return reply.status(500).send({ errorMessage: 'An error occurred while creating your Google account.' });
 				}
 			}
+			// On update l'avatar Google en bdd à chaque reconnexion
+			await insertAvatar(avatar, username);
 
 			ProcessAuth(app, user, reply);
 			const userData: UserModel = await getUser(null, email);
