@@ -1,8 +1,11 @@
-export class Player {
-}
+import { Player } from "../shared/types/game.types"
 
 export class Lobby {
+    public allPlayers: Player[];
 
+    constructor() {
+        this.allPlayers = [];
+    }
 }
 
 export interface Game {
