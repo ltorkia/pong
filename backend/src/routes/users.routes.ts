@@ -94,38 +94,38 @@ export async function usersRoutes(app: FastifyInstance) {
 				}
 			}
 	
-		if (avatarFile && avatarBuffer)
-		{
-			const { id1 } = request.params as { id1: number };
-			const user: UserModel = await getUser(id1);
-			// if (await GetAvatarFromBuffer(user, avatarFile, avatarBuffer))
-			await GetAvatarFromBuffer(reply, user, avatarFile, avatarBuffer);
+			if (avatarFile && avatarBuffer)
+			{
+				const { id1 } = request.params as { id1: number };
+				const user: UserModel = await getUser(id1);
+				// if (await GetAvatarFromBuffer(user, avatarFile, avatarBuffer))
+				await GetAvatarFromBuffer(reply, user, avatarFile, avatarBuffer);
+			}
+			return reply.status(200).send({
+				statusCode: 200,
+				message: 'New avatar added.'
+			});
+		} catch (err) {
+			request.log.error(err);
+			return reply.status(500).send({
+				errorMessage: 'Erreur serveur lors de l\'ajout d avatar',
+			});
 		}
-		return reply.status(200).send({
-			statusCode: 200,
-			message: 'New avatar added.'
-		});
-	} catch (err) {
-	request.log.error(err);
-	return reply.status(500).send({
-		errorMessage: 'Erreur serveur lors de l\'ajout d avatar',
-	});
-}
 	})
 
 	app.get('/:id/moduser', async(request: FastifyRequest, reply: FastifyReply) => {
-	const jwtUser = requireAuth(request, reply);
-	if (!jwtUser) {
-		return;
-	}
-	const { id } = request.params as { id: number };
-	// 1. parsing des infos donnees
-	
-	// 2. en fonction des elements retrouves ->
-	// 3. if password -> check si password donne ok + hasshing du nouveau + update
-	// 4. if username -> check si nouveau exist deja sinon block
-	// 5. if email -> check si nouveau exist deja sinon block
-	// 6. avatar -> chope les fonctions de lee avant update
+		const jwtUser = requireAuth(request, reply);
+		if (!jwtUser) {
+			return;
+		}
+		const { id } = request.params as { id: number };
+		// 1. parsing des infos donnees
+		
+		// 2. en fonction des elements retrouves ->
+		// 3. if password -> check si password donne ok + hasshing du nouveau + update
+		// 4. if username -> check si nouveau exist deja sinon block
+		// 5. if email -> check si nouveau exist deja sinon block
+		// 6. avatar -> chope les fonctions de lee avant update
 
 	})
 };

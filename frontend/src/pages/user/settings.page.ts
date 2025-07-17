@@ -2,6 +2,7 @@ import { BasePage } from '../base/base.page';
 import { RouteConfig } from '../../types/routes.types';
 import { ImageService } from '../../services/services';
 import { userAuthApi } from '../../api/user/user-index.api';
+import { crudService } from '../../services/services';
 import { toggleClass, getHTMLElementById, getHTMLElementByClass, getHTMLElementByTagName, showAlert, hideSpinner } from '../../utils/dom.utils';
 
 // ===========================================
@@ -251,7 +252,6 @@ export class SettingsPage extends BasePage {
 	 */
 	protected handleSettingsSubmit = async (event: Event): Promise<void> => {
 		event.preventDefault();
-		const formData = new FormData(this.form);
-		// await dataService.changeSettings(formData);
+		await crudService.updateCurrentUser(this.currentUser!.id, this.form);
 	};
 }
