@@ -60,7 +60,8 @@ export class UserCrudApi {
 	public async getUsers(): Promise<User[]> {
 		const res: Response = await secureFetch('/api/users', { method: 'GET' });
 		if (!res.ok) {
-			throw new Error('Erreur de l’API');
+			throw new Error('Erreur de l\'API');
+			
 		}
 		const data: SafeUserModel[] = await res.json();
 		return User.fromSafeJSONArray(data) as User[];
@@ -83,7 +84,7 @@ export class UserCrudApi {
 	public async getUserFriends(id: number): Promise<User[]> {
 		const res: Response = await secureFetch(`/api/users/${id}/friends`, { method: 'GET' });
 		if (!res.ok) {
-			throw new Error('Erreur de l’API');
+			throw new Error('Erreur de l\'API');
 		}
 		const data: Friends[] = await res.json();
 		return User.fromPublicJSONArray(data) as User[];
@@ -116,7 +117,7 @@ export class UserCrudApi {
 		if (!res.ok || data.errorMessage || !data.user) {
 			return { errorMessage: data.errorMessage || data.message || 'Erreur lors de la mise à jour' };
 		}
-		dataService.updateCurrentUser(data.user);
+		await dataService.updateCurrentUser(data.user);
 		return data as AuthResponse;
 	}
 }

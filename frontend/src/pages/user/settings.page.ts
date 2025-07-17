@@ -3,7 +3,7 @@ import { RouteConfig } from '../../types/routes.types';
 import { ImageService } from '../../services/services';
 import { userAuthApi } from '../../api/user/user-index.api';
 import { crudService } from '../../services/services';
-import { toggleClass, getHTMLElementById, getHTMLElementByClass, getHTMLElementByTagName, showAlert, hideSpinner } from '../../utils/dom.utils';
+import { toggleClass, getHTMLElementById, getHTMLElementByClass, showAlert, showSpinner,hideSpinner } from '../../utils/dom.utils';
 
 // ===========================================
 // SETTINGS PAGE
@@ -198,19 +198,20 @@ export class SettingsPage extends BasePage {
 			const previewUrl = await ImageService.getPreviewUrl(file);
 			this.setAvatarPreview(previewUrl);
 
-			// // Upload
-			// showSpinner('avatar-spinner');
-			// const result = await ImageService.uploadAvatar(file);
+			// Upload
+			showSpinner('avatar-spinner');
+			const result = await ImageService.uploadAvatar(this.currentUser!.id.toString(), file);
 
-			// if (result.errorMessage) {
-			// 	showAlert(result.errorMessage || 'Couldn\'t upload image', 'alert', 'error');
-			// 	this.resetAvatar();
-			// } else {
-			// 	showAlert('Image successfully uploaded', 'alert', 'success');
-			// 	if (result.avatarUrl) {
-			// 		this.setAvatarPreview(result.avatarUrl);
-			// 	}
-			// }
+			if (result.errorMessage) {
+				showAlert(result.errorMessage || 'Couldn\'t upload image', 'alert', 'error');
+				this.resetAvatar();
+			} else {
+				showAlert('Image successfully uploaded', 'alert', 'success');
+				const avatarUrl = result.message;
+				if (avatarUrl) {
+					this.setAvatarPreview(avatarUrl);
+				}
+			}
 
 		} catch (error) {
 			console.error('Erreur avatar:', error);

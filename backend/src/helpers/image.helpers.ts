@@ -41,7 +41,6 @@ export async function GetAvatarFromBuffer(reply: FastifyReply, user: Partial<Use
 		}
 			// return { success: false, errorMessage: IMAGE_CONST.ERRORS.TYPE_ERROR, statusCode: 400 };
 		if (buffer.length > IMAGE_CONST.MAX_SIZE) {
-			console.log("ici");
 			return reply.status(400).send({
 				statusCode: 400,
 				errorMessage: IMAGE_CONST.ERRORS.SIZE_LIMIT,

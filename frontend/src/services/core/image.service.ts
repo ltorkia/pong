@@ -1,5 +1,7 @@
 import { UploadResult, UploadValidationResult } from '../../types/return.types';
 import { DB_CONST, IMAGE_CONST } from '../../shared/config/constants.config'; // en rouge car dossier local 'shared' != dossier conteneur
+import { BasicResponse } from '../../types/api.types';
+import { secureFetch } from '../../utils/app.utils';
 import { showAlert } from '../../utils/dom.utils';
 import { User } from 'src/models/user.model';
 
@@ -19,7 +21,6 @@ import { User } from 'src/models/user.model';
 // TODO: Faire requête API dans dossier api pour update image
 
 export class ImageService {
-	private static readonly UPLOAD_ENDPOINT = '/upload-avatar';
 
 	/**
 	 * Valide un fichier image.
@@ -77,11 +78,11 @@ export class ImageService {
 	/**
 	 * Upload un avatar sur le serveur.
 	 *
+	 * @param {string} userId L'ID de l'utilisateur.
 	 * @param {File} file Le fichier image à uploader.
-	 * @param {string} [token] Token d'authentification optionnel.
 	 * @returns {Promise<UploadResult>} Une promesse qui se résout avec le résultat de l'upload.
 	 */
-	public static async uploadAvatar(file: File, token?: string): Promise<UploadResult> {
+	public static async uploadAvatar(userId: string, file: File): Promise<BasicResponse> {
 		try {
 			// Validation préalable
 			const isValidImage = this.isValidImage(file);
@@ -91,35 +92,22 @@ export class ImageService {
 				};
 			}
 
-			// // Préparer FormData
-			// const formData = new FormData();
-			// formData.append('avatar', file);
-
-			// // Préparer les headers
-			// const headers: Record<string, string> = {};
-			// if (token) {
-			// 	headers['Authorization'] = `Bearer ${token}`;
-			// }
-
-			// // Effectuer l'upload
-			// const response = await fetch(this.UPLOAD_ENDPOINT, {
-			// 	method: 'POST',
-			// 	body: formData,
-			// 	headers
-			// });
-
-			// if (!response.ok) {
-			// 	const errorData = await response.json().catch(() => ({}));
-			// 	throw new Error(errorData.message || `Erreur HTTP ${response.status}`);
-			// }
-
-			// const result = await response.json();
+			// Préparer FormData
+			const formData = new FormData();
+			formData.append('avatar', file);
 			
-			// return {
-			// 	success: true,
-			// 	avatarUrl: result.avatarUrl || result.url,
-			// 	...result
-			// };
+			// Effectuer l'upload
+			const res: Response = await secureFetch(`/api/users/${userId}/moduser/avatar`, {
+				method: 'PUT',
+				body: formData,
+			});
+
+			const result = await res.json();
+			if (!res.ok || result.errorMessage) {
+				return { errorMessage: result.errorMessage || 'Erreur lors de la mise à jour' };
+			}			
+			const avatarUrl = `${IMAGE_CONST.ROUTE_API}${result.message}`;
+			return { success: true, message: avatarUrl };
 
 		} catch (error) {
 			console.error('Erreur upload avatar:', error);
@@ -133,45 +121,12 @@ export class ImageService {
 	/**
 	 * Supprime un avatar du serveur.
 	 *
-	 * @param {string} avatarId L'ID de l'avatar à supprimer.
+	 * @param {string} userId L'ID de l'utilisateur.
 	 * @param {string} [token] Token d'authentification optionnel.
 	 * @returns {Promise<UploadResult>} Une promesse qui se résout avec le résultat de la suppression.
 	 */
-	public static async deleteAvatar(avatarId: string, token?: string): Promise<UploadResult> {
-		try {
-			const headers: Record<string, string> = {
-				'Content-Type': 'application/json'
-			};
-			
-			if (token) {
-				headers['Authorization'] = `Bearer ${token}`;
-			}
-
-			const response = await fetch(`${this.UPLOAD_ENDPOINT}/${avatarId}`, {
-				method: 'DELETE',
-				headers
-			});
-
-			if (!response.ok) {
-				const errorData = await response.json().catch(() => ({}));
-				throw new Error(errorData.message || `Erreur HTTP ${response.status}`);
-			}
-
-			const result = await response.json();
-			
-			return {
-				success: true,
-				...result
-			};
-
-		} catch (error) {
-			console.error('Erreur suppression avatar:', error);
-			return {
-				success: false,
-				errorMessage: error instanceof Error ? error.message : 'Erreur inconnue lors de la suppression'
-			};
-		}
-	}
+	// public static async deleteAvatar(userId: string, token?: string): Promise<UploadResult> {
+	// }
 
 	/**
 	 * Vérifie si l'image existe sur le serveur.

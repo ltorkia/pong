@@ -39,7 +39,6 @@ export function checkUserLogged(isPublic: boolean): void {
  */
 export async function secureFetch(url: string, options?: RequestInit): Promise<Response | never> {
 	const res = await fetch(url, { credentials: 'include', ...options });
-	console.log(url, res.status);
 	if (res.status === 401 || res.status === 403) {
 
 		// Token invalide/expiré → nettoyage local uniquement
