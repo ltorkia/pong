@@ -3,7 +3,7 @@ import { JwtPayload } from '../types/jwt.types';
 import { getUser } from '../db/user';
 import { UserPassword } from '../types/user.types';
 import { COOKIES_CONST } from '../shared/config/constants.config'; // en rouge car dossier local 'shared' != dossier conteneur
-import { majLastlog } from '../db/user';
+import { majLastlog } from '../db/usermaj';
 
 /**
  * Génère un token JWT pour un utilisateur donné
