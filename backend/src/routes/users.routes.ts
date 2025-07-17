@@ -2,6 +2,9 @@ import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { getAllUsers, getAllUsersInfos, getUser, getUserFriends, getUserGames, getUserChat, getAvatar } from '../db/user';
 import { requireAuth } from '../helpers/auth.helpers';
 import { UserModel, SafeUserModel, PublicUser, Friends } from '../shared/types/user.types';
+import { insertAvatar } from 'src/db/usermaj';
+import { Buffer } from 'buffer';
+import { GetAvatarFromBuffer, bufferizeStream } from '../helpers/image.helpers';
 
 export async function usersRoutes(app: FastifyInstance) {
 	// pour afficher tous les users
@@ -68,28 +71,62 @@ export async function usersRoutes(app: FastifyInstance) {
 			return reply.code(404).send({ Error : 'User not found'});
 		return chat;
 	})
-// -       //pour takeback l avatar en base 64 stocke dans le serveur 
-// -       app.get('/:id/avatar', async(request: FastifyRequest, reply: FastifyReply) => {
-// -               const jwtUser = requireAuth(request, reply);
-// -               if (!jwtUser) {
-// -                       return;
-// -               }               
-// -               const { id } = request.params as { id: number };
-// -               const avatarPath = await getAvatar(id);
-// -               console.log(avatarPath);
-// -               if (!avatarPath)
-// -                       return reply.code(210).send({ Error : 'avatar not found'});
-// -
-// -               try {
-// -                       const data = await fs.readFile(avatarPath.avatar);
-// -                       const data64 = data.toString('base64');
-// -                   reply.status(200).send({
-// -                       avatar: data64,
-// -                               // Content-Type: image/png
-// -               });
-// -               } catch (error) {
-// -       reply.status(500).send({ error: 'Impossible de lire l\'avatar' });
-// -               }
-// -       })
+
+
+	app.get('/:id/moduser/avatar', async(request: FastifyRequest, reply: FastifyReply) => {
+		try {
+			const elements = await request.parts({
+				limits: {
+				fileSize: 5 * 1024 * 1024}
+			}); //separe les differents elements recuperes
+
+			let dataText: Record<string, string> = {}; //stockera les elements textes
+			let avatarFile; //stockera le file de l avatar
+			let avatarBuffer: Buffer | null = null; //buffer de l'avatar pour la sauvegarde en deux parties
+
+
+			//preparsing qui dispatch datatext d un cote et l avatar de l autre
+			for await (const element of elements) {
+				console.log(element);
+				if (element.type === 'file' && element.fieldname === 'avatar' && element.filename != '') {
+					avatarFile = element;
+					avatarBuffer = await bufferizeStream(element.file);
+				}
+			}
+	
+		if (avatarFile && avatarBuffer)
+		{
+			const { id1 } = request.params as { id1: number };
+			const user: UserModel = await getUser(id1);
+			// if (await GetAvatarFromBuffer(user, avatarFile, avatarBuffer))
+			await GetAvatarFromBuffer(reply, user, avatarFile, avatarBuffer);
+		}
+		return reply.status(200).send({
+			statusCode: 200,
+			message: 'New avatar added.'
+		});
+	} catch (err) {
+	request.log.error(err);
+	return reply.status(500).send({
+		errorMessage: 'Erreur serveur lors de l\'ajout d avatar',
+	});
+}
+	})
+
+	app.get('/:id/moduser', async(request: FastifyRequest, reply: FastifyReply) => {
+	const jwtUser = requireAuth(request, reply);
+	if (!jwtUser) {
+		return;
+	}
+	const { id } = request.params as { id: number };
+	// 1. parsing des infos donnees
+	
+	// 2. en fonction des elements retrouves ->
+	// 3. if password -> check si password donne ok + hasshing du nouveau + update
+	// 4. if username -> check si nouveau exist deja sinon block
+	// 5. if email -> check si nouveau exist deja sinon block
+	// 6. avatar -> chope les fonctions de lee avant update
+
+	})
 };
 

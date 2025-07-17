@@ -1,4 +1,4 @@
-import { insertAvatar } from '../db/user';
+import { insertAvatar } from '../db/usermaj';
 import { UserPassword, AvatarResult } from '../types/user.types';
 import { AvatarMimeType } from '../shared/types/user.types'; // en rouge car dossier local 'shared' != dossier conteneur
 import { IMAGE_CONST } from '../shared/config/constants.config'; // en rouge car dossier local 'shared' != dossier conteneur
@@ -6,6 +6,7 @@ import { MultipartFile } from '@fastify/multipart';
 import { Buffer } from 'buffer';
 import path from 'node:path';
 import fs from 'node:fs'; // pour commande creation de dossier
+import { FastifyReply } from 'fastify';
 
 /**
  * Convertit un flux en un tampon.
@@ -28,13 +29,24 @@ export async function bufferizeStream(stream: NodeJS.ReadableStream): Promise<Bu
  * @returns {Promise<AvatarResult>} Une promesse qui se résout avec un objet { success: boolean, errorMessage?: string, statusCode?: number }.
  * Si success est à false, un message d'erreur est fourni, ainsi qu'un code d'erreur HTTP.
  */
-export async function GetAvatarFromBuffer(user: Partial<UserPassword>, avatarFile: MultipartFile, buffer: Buffer): Promise<AvatarResult> {
+export async function GetAvatarFromBuffer(reply: FastifyReply, user: Partial<UserPassword>, avatarFile: MultipartFile, buffer: Buffer): Promise<AvatarResult> {
 	try {
 		const avatarType = avatarFile.mimetype as AvatarMimeType;
-		if (!(avatarType in IMAGE_CONST.EXTENSIONS))
-			return { success: false, errorMessage: IMAGE_CONST.ERRORS.TYPE_ERROR, statusCode: 400 };
+		if (!(avatarType in IMAGE_CONST.EXTENSIONS)){
+
+			return reply.status(400).send({
+				statusCode: 400,
+				errorMessage: IMAGE_CONST.ERRORS.TYPE_ERROR,
+			});
+		}
+			// return { success: false, errorMessage: IMAGE_CONST.ERRORS.TYPE_ERROR, statusCode: 400 };
 		if (buffer.length > IMAGE_CONST.MAX_SIZE) {
-			return { success: false, errorMessage: IMAGE_CONST.ERRORS.SIZE_LIMIT, statusCode: 400 };
+			console.log("ici");
+			return reply.status(400).send({
+				statusCode: 400,
+				errorMessage: IMAGE_CONST.ERRORS.SIZE_LIMIT,
+			});
+			// return { success: false, errorMessage: IMAGE_CONST.ERRORS.SIZE_LIMIT, statusCode: 400 };
 		}
 
 		const filename = (user.username! + IMAGE_CONST.EXTENSIONS[avatarType]).toLowerCase();

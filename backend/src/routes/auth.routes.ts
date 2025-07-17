@@ -1,7 +1,8 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import bcrypt from 'bcrypt';
 import { RegisterInput, RegisterInputSchema, LoginInputSchema } from '../types/zod/auth.zod';
-import { insertUser, getUser, getUserP, eraseCode2FA, insertCode2FA, getUser2FA, insertAvatar } from '../db/user';
+import { insertUser, getUser, getUserP, getUser2FA } from '../db/user';
+import { insertAvatar , eraseCode2FA, insertCode2FA} from '../db/usermaj';
 import { ProcessAuth, clearAuthCookies } from '../helpers/auth.helpers';
 import { GetAvatarFromBuffer, bufferizeStream } from '../helpers/image.helpers';
 import { GoogleUserInfo, UserPassword, User2FA } from '../types/user.types';
@@ -93,12 +94,57 @@ async function doubleAuth(app: FastifyInstance) {
     });
 }
 
+// export async function formdataParsing(request: FastifyRequest, reply: FastifyReply) => {
+// try {
+// 			const elements = await request.parts({
+// 				limits: {
+//     			fileSize: 5 * 1024 * 1024}
+// 			}); //separe les differents elements recuperes
+
+// 			let dataText: Record<string, string> = {}; //stockera les elements textes
+// 			// const fs = require('node:fs') //permet de creer dossier et fichiers
+// 			// const { pipeline } = require('node:stream/promises') //pour transferer fichier ? 
+// 			let avatarFile; //stockera le file de l avatar
+
+
+// 			//preparsing qui dispatch datatext d un cote et l avatar de l autre
+// 			for await (const element of elements) {
+// 				console.log(element);
+// 				if (element.type === 'file' && element.fieldname === 'avatar' && element.filename != '') {
+// 					avatarFile = element;
+// 					break ;
+// 				} else if (element.type === 'field' && typeof element.value === 'string') {
+// 					dataText[element.fieldname] = element.value;
+// 				}
+// 			}
+
+// 			//check les datas texts pour voir si elles correspondent a ce qu on attend
+// 			const result = RegisterInputSchema.safeParse(dataText);
+// 			// const result = RegisterInputSchema.safeParse(request.body);
+// 			if (!result.success) {
+// 				const error = result.error.errors[0];
+// 				return reply.status(400).send({ statusCode: 400, errorMessage: error.message + " in " + error.path });
+// 			}
+// 		} catch (err) {
+// 			request.log.error(err);
+// 			return reply.status(500).send({
+// 				errorMessage: 'Erreur serveur lors de l\'inscription',
+// 			});
+// 		}
+		
+
+// }
 
 export async function authRoutes(app: FastifyInstance) {
 	// REGISTER
 	app.post('/register', async (request: FastifyRequest, reply: FastifyReply) => {
 		try {
-			const elements = await request.parts(); //separe les differents elements recuperes
+			// console.log("coucou,", request);
+			const elements = await request.parts({
+				// limits: {
+    			// fileSize: 5 * 1024 * 1024}
+			}); //separe les differents elements recuperes
+
 			let dataText: Record<string, string> = {}; //stockera les elements textes
 			let avatarFile; //stockera le file de l avatar
 			let avatarBuffer: Buffer | null = null; //buffer de l'avatar pour la sauvegarde en deux parties
@@ -106,7 +152,7 @@ export async function authRoutes(app: FastifyInstance) {
 
 			//preparsing qui dispatch datatext d un cote et l avatar de l autre
 			for await (const element of elements) {
-				console.log(element);
+				// console.log(element);
 				if (element.type === 'file' && element.fieldname === 'avatar' && element.filename != '') {
 					avatarFile = element;
 					avatarBuffer = await bufferizeStream(element.file);
@@ -137,7 +183,7 @@ export async function authRoutes(app: FastifyInstance) {
 
 			const user: UserModel = await getUser(null, userToInsert.email);
 			if (avatarFile && avatarBuffer) {
-				await GetAvatarFromBuffer(user, avatarFile, avatarBuffer);
+				GetAvatarFromBuffer(reply, user, avatarFile, avatarBuffer)
 			}
 			return reply.status(200).send({
 				statusCode: 200,
@@ -146,6 +192,8 @@ export async function authRoutes(app: FastifyInstance) {
 
 		} catch (err) {
 			request.log.error(err);
+			if (err === 'FST_REQ_FILE_TOO_LARGE') {
+    			return (reply.status(413).send({ errorMessage: "Fichier trop volumineux (max 5 Mo)" }));}
 			return reply.status(500).send({
 				errorMessage: 'Erreur serveur lors de l\'inscription',
 			});
