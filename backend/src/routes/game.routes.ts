@@ -95,7 +95,7 @@ export class Ball {
         this.x = 0;
         this.y = 0;
         this.vAngle = 30;
-        this.vSpeed = 0.0001;
+        this.vSpeed = 0.01;
         this.radius = 0.05;
     }
 };
@@ -201,11 +201,9 @@ export async function gameRoutes(app: FastifyInstance) {
     connection.on('message', (message: string) => {
         const player: PositionObj = JSON.parse(message); 
     });
-
     connection.on('close', () => {
       console.log('Connection closed');
     });
 
-    // connection.send('Welcome to multiplayer!');
   });
 }

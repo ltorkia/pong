@@ -47,11 +47,12 @@ export class Ball {
     private ctx: CanvasRenderingContext2D;
 
     draw() {
-        this.x * this.moveUnit;
-        this.y * this.moveUnit;
+        const xPixels = ((this.x + 1) / 2) * this.ctx.canvas.width;
+        const yPixels = (1 - (this.y + 1 / 2)) * this.ctx.canvas.height;
         this.ctx.beginPath();
         this.ctx.arc(
-            
+            xPixels,
+            yPixels,
             this.radius, 0, Math.PI * 2, true
         );
         this.ctx.closePath();
@@ -60,11 +61,9 @@ export class Ball {
     };
 
     constructor(ctx: CanvasRenderingContext2D) {
-        this.x = ctx.canvas.width / 2;
-        this.y = ctx.canvas.height / 2;
+        this.x = 0;
+        this.y = 0;
         this.moveUnit = 0;
-        // this.vAngle = 30;
-        // this.vSpeed = 5;
         this.radius = 10;
         this.ctx = ctx;
     }
@@ -135,6 +134,7 @@ export class MultiPlayerGame {
     public setBallPos(x: number, y: number) {
         this.ball.x = x;
         this.ball.y = y;
+        // console.log("setter", this.ball.x, this.ball.y)
     }
 
     private gameLoop(): void {
@@ -166,7 +166,7 @@ export class MultiPlayerGame {
     };
 
     private initSizePos(): void {
-        this.gameMoveUnit = this.gameCanvas.height / 2;
+        this.gameMoveUnit = 1 / 2;
         for (const player of this.players) {
             player.w = 0.10;
             player.h = 0.30;

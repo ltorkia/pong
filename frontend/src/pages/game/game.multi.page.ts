@@ -24,8 +24,8 @@ export class GameMenuMulti extends BasePage {
     }
 
     private initGame(playerID: number): void {
-        const game = new MultiPlayerGame(2, this.webSocket, playerID);
-        game.initGame();
+        this.game = new MultiPlayerGame(2, this.webSocket, playerID);
+        this.game.initGame();
     }
 
     protected async mount(): Promise<void> {
@@ -34,13 +34,14 @@ export class GameMenuMulti extends BasePage {
 
     protected attachListeners(): void {
         this.webSocket?.addEventListener("message", (event) => {
-            console.log(event.data);
+            // console.log(event.data);
             const msg = JSON.parse(event.data);
             if (msg.type == "start") {
                 console.log(`game starts ! id = ${msg.ID}`);
                 this.initGame(msg.ID);
             } else if (msg.type == "GameData") {
-                this.game?.setBallPos(msg.ball.x, msg.ball.y);
+                // console.log("coucou")
+                this.game!.setBallPos(msg.ball.x, msg.ball.y);
             }
         })
         this.webSocket?.addEventListener("error", (event) => {
