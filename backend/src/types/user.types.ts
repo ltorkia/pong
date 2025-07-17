@@ -15,6 +15,16 @@ export interface UserPassword {
 	register_from: RegisterMethod;
 }
 
+export interface UserForChangeData {
+	id: number;
+	username: string;
+	email: string;
+	password: string;
+	register_from: RegisterMethod;
+	secret_question_number: number;
+	secret_question_answer: string;
+}
+
 export interface User2FA {
 	id: number;
 	username: string;
@@ -27,3 +37,10 @@ export interface User2FA {
 export type AvatarResult =
 	| { success: true }
 	| { success: false; errorMessage: string; statusCode?: number };
+
+export type FastifyFileSizeError = {
+		code: string;
+		message: string;
+		name: string;
+		statusCode?: number;
+	};

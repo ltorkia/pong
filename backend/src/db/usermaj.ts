@@ -1,4 +1,5 @@
 import { getDb } from './index.db';
+import { UserForChangeData } from '../types/user.types';
 
 export async function insertAvatar(avatar: string, username: string)
 {
@@ -9,6 +10,20 @@ export async function insertAvatar(avatar: string, username: string)
                WHERE (username = ?)
                `,
        [avatar, username]);
+}
+
+// export async function changeUserData(id: number, username: string, password: string, email:string, secret_question_number: number, secret_question_answer: string)
+export async function changeUserData(id: number, user: UserForChangeData)
+
+{
+        const db = await getDb();
+        // const user =
+       await db.run(`
+                UPDATE User
+                SET username = ?, password = ?, email = ?, secret_question_number = ?, secret_question_answer = ?
+                WHERE (id = ?)
+               `,
+       [user.username, user.password, user.email, user.secret_question_number, user.secret_question_answer, user.id]);
 }
 
 export async function changePassword(username: string, password: string)

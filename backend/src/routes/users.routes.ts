@@ -1,10 +1,14 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
-import { getAllUsers, getAllUsersInfos, getUser, getUserFriends, getUserGames, getUserChat, getAvatar } from '../db/user';
+import { getAllUsers, getAllUsersInfos, getUser, getUserFriends, getUserGames, getUserChat, getAvatar, getUserAllInfo } from '../db/user';
 import { requireAuth } from '../helpers/auth.helpers';
 import { UserModel, SafeUserModel, PublicUser, Friends } from '../shared/types/user.types';
 import { insertAvatar } from 'src/db/usermaj';
 import { Buffer } from 'buffer';
+import bcrypt from 'bcrypt';
 import { GetAvatarFromBuffer, bufferizeStream } from '../helpers/image.helpers';
+import { RegisterInputSchema, RegisterInput, ModUserInput, ModUserInputSchema } from '../types/zod/auth.zod';
+import { searchNewName } from '../helpers/auth.helpers';
+import { changeUserData } from '../db/usermaj';
 
 export async function usersRoutes(app: FastifyInstance) {
 	// pour afficher tous les users
@@ -94,38 +98,80 @@ export async function usersRoutes(app: FastifyInstance) {
 				}
 			}
 	
-		if (avatarFile && avatarBuffer)
-		{
-			const { id1 } = request.params as { id1: number };
-			const user: UserModel = await getUser(id1);
-			// if (await GetAvatarFromBuffer(user, avatarFile, avatarBuffer))
-			await GetAvatarFromBuffer(reply, user, avatarFile, avatarBuffer);
+			if (avatarFile && avatarBuffer)
+			{
+				const { id1 } = request.params as { id1: number };
+				const user: UserModel = await getUser(id1);
+				await GetAvatarFromBuffer(reply, user, avatarFile, avatarBuffer);
+			}
+			return reply.status(200).send({
+				statusCode: 200,
+				message: 'New avatar added.'
+			});
+		} catch (err) {
+			request.log.error(err);
+			return reply.status(500).send({
+				errorMessage: 'Erreur serveur lors de l\'ajout d avatar',
+			});
 		}
-		return reply.status(200).send({
-			statusCode: 200,
-			message: 'New avatar added.'
-		});
-	} catch (err) {
-	request.log.error(err);
-	return reply.status(500).send({
-		errorMessage: 'Erreur serveur lors de l\'ajout d avatar',
-	});
-}
 	})
 
 	app.get('/:id/moduser', async(request: FastifyRequest, reply: FastifyReply) => {
-	const jwtUser = requireAuth(request, reply);
-	if (!jwtUser) {
-		return;
-	}
-	const { id } = request.params as { id: number };
+		const jwtUser = requireAuth(request, reply);
+		if (!jwtUser) {
+			return;
+		}
+		const { id } = request.params as { id: number };
+
+		const result = ModUserInputSchema.safeParse(request);
+		if (!result.success) {
+			const error = result.error.errors[0];
+			return reply.status(400).send({ statusCode: 400, errorMessage: error.message + " in " + error.path });
+		}
+		//on cree l user avec les donnees a inserer une fois le safeparse effectue
+		let dataUserToUpdate = result.data as ModUserInput; //datatext - a mod pour current et new pass
+		let dataUser = await getUserAllInfo(id);
+
+		if (dataUser.username != dataUserToUpdate.username)
+		{
+			const UserNameCheck = await getUser(null, dataUserToUpdate.username);
+			if (UserNameCheck.id != dataUser.id)
+				return {statusCode : 409, message : "Username already used.<br><b>" + await (searchNewName(dataUserToUpdate.username)) + "</b> is available."};
+		}
+		if (dataUser.email != dataUserToUpdate.email)
+		{
+			const UserEmailCheck = await getUser(null, dataUserToUpdate.email);
+			if (UserEmailCheck.id != dataUser.id)
+				return {statusCode: 409, message : "Email already used"};
+		}
+		if (dataUserToUpdate.curr_password && dataUserToUpdate.new_password)
+		{
+			const isPassValid = await bcrypt.compare(bcrypt.hash(dataUserToUpdate.curr_password, 10), dataUser.password);
+			if (!isPassValid) {
+				return reply.status(401).send({
+					statusCode: 401,
+					errorMessage: 'Password does not match.'
+				});
+			}
+			dataUserToUpdate.new_password = await bcrypt.hash(dataUserToUpdate.new_password, 10);
+		}
+		else
+			dataUserToUpdate.new_password = dataUser.password;
+		await changeUserData(id, dataUserToUpdate);
+
+
+		
+		// //on hash le password dans un souci de confidentialite
+		// userToInsert.password = await bcrypt.hash(userToInsert.password, 10);
+	
+
 	// 1. parsing des infos donnees
 	
 	// 2. en fonction des elements retrouves ->
 	// 3. if password -> check si password donne ok + hasshing du nouveau + update
 	// 4. if username -> check si nouveau exist deja sinon block
 	// 5. if email -> check si nouveau exist deja sinon block
-	// 6. avatar -> chope les fonctions de lee avant update
+	// 7. retourne un objet user si ok et sinon une erreur
 
 	})
 };

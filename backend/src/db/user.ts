@@ -3,7 +3,7 @@ import { RegisterInput } from '../types/zod/auth.zod';
 import { Game } from '../types/game.types';
 import { ChatMessage } from '../types/chat.types';
 import { searchNewName } from '../helpers/auth.helpers';
-import { UserPassword, User2FA } from '../types/user.types';
+import { UserPassword, User2FA, UserForChangeData } from '../types/user.types';
 import { DB_CONST } from '../shared/config/constants.config'; // en rouge car dossier local 'shared' != dossier conteneur
 import { UserModel, SafeUserModel, UserBasic, UserWithAvatar, Friends } from '../shared/types/user.types'; // en rouge car dossier local 'shared' != dossier conteneur
 
@@ -55,6 +55,18 @@ export async function getUserP(email: string) {
 		[email]
 	);
 	return user as UserPassword;
+}
+
+export async function getUserAllInfo(id: number) {
+	const db = await getDb();
+	const user = await db.get(`
+		SELECT *
+		FROM User
+		WHERE id = ?
+		`,
+		[id]
+	);
+	return user as UserForChangeData;
 }
 
 export async function getUser2FA(email: string) {

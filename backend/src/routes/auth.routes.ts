@@ -5,7 +5,7 @@ import { insertUser, getUser, getUserP, getUser2FA } from '../db/user';
 import { insertAvatar , eraseCode2FA, insertCode2FA} from '../db/usermaj';
 import { ProcessAuth, clearAuthCookies } from '../helpers/auth.helpers';
 import { GetAvatarFromBuffer, bufferizeStream } from '../helpers/image.helpers';
-import { GoogleUserInfo, UserPassword, User2FA } from '../types/user.types';
+import { GoogleUserInfo, UserPassword, User2FA, FastifyFileSizeError } from '../types/user.types';
 import { UserModel } from '../shared/types/user.types'; // en rouge car dossier local 'shared' != dossier conteneur
 import { DB_CONST } from '../shared/config/constants.config'; // en rouge car dossier local 'shared' != dossier conteneur
 import { Buffer } from 'buffer';
@@ -139,10 +139,9 @@ export async function authRoutes(app: FastifyInstance) {
 	// REGISTER
 	app.post('/register', async (request: FastifyRequest, reply: FastifyReply) => {
 		try {
-			// console.log("coucou,", request);
 			const elements = await request.parts({
-				// limits: {
-    			// fileSize: 5 * 1024 * 1024}
+				limits: {
+    			fileSize: 5 * 1024 * 1024}
 			}); //separe les differents elements recuperes
 
 			let dataText: Record<string, string> = {}; //stockera les elements textes
@@ -190,9 +189,13 @@ export async function authRoutes(app: FastifyInstance) {
 				message: 'Successful registration.'
 			});
 
+			
 		} catch (err) {
+
+			const e = err as FastifyFileSizeError;
+
 			request.log.error(err);
-			if (err === 'FST_REQ_FILE_TOO_LARGE') {
+			if (e.code === 'FST_REQ_FILE_TOO_LARGE') {
     			return (reply.status(413).send({ errorMessage: "Fichier trop volumineux (max 5 Mo)" }));}
 			return reply.status(500).send({
 				errorMessage: 'Erreur serveur lors de l\'inscription',

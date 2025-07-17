@@ -13,6 +13,16 @@ export const LoginInputSchema = z.object({
 	password: z.string(),
 });
 
+export const ModUserInputSchema = z.object({
+	username : z.string(),
+	email: z.string().email(),
+	curr_password: z.string().min(3),
+	new_password: z.string().min(3),
+	question: z.coerce.number().int().min(1).max(3),
+	answer: z.string(),
+});
 
+
+export type ModUserInput = z.infer<typeof ModUserInputSchema>;
 export type RegisterInput = z.infer<typeof RegisterInputSchema>;
 export type LoginInput = z.infer<typeof LoginInputSchema>;
