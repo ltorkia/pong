@@ -1,20 +1,27 @@
 import { BasePage } from '../base/base.page';
 import { RouteConfig } from '../../types/routes.types';
 import { ImageService } from '../../services/services';
-import { getHTMLElementById, showAlert, hideSpinner } from '../../utils/dom.utils';
+import { userAuthApi } from '../../api/user/user-index.api';
+import { toggleClass, getHTMLElementById, getHTMLElementByClass, getHTMLElementByTagName, showAlert, hideSpinner } from '../../utils/dom.utils';
 
 // ===========================================
 // SETTINGS PAGE
 // ===========================================
 /**
- * L'utilisateur peut changer ses informations personnelles ici, notamment son avatar.
+ * L'utilisateur peut changer ses informations personnelles ici, notamment son avatar, son username etc.
  */
 export class SettingsPage extends BasePage {
-	private avatarInput!: HTMLInputElement;
 	private avatarContainer!: HTMLElement;
+	private avatarInput!: HTMLInputElement;
+	private emailInput!: HTMLInputElement;
+	private usernameInput!: HTMLInputElement;
+	private questionInput!: HTMLInputElement;
+	private answerInput!: HTMLInputElement;
+	private dropdownTitles!: NodeListOf<HTMLHeadingElement>;
+	private form!: HTMLFormElement;
 
 	/**
-	 * Constructeur de la page d'accueil.
+	 * Constructeur de la page des paramètres.
 	 *
 	 * Initialise la configuration de la route et appelle le constructeur
 	 * de la classe de base pour établir la configuration initiale de la page.
@@ -33,48 +40,69 @@ export class SettingsPage extends BasePage {
 	 * Récupère les éléments HTML de la page d'accueil avant de la monter.
 	 * 
 	 * Stocke les éléments HTML suivants dans les propriétés de l'objet:
-	 * - welcomeContainer: le conteneur de la zone de bienvenue.
-	 * - avatarInput: l'input de type file servant à sélectionner un fichier image.
 	 * - avatarContainer: le conteneur de l'avatar qui sera mis à jour avec l'image sélectionnée.
+	 * - *Input: tous les input du formulaire.
+	 * - dropdownTitles: tous les dropdowns du formulaire.
+	 * - form: le formulaire de paramètres de l'utilisateur.
 	 * 
 	 * @returns {Promise<void>} Une promesse qui se résout lorsque les éléments HTML ont été stockés.
 	 */
 	protected async beforeMount(): Promise<void> {
-		this.avatarInput = document.getElementById('avatar-input') as HTMLInputElement;
-		this.avatarContainer = document.getElementById('avatar-container') as HTMLElement;
+		if (!this.currentUser!.email) {
+			this.currentUser = await userAuthApi.getMe();
+			console.log(this.currentUser);
+		}
+		this.avatarContainer = getHTMLElementById('avatar-container') as HTMLElement;
+		this.avatarInput = getHTMLElementById('avatar-input') as HTMLInputElement;
+		this.emailInput = getHTMLElementById('email') as HTMLInputElement;
+		this.usernameInput = getHTMLElementById('username') as HTMLInputElement;
+		this.questionInput = getHTMLElementById('question') as HTMLInputElement;
+		this.answerInput = getHTMLElementById('answer') as HTMLInputElement;
+		this.dropdownTitles = this.container.querySelectorAll('.dropdown-title') as NodeListOf<HTMLHeadingElement>;
+		this.form = getHTMLElementById('settings-form') as HTMLFormElement;
 	}
 
 	/**
 	 * Montage du composant de la page d'accueil.
 	 *
-	 * Cette méthode charge l'avatar de l'utilisateur et affiche un message
-	 * de bienvenue avec le nom de l'utilisateur.
+	 * Cette méthode charge l'avatar de l'utilisateur.
 	 *
-	 * @returns Une promesse qui se r solve lorsque le composant est mont .
+	 * @returns Une promesse qui se résout lorsque le composant est monté.
 	 */
 	protected async mount(): Promise<void> {
 		this.loadAvatar();
+		this.preFillForm();
 	}
 
 	/**
 	 * Attribue les gestionnaires d'événement pour :
 	 * - Clique sur l'avatar -> déclenche l'ouverture du fichier
+	 * - Clique sur le dropdown -> ouvre le contenu du dropdown
 	 * - Changement de fichier
 	 */
 	protected attachListeners(): void {
 		this.avatarContainer.addEventListener('click', this.onAvatarClick);
 		this.avatarInput.addEventListener('change', this.onAvatarChange);
+		this.dropdownTitles.forEach((dropdownTitle) => {
+			dropdownTitle.addEventListener('click', this.onDropdownClick);
+		})
+		this.form.addEventListener('submit', this.handleSettingsSubmit);
 	}
 
 	/**
 	 * Supprime les gestionnaires d'événement attribués à la page d'accueil.
 	 *
 	 * - Supprime le gestionnaire d'événement pour le clic sur l'avatar.
+	 * - Supprime le gestionnaire d'événement pour le clic sur le dropdown.
 	 * - Supprime le gestionnaire d'événement pour le changement de fichier.
 	 */
 	protected removeListeners(): void {
 		this.avatarContainer.removeEventListener('click', this.onAvatarClick);
 		this.avatarInput.removeEventListener('change', this.onAvatarChange);
+		this.dropdownTitles.forEach((dropdownTitle) => {
+			dropdownTitle.removeEventListener('click', this.onDropdownClick);
+		})
+		this.form.removeEventListener('submit', this.handleSettingsSubmit);
 	}
 
 	// ===========================================
@@ -93,6 +121,13 @@ export class SettingsPage extends BasePage {
 			backgroundSize: "cover",
 			backgroundPosition: "center"
 		});
+	}
+
+	private preFillForm(): void {
+		this.emailInput.value = this.currentUser!.email;
+		this.usernameInput.value = this.currentUser!.username;
+		this.questionInput.value = this.currentUser!.secretQuestion.toString();
+		this.answerInput.value = this.currentUser!.secretAnswer;
 	}
 
 	/**
@@ -184,4 +219,39 @@ export class SettingsPage extends BasePage {
 			hideSpinner('avatar-spinner');
 		}
 	}
+
+	/**
+	 * Gestionnaire pour le clic sur un dropdown.
+	 *
+	 * - Inverse l'icône de flèche du dropdown.
+	 * - Affiche ou masque le contenu du dropdown.
+	 *
+	 * @param {Event} event - L'événement de clic déclenché lorsque le dropdown est cliqué.
+	 */
+	private onDropdownClick = (event: Event): void => {
+		const dropdownTitle = event.currentTarget as HTMLElement;
+		const dropdownContainer = dropdownTitle.closest('.dropdown-container');
+		if (!dropdownContainer) {
+			return;
+		}
+		const icon = getHTMLElementByClass('dropdown-title i', dropdownContainer);
+		const dropdownContent = getHTMLElementByClass('dropdown-content', dropdownContainer);
+		toggleClass(icon, 'fa-angle-down', 'fa-angle-up');
+		toggleClass(dropdownContent, 'max-h-0', 'max-h-96');
+	};
+	
+	/**
+	 * Gestionnaire pour la soumission du formulaire.
+	 *
+	 * - Empêche le comportement par défaut de soumission HTML.
+	 * - Extrait les données du formulaire.
+	 * - Appelle le service d'authentification pour enregistrer l'utilisateur.
+	 *
+	 * @param {Event} event L'événement de soumission du formulaire.
+	 */
+	protected handleSettingsSubmit = async (event: Event): Promise<void> => {
+		event.preventDefault();
+		const formData = new FormData(this.form);
+		// await dataService.changeSettings(formData);
+	};
 }

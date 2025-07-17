@@ -1,15 +1,95 @@
-			<div id="alert" aria-live="assertive" class="mb-8 hidden"></div>
-			<div class="section-box mid-box home-menu">
+			<!-- <div id="alert" aria-live="assertive" class="mb-8 hidden"></div> -->
+			<div class="section-box mid-box" id="settings-box">
 				<div class="avatar" id="avatar-container">
 					<i class="fas fa-camera camera-icon"></i>
 					<input type="file" id="avatar-input" class="avatar-input" accept="image/*">
 					<div id="avatar-spinner" class="spinner hidden" aria-hidden="true"></div>
 				</div>
-				<div class="bloc-title">
-					<div class="page-title">Settings</div>
-					<div class="under-title">
-						<span>Blou</span>
+				<form class="form-box" id="settings-form">
+
+					<div class="fields-container">
+
+						<div class="dropdown-container">
+							<div class="dropdown-title">
+								<span>Change your email</span>
+								<i class="fa-solid fa-angle-down"></i>
+							</div>
+							<div class="dropdown-content max-h-0">
+								<!-- Email -->
+								<div class="field-box">
+									<input type="email" id="email" name="email" placeholder="your@email.com" autocomplete="email">
+								</div>
+							</div>
+						</div>
+
+						<div class="dropdown-container">
+							<div class="dropdown-title">
+								<span>Change your username</span>
+								<i class="fa-solid fa-angle-down"></i>
+							</div>
+							<div class="dropdown-content max-h-0">
+								<!-- Username -->
+								<div class="field-box">
+									<input type="text" id="username" name="username" placeholder="Unique username">
+								</div>
+							</div>
+						</div>
+
+						<div class="dropdown-container">
+							<div class="dropdown-title">
+								<span>Change your password</span>
+								<i class="fa-solid fa-angle-down"></i>
+							</div>
+							<div class="dropdown-content max-h-0">
+								<!-- Current password -->
+								<div class="field-box">
+									<label for="curr-password">Current password :</label>
+									<input type="password" id="curr-password" name="curr-password" placeholder="*********" autocomplete="curr-password">
+								</div>
+
+								<!-- New password -->
+								<div class="field-box">
+									<label for="new-password">New password :</label>
+									<input type="password" id="new-password" name="new-password" placeholder="*********" autocomplete="new-password">
+								</div>
+							</div>
+						</div>
+
+
+						<div class="dropdown-container">
+							<div class="dropdown-title">
+								<span>Change your secret question</span>
+								<i class="fa-solid fa-angle-down"></i>
+							</div>
+							<div class="dropdown-content max-h-0">
+								<!-- Secret question -->
+								<div class="field-box">
+									<label for="question">Secret question :</label>
+									<select name="question" id="question">
+										<option value="-" disabled selected>-- Select a secret question --</option>
+										<option value="1">Your mother's name</option>
+										<option value="2">Your pet's name</option>
+										<option value="3">Your favourite color</option>
+									</select>
+								</div>
+
+								<!-- Secret answer -->
+								<div class="field-box">
+									<label for="answer">Your secret answer :</label>
+									<input type="text" id="answer" name="answer" placeholder="Your secret answer" autocomplete="one-time-code">
+								</div>
+							</div>
+						</div>
+
+					</div> 
+
+					<!-- Submit -->
+					<div class="btn-container">
+						<button type="submit" class="btn form-btn">
+							Send
+						</button>
 					</div>
-				</div>
-				<span>feut form</span>
+
+					<div id="alert" aria-live="assertive" class="hidden"></div>
+				</form>
 			</div>

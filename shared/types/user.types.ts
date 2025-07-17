@@ -67,6 +67,8 @@ export interface SafeUserModel {
  */
 export interface UserModel extends SafeUserModel {
 	email: string;
+	secret_question_number: number;
+	secret_question_answer: string;
 }
 
 /**

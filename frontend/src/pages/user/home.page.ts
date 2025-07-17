@@ -35,7 +35,6 @@ export class HomePage extends BasePage {
 	 * 
 	 * Stocke les éléments HTML suivants dans les propriétés de l'objet:
 	 * - welcomeContainer: le conteneur de la zone de bienvenue.
-	 * - avatarInput: l'input de type file servant à sélectionner un fichier image.
 	 * - avatarContainer: le conteneur de l'avatar qui sera mis à jour avec l'image sélectionnée.
 	 * 
 	 * @returns {Promise<void>} Une promesse qui se résout lorsque les éléments HTML ont été stockés.
@@ -51,7 +50,7 @@ export class HomePage extends BasePage {
 	 * Cette méthode charge l'avatar de l'utilisateur et affiche un message
 	 * de bienvenue avec le nom de l'utilisateur.
 	 *
-	 * @returns Une promesse qui se r solve lorsque le composant est mont .
+	 * @returns Une promesse qui se résout lorsque le composant est monté.
 	 */
 	protected async mount(): Promise<void> {
 		this.welcomeUser();
