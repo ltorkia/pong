@@ -40,6 +40,9 @@ async function start() {
 	// dans les requêtes et réponses
 	app.register(fastifyCookie);
 
+	// Same pour websocket
+  	app.register(require('@fastify/websocket'));
+
 	// pour uploader des avatars
 	app.register(fastifyMultipart, {
 		limits: {

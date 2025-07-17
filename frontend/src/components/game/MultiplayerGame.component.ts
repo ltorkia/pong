@@ -1,3 +1,5 @@
+import { PositionObj } from "../shared/game.types"
+
 const clamp = (val: number, min: number, max: number) => { return Math.min(Math.max(val, min), max) };
 
 export class PlayerBar {
@@ -6,113 +8,69 @@ export class PlayerBar {
     public w: number;
     public h: number;
     public moveUnit: number;
-    public inputUp: boolean;
-    public inputDown: boolean;
     public inputMap: Map<string, (value: boolean) => void>;
     private ctx: CanvasRenderingContext2D;
 
     public draw(): void {
+        // console.log("drawing shit");
+        const xPixels = ((this.x + 1) / 2) * this.ctx.canvas.width;
+        const yPixels = (1 - (this.y + 1 / 2)) * this.ctx.canvas.height;
+        const pixelWidth = this.w * (this.ctx.canvas.width / 2);
+        const pixelHeight = this.h * (this.ctx.canvas.height / 2);
         this.ctx.fillStyle = "rgba(255, 0, 0)";
-        this.ctx.fillRect(this.x - this.w / 2, this.y - (this.h / 2), this.w, this.h);
+        // console.log(xPixels);
+        this.ctx.fillRect(
+            xPixels - pixelWidth / 2,
+            yPixels - pixelHeight / 2, 
+            pixelWidth, 
+            pixelHeight);
         this.ctx.fillStyle = "rgba(0, 255, 0)";
         this.ctx.fillRect(this.x, this.y, 1, 1);
     };
 
-    public moveUp(): void {
-        if (this.y + this.moveUnit - (this.h / 2) > 0)
-            this.y -= this.moveUnit;
-    };
-
-    public moveDown(): void {
-        if (this.y + this.moveUnit + (this.h / 2) < this.ctx.canvas.clientHeight)
-            this.y += this.moveUnit;
-    };
-
-    private setInputUp(value: boolean): void {
-        this.inputUp = value;
-    };
-
-    private setInputDown(value: boolean): void {
-        this.inputDown = value;
-    };
-
-    constructor(ctx: CanvasRenderingContext2D, inputUp: string, inputDown: string) {
+    constructor(ctx: CanvasRenderingContext2D) {
         this.x = 0;
         this.y = 0;
-        this.w = 20;
-        this.h = 100;
-        this.moveUnit = 10;
+        this.w = 0;
+        this.h = 0;
+        this.moveUnit = 0;
         this.ctx = ctx;
-        this.inputUp = false;
-        this.inputDown = false;
         this.inputMap = new Map();
-        this.inputMap.set(inputUp, this.setInputUp.bind(this));
-        this.inputMap.set(inputDown, this.setInputDown.bind(this));
     }
 };
 
 export class Ball {
     public x: number;
     public y: number;
-    public vAngle: number;
-    public vSpeed: number;
     public radius: number;
+    public moveUnit: number;
     private ctx: CanvasRenderingContext2D;
 
     draw() {
+        this.x * this.moveUnit;
+        this.y * this.moveUnit;
         this.ctx.beginPath();
-        this.ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, true);
+        this.ctx.arc(
+            
+            this.radius, 0, Math.PI * 2, true
+        );
         this.ctx.closePath();
         this.ctx.fillStyle = "rgba(0, 0, 255)";
         this.ctx.fill();
-    };
-    move() {
-        this.x += Math.cos(this.vAngle * 0.0174533) * this.vSpeed;
-        this.y += Math.sin(this.vAngle * 0.0174533) * this.vSpeed;
-    };
-    verticalCollision() {
-        this.vAngle = (360 - this.vAngle) % 360;
-    }
-    horizontalCollision() {
-        this.vAngle = (180 - this.vAngle + 360) % 360;
-    }
-    isGoingRight() {
-        return ((this.vAngle >= 0 && this.vAngle < 90) || (this.vAngle >= 270 && this.vAngle <= 360));
-    };
-    isGoingLeft() {
-        return (this.vAngle >= 90 && this.vAngle < 270);
-    };
-    isGoingUp() {
-        return (this.vAngle >= 180 && this.vAngle < 360);
-    }
-    isGoingDown() {
-        return (this.vAngle >= 0 && this.vAngle < 180);
-    }
-    public checkPlayerCollision(players: PlayerBar[]): boolean {
-        for (const player of players) {
-            const playerBounds = {
-                xRange: { x0: player.x - player.w / 2, x1: player.x + player.w / 2 },
-                yRange: { y0: player.y - player.h / 2, y1: player.y + player.h / 2 }
-            }
-            const xClamp = clamp(this.x, playerBounds.xRange.x0, playerBounds.xRange.x1);
-            const yClamp = clamp(this.y, playerBounds.yRange.y0, playerBounds.yRange.y1);
-            if (Math.sqrt(Math.pow(this.x - xClamp, 2) + (Math.pow(this.y - yClamp, 2))) <= this.radius / 2)
-                return (true);
-        }
-        return (false);
     };
 
     constructor(ctx: CanvasRenderingContext2D) {
         this.x = ctx.canvas.width / 2;
         this.y = ctx.canvas.height / 2;
-        this.vAngle = 30;
-        this.vSpeed = 5;
+        this.moveUnit = 0;
+        // this.vAngle = 30;
+        // this.vSpeed = 5;
         this.radius = 10;
         this.ctx = ctx;
     }
 };
 
-export class BaseGame {
+export class MultiPlayerGame {
     private gameCanvas: HTMLCanvasElement = document.createElement('canvas');
     private canvasCtx: CanvasRenderingContext2D = this.gameCanvas.getContext("2d", { alpha: true })!;
     private players: PlayerBar[] = [];
@@ -121,6 +79,11 @@ export class BaseGame {
     private playersCount: number = 0;
     private clearFillStyle: number = 1;
     private gameStarted: boolean = false;
+    public gameMoveUnit: number = 0;
+    private playerWebSocket: WebSocket;
+    public inputUp: boolean;
+    public inputDown: boolean;
+    private playerID: number;
 
     public clearScreen(): void {
         this.canvasCtx.globalCompositeOperation = 'destination-out';
@@ -129,27 +92,24 @@ export class BaseGame {
         this.canvasCtx.globalCompositeOperation = 'source-over';
     };
 
-    public checkPlayerMovement(): void {
-        for (const player of this.players) {
-            if (player.inputUp == true)
-                player.moveUp();
-            else if (player.inputDown == true)
-                player.moveDown();
-        }
-    };
-
     protected attachListeners(): void {
         document.addEventListener("keydown", (event) => {
-            for (const player of this.players) {
-                const inputFunc = player.inputMap.get(event.key);
-                if (inputFunc) inputFunc(true);
-            }
+            if ((event.key == "w" && this.inputUp == true) || (event.key == "s" && this.inputDown == true))
+                return;
+            this.playerWebSocket.send(JSON.stringify({
+                ID: this.playerID,
+                key: event.key,
+                status: true,
+            }))
         });
         document.addEventListener("keyup", (event) => {
-            for (const player of this.players) {
-                const inputFunc = player.inputMap.get(event.key);
-                if (inputFunc) inputFunc(false);
-            }
+            if ((event.key == "w" && this.inputUp == true) || (event.key == "s" && this.inputDown == true))
+                return;
+            this.playerWebSocket.send(JSON.stringify({
+                ID: this.playerID,
+                key: event.key,
+                status: true,
+            }))
         });
     };
 
@@ -172,43 +132,52 @@ export class BaseGame {
         })
     };
 
+    public setBallPos(x: number, y: number) {
+        this.ball.x = x;
+        this.ball.y = y;
+    }
+
     private gameLoop(): void {
         if (!this.gameStarted) return;
-        const limits = {x0: this.players[0].w, x1: this.gameCanvas.width - this.players[0].w};
+        // const limits = { x0: this.players[0].w, x1: this.gameCanvas.width - this.players[0].w };
         this.clearScreen();
-        this.checkPlayerMovement();
+        // this.checkPlayerMovement();
         for (const player of this.players)
             player.draw();
         this.ball.draw();
-        this.ball.move();
-        const collision: boolean = this.ball.checkPlayerCollision(this.players);
-        if (collision && (this.ball.isGoingRight() || this.ball.isGoingLeft())) {
-            console.log("HORIZONTAL");
-            this.ball.horizontalCollision();
-        }
-        else if (collision && (this.ball.isGoingUp() || this.ball.isGoingDown())) {
-            console.log("VERTICAL");
-            this.ball.verticalCollision();
-        }
-        if (this.playersCount == 2 && (this.ball.y >= this.gameCanvas.height || this.ball.y <= 0)) {
-            this.ball.verticalCollision();
-        }
-        if (this.ball.x + this.ball.radius < limits.x0 || this.ball.x > limits.x1 + this.ball.radius) {
-            this.gameStarted = false;
-            cancelAnimationFrame(this.frameReq);
-        }
+        // this.ball.move();
+        // const collision: boolean = this.ball.checkPlayerCollision(this.players);
+        // if (collision && (this.ball.isGoingRight() || this.ball.isGoingLeft())) {
+        // console.log("HORIZONTAL");
+        // this.ball.horizontalCollision();
+        // }
+        // else if (collision && (this.ball.isGoingUp() || this.ball.isGoingDown())) {
+        // console.log("VERTICAL");
+        // this.ball.verticalCollision();
+        // }
+        // if (this.playersCount == 2 && (this.ball.y >= this.gameCanvas.height || this.ball.y <= 0)) {
+        // this.ball.verticalCollision();
+        // }
+        // if (this.ball.x + this.ball.radius < limits.x0 || this.ball.x > limits.x1 + this.ball.radius) {
+        // this.gameStarted = false;
+        // cancelAnimationFrame(this.frameReq);
+        // }
         this.frameReq = requestAnimationFrame(this.gameLoop.bind(this));
     };
 
     private initSizePos(): void {
-        if (this.playersCount == 2) {
-            this.players[0].x = this.players[0].w / 2;
-            this.players[0].y = this.gameCanvas.height / 2;
-            this.players[1].x = this.gameCanvas.width - this.players[1].w / 2;
-            this.players[1].y = this.gameCanvas.height / 2;
+        this.gameMoveUnit = this.gameCanvas.height / 2;
+        for (const player of this.players) {
+            player.w = 0.10;
+            player.h = 0.30;
         }
-        this.ball.x = this.gameCanvas.width / 2;
-        this.ball.y = this.gameCanvas.height / 2;
+        if (this.playersCount == 2) {
+            this.players[0].moveUnit = this.players[1].moveUnit = this.gameMoveUnit * 0.01;
+            this.players[0].y = this.players[1].y = 0;
+            this.players[0].x = -1;
+            this.players[1].x = 1;
+        }
+        this.ball.moveUnit = this.gameMoveUnit * 0.01;
     };
 
     public async initGame(): Promise<void> {
@@ -218,20 +187,24 @@ export class BaseGame {
         this.gameCanvas.style.border = "1px solid black";
         canvasContainer.append(this.gameCanvas);
         this.initSizePos();
-        await this.counter();
+        // await this.counter();
         this.clearFillStyle = 0.3;
         this.attachListeners();
         this.gameStarted = true;
         this.frameReq = requestAnimationFrame(this.gameLoop.bind(this));
     };
 
-    constructor(playersCount: number) {
-        const inputs: string[] = ["w", "s", "ArrowUp", "ArrowDown"];
+    constructor(playersCount: number, playerWebSocket: WebSocket, playerID: number) {
+        // const inputs: string[] = ["w", "s", "ArrowUp", "ArrowDown"];
         this.playersCount = playersCount;
+        this.playerWebSocket = playerWebSocket;
+        this.playerID = playerID;
+        this.inputUp = false;
+        this.inputDown = false;
         for (let i = 0; i < playersCount; i++) {
-            this.players.push(new PlayerBar(this.canvasCtx, inputs[0], inputs[1]));
-            inputs.shift();
-            inputs.shift();
+            this.players.push(new PlayerBar(this.canvasCtx));
+            // inputs.shift();
+            // inputs.shift();
         }
-    };
+    }
 }

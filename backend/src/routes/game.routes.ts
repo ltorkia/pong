@@ -95,7 +95,7 @@ export class Ball {
         this.x = 0;
         this.y = 0;
         this.vAngle = 30;
-        this.vSpeed = 0.01;
+        this.vSpeed = 0.0001;
         this.radius = 0.05;
     }
 };
@@ -109,19 +109,17 @@ export class GameInstance {
     private async gameLoop(): Promise<void> {
         const fps = 1000 / 60;
         let then = Date.now();
-        console.log(then);
         const startTime = then;
         while (this.gameStarted == true)
         {
             this.ball.move();
+            const now = Date.now();
+            if (now - then < fps)
+                await sleep(fps - (now - then));
             this.sendGameUpdate();
-            const now = Date.now() / 10000;
-            if (now - then < fps) {
-                console.log(then - now);            // TO FIX
-                await sleep(now - then - fps);
-            }
-            if (this.ball.x <= 1 || this.ball.x >= 1)
-                this.gameStarted = false;
+            // if (this.ball.x <= 1 || this.ball.x >= 1)
+                // this.gameStarted = false;
+            then = Date.now();
         }
             // console.log("update!a")
         // const collision: boolean = this.ball.checkPlayerCollision(this.players);
@@ -165,7 +163,7 @@ export class GameInstance {
             player.webSocket.send(JSON.stringify(gameUpdate));
         }
     };
-
+    
     constructor(playersCount: number, players: Player[]) {
         // const inputs: string[] = ["w", "s", "ArrowUp", "ArrowDown"];
         this.playersCount = playersCount;
@@ -174,7 +172,15 @@ export class GameInstance {
     };
 
 function startGame(p1: Player, p2: Player) {
-    p1.webSocket.send(`Game started! you are player one with id ${p1.playerID}`);
+    p1.webSocket.send(JSON.stringify({
+        type: "start",
+        ID: p1.playerID,
+    }));
+    p2.webSocket.send(JSON.stringify({
+        type: "start",
+        ID: p2.playerID,
+    }));
+    p1.webSocket.send(`Game started! you are player two with id ${p1.playerID}`);
     p2.webSocket.send(`Game started! you are player two with id ${p2.playerID}`);
     let players: Player[] = []; 
     players.push(p1);
@@ -184,24 +190,22 @@ function startGame(p1: Player, p2: Player) {
 } 
 
 export async function gameRoutes(app: FastifyInstance) {
-  await app.register(require('@fastify/websocket'));
-
   app.get('/ws/multiplayer', { websocket: true }, (connection: any, req: any) => {
     const allPlayers: Player[] = app.lobby.allPlayers;
     const newPlayer = new Player(allPlayers.length, connection);
     console.log(newPlayer);
     if (allPlayers.length != 0) {
-        startGame(allPlayers[0], newPlayer);
+        startGame(allPlayers[0], newPlayer);   // this is wrong and needs to be changed
     } else
         allPlayers.push(new Player(allPlayers.length, connection));
     connection.on('message', (message: string) => {
-      const player: PositionObj = JSON.parse(message); 
+        const player: PositionObj = JSON.parse(message); 
     });
 
     connection.on('close', () => {
       console.log('Connection closed');
     });
 
-    connection.send('Welcome to multiplayer!');
+    // connection.send('Welcome to multiplayer!');
   });
 }

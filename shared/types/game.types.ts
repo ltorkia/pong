@@ -15,6 +15,7 @@ export class Player {
 }
 
 export class GameData {
+    type: string = "GameData";
     players: PositionObj[] = [];
     ball: PositionObj;
 
