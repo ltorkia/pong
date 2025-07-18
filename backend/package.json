@@ -21,7 +21,8 @@
 		"@fastify/cookie": "11.0.2",
 		"@fastify/multipart":"9.0.3",
 		"nodemailer":"7.0.3",
-		"file-type":"21.0.0"
+		"file-type":"21.0.0",
+		"lodash": "^4.17.21"
 
 	},
 	"devDependencies": {
@@ -31,6 +32,7 @@
   		"@types/node": "^22.15.30",
     	"@types/bcrypt": "^5.0.2",
 		"@fastify/multipart":"9.0.3",
-		"@types/nodemailer": "6.4.17"
+		"@types/nodemailer": "6.4.17",
+		"@types/lodash": "^4.14.191"
 	}
 }

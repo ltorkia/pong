@@ -18,6 +18,6 @@
 		"checkJs": false,												// Ne pas vérifier les fichiers JavaScript (on se concentre sur TypeScript)
 		"typeRoots": ["./node_modules/@types", "./src/types"],			// Chemins vers les types personnalisés (ex: types globaux)
 	},
-	"include": ["src/**/*", "../shared/config/db-constants.config.ts"],	// Dossiers/fichiers à inclure dans la compilation
+	"include": ["src/**/*", "../shared/config/db-constants.config.ts", "../shared/types/mapper.service.ts"],	// Dossiers/fichiers à inclure dans la compilation
 	"exclude": ["node_modules", "dist"]									// Dossiers à exclure de la compilation
 }

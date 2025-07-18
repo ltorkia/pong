@@ -6,6 +6,7 @@ import { searchNewName } from '../helpers/auth.helpers';
 import { UserPassword, User2FA, UserForChangeData } from '../types/user.types';
 import { DB_CONST } from '../shared/config/constants.config'; // en rouge car dossier local 'shared' != dossier conteneur
 import { UserModel, SafeUserModel, UserBasic, UserWithAvatar, Friends } from '../shared/types/user.types'; // en rouge car dossier local 'shared' != dossier conteneur
+import { snakeToCamel, snakeArrayToCamel } from '../helpers/types.helpers';
 
 // retourne les infos d un user particulier - userId = le id de l user a afficher
 // a priori ? protegerait contre les insertions sql
@@ -20,7 +21,7 @@ export async function getUser(userId : number | null = null, search : string | n
 		`,
 		[userId, search, search]
 	);
-	return user as UserModel;
+	return snakeToCamel(user) as UserModel;
 }
 
 // retourne les infos de tous les users
@@ -30,7 +31,7 @@ export async function getAllUsers() {
 		SELECT id, username, avatar 
 		FROM User 
 	`);
-	return users as UserBasic[];
+	return snakeArrayToCamel(users) as UserBasic[];
 }
 
 export async function getAllUsersInfos() {
@@ -41,7 +42,7 @@ export async function getAllUsersInfos() {
 		game_loose, time_played, n_friends, status, is_deleted, register_from 
 		FROM User 
 	`);
-	return users as SafeUserModel[];
+	return snakeArrayToCamel(users) as SafeUserModel[];
 }
 
 // retourne les infos de tous les users pour l authentification 
@@ -54,7 +55,7 @@ export async function getUserP(email: string) {
 		`,
 		[email]
 	);
-	return user as UserPassword;
+	return snakeToCamel(user) as UserPassword;
 }
 
 export async function getUserAllInfo(id: number) {
@@ -66,7 +67,7 @@ export async function getUserAllInfo(id: number) {
 		`,
 		[id]
 	);
-	return user as UserForChangeData;
+	return snakeToCamel(user) as UserForChangeData;
 }
 
 export async function getUser2FA(email: string) {
@@ -78,7 +79,7 @@ export async function getUser2FA(email: string) {
 		`,
 		[email]
 	);
-	return user as User2FA;
+	return snakeToCamel(user) as User2FA;
 }
 	
 // pour choper les friends, mais implique qu un element chat soit forcement cree des qu on devient ami
@@ -98,7 +99,7 @@ export async function getUserFriends(userId: number) {
 		`,
 		[userId, userId]
 	);
-	return friends as Friends[];
+	return snakeArrayToCamel(friends) as Friends[];
 }
 // pour insert : const [u1, u2] = [userIdA, userIdB].sort((a, b) => a - b);
 		
@@ -124,7 +125,7 @@ export async function getUserGames(userId: number) {
 		);
 		game.other_players = players as UserWithAvatar[];
 	}
-	return games as Game[];
+	return snakeArrayToCamel(games) as Game[];
 }
 		
 export async function getUserChat(userId1: number, userId2: number) {
@@ -147,8 +148,8 @@ export async function getUserChat(userId1: number, userId2: number) {
 		[userId2]
 	);
 	return {
-		messages : chat as ChatMessage[],
-		other_user: other_user as UserWithAvatar 
+		messages : snakeArrayToCamel(chat) as ChatMessage[],
+		other_user: snakeToCamel(other_user) as UserWithAvatar 
 	};
 }
 	

@@ -45,17 +45,17 @@ export interface SafeUserModel {
 	username: string;
 	avatar: string;
 	registration: string;
-	begin_log: string;
-	end_log: string;
+	beginLog: string;
+	endLog: string;
 	tournament: number;
-	game_played: number;
-	game_win: number;
-	game_loose: number;
-	time_played: number;
-	n_friends: number;
+	gamePlayed: number;
+	gameWin: number;
+	gameLoose: number;
+	timePlayed: number;
+	nFriends: number;
 	status: UserStatus;
-	is_deleted: number;
-	register_from: RegisterMethod;
+	isDeleted: boolean;
+	registerFrom: RegisterMethod;
 }
 
 /**
@@ -67,8 +67,8 @@ export interface SafeUserModel {
  */
 export interface UserModel extends SafeUserModel {
 	email: string;
-	secret_question_number: number;
-	secret_question_answer: string;
+	secretQuestionNumber: number;
+	secretQuestionAnswer: string;
 }
 
 /**
@@ -81,11 +81,11 @@ export interface PublicUser {
 	id: number;
 	username: string;
 	avatar: string;
-	game_played: number;
-	game_win: number;
-	game_loose: number;
-	time_played: number;
-	n_friends: number;
+	gamePlayed: number;
+	gameWin: number;
+	gameLoose: number;
+	timePlayed: number;
+	nFriends: number;
 }
 
 /**
@@ -123,6 +123,6 @@ export interface Friends {
 	id: number;
 	username: string;
 	avatar?: string | null;
-	begin_log: number;
-	end_log: number;
+	beginLog: number;
+	endLog: number;
 }

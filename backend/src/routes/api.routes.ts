@@ -53,7 +53,7 @@ export async function apiRoutes(app: FastifyInstance) {
 			// On check que l'utilisateur existe bien en bdd
 			// Si non on clear les cookies d'authentification
 			const user = await getUser(decoded.id);
-			if (!user || user.is_deleted) {
+			if (!user || user.isDeleted) {
 				clearAuthCookies(reply);
 				return reply.status(401).send({
 					error: 'Unauthorized',

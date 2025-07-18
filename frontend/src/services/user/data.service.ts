@@ -144,7 +144,6 @@ export class DataService {
 	 * @returns Libellé lisible
 	 */
 	public showStatusLabel(): string {
-		console.log(this.currentUser!.status);
 		switch (this.currentUser!.status) {
 			case 'online': return '<span class="text-green-500">🟢 online </span>';
 			case 'offline': return '<span class="text-red-500">🔴 offline </span>';

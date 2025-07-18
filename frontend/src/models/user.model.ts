@@ -1,4 +1,5 @@
 import { SafeUserModel, UserModel, PublicUser, UserStatus, RegisterMethod } from '../shared/types/user.types';	// en rouge car dossier local 'shared' != dossier conteneur
+import { DB_CONST } from '../shared/config/constants.config';
 
 // ===========================================
 // USER MODEL
@@ -23,8 +24,8 @@ export class User {
 		public username: string,
 		public avatar: string,
 		public email: string,
-		public secretQuestion: number,
-		public secretAnswer: string,
+		public secretQuestionNumber: number,
+		public secretQuestionAnswer: string,
 		public registration: string,
 		public beginLog: string,
 		public endLog: string,
@@ -52,7 +53,7 @@ export class User {
 	}
 
 	isOnline(): boolean {
-		return this.status === 'online';
+		return this.status === DB_CONST.USER.STATUS.ONLINE;
 	}
 
 	get formattedLastLog(): string {
@@ -75,16 +76,16 @@ export class User {
 	 * 
 	 * @returns {PublicUser} - Version publique sans données sensibles
 	 */
-	toPublicJSON(): PublicUser {
+	public toPublicJSON(): PublicUser {
 		return {
 			id: this.id,
 			username: this.username,
 			avatar: this.avatar,
-			game_played: this.gamePlayed,
-			game_win: this.gameWin,
-			game_loose: this.gameLoose,
-			time_played: this.timePlayed,
-			n_friends: this.nFriends,
+			gamePlayed: this.gamePlayed,
+			gameWin: this.gameWin,
+			gameLoose: this.gameLoose,
+			timePlayed: this.timePlayed,
+			nFriends: this.nFriends,
 		};
 	}
 
@@ -95,23 +96,23 @@ export class User {
 	 * 
 	 * @returns {SafeUserModel} - Version complète sans email
 	 */
-	toSafeJSON(): SafeUserModel {
+	public toSafeJSON(): SafeUserModel {
 		return {
 			id: this.id,
 			username: this.username,
 			avatar: this.avatar,
 			registration: this.registration,
-			begin_log: this.beginLog,
-			end_log: this.endLog,
+			beginLog: this.beginLog,
+			endLog: this.endLog,
 			tournament: this.tournament,
-			game_played: this.gamePlayed,
-			game_win: this.gameWin,
-			game_loose: this.gameLoose,
-			time_played: this.timePlayed,
-			n_friends: this.nFriends,
+			gamePlayed: this.gamePlayed,
+			gameWin: this.gameWin,
+			gameLoose: this.gameLoose,
+			timePlayed: this.timePlayed,
+			nFriends: this.nFriends,
 			status: this.status,
-			is_deleted: this.isDeleted,
-			register_from: this.registerFrom
+			isDeleted: this.isDeleted,
+			registerFrom: this.registerFrom
 		};
 	}
 
@@ -122,26 +123,26 @@ export class User {
 	 * 
 	 * @returns {UserModel} - Version complète avec email
 	 */
-	toFullJSON(): UserModel {
+	public toFullJSON(): UserModel {
 		return {
 			id: this.id,
 			username: this.username,
 			avatar: this.avatar,
 			email: this.email,
-			secret_question: this.secretQuestion,
-			secret_answer: this.secretAnswer,
+			secretQuestionNumber: this.secretQuestionNumber,
+			secretQuestionAnswer: this.secretQuestionAnswer,
 			registration: this.registration,
-			begin_log: this.beginLog,
-			end_log: this.endLog,
+			beginLog: this.beginLog,
+			endLog: this.endLog,
 			tournament: this.tournament,
-			game_played: this.gamePlayed,
-			game_win: this.gameWin,
-			game_loose: this.gameLoose,
-			time_played: this.timePlayed,
-			n_friends: this.nFriends,
+			gamePlayed: this.gamePlayed,
+			gameWin: this.gameWin,
+			gameLoose: this.gameLoose,
+			timePlayed: this.timePlayed,
+			nFriends: this.nFriends,
 			status: this.status,
-			is_deleted: this.isDeleted,
-			register_from: this.registerFrom
+			isDeleted: this.isDeleted,
+			registerFrom: this.registerFrom
 		};
 	}
 
@@ -157,7 +158,7 @@ export class User {
 	 * @param data - Données partielles de l'utilisateur
 	 * @returns {User} - Instance de User avec toutes ses méthodes
 	 */
-	static fromJSON(data: Partial<UserModel>): User {
+	public static fromJSON(data: Partial<UserModel>): User {
 
 		if (!data.id || !data.username) {
 			throw new Error('ID et username sont requis pour créer un utilisateur');
@@ -166,22 +167,22 @@ export class User {
 		return new User(
 			data.id,
 			data.username,
-			data.avatar ?? 'default.png',
+			data.avatar ?? DB_CONST.USER.DEFAULT_AVATAR,
 			data.email ?? '',
-			data.secret_question_number ?? 4,
-			data.secret_question_answer ?? '',
+			data.secretQuestionNumber ?? 4,
+			data.secretQuestionNumberAnswer ?? '',
 			data.registration ?? '',
-			data.begin_log ?? '',
-			data.end_log ?? '',
+			data.beginLog ?? '',
+			data.endLog ?? '',
 			data.tournament ?? 0,
-			data.game_played ?? 0,
-			data.game_win ?? 0,
-			data.game_loose ?? 0,
-			data.time_played ?? 0,
-			data.n_friends ?? 0,
-			data.status ?? 'offline',
-			data.is_deleted ?? false,
-			data.register_from ?? 'local'
+			data.gamePlayed ?? 0,
+			data.gameWin ?? 0,
+			data.gameLoose ?? 0,
+			data.timePlayed ?? 0,
+			data.nFriends ?? 0,
+			data.status ?? DB_CONST.USER.STATUS.OFFLINE,
+			data.isDeleted ?? false,
+			data.registerFrom ?? DB_CONST.USER.REGISTER_FROM.LOCAL
 		);
 	}
 
@@ -192,7 +193,7 @@ export class User {
 	 * @param data - Données SafeUserModel
 	 * @returns {User} - Instance de User (avec email vide)
 	 */
-	static fromSafeJSON(data: Partial<SafeUserModel>): User {
+	public static fromSafeJSON(data: Partial<SafeUserModel>): User {
 		return this.fromJSON({ ...data, email: '' });
 	}
 
@@ -203,7 +204,7 @@ export class User {
 	 * @param data - Données PublicUser
 	 * @returns {User} - Instance de User (avec données minimales)
 	 */
-	static fromPublicJSON(data: PublicUser): User {
+	public static fromPublicJSON(data: PublicUser): User {
 		if (!data.id || !data.username) {
 			throw new Error('ID et username sont requis');
 		}
@@ -211,26 +212,25 @@ export class User {
 		return new User(
 			data.id,
 			data.username,
-			data.avatar ?? 'default.png',
+			data.avatar ?? DB_CONST.USER.DEFAULT_AVATAR,
 			'', // Email vide pour les données publiques
-			0,  // SecretQuestionNumber à 0
-			'', // SecretQuestionAnswer vide
+			0,  // SecretQuestionNumberNumber à 0
+			'', // SecretQuestionNumberAnswer vide
 			'', // Registration vide
 			'', // beginLog vide
 			'', // endLog vide
 			0,  // Tournament à 0
-			data.game_layed ?? 0,
-			data.game_win ?? 0,
-			data.game_loose ?? 0,
-			data.time_played ?? 0,
-			data.n_friends ?? 0,
-			'offline', // Status par défaut
+			data.gameLayed ?? 0,
+			data.gameWin ?? 0,
+			data.gameLoose ?? 0,
+			data.timePlayed ?? 0,
+			data.nFriends ?? 0,
+			DB_CONST.USER.STATUS.OFFLINE, // Status par défaut
 			false, // isDeleted par défaut
-			'local' // registerFrom par défaut
+			DB_CONST.USER.REGISTER_FROM.LOCAL // registerFrom par défaut
 		);
 	}
 
-	// TODO: Déplacer logique user vers service
 	// ============================================================================
 	// MÉTHODES STATIQUES SUR TABLEAUX D'UTILISATEURS
 	// ============================================================================
@@ -241,7 +241,7 @@ export class User {
 	 * @param users - Tableau d'objets UserModel
 	 * @returns {User[]} - Tableau d'instances User
 	 */
-	static fromJSONArray(users: Partial<UserModel>[]): User[] {
+	public static fromJSONArray(users: Partial<UserModel>[]): User[] {
 		return users.map(user => this.fromJSON(user));
 	}
 
@@ -251,7 +251,7 @@ export class User {
 	 * @param users - Tableau d'objets SafeUserModel
 	 * @returns {User[]} - Tableau d'instances User
 	 */
-	static fromSafeJSONArray(users: Partial<SafeUserModel>[]): User[] {
+	public static fromSafeJSONArray(users: Partial<SafeUserModel>[]): User[] {
 		return users.map(user => this.fromSafeJSON(user));
 	}
 
@@ -261,7 +261,7 @@ export class User {
 	 * @param users - Tableau d'objets PublicUser
 	 * @returns {User[]} - Tableau d'instances User
 	 */
-	static fromPublicJSONArray(users: PublicUser[]): User[] {
+	public static fromPublicJSONArray(users: PublicUser[]): User[] {
 		return users.map(user => this.fromPublicJSON(user));
 	}
 
@@ -271,7 +271,7 @@ export class User {
 	 * @param users - Tableau d'instances User
 	 * @returns {PublicUser[]} - Tableau d'objets PublicUser
 	 */
-	static toPublicJSONArray(users: User[]): PublicUser[] {
+	public static toPublicJSONArray(users: User[]): PublicUser[] {
 		return users.map(user => user.toPublicJSON());
 	}
 
@@ -281,7 +281,7 @@ export class User {
 	 * @param users - Tableau d'instances User
 	 * @returns {SafeUserModel[]} - Tableau d'objets SafeUserModel
 	 */
-	static toSafeJSONArray(users: User[]): SafeUserModel[] {
+	public static toSafeJSONArray(users: User[]): SafeUserModel[] {
 		return users.map(user => user.toSafeJSON());
 	}
 
@@ -291,7 +291,7 @@ export class User {
 	 * @param users - Tableau d'instances User
 	 * @returns {UserModel[]} - Tableau d'objets UserModel
 	 */
-	static toFullJSONArray(users: User[]): UserModel[] {
+	public static toFullJSONArray(users: User[]): UserModel[] {
 		return users.map(user => user.toFullJSON());
 	}
 }

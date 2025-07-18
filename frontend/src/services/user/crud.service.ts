@@ -19,7 +19,7 @@ export class CrudService {
 			return;
 		}
 		console.log(`[${this.constructor.name}] Utilisateur mis à jour.`);
-		showAlert('Successfully updated.', 'alert', 'success');
+		showAlert('Infos successfully updated.', 'alert', 'success');
 		return;
 	}
 
@@ -41,7 +41,7 @@ export class CrudService {
 			return false;
 		}
 		console.log(`[${this.constructor.name}] Avatar de l'utilisateur mis à jour.`);
-		showAlert('Successfully updated.', 'alert', 'success');
+		showAlert('Image successfully uploaded.', 'alert', 'success');
 		return true;
 	}
 }
