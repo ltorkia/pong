@@ -131,32 +131,15 @@ export async function usersRoutes(app: FastifyInstance) {
 				return;
 			}
 			const { id } = request.params as { id: number };
-			// const elements = await request.parts({
-			// 	limits: {
-    		// 	fileSize: 5 * 1024 * 1024}
-			// }); //separe les differents elements recuperes
+			console.log("reauest = ", request.body);
 
-			// let dataText: Record<string, string> = {}; //stockera les elements textes
-			// // let avatarFile; //stockera le file de l avatar
-			// // let avatarBuffer: Buffer | null = null; //buffer de l'avatar pour la sauvegarde en deux parties
-
-
-			// //preparsing qui dispatch datatext d un cote et l avatar de l autre
-			// for await (const element of elements) {
-			// 	console.log(element);
-			// 	// if (element.type === 'file' && element.fieldname === 'avatar' && element.filename != '') {
-			// 	// 	avatarFile = element;
-			// 	// 	avatarBuffer = await bufferizeStream(element.file);
-			// 	// if (element.type === 'field' && typeof element.value === 'string') {
-			// 		dataText[element.fieldname] = element.value;
-			// 	// }
-			// }
 			// console.log("--------------------------request is : " + request.username);
 		const result = ModUserInputSchema.safeParse(request);
 		if (!result.success) {
 			const error = result.error.errors[0];
 			return reply.status(400).send({ statusCode: 400, errorMessage: error.message + " in " + error.path });
 		}
+		console.log("result data = ", result.data);
 		//on cree l user avec les donnees a inserer une fois le safeparse effectue
 		const dataUserReceived = result.data as ModUserInput; //datatext - a mod pour current et new pass
 		const dataUser = await getUserAllInfo(id);
