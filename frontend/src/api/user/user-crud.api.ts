@@ -110,8 +110,7 @@ export class UserCrudApi {
 	public async updateUser(id: number, userData: FormData): Promise<AuthResponse> {
 		const res: Response = await secureFetch(`/api/users/${id}/moduser`, {
 			method: 'PUT',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify(userData)
+			body: userData
 		});
 		const data: AuthResponse = await res.json();
 		if (!res.ok || data.errorMessage || !data.user) {
