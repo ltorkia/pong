@@ -104,13 +104,14 @@ export class UserCrudApi {
 	 * Sinon, renvoie une erreur.
 	 *
 	 * @param {number} id Identifiant de l'utilisateur à mettre à jour.
-	 * @param {FormData} userData Données à mettre à jour.
+	 * @param {Record<string, string>} userData Données à mettre à jour.
 	 * @returns {Promise<AuthResponse>} Promesse qui se résout avec un objet User ou un message d'erreur.
 	 */
-	public async updateUser(id: number, userData: FormData): Promise<AuthResponse> {
+	public async updateUser(id: number, userData: Record<string, string>): Promise<AuthResponse> {
 		const res: Response = await secureFetch(`/api/users/${id}/moduser`, {
 			method: 'PUT',
-			body: userData
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify(userData)
 		});
 		const data: AuthResponse = await res.json();
 		if (!res.ok || data.errorMessage || !data.user) {
