@@ -74,7 +74,7 @@ export class DataService {
 	 * 
 	 * @param {UserModel} userData Les données de l'utilisateur courant fournies par le serveur.
 	 */
-	async setCurrentUserFromServer(userData: UserModel): Promise<void> {
+	public async setCurrentUserFromServer(userData: UserModel): Promise<void> {
 		this.currentUser = User.fromJSON(userData);
 		userStore.setCurrentUser(this.currentUser);
 		console.log(`[${this.constructor.name}] Utilisateur mis à jour depuis serveur (email en mémoire uniquement):`, this.currentUser);
@@ -86,7 +86,7 @@ export class DataService {
 	 * @param {Partial<UserModel>} updates - Objet contenant les propriétés à mettre à jour
 	 * @returns {User} - Instance mise à jour (pour chaînage)
 	 */
-	async updateCurrentUser(updates: Partial<UserModel>): Promise<User | null> {
+	public async updateCurrentUser(updates: Partial<UserModel>): Promise<User | null> {
 		if (!this.currentUser) {
 			console.warn(`[${this.constructor.name}] Aucun utilisateur courant à mettre à jour`);
 			return null;
@@ -145,7 +145,7 @@ export class DataService {
 	 * @param {User[]} users - Tableau d'instances User
 	 * @returns {User[]} Tableau d'utilisateurs actifs
 	 */
-	static getActiveUsers(users: User[]): User[] {
+	public static getActiveUsers(users: User[]): User[] {
 		return users.filter(user => user.isActive);
 	}
 
@@ -155,7 +155,7 @@ export class DataService {
 	 * @param {User[]} users - Tableau d'instances User
 	 * @returns {User[]} Tableau d'utilisateurs en ligne
 	 */
-	static getOnlineUsers(users: User[]): User[] {
+	public static getOnlineUsers(users: User[]): User[] {
 		return users.filter(user => user.isOnline());
 	}
 
@@ -166,7 +166,7 @@ export class DataService {
 	 * @param {UserStatus} status - Statut à filtrer
 	 * @returns {User[]} Tableau d'utilisateurs avec le statut spécifié
 	 */
-	static getUsersByStatus(users: User[], status: UserStatus): User[] {
+	public static getUsersByStatus(users: User[], status: UserStatus): User[] {
 		return users.filter(user => user.status === status);
 	}
 
@@ -177,7 +177,7 @@ export class DataService {
 	 * @param {string} searchTerm - Terme de recherche
 	 * @returns {User[]} Tableau d'utilisateurs correspondants
 	 */
-	static searchByUsername(users: User[], searchTerm: string): User[] {
+	public static searchByUsername(users: User[], searchTerm: string): User[] {
 		const term = searchTerm.toLowerCase();
 		return users.filter(user => 
 			user.username.toLowerCase().includes(term)
@@ -190,7 +190,7 @@ export class DataService {
 	 * @param {User[]} users - Tableau d'instances User
 	 * @returns {User[]} Tableau d'utilisateurs triés
 	 */
-	static sortByWinRate(users: User[]): User[] {
+	public static sortByWinRate(users: User[]): User[] {
 		return [...users].sort((a, b) => b.winRate - a.winRate);
 	}
 
@@ -200,7 +200,7 @@ export class DataService {
 	 * @param {User[]} users - Tableau d'instances User
 	 * @returns {User[]} Tableau d'utilisateurs triés
 	 */
-	static sortByGamesPlayed(users: User[]): User[] {
+	public static sortByGamesPlayed(users: User[]): User[] {
 		return [...users].sort((a, b) => b.gamePlayed - a.gamePlayed);
 	}
 

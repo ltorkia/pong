@@ -1,7 +1,8 @@
 import { User } from '../../models/user.model';
 import { SafeUserModel, Friends } from '../../shared/types/user.types';	// en rouge car dossier local 'shared' != dossier conteneur
 import { secureFetch } from '../../utils/app.utils';
-import { BasicResponse } from 'src/types/api.types';
+import { dataService } from '../../services/services';
+import { AuthResponse } from 'src/types/api.types';
 
 // ===========================================
 // USER CRUD API
@@ -37,7 +38,7 @@ export class UserCrudApi {
 	public async getUserById(id: number): Promise<User> {
 		const res: Response = await secureFetch(`/api/users/${id}`, { method: 'GET' });
 		if (!res.ok) {
-			throw new Error('Erreur de l’API');
+			throw new Error('Erreur de l\'API');
 		}
 		const data: SafeUserModel = await res.json();
 		return User.fromSafeJSON(data) as User;
@@ -59,7 +60,8 @@ export class UserCrudApi {
 	public async getUsers(): Promise<User[]> {
 		const res: Response = await secureFetch('/api/users', { method: 'GET' });
 		if (!res.ok) {
-			throw new Error('Erreur de l’API');
+			throw new Error('Erreur de l\'API');
+			
 		}
 		const data: SafeUserModel[] = await res.json();
 		return User.fromSafeJSONArray(data) as User[];
@@ -82,7 +84,7 @@ export class UserCrudApi {
 	public async getUserFriends(id: number): Promise<User[]> {
 		const res: Response = await secureFetch(`/api/users/${id}/friends`, { method: 'GET' });
 		if (!res.ok) {
-			throw new Error('Erreur de l’API');
+			throw new Error('Erreur de l\'API');
 		}
 		const data: Friends[] = await res.json();
 		return User.fromPublicJSONArray(data) as User[];
@@ -98,24 +100,24 @@ export class UserCrudApi {
 	 * Envoie une requête PUT à la route API `/users/:id` pour mettre à jour
 	 * l'utilisateur d'identifiant `id` avec les données fournies.
 	 *
-	 * Si la requête réussit, renvoie un objet contenant un message de confirmation.
-	 * Sinon, lève une erreur.
+	 * Si la requête réussit, renvoie un objet contenant l'objet `User` mis à jour.
+	 * Sinon, renvoie une erreur.
 	 *
 	 * @param {number} id Identifiant de l'utilisateur à mettre à jour.
-	 * @param {Partial<User>} data Données à mettre à jour.
-	 * @returns {Promise<BasicResponse>} Promesse qui se résout avec un objet contenant un message de confirmation.
+	 * @param {Record<string, string>} userData Données à mettre à jour.
+	 * @returns {Promise<AuthResponse>} Promesse qui se résout avec un objet User ou un message d'erreur.
 	 */
-	public async updateUser(id: number, data: Partial<User>): Promise<BasicResponse> {
-		const res: Response = await secureFetch(`/api/users/${id}`, {
+	public async updateUser(id: number, userData: Record<string, string>): Promise<AuthResponse> {
+		const res: Response = await secureFetch(`/api/users/${id}/moduser`, {
 			method: 'PUT',
 			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify(data),
+			body: JSON.stringify(userData)
 		});
-		const result: BasicResponse = await res.json();
-		if (!res.ok || result.errorMessage) {
-			return { errorMessage: result.errorMessage || result.message || 'Erreur lors de la mise à jour' };
+		const data: AuthResponse = await res.json();
+		if (!res.ok || data.errorMessage || !data.user) {
+			return { errorMessage: data.errorMessage || data.message || 'Erreur lors de la mise à jour' };
 		}
-		return result as BasicResponse;
+		await dataService.updateCurrentUser(data.user);
+		return data as AuthResponse;
 	}
-
 }

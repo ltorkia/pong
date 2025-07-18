@@ -9,6 +9,7 @@ import { ComponentConfig } from '../../types/components.types';
 import { toggleClass } from '../../utils/dom.utils';
 import { getHTMLElementById, getHTMLAnchorElement, getHTMLElementByTagName } from '../../utils/dom.utils';
 import { ROUTE_PATHS, PROFILE_HTML_ANCHOR } from '../../config/routes.config';
+import { DB_CONST } from '../../shared/config/constants.config';
 
 // ===========================================
 // NAVBAR COMPONENT
@@ -30,6 +31,7 @@ export class NavbarComponent extends BaseComponent {
 	private navLinks!: NodeListOf<HTMLAnchorElement>;
 	private profilePlaceholder: string;
 	private profileLink!: string;
+	private settingsLink!: HTMLAnchorElement;
 	private icon!: HTMLElement;
 	private logoutLink!: HTMLAnchorElement;
 	private mainSection!: HTMLElement;
@@ -83,18 +85,21 @@ export class NavbarComponent extends BaseComponent {
 		this.navLinks = this.container.querySelectorAll('.navbar-content a[data-link]');
 		this.logoutLink = getHTMLAnchorElement(ROUTE_PATHS.LOGOUT, this.container);
 		this.profileLink = this.setNavLink(PROFILE_HTML_ANCHOR, `/user/${this.profilePlaceholder}`);
+		this.settingsLink = getHTMLAnchorElement(ROUTE_PATHS.SETTINGS, this.container);
 		this.mainSection = getHTMLElementByTagName('main');
 	}
 
 	/**
 	 * Méthode de montage du composant de la navbar.
 	 * 
+	 * Affiche ou non le lien Settings en fonction de si l'utilisateur est enregistré via Google.
 	 * Met à jour le lien actif de la navigation au premier chargement de la page.
 	 * Ajoute un margin à la balise 'main' qui correspond à la hauteur de la navbar.
 	 * 
 	 * @returns {Promise<void>} Une promesse qui se résout quand le composant est monté.
 	 */
 	protected async mount(): Promise<void> {
+		this.toggleSettingsLink();
 		this.setActiveLink(this.routeConfig.path);
 		this.mainSection.classList.add('mt-main');
 	}
@@ -199,6 +204,16 @@ export class NavbarComponent extends BaseComponent {
 		}
 		navLink.href = link;
 		return link;
+	}
+
+	/**
+	 * Si l'utilisateur est enregistré via Google, cache le lien "Settings" dans la navbar.
+	 * Les utilisateurs enregistrés via Google n'ont pas accces aux parametres de l'application.
+	 */
+	private toggleSettingsLink(): void {
+		if (this.currentUser!.registerFrom === DB_CONST.USER.REGISTER_FROM.GOOGLE) {
+			this.settingsLink.setAttribute("style", "display: none");
+		}
 	}
 
 	/**

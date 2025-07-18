@@ -77,14 +77,13 @@ export async function usersRoutes(app: FastifyInstance) {
 	})
 
 
-	app.get('/:id/moduser/avatar', async(request: FastifyRequest, reply: FastifyReply) => {
+	app.put('/:id/moduser/avatar', async(request: FastifyRequest, reply: FastifyReply) => {
 		try {
 			const elements = await request.parts({
 				limits: {
 				fileSize: 5 * 1024 * 1024}
 			}); //separe les differents elements recuperes
 
-			let dataText: Record<string, string> = {}; //stockera les elements textes
 			let avatarFile; //stockera le file de l avatar
 			let avatarBuffer: Buffer | null = null; //buffer de l'avatar pour la sauvegarde en deux parties
 
@@ -97,16 +96,18 @@ export async function usersRoutes(app: FastifyInstance) {
 					avatarBuffer = await bufferizeStream(element.file);
 				}
 			}
-	
+			
+			let user: UserModel | null = null;
 			if (avatarFile && avatarBuffer)
 			{
 				const { id1 } = request.params as { id1: number };
-				const user: UserModel = await getUser(id1);
+				user = await getUser(id1, null);
+				// if (await GetAvatarFromBuffer(user, avatarFile, avatarBuffer))
 				await GetAvatarFromBuffer(reply, user, avatarFile, avatarBuffer);
 			}
 			return reply.status(200).send({
 				statusCode: 200,
-				message: 'New avatar added.'
+				message: user!.avatar
 			});
 		} catch (err) {
 			request.log.error(err);
@@ -116,12 +117,12 @@ export async function usersRoutes(app: FastifyInstance) {
 		}
 	})
 
-	app.get('/:id/moduser', async(request: FastifyRequest, reply: FastifyReply) => {
-		const jwtUser = requireAuth(request, reply);
-		if (!jwtUser) {
-			return;
-		}
-		const { id } = request.params as { id: number };
+	app.put('/:id/moduser', async(request: FastifyRequest, reply: FastifyReply) => {
+			const jwtUser = requireAuth(request, reply);
+			if (!jwtUser) {
+				return;
+			}
+			const { id } = request.params as { id: number };
 
 		const result = ModUserInputSchema.safeParse(request);
 		if (!result.success) {
@@ -165,13 +166,13 @@ export async function usersRoutes(app: FastifyInstance) {
 		// userToInsert.password = await bcrypt.hash(userToInsert.password, 10);
 	
 
-	// 1. parsing des infos donnees
-	
-	// 2. en fonction des elements retrouves ->
-	// 3. if password -> check si password donne ok + hasshing du nouveau + update
-	// 4. if username -> check si nouveau exist deja sinon block
-	// 5. if email -> check si nouveau exist deja sinon block
-	// 7. retourne un objet user si ok et sinon une erreur
+		// 1. parsing des infos donnees
+		
+		// 2. en fonction des elements retrouves ->
+		// 3. if password -> check si password donne ok + hasshing du nouveau + update
+		// 4. if username -> check si nouveau exist deja sinon block
+		// 5. if email -> check si nouveau exist deja sinon block
+		// 7. retourne un objet user si ok et sinon une erreur
 
 	})
 };
