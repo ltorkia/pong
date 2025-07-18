@@ -50,7 +50,8 @@ export async function GetAvatarFromBuffer(reply: FastifyReply, user: Partial<Use
 			// return { success: false, errorMessage: IMAGE_CONST.ERRORS.SIZE_LIMIT, statusCode: 400 };
 		}
 
-		const filename = (user.username! + IMAGE_CONST.EXTENSIONS[avatarType]).toLowerCase();
+		// const filename = (user.username! + IMAGE_CONST.EXTENSIONS[avatarType]).toLowerCase();
+		const filename = (user.id! + new Date().toISOString() + IMAGE_CONST.EXTENSIONS[avatarType]);
 		const resolvedPath = path.resolve(`.${IMAGE_CONST.ROUTE_API}`);
 		const filepath = path.join(resolvedPath, filename);
 

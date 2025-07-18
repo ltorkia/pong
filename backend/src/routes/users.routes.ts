@@ -9,6 +9,7 @@ import { GetAvatarFromBuffer, bufferizeStream } from '../helpers/image.helpers';
 import { RegisterInputSchema, RegisterInput, ModUserInput, ModUserInputSchema } from '../types/zod/auth.zod';
 import { searchNewName } from '../helpers/auth.helpers';
 import { changeUserData } from '../db/usermaj';
+import { promises as fs } from 'fs';
 
 export async function usersRoutes(app: FastifyInstance) {
 	// pour afficher tous les users
@@ -79,6 +80,7 @@ export async function usersRoutes(app: FastifyInstance) {
 
 	app.put('/:id/moduser/avatar', async(request: FastifyRequest, reply: FastifyReply) => {
 		try {
+			// console.log("--------------------------request is : " + request);
 			const elements = await request.parts({
 				limits: {
 				fileSize: 5 * 1024 * 1024}
@@ -90,7 +92,7 @@ export async function usersRoutes(app: FastifyInstance) {
 
 			//preparsing qui dispatch datatext d un cote et l avatar de l autre
 			for await (const element of elements) {
-				console.log(element);
+				// console.log(element);
 				if (element.type === 'file' && element.fieldname === 'avatar' && element.filename != '') {
 					avatarFile = element;
 					avatarBuffer = await bufferizeStream(element.file);
@@ -98,13 +100,19 @@ export async function usersRoutes(app: FastifyInstance) {
 			}
 			
 			let user: UserModel | null = null;
+			const { id } = request.params as { id: number };
 			if (avatarFile && avatarBuffer)
 			{
-				const { id1 } = request.params as { id1: number };
-				user = await getUser(id1, null);
-				// if (await GetAvatarFromBuffer(user, avatarFile, avatarBuffer))
+				user = await getUser(id, null);
+				if (user.avatar != "default.png")
+				{
+					try {await fs.unlink(`./uploads/avatars/${user.avatar}`);}
+					catch (err) { console.error(`Erreur lors de la suppression du fichier :`, err);} //ptet caca de faire comme ca jsp
+				}
 				await GetAvatarFromBuffer(reply, user, avatarFile, avatarBuffer);
 			}
+			user = await getUser(id, null);
+			console.log(user!.avatar);
 			return reply.status(200).send({
 				statusCode: 200,
 				message: user!.avatar
@@ -123,42 +131,54 @@ export async function usersRoutes(app: FastifyInstance) {
 				return;
 			}
 			const { id } = request.params as { id: number };
-
+			
+			// console.log("--------------------------request is : " + request);
+		console.log("Headers:", JSON.stringify(request.headers, null, 2));
+console.log("Params:", JSON.stringify(request.params, null, 2));
+console.log("Query:", JSON.stringify(request.query, null, 2));
+console.log("Body:", JSON.stringify(request.body, null, 2));
 		const result = ModUserInputSchema.safeParse(request);
 		if (!result.success) {
 			const error = result.error.errors[0];
 			return reply.status(400).send({ statusCode: 400, errorMessage: error.message + " in " + error.path });
 		}
 		//on cree l user avec les donnees a inserer une fois le safeparse effectue
-		let dataUserToUpdate = result.data as ModUserInput; //datatext - a mod pour current et new pass
-		let dataUser = await getUserAllInfo(id);
-
-		if (dataUser.username != dataUserToUpdate.username)
+		const dataUserReceived = result.data as ModUserInput; //datatext - a mod pour current et new pass
+		const dataUser = await getUserAllInfo(id);
+		let dataUserToUpdate = dataUser;
+		if (dataUser.username != dataUserReceived.username)
 		{
-			const UserNameCheck = await getUser(null, dataUserToUpdate.username);
+			const UserNameCheck = await getUser(null, dataUserReceived.username);
 			if (UserNameCheck.id != dataUser.id)
 				return {statusCode : 409, message : "Username already used.<br><b>" + await (searchNewName(dataUserToUpdate.username)) + "</b> is available."};
 		}
-		if (dataUser.email != dataUserToUpdate.email)
+		if (dataUser.email != dataUserReceived.email)
 		{
-			const UserEmailCheck = await getUser(null, dataUserToUpdate.email);
+			const UserEmailCheck = await getUser(null, dataUserReceived.email);
 			if (UserEmailCheck.id != dataUser.id)
 				return {statusCode: 409, message : "Email already used"};
 		}
-		if (dataUserToUpdate.curr_password && dataUserToUpdate.new_password)
+		if (dataUserReceived.curr_password && dataUserReceived.new_password)
 		{
-			const isPassValid = await bcrypt.compare(bcrypt.hash(dataUserToUpdate.curr_password, 10), dataUser.password);
+			// dataUserToUpdate.curr_password = await bcrypt.hash(dataUserToUpdate.curr_password, 10);
+
+			const isPassValid = await bcrypt.compare(dataUserReceived.curr_password, dataUser.password);
 			if (!isPassValid) {
 				return reply.status(401).send({
 					statusCode: 401,
 					errorMessage: 'Password does not match.'
 				});
 			}
-			dataUserToUpdate.new_password = await bcrypt.hash(dataUserToUpdate.new_password, 10);
+			dataUserToUpdate.password = await bcrypt.hash(dataUserReceived.new_password, 10);
 		}
 		else
-			dataUserToUpdate.new_password = dataUser.password;
+			dataUserToUpdate.password = dataUser.password;
 		await changeUserData(id, dataUserToUpdate);
+		const user = getUser(id);
+		return reply.status(200).send({
+			statusCode: 200,
+			message: user
+		});
 
 
 		
