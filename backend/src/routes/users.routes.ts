@@ -132,11 +132,7 @@ export async function usersRoutes(app: FastifyInstance) {
 			}
 			const { id } = request.params as { id: number };
 			
-			// console.log("--------------------------request is : " + request);
-		console.log("Headers:", JSON.stringify(request.headers, null, 2));
-console.log("Params:", JSON.stringify(request.params, null, 2));
-console.log("Query:", JSON.stringify(request.query, null, 2));
-console.log("Body:", JSON.stringify(request.body, null, 2));
+			console.log("--------------------------request is : " + request);
 		const result = ModUserInputSchema.safeParse(request);
 		if (!result.success) {
 			const error = result.error.errors[0];
