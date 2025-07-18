@@ -142,7 +142,7 @@ export class BoidsPage extends BasePage {
     //the height of the canvas
     public ch: number = 0;
     public cy: number = 0;
-    public L: number = 5;
+    public L: number = 20;
     public R: number = (this.L * .5) / Math.cos(Math.PI / 6);
     public triangles: Triangle[] = [];
     public clearFillStyle = 1;

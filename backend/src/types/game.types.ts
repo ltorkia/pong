@@ -38,12 +38,12 @@ export class Ball {
     public checkPlayerCollision(players: Player[]): boolean {
         for (const player of players) {
             const playerBounds = {
-                xRange: { x0: player.pos.x - 0.10 / 2, x1: player.pos.x + 0.10 / 2 },
-                yRange: { y0: player.pos.y - 0.30 / 2, y1: player.pos.y + 0.30 / 2 }
+                xRange: { x0: player.pos.x - 0.30 / 2, x1: player.pos.x + 0.30 / 2 },
+                yRange: { y0: player.pos.y - 0.10 / 2, y1: player.pos.y + 0.10 / 2 }
             }
             const xClamp = clamp(this.x, playerBounds.xRange.x0, playerBounds.xRange.x1);
             const yClamp = clamp(this.y, playerBounds.yRange.y0, playerBounds.yRange.y1);
-            if (Math.sqrt(Math.pow(this.x - xClamp, 2) + (Math.pow(this.y - yClamp, 2))) <= this.radius / 2)
+            if (Math.sqrt(Math.pow(this.x - xClamp, 2) + (Math.pow(this.y - yClamp, 2))) <= this.radius)
                 return (true);
         }
         return (false);
@@ -53,8 +53,8 @@ export class Ball {
         this.y = 0;
         this.vAngle = 60;
         this.vSpeed = 0.01;
-        this.radius = 0.10;
-    }
+        this.radius = 0.03;
+    } 
 };
 
 export class GameInstance {
@@ -76,6 +76,8 @@ export class GameInstance {
         while (this.gameStarted == true) {
             // console.log("angle ", this.ball.vAngle);
             this.ball.move();
+            for (const player of this.players)
+                player.move();
             const collision: boolean = this.ball.checkPlayerCollision(this.players);
             if (collision && (this.ball.isGoingRight() || this.ball.isGoingLeft())) {
                 // console.log("HORIZONTAL");
@@ -130,6 +132,7 @@ export class GameInstance {
     };
 
     public registerInput(playerID: number, key: string, status: boolean): void {
+        // console.log("coucou")
         for (const player of this.players) {
             if (player.playerID == playerID) {
                 if (key == "w" && player.inputUp != status) player.inputUp = status;

@@ -47,11 +47,12 @@ export class Ball {
     draw() {
         const xPixels = ((this.x + 1) / 2) * this.ctx.canvas.width;
         const yPixels = (1 - ((this.y + 1) / 2)) * this.ctx.canvas.height;
+        const radiusPix = this.radius * (Math.min(this.ctx.canvas.width, this.ctx.canvas.height) / 2);
         this.ctx.beginPath();
         this.ctx.arc(
             xPixels,
             yPixels,
-            this.radius, 0, Math.PI * 2, true
+            radiusPix, 0, Math.PI * 2, true
         );
         this.ctx.closePath();
         this.ctx.fillStyle = "rgba(0, 0, 255)";
@@ -62,7 +63,7 @@ export class Ball {
         this.x = 0;
         this.y = 0;
         this.moveUnit = 0;
-        this.radius = 10;
+        this.radius = 0.03;
         this.ctx = ctx;
     }
 };
@@ -150,16 +151,17 @@ export class MultiPlayerGame {
         this.ball.x = posData.ball.x;
         this.ball.y = posData.ball.y;
         for (let i = 0; i < posData.players.length; i++) {
-            this.players[i].x = posData.players[i].x;
-            this.players[i].y = posData.players[i].y;
+            this.players[i].x = posData.players[i].pos.x;
+            this.players[i].y = posData.players[i].pos.y;
         }
     }
 
     private gameLoop(): void {
         if (!this.gameStarted) return;
         this.clearScreen();
-        for (const player of this.players)
+        for (const player of this.players) {
             player.draw();
+        }
         this.ball.draw();
         this.frameReq = requestAnimationFrame(this.gameLoop.bind(this));
     };

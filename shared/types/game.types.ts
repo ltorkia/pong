@@ -8,13 +8,24 @@ export class Player {
     public webSocket: WebSocket;
     public inGame: boolean;
     public pos = { x: 0, y: 0 };
+    public height: number;
+    public width: number;
     public inputUp: boolean = false;
     public inputDown: boolean = false;
     
+    move() {
+        if (this.inputUp == true && this.pos.y + (this.height / 2) + 0.02 < 1)
+            this.pos.y += 0.02;
+        else if (this.inputDown == true && this.pos.y - (this.height / 2) - 0.02 > -1)
+            this.pos.y -= 0.02;
+    }
+
     constructor(playerID: number, webSocket: WebSocket) {
         this.playerID = playerID;
         this.webSocket = webSocket;
         this.inGame = false;
+        this.width = 0.10;
+        this.height = 0.30;
     } 
 }
 
@@ -26,7 +37,7 @@ export class GameData {
     constructor(players: Player[], ball: {x: number, y: number}) {
         for (const player of players) {
             this.players.push({
-                id: player.playerID, 
+                id: player.playerID,
                 pos: {x: player.pos.x, y: player.pos.y}
             });
         }
