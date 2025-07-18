@@ -253,6 +253,7 @@ export class SettingsPage extends BasePage {
 	 */
 	protected handleSettingsSubmit = async (event: Event): Promise<void> => {
 		event.preventDefault();
-		await crudService.updateCurrentUser(this.currentUser!.id, this.form);
+		const formData = new FormData(this.form);
+		await crudService.updateCurrentUser(this.currentUser!.id, formData);
 	};
 }

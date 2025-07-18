@@ -51,11 +51,9 @@
 	}
 
 	#navbar-menu.hide {
-		/* @apply opacity-0 pointer-events-none; */
 		@apply -translate-x-[100vw] pointer-events-none;
 	}
 	#navbar-menu.show {
-		/* @apply opacity-100 pointer-events-auto; */
 		@apply translate-x-0 pointer-events-auto;
 	}
 

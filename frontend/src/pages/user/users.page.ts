@@ -90,14 +90,14 @@ export class UsersPage extends BasePage {
 
 		let i = 1;
 		for (const user of users) {
-			let tempContainer = document.createElement('tbody');
+			let tempContainer = document.createElement('div');
 			const rowComponent = new UserRowComponent(this.config, this.componentConfig!, tempContainer, user);
 			await rowComponent.render();
 
-			const tr = tempContainer.querySelector('tr');
-			if (tr) {
-				tr.id = `${COMPONENT_NAMES.USER_ROW}-${i}`;
-				userList.appendChild(tr);
+			const userLine = tempContainer.querySelector('.user-line');
+			if (userLine) {
+				userLine.id = `${COMPONENT_NAMES.USER_ROW}-${i}`;
+				userList.appendChild(userLine);
 			}
 			const instanceKey = `${this.componentConfig!.name}-${user.id}`;
 			this.addToComponentInstances(instanceKey, rowComponent);
