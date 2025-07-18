@@ -1,6 +1,6 @@
 import { BasePage } from '../base/base.page';
 import { RouteConfig } from '../../types/routes.types';
-import { PositionObj, PlayerObj, GameData } from '../shared/types/game.types'
+// import { PositionObj, PlayerObj, GameData } from '../shared/types/game.types'
 import { MultiPlayerGame } from '../../components/game/MultiplayerGame.component';
 
 export class GameMenuMulti extends BasePage {
@@ -18,13 +18,13 @@ export class GameMenuMulti extends BasePage {
         document.getElementById("pong-section")!.append(errorDiv);
     }
     
-    protected initLobby(playerID: number): void {
+    protected initLobby(): void {
         const lobby = document.createElement("div").textContent = "Waiting for other players to connect...";
         document.getElementById("pong-section")?.append(lobby);
     }
 
-    private initGame(playerID: number): void {
-        this.game = new MultiPlayerGame(2, this.webSocket, playerID);
+    private initGame(playerID: number, gameID: number): void {
+        this.game = new MultiPlayerGame(2, this.webSocket, playerID, gameID);
         this.game.initGame();
     }
 
@@ -34,25 +34,26 @@ export class GameMenuMulti extends BasePage {
 
     protected attachListeners(): void {
         this.webSocket?.addEventListener("message", (event) => {
-            // console.log(event.data);
             const msg = JSON.parse(event.data);
             if (msg.type == "start") {
                 console.log(`game starts ! id = ${msg.ID}`);
-                this.initGame(msg.ID);
+                this.initGame(msg.playerID, msg.gameID);
             } else if (msg.type == "GameData") {
-                // console.log("coucou")
-                this.game!.setBallPos(msg.ball.x, msg.ball.y);
-            }
+                this.game!.setAllPositions(msg);
+            } else if (msg.type == "msg")
+                console.log(msg.msg);
         })
         this.webSocket?.addEventListener("error", (event) => {
             console.log(event);
         })
     }
-    
+
     private openWebSocket(): void {
         this.webSocket = new WebSocket("wss://localhost:8443/api/ws/multiplayer");
         this.webSocket.onopen = (event) => {
             console.log("Connected!");
+            // this.webSocket.send("COUCOU LE SERVEUR");
+            // this.initLobby();
         };
         this.webSocket.onerror = (event) => {
             this.insertNetworkError();

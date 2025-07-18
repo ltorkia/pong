@@ -1,4 +1,4 @@
-import { PositionObj } from "../shared/game.types"
+import { PositionObj, GameData } from "../shared/game.types"
 
 const clamp = (val: number, min: number, max: number) => { return Math.min(Math.max(val, min), max) };
 
@@ -12,13 +12,11 @@ export class PlayerBar {
     private ctx: CanvasRenderingContext2D;
 
     public draw(): void {
-        // console.log("drawing shit");
         const xPixels = ((this.x + 1) / 2) * this.ctx.canvas.width;
         const yPixels = (1 - (this.y + 1 / 2)) * this.ctx.canvas.height;
         const pixelWidth = this.w * (this.ctx.canvas.width / 2);
         const pixelHeight = this.h * (this.ctx.canvas.height / 2);
         this.ctx.fillStyle = "rgba(255, 0, 0)";
-        // console.log(xPixels);
         this.ctx.fillRect(
             xPixels - pixelWidth / 2,
             yPixels - pixelHeight / 2, 
@@ -48,7 +46,7 @@ export class Ball {
 
     draw() {
         const xPixels = ((this.x + 1) / 2) * this.ctx.canvas.width;
-        const yPixels = (1 - (this.y + 1 / 2)) * this.ctx.canvas.height;
+        const yPixels = (1 - ((this.y + 1) / 2)) * this.ctx.canvas.height;
         this.ctx.beginPath();
         this.ctx.arc(
             xPixels,
@@ -83,6 +81,21 @@ export class MultiPlayerGame {
     public inputUp: boolean;
     public inputDown: boolean;
     private playerID: number;
+    private gameID: number;
+
+    constructor(playersCount: number, playerWebSocket: WebSocket, playerID: number, gameID: number) {
+        // const inputs: string[] = ["w", "s", "ArrowUp", "ArrowDown"];
+        this.playersCount = playersCount;
+        this.playerWebSocket = playerWebSocket;
+        this.playerID = playerID;
+        this.gameID = gameID;
+        this.inputUp = false;
+        this.inputDown = false;
+        // this.side = 0;
+        for (let i = 0; i < playersCount; i++) {
+            this.players.push(new PlayerBar(this.canvasCtx));
+        }
+    }
 
     public clearScreen(): void {
         this.canvasCtx.globalCompositeOperation = 'destination-out';
@@ -96,7 +109,8 @@ export class MultiPlayerGame {
             if ((event.key == "w" && this.inputUp == true) || (event.key == "s" && this.inputDown == true))
                 return;
             this.playerWebSocket.send(JSON.stringify({
-                ID: this.playerID,
+                playerID: this.playerID,
+                gameID: this.gameID,
                 key: event.key,
                 status: true,
             }))
@@ -105,9 +119,10 @@ export class MultiPlayerGame {
             if ((event.key == "w" && this.inputUp == true) || (event.key == "s" && this.inputDown == true))
                 return;
             this.playerWebSocket.send(JSON.stringify({
-                ID: this.playerID,
+                playerID: this.playerID,
+                gameID: this.gameID,
                 key: event.key,
-                status: true,
+                status: false,
             }))
         });
     };
@@ -131,37 +146,21 @@ export class MultiPlayerGame {
         })
     };
 
-    public setBallPos(x: number, y: number) {
-        this.ball.x = x;
-        this.ball.y = y;
-        // console.log("setter", this.ball.x, this.ball.y)
+    public setAllPositions(posData: GameData): void {
+        this.ball.x = posData.ball.x;
+        this.ball.y = posData.ball.y;
+        for (let i = 0; i < posData.players.length; i++) {
+            this.players[i].x = posData.players[i].x;
+            this.players[i].y = posData.players[i].y;
+        }
     }
 
     private gameLoop(): void {
         if (!this.gameStarted) return;
-        // const limits = { x0: this.players[0].w, x1: this.gameCanvas.width - this.players[0].w };
         this.clearScreen();
-        // this.checkPlayerMovement();
         for (const player of this.players)
             player.draw();
         this.ball.draw();
-        // this.ball.move();
-        // const collision: boolean = this.ball.checkPlayerCollision(this.players);
-        // if (collision && (this.ball.isGoingRight() || this.ball.isGoingLeft())) {
-        // console.log("HORIZONTAL");
-        // this.ball.horizontalCollision();
-        // }
-        // else if (collision && (this.ball.isGoingUp() || this.ball.isGoingDown())) {
-        // console.log("VERTICAL");
-        // this.ball.verticalCollision();
-        // }
-        // if (this.playersCount == 2 && (this.ball.y >= this.gameCanvas.height || this.ball.y <= 0)) {
-        // this.ball.verticalCollision();
-        // }
-        // if (this.ball.x + this.ball.radius < limits.x0 || this.ball.x > limits.x1 + this.ball.radius) {
-        // this.gameStarted = false;
-        // cancelAnimationFrame(this.frameReq);
-        // }
         this.frameReq = requestAnimationFrame(this.gameLoop.bind(this));
     };
 
@@ -187,24 +186,9 @@ export class MultiPlayerGame {
         this.gameCanvas.style.border = "1px solid black";
         canvasContainer.append(this.gameCanvas);
         this.initSizePos();
-        // await this.counter();
         this.clearFillStyle = 0.3;
         this.attachListeners();
         this.gameStarted = true;
         this.frameReq = requestAnimationFrame(this.gameLoop.bind(this));
     };
-
-    constructor(playersCount: number, playerWebSocket: WebSocket, playerID: number) {
-        // const inputs: string[] = ["w", "s", "ArrowUp", "ArrowDown"];
-        this.playersCount = playersCount;
-        this.playerWebSocket = playerWebSocket;
-        this.playerID = playerID;
-        this.inputUp = false;
-        this.inputDown = false;
-        for (let i = 0; i < playersCount; i++) {
-            this.players.push(new PlayerBar(this.canvasCtx));
-            // inputs.shift();
-            // inputs.shift();
-        }
-    }
 }

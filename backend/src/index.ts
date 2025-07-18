@@ -3,6 +3,7 @@ import fastifyHelmet from '@fastify/helmet';
 import fastifyCookie from '@fastify/cookie';
 import fastifyJwt from '@fastify/jwt';
 import fastifyMultipart from '@fastify/multipart';
+import fastifyWs from '@fastify/websocket';
 import { IMAGE_CONST } from './shared/config/constants.config';
 // import { SocketStream } from '@fastify/websocket';
 
@@ -41,7 +42,7 @@ async function start() {
 	app.register(fastifyCookie);
 
 	// Same pour websocket
-  	app.register(require('@fastify/websocket'));
+  	app.register(fastifyWs);
 
 	// pour uploader des avatars
 	app.register(fastifyMultipart, {
