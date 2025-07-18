@@ -3,10 +3,11 @@ import template from './user-row.component.html?raw'
 
 import { BaseComponent } from '../base/base.component';
 import { RouteConfig } from '../../types/routes.types';
+import { router } from '../../router/router';
 import { ComponentConfig } from '../../types/components.types';
 import { ImageService } from '../../services/core/image.service';
 import { User } from '../../models/user.model';
-import { IMAGE_CONST } from '../../shared/config/constants.config';
+import { getHTMLElementById, getHTMLElementByClass } from '../../utils/dom.utils';
 
 // ===========================================
 // USER ROW COMPONENT
@@ -25,9 +26,11 @@ import { IMAGE_CONST } from '../../shared/config/constants.config';
  */
 export class UserRowComponent extends BaseComponent {
 	protected user?: User | null = null;
+	private userCell!: HTMLAnchorElement;
 	private avatarImg!: HTMLImageElement;
-	private usernameLink!: HTMLAnchorElement;
+	private nameCell!: HTMLElement;
 	private levelCell!: HTMLElement;
+	private profilePath!: string;
 
 	/**
 	 * Constructeur du composant de ligne d'utilisateur.
@@ -76,9 +79,11 @@ export class UserRowComponent extends BaseComponent {
 	 * @returns {Promise<void>} Une promesse qui se résout lorsque les éléments HTML ont été stockés.
 	 */
 	protected async beforeMount(): Promise<void> {
-		this.avatarImg = this.container.querySelector('.avatar-img') as HTMLImageElement;
-		this.usernameLink = this.container.querySelector('.username-link') as HTMLAnchorElement;
-		this.levelCell = this.container.querySelector('.level-cell') as HTMLElement;
+		this.userCell = getHTMLElementById('user-cell', this.container) as HTMLAnchorElement;
+		this.avatarImg = getHTMLElementByClass('avatar-img', this.container) as HTMLImageElement;
+		this.nameCell = getHTMLElementByClass('name-cell', this.container) as HTMLElement;
+		this.levelCell = getHTMLElementByClass('level-cell', this.container) as HTMLElement;
+		this.profilePath = `/user/${this.user!.id}`;
 	}
 
 	/**
@@ -92,12 +97,11 @@ export class UserRowComponent extends BaseComponent {
 	 * @returns {Promise<void>} Une promesse qui se résout lorsque le composant est monté.
 	 */
 	protected async mount(): Promise<void> {
+		this.userCell.setAttribute('title', `${this.user!.username}'s profile`);
 		this.avatarImg.setAttribute('src', await ImageService.getUserAvatarURL(this.user!));
 		this.avatarImg.setAttribute('alt', `${this.user!.username}'s avatar`);
 		this.avatarImg.setAttribute('loading', 'lazy');
-
-		this.usernameLink.setAttribute('href', `/user/${this.user!.id}`);
-		this.usernameLink.textContent = this.user!.username;
+		this.nameCell.textContent = this.user!.username;
 
 		if (this.levelCell) {
 			if ('winRate' in this.user! && this.user.winRate !== undefined) {
@@ -106,6 +110,22 @@ export class UserRowComponent extends BaseComponent {
 				this.levelCell.textContent = 'No stats';
 			}
 		}
+	}
+
+	/**
+	 * Attribue les listeners.
+	 * 
+	 * - Attribue un listener au bloc avatar/username pour rediriger vers le profil.
+	 */
+	protected attachListeners(): void {
+		this.userCell.addEventListener('click', this.handleUsercellClick);
+	}
+
+	/**
+	 * Enlève les listeners.
+	 */
+	protected removeListeners(): void {
+		this.userCell.removeEventListener('click', this.handleUsercellClick);
 	}
 
 	// ===========================================
@@ -126,4 +146,19 @@ export class UserRowComponent extends BaseComponent {
 	private async loadTemplateDev(): Promise<void> {
 		this.loadTemplate(template);
 	}
+
+	// ===========================================
+	// LISTENER HANDLERS
+	// ===========================================
+
+	/**
+	 * Listener sur le bloc avatar/username pour rediriger vers le profil.
+	 * 
+	 * @param {MouseEvent} event L'événement de clic.
+	 * @returns {Promise<void>} Une promesse qui se resout apres la redirection.
+	 */
+	private handleUsercellClick = async (event: MouseEvent): Promise<void> => {
+		event.preventDefault();
+		await router.navigate(this.profilePath);
+	};
 }

@@ -20,7 +20,7 @@
 		
 		mobile:w-28 mobile:text-right;
 	}	
-	.field-box input, .field-box select {
+	.field-box input, .field-box select, #search-bar input {
 		@apply border border-gray-300 rounded px-3 py-1 focus:outline-none focus:ring focus:ring-blue-300
 		text-black font-classic text-sm w-full;
 	}

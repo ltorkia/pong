@@ -1,23 +1,81 @@
 @layer components {
+
+	/* SEARCH BAR */
+	#search-bar {
+		@apply w-full flex flex-row justify-center items-center
+		bg-white/20 backdrop-blur-md border border-white/20
+		rounded-full p-2 px-4 mb-4 space-x-5
+		transition duration-300 ease-in-out;
+	}
+
+	#search-bar input {
+		@apply w-auto text-gray-700;
+	}
+
+	#search-bar button {
+		@apply text-btn-google-color;
+	}
+
+	/* USER LIST */
 	.avatar-img {
 		@apply w-14 h-14 object-cover object-center
 		rounded-full border border-white/65;
 	}
 
 	#user-list {
-		@apply w-full font-classic text-gray-700 text-sm;
+		@apply w-full font-classic text-gray-700 text-sm
+		flex flex-col items-center justify-center;
 	}
 
-	#user-list td {
+	#user-list .cell {
 		@apply p-1;
 	}
 
-	#user-list tr:nth-child(odd) {
+	#user-list .user-line:first-child {
+		@apply rounded-t-3xl;
+	}
+
+	#user-list .user-line:last-child {
+		@apply rounded-b-3xl;
+	}
+
+	#user-list .user-line:nth-child(odd) {
 		@apply bg-white/50;
 	}
 
-	#user-list tr:nth-child(even) {
+	#user-list .user-line:nth-child(even) {
 		@apply bg-white/80;
 	}
 
+	.user-line {
+		@apply w-full flex flex-row justify-between items-center;
+	}
+
+	.user-line button {
+		@apply text-btn-google-color font-normal lowercase px-3 hover:text-blue-500;
+	}
+
+	#user-list .user-line:nth-child(odd) button {
+		@apply bg-blue-100;
+	}
+
+	#user-list .user-line:nth-child(even) button {
+		@apply bg-gray-100;
+	}
+
+	#user-cell {
+		@apply flex flex-row justify-center items-center cursor-pointer;
+	}
+
+	#user-cell:hover .name-cell {
+		@apply text-blue-200;
+	}
+
+	.name-cell {
+		@apply font-title text-gray-100
+		border border-white/65 rounded-lg px-2 py-0
+		bg-btn-google-color font-bold -ml-5 -rotate-3
+		bg-gradient-to-r from-blue-500 to-btn-google-color
+		transition duration-300 ease-in-out;
+	}
 }
