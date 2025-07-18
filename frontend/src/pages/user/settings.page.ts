@@ -51,7 +51,6 @@ export class SettingsPage extends BasePage {
 	protected async beforeMount(): Promise<void> {
 		if (!this.currentUser!.email) {
 			this.currentUser = await userAuthApi.getMe();
-			console.log(this.currentUser);
 		}
 		this.avatarContainer = getHTMLElementById('avatar-container') as HTMLElement;
 		this.avatarInput = getHTMLElementById('avatar-input') as HTMLInputElement;
@@ -131,29 +130,6 @@ export class SettingsPage extends BasePage {
 		this.answerInput.value = this.currentUser!.secretAnswer;
 	}
 
-	/**
-	 * Définit l'image d'arrière-plan de l'élément avatar avec l'URL d'image fournie.
-	 * L'image est mise à l'échelle pour couvrir tout l'élément et est centrée.
-	 * 
-	 * @param {string} imageUrl - L'URL de l'image d'avatar.
-	 */
-	private setAvatarPreview(imageUrl: string): void {
-		Object.assign(this.avatarContainer.style, {
-			backgroundImage: `url('${imageUrl}')`,
-			backgroundSize: "cover",
-			backgroundPosition: "center"
-		});
-	}
-
-	/**
-	 * Réinitialise l'avatar à sa valeur d'origine, en chargeant l'image d'avatar
-	 * de l'utilisateur actuel et en remettant à zéro l'input de type fichier.
-	 */
-	private resetAvatar(): void {
-		this.avatarContainer.style.backgroundImage = `url('${this.currentUserAvatarURL!}')`;
-		this.avatarInput.value = '';
-	}
-
 	// ===========================================
 	// LISTENER HANDLERS
 	// ===========================================
@@ -185,28 +161,12 @@ export class SettingsPage extends BasePage {
 		if (!file) { 
 			return;
 		}
-
-		try {
-			const isValidImage = ImageService.isValidImage(file);
-			if (!isValidImage) {
-				return;
-			}
-			const previewUrl = await ImageService.getPreviewUrl(file);
-			this.setAvatarPreview(previewUrl);
-			const result = await ImageService.uploadAvatar(this.currentUser!.id, file);
-			if (result.errorMessage) {
-				showAlert(result.errorMessage || 'Couldn\'t upload image', 'alert', 'error');
-				this.resetAvatar();
-				return;
-			}
-			this.currentUserAvatarURL = await ImageService.getUserAvatarURL(this.currentUser!);
-			showAlert('Image successfully uploaded', 'alert', 'success');
-
-		} catch (error) {
-			console.error('Erreur avatar:', error);
-			showAlert('Unexpected error', 'alert', 'error');
-			this.resetAvatar();
+		const result = await ImageService.uploadAvatar(this.currentUser!.id, file);
+		if (result === false) {
+			return;
 		}
+		this.currentUserAvatarURL = await ImageService.getUserAvatarURL(this.currentUser!);
+		this.loadAvatar();
 	}
 
 	/**

@@ -7,6 +7,7 @@ import { router } from '../../router/router';
 import { ComponentConfig } from '../../types/components.types';
 import { ImageService } from '../../services/core/image.service';
 import { User } from '../../models/user.model';
+import { dataService } from '../../services/services';
 import { getHTMLElementById, getHTMLElementByClass } from '../../utils/dom.utils';
 
 // ===========================================
@@ -29,6 +30,7 @@ export class UserRowComponent extends BaseComponent {
 	private userCell!: HTMLAnchorElement;
 	private avatarImg!: HTMLImageElement;
 	private nameCell!: HTMLElement;
+	private statusCell!: HTMLElement;
 	private levelCell!: HTMLElement;
 	private profilePath!: string;
 
@@ -82,6 +84,7 @@ export class UserRowComponent extends BaseComponent {
 		this.userCell = getHTMLElementById('user-cell', this.container) as HTMLAnchorElement;
 		this.avatarImg = getHTMLElementByClass('avatar-img', this.container) as HTMLImageElement;
 		this.nameCell = getHTMLElementByClass('name-cell', this.container) as HTMLElement;
+		this.statusCell = getHTMLElementByClass('status-cell', this.container) as HTMLElement;
 		this.levelCell = getHTMLElementByClass('level-cell', this.container) as HTMLElement;
 		this.profilePath = `/user/${this.user!.id}`;
 	}
@@ -102,7 +105,8 @@ export class UserRowComponent extends BaseComponent {
 		this.avatarImg.setAttribute('alt', `${this.user!.username}'s avatar`);
 		this.avatarImg.setAttribute('loading', 'lazy');
 		this.nameCell.textContent = this.user!.username;
-
+		console.log(dataService.showStatusLabel());
+		this.statusCell.innerHTML = dataService.showStatusLabel();
 		if (this.levelCell) {
 			if ('winRate' in this.user! && this.user.winRate !== undefined) {
 				this.levelCell.textContent = `Win rate: ${this.user.winRate}%`;

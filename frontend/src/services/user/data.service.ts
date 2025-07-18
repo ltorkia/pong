@@ -122,7 +122,6 @@ export class DataService {
 	 * 
 	 * @returns {User | null} L'utilisateur restauré, ou null si la restaurtion a échoué.
 	 */
-	// TODO: Prévoir le cas où le user est restauré sans email dans la mémoire vive (faire un fallback api)
 	public restoreUser(): User | null {
 		const storedUser: SafeUserModel | null = userStore.restoreFromStorage();
 		if (!storedUser) {
@@ -133,6 +132,25 @@ export class DataService {
 		this.setCurrentUser(user);
 		console.log(`[${this.constructor.name}] User restauré:`, this.currentUser);
 		return this.currentUser;
+	}
+
+	// ============================================================================
+	// MÉTHODES UTILITAIRES
+	// ============================================================================
+
+	/**
+	 * Convertit un statut en libellé lisible.
+	 * 
+	 * @returns Libellé lisible
+	 */
+	public showStatusLabel(): string {
+		console.log(this.currentUser!.status);
+		switch (this.currentUser!.status) {
+			case 'online': return '<span class="text-green-500">🟢 online </span>';
+			case 'offline': return '<span class="text-red-500">🔴 offline </span>';
+			case 'in-game': return '<span class="text-yellow-500">🟡 in game</span>';
+			default: return 'Unknown';
+		}
 	}
 
 	// ============================================================================
@@ -202,24 +220,5 @@ export class DataService {
 	 */
 	public static sortByGamesPlayed(users: User[]): User[] {
 		return [...users].sort((a, b) => b.gamePlayed - a.gamePlayed);
-	}
-
-	// ============================================================================
-	// MÉTHODES UTILITAIRES
-	// ============================================================================
-
-	/**
-	 * Convertit un statut en libellé lisible.
-	 * 
-	 * @param status - Statut de l'utilisateur
-	 * @returns Libellé lisible
-	 */
-	private getStatusLabel(status: UserStatus): string {
-		switch (status) {
-			case 'online': return 'Online';
-			case 'offline': return 'Offline';
-			case 'in-game': return 'in game';
-			default: return 'Unknown';
-		}
 	}
 }

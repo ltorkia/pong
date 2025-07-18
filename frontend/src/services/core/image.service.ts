@@ -3,7 +3,7 @@ import { DB_CONST, IMAGE_CONST } from '../../shared/config/constants.config'; //
 import { BasicResponse } from '../../types/api.types';
 import { showAlert } from '../../utils/dom.utils';
 import { User } from '../../models/user.model';
-import { userCrudApi } from '../../api/user/user-index.api';
+import { crudService } from '../../services/services';
 
 // ===========================================
 // IMAGE SERVICE
@@ -43,34 +43,14 @@ export class ImageService {
 			return false;
 		}
 		if (avatarFile!.size > IMAGE_CONST.MAX_SIZE) {
-			showAlert(IMAGE_CONST.MAX_SIZE);
+			showAlert(IMAGE_CONST.ERRORS.SIZE_LIMIT);
 			return false;
 		}
 		if (!(avatarFile!.type in IMAGE_CONST.EXTENSIONS)) {
-			showAlert(IMAGE_CONST.TYPE_ERROR);
+			showAlert(IMAGE_CONST.ERRORS.TYPE_ERROR);
 			return false;
 		}
 		return true;
-	}
-
-	/**
-	 * Convertit un fichier en URL de prévisualisation.
-	 *
-	 * @param {File} file Le fichier image.
-	 * @returns {Promise<string>} Une promesse qui se résout avec l'URL de prévisualisation.
-	 */
-	public static async getPreviewUrl(file: File): Promise<string> {
-		return new Promise((resolve, reject) => {
-			const reader = new FileReader();
-			reader.onload = (e) => {
-				const imageUrl = e.target?.result as string;
-				resolve(imageUrl);
-			};
-			reader.onerror = () => {
-				reject(new Error('Erreur lors de la lecture du fichier'));
-			};
-			reader.readAsDataURL(file);
-		});
 	}
 
 	/**
@@ -78,26 +58,20 @@ export class ImageService {
 	 *
 	 * @param {number} userId L'ID de l'utilisateur.
 	 * @param {File} file Le fichier image à uploader.
-	 * @returns {Promise<UploadResult>} Une promesse qui se résout avec le résultat de l'upload.
+	 * @returns {Promise<boolean>} Une promesse qui se résout avec le résultat de l'upload.
 	 */
-	public static async uploadAvatar(userId: number, file: File): Promise<BasicResponse> {
-		try {
-			const isValidImage = this.isValidImage(file);
-			if (!isValidImage) {
-				return { success: false };
-			}
-			const formData = new FormData();
-			formData.append('avatar', file);
-			userCrudApi.updateAvatar(userId, formData);
-			return { success: true };
-			
-		} catch (error) {
-			console.error('Erreur upload avatar:', error);
-			return {
-				success: false,
-				errorMessage: error instanceof Error ? error.message : 'Erreur inconnue lors de l\'upload'
-			};
+	public static async uploadAvatar(userId: number, file: File): Promise<boolean> {
+		const isValidImage = this.isValidImage(file);
+		if (!isValidImage) {
+			return false;
 		}
+		const formData = new FormData();
+		formData.append('avatar', file);
+		const result = await crudService.updateCurrentAvatar(userId, formData);
+		if (!result) {
+			return false;
+		}
+		return true;
 	}
 
 	/**

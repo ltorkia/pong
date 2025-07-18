@@ -28,6 +28,7 @@ FRONT
 - Faire un petit hover sur le bouton/icon previous de register et du modal
 - Déplacer des méthodes de base.page.ts pour alléger (updateNavigation, checkUserLogged, méthodes relatives aux components,
 getContainerApp, getErrorMessage() etc)
+- Dans Settings faire comme pour password avec question secrete sinon donnees sensibles affichees dans local storage...
 
 - check MAJ package.json :
  @tsparticles/engine         ^3.0.2  →   ^3.8.1

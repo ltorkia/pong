@@ -141,7 +141,6 @@ export class UserCrudApi {
 			method: 'PUT',
 			body: formData,
 		});
-
 		const data = await res.json();
 		if (!res.ok || data.errorMessage || !data.user) {
 			return { errorMessage: data.errorMessage || 'Erreur lors de la mise à jour' };
