@@ -120,4 +120,33 @@ export class UserCrudApi {
 		await dataService.updateCurrentUser(data.user);
 		return data as AuthResponse;
 	}
+
+/**
+ * Met à jour l'avatar d'un utilisateur.
+ * 
+ * Envoie une requête PUT à la route API `/users/:id/modavatar` pour mettre à jour
+ * l'avatar de l'utilisateur d'identifiant `id` avec l'avatar fourni.
+ * 
+ * Si la requête réussit, met à jour les informations de l'utilisateur en mémoire
+ * et renvoie un objet contenant les informations mises à jour de l'utilisateur.
+ * Sinon, renvoie un objet contenant un message d'erreur.
+ * 
+ * @param {number} userId - Identifiant de l'utilisateur à mettre à jour.
+ * @param {FormData} formData - Données de l'avatar à mettre à jour.
+ * @returns {Promise<AuthResponse>} Promesse qui se résout avec les informations mises à jour de l'utilisateur ou un message d'erreur.
+ */
+
+	public async updateAvatar(userId: number, formData: FormData): Promise<AuthResponse> {
+		const res: Response = await secureFetch(`/api/users/${userId}/moduser/avatar`, {
+			method: 'PUT',
+			body: formData,
+		});
+
+		const data = await res.json();
+		if (!res.ok || data.errorMessage || !data.user) {
+			return { errorMessage: data.errorMessage || 'Erreur lors de la mise à jour' };
+		}			
+		await dataService.updateCurrentUser(data.user);
+		return data as AuthResponse;
+	}
 }

@@ -1,9 +1,9 @@
 import { UploadResult, UploadValidationResult } from '../../types/return.types';
 import { DB_CONST, IMAGE_CONST } from '../../shared/config/constants.config'; // en rouge car dossier local 'shared' != dossier conteneur
 import { BasicResponse } from '../../types/api.types';
-import { secureFetch } from '../../utils/app.utils';
 import { showAlert } from '../../utils/dom.utils';
-import { User } from 'src/models/user.model';
+import { User } from '../../models/user.model';
+import { userCrudApi } from '../../api/user/user-index.api';
 
 // ===========================================
 // IMAGE SERVICE
@@ -17,8 +17,6 @@ import { User } from 'src/models/user.model';
  * - uploader et supprimer des avatars
  * - récupérer l'URL de l'avatar actuel
  */
-
-// TODO: Faire requête API dans dossier api pour update image
 
 export class ImageService {
 
@@ -78,37 +76,21 @@ export class ImageService {
 	/**
 	 * Upload un avatar sur le serveur.
 	 *
-	 * @param {string} userId L'ID de l'utilisateur.
+	 * @param {number} userId L'ID de l'utilisateur.
 	 * @param {File} file Le fichier image à uploader.
 	 * @returns {Promise<UploadResult>} Une promesse qui se résout avec le résultat de l'upload.
 	 */
-	public static async uploadAvatar(userId: string, file: File): Promise<BasicResponse> {
+	public static async uploadAvatar(userId: number, file: File): Promise<BasicResponse> {
 		try {
-			// Validation préalable
 			const isValidImage = this.isValidImage(file);
 			if (!isValidImage) {
-				return {
-					success: false
-				};
+				return { success: false };
 			}
-
-			// Préparer FormData
 			const formData = new FormData();
 			formData.append('avatar', file);
+			userCrudApi.updateAvatar(userId, formData);
+			return { success: true };
 			
-			// Effectuer l'upload
-			const res: Response = await secureFetch(`/api/users/${userId}/moduser/avatar`, {
-				method: 'PUT',
-				body: formData,
-			});
-
-			const result = await res.json();
-			if (!res.ok || result.errorMessage) {
-				return { errorMessage: result.errorMessage || 'Erreur lors de la mise à jour' };
-			}			
-			const avatarUrl = `${IMAGE_CONST.ROUTE_API}${result.message}`;
-			return { success: true, message: avatarUrl };
-
 		} catch (error) {
 			console.error('Erreur upload avatar:', error);
 			return {
@@ -117,16 +99,6 @@ export class ImageService {
 			};
 		}
 	}
-
-	/**
-	 * Supprime un avatar du serveur.
-	 *
-	 * @param {string} userId L'ID de l'utilisateur.
-	 * @param {string} [token] Token d'authentification optionnel.
-	 * @returns {Promise<UploadResult>} Une promesse qui se résout avec le résultat de la suppression.
-	 */
-	// public static async deleteAvatar(userId: string, token?: string): Promise<UploadResult> {
-	// }
 
 	/**
 	 * Vérifie si l'image existe sur le serveur.

@@ -115,7 +115,7 @@ export async function usersRoutes(app: FastifyInstance) {
 			console.log(user!.avatar);
 			return reply.status(200).send({
 				statusCode: 200,
-				message: user!.avatar
+				user: user
 			});
 		} catch (err) {
 			request.log.error(err);

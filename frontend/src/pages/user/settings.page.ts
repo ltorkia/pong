@@ -182,32 +182,25 @@ export class SettingsPage extends BasePage {
 	private async handleAvatarChange(event: Event): Promise<void> {
 		const target = event.target as HTMLInputElement;
 		const file = target.files?.[0];
-
-		if (!file) {
-			return
-		};
+		if (!file) { 
+			return;
+		}
 
 		try {
-			// Validation
 			const isValidImage = ImageService.isValidImage(file);
 			if (!isValidImage) {
 				return;
 			}
-
-			// Prévisualisation
 			const previewUrl = await ImageService.getPreviewUrl(file);
 			this.setAvatarPreview(previewUrl);
-			const result = await ImageService.uploadAvatar(this.currentUser!.id.toString(), file);
-
+			const result = await ImageService.uploadAvatar(this.currentUser!.id, file);
 			if (result.errorMessage) {
 				showAlert(result.errorMessage || 'Couldn\'t upload image', 'alert', 'error');
 				this.resetAvatar();
 				return;
 			}
+			this.currentUserAvatarURL = await ImageService.getUserAvatarURL(this.currentUser!);
 			showAlert('Image successfully uploaded', 'alert', 'success');
-			const avatarUrl = result.message;
-			this.setAvatarPreview(avatarUrl!);
-			await userAuthApi.getMe();
 
 		} catch (error) {
 			console.error('Erreur avatar:', error);
