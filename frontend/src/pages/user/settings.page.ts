@@ -208,9 +208,8 @@ export class SettingsPage extends BasePage {
 			} else {
 				showAlert('Image successfully uploaded', 'alert', 'success');
 				const avatarUrl = result.message;
-				if (avatarUrl) {
-					this.setAvatarPreview(avatarUrl);
-				}
+				this.setAvatarPreview(avatarUrl!);
+				await userAuthApi.getMe();
 			}
 
 		} catch (error) {
