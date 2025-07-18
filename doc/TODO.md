@@ -11,7 +11,7 @@ BACK
 
 COMMUN
 
-- RAS
+- Gerer 2FA dans choix utilisateur (champ DB + adaptation avec ou sans 2fa)
 
 FRONT
 

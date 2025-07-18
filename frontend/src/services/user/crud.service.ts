@@ -10,10 +10,10 @@ export class CrudService {
 	 * Met à jour les propriétés de l'utilisateur avec de nouvelles données.
 	 * 
 	 * @param {number} id - Identifiant de l'utilisateur à mettre à jour
-	 * @param {FormData} userData - Objet contenant les propriétés à mettre à jour
+	 * @param {Record<string, string>} userData - Objet contenant les propriétés à mettre à jour
 	 * @returns {Promise<void>} - Promesse qui se resout lorsque l'utilisateur est mis à jour
 	 */
-	async updateCurrentUser(id: number, userData: FormData): Promise<void> {
+	async updateCurrentUser(id: number, userData: Record<string, string>): Promise<void> {
 		const result: AuthResponse = await userCrudApi.updateUser(id, userData);
 		if (result.errorMessage) {
 			console.error(`[${this.constructor.name}] Erreur de mise à jour utilisateur :`, result);
