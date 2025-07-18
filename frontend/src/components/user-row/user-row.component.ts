@@ -105,7 +105,6 @@ export class UserRowComponent extends BaseComponent {
 		this.avatarImg.setAttribute('alt', `${this.user!.username}'s avatar`);
 		this.avatarImg.setAttribute('loading', 'lazy');
 		this.nameCell.textContent = this.user!.username;
-		console.log(dataService.showStatusLabel());
 		this.statusCell.innerHTML = dataService.showStatusLabel();
 		if (this.levelCell) {
 			if ('winRate' in this.user! && this.user.winRate !== undefined) {
