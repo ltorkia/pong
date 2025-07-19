@@ -85,7 +85,7 @@ async function doubleAuth(app: FastifyInstance) {
                 errorMessage: 'Impossible de récupérer l’utilisateur après insertion'
             });
         }
-        ProcessAuth(app, checkUser, reply);
+        await ProcessAuth(app, checkUser, reply);
         return reply.status(200).send({
             statusCode: 200,
             message: 'Successfully logged in.',
@@ -310,7 +310,7 @@ export async function authRoutes(app: FastifyInstance) {
 			// On update l'avatar Google en bdd à chaque reconnexion
 			await insertAvatar(avatar, username);
 
-			ProcessAuth(app, user, reply);
+			await ProcessAuth(app, user, reply);
 			const userData: UserModel = await getUser(null, email);
 			return reply.status(200).send({
 				statusCode: 200,

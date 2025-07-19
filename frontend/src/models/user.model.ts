@@ -211,7 +211,7 @@ export class User {
 			data.username,
 			data.avatar ?? DB_CONST.USER.DEFAULT_AVATAR,
 			'', // Email vide pour les données publiques
-			0,  // SecretQuestionNumberNumber à 0
+			4,  // SecretQuestionNumberNumber à 4
 			'', // Registration vide
 			'', // beginLog vide
 			'', // endLog vide

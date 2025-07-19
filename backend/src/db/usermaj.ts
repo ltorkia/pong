@@ -1,5 +1,6 @@
 import { getDb } from './index.db';
 import { UserForChangeData } from '../types/user.types';
+import { DB_CONST } from '../shared/config/constants.config';
 
 export async function insertAvatar(avatar: string, username: string)
 {
@@ -89,8 +90,8 @@ export async function majLastlog(username: string)
 	const db = await getDb();
 	await db.run(`
 		UPDATE User
-		SET begin_log = datetime('now')
+		SET begin_log = datetime('now'), status = ?
 		WHERE (username = ?)
 		`,
-	[username]);
+	[DB_CONST.USER.STATUS.ONLINE, username]);
 }
