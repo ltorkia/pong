@@ -2,8 +2,8 @@ import Fastify from 'fastify';
 import fastifyHelmet from '@fastify/helmet';
 import fastifyCookie from '@fastify/cookie';
 import fastifyJwt from '@fastify/jwt';
-import websocket from '@fastify/websocket';
 import fastifyMultipart from '@fastify/multipart';
+import fastifyWs from '@fastify/websocket';
 import { IMAGE_CONST } from './shared/config/constants.config';
 // import { SocketStream } from '@fastify/websocket';
 
@@ -12,6 +12,14 @@ import { initDb } from './db/index.db';
 
 // Routes importées
 import { apiRoutes } from './routes/api.routes';
+import { Lobby } from './types/game.types';
+
+// Ajout du lobby multiplayer a l'interface Fastify
+declare module 'fastify' {
+  interface FastifyInstance {
+    lobby: Lobby
+  }
+}
 
 const PORT = 3001;
 
@@ -32,6 +40,9 @@ async function start() {
 	// Enregistre le plugin fastify-cookie pour gérer les cookies HTTP
 	// dans les requêtes et réponses
 	app.register(fastifyCookie);
+
+	// Same pour websocket
+  	app.register(fastifyWs);
 
 	// pour uploader des avatars
 	app.register(fastifyMultipart, {
@@ -68,17 +79,9 @@ async function start() {
 		process.exit(1);
 	}
 
-	// // Register WebSocket plugin
-	//   fastify.get('/ws', { websocket: true }, (connection: SocketStream, req: SocketStream ) => {
-	//     console.log('✅ Client connecté via WebSocket');
-
-	//     connection.socket.on('message', (message : string) => {
-	//       console.log('📨 Message reçu :', message.toString());
-
-	//       // Réponse au client
-	//       connection.socket.send(`Echo : ${message}`);
-	//     });
-	// });
+    // Initiation du lobby multiplayer et ajout a l'app
+    const multiplayerLobby = new Lobby();
+    app.decorate('lobby', multiplayerLobby);
 
 	// Enregistrement des routes
 	try {
