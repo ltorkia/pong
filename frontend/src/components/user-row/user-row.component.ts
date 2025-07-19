@@ -6,6 +6,7 @@ import { RouteConfig } from '../../types/routes.types';
 import { router } from '../../router/router';
 import { ComponentConfig } from '../../types/components.types';
 import { User } from '../../models/user.model';
+import { dataApi } from '../../api/index.api';
 import { dataService } from '../../services/index.service';
 import { getHTMLElementById, getHTMLElementByClass } from '../../utils/dom.utils';
 
@@ -26,12 +27,14 @@ import { getHTMLElementById, getHTMLElementByClass } from '../../utils/dom.utils
  */
 export class UserRowComponent extends BaseComponent {
 	protected user?: User | null = null;
+	private userFriends?: User[] | null = null;
 	private userCell!: HTMLAnchorElement;
 	private avatarImg!: HTMLImageElement;
 	private nameCell!: HTMLElement;
 	private statusCell!: HTMLElement;
 	private levelCell!: HTMLElement;
 	private profilePath!: string;
+	private addFriendButton!: HTMLButtonElement;
 
 	/**
 	 * Constructeur du composant de ligne d'utilisateur.
@@ -80,12 +83,14 @@ export class UserRowComponent extends BaseComponent {
 	 * @returns {Promise<void>} Une promesse qui se résout lorsque les éléments HTML ont été stockés.
 	 */
 	protected async beforeMount(): Promise<void> {
+		this.userFriends = await dataApi.getUserFriends(this.user!.id);
 		this.userCell = getHTMLElementById('user-cell', this.container) as HTMLAnchorElement;
 		this.avatarImg = getHTMLElementByClass('avatar-img', this.container) as HTMLImageElement;
 		this.nameCell = getHTMLElementByClass('name-cell', this.container) as HTMLElement;
 		this.statusCell = getHTMLElementByClass('status-cell', this.container) as HTMLElement;
 		this.levelCell = getHTMLElementByClass('level-cell', this.container) as HTMLElement;
 		this.profilePath = `/user/${this.user!.id}`;
+		this.addFriendButton = getHTMLElementById('add-friend-button', this.container) as HTMLButtonElement;
 	}
 
 	/**
@@ -99,10 +104,20 @@ export class UserRowComponent extends BaseComponent {
 	 * @returns {Promise<void>} Une promesse qui se résout lorsque le composant est monté.
 	 */
 	protected async mount(): Promise<void> {
-		this.userCell.setAttribute('title', `${this.user!.username}'s profile`);
-		this.avatarImg.setAttribute('src', await dataService.getUserAvatarURL(this.user!));
-		this.avatarImg.setAttribute('alt', `${this.user!.username}'s avatar`);
+		if (this.user!.id === this.currentUser!.id) {
+			this.userCell.setAttribute('title', 'Your profile');
+			this.avatarImg.setAttribute('alt', 'Your avatar');
+			this.addFriendButton.classList.add('hidden');
+		} else {
+			this.userCell.setAttribute('title', `${this.user!.username}'s profile`);
+			this.avatarImg.setAttribute('alt', `${this.user!.username}'s avatar`);
+		}
+		const isFriend = await dataService.isFriendWithCurrentUser(this.user!.id, this.userFriends);
+		if (isFriend) {
+			this.addFriendButton.classList.add('hidden');
+		}
 		this.avatarImg.setAttribute('loading', 'lazy');
+		this.avatarImg.setAttribute('src', await dataService.getUserAvatarURL(this.user!));
 		this.nameCell.textContent = this.user!.username;
 		this.statusCell.innerHTML = dataService.showStatusLabel(this.user!);
 		if (this.levelCell) {

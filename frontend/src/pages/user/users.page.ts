@@ -1,5 +1,5 @@
 import { BasePage } from '../base/base.page';
-import { crudApi } from '../../api/index.api';
+import { dataApi } from '../../api/index.api';
 import { SearchBarComponent } from '../../components/search-bar/search-bar.component';
 import { UserRowComponent } from '../../components/user-row/user-row.component';
 import { getHTMLElementById } from '../../utils/dom.utils';
@@ -120,7 +120,7 @@ export class UsersPage extends BasePage {
 	 * sont injectés dans le DOM.
 	 */
 	protected async injectUserList(): Promise<void> {
-		const users = await crudApi.getUsers();
+		const users = await dataApi.getUsers();
 		this.userList = getHTMLElementById(HTML_COMPONENT_CONTAINERS.USER_LIST_ID);
 
 		const renderPromises: Promise<void>[] = [];
@@ -137,6 +137,9 @@ export class UsersPage extends BasePage {
 					const userLine = tempContainer.querySelector('.user-line');
 					if (userLine) {
 						userLine.id = `${COMPONENT_NAMES.USER_ROW}-${i++}`;
+						if (user.id === this.currentUser!.id) {
+							(userLine as HTMLElement).style.backgroundColor = '#5e8ca5';
+						}
 						userLine.classList.add('animate-fadeInUp');
 						this.userList.appendChild(userLine);
 					}

@@ -1,11 +1,11 @@
 import { AuthApi } from './auth.api';
-import { CrudApi } from './data.api';
+import { DataApi } from './data.api';
 
 // ===========================================
 // USER API - SINGLETONS
 // ===========================================
 /**
- * Instances uniques des classes AuthApi, CrudApi
+ * Instances uniques des classes AuthApi, DataApi
  * et QueryApi qui fournissent des méthodes pour interagir avec l'API
  * de l'utilisateur, y compris l'authentification, la gestion des utilisateurs
  * et les requêtes basées sur des critères de recherche.
@@ -19,16 +19,16 @@ import { CrudApi } from './data.api';
 const authApi = new AuthApi();
 
 /**
- * Instance unique de la classe CrudApi qui fournit des méthodes pour
+ * Instance unique de la classe DataApi qui fournit des méthodes pour
  * interagir avec l'API de l'utilisateur, comme la récupération des utilisateurs,
  * l'ajout de nouveaux utilisateurs, la suppression des utilisateurs, etc.
  */
-const crudApi = new CrudApi();
+const dataApi = new DataApi();
 
 /**
- * Exporte les instances uniques des classes AuthApi et CrudApi.
+ * Exporte les instances uniques des classes AuthApi et DataApi.
  * 
  * Les instances sont exportées pour être utilisées dans les parties de l'application
  * qui ont besoin d'interagir avec l'API utilisateur.
  */
-export { authApi, crudApi };
+export { authApi, dataApi };

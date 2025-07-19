@@ -46,7 +46,7 @@ export default {
 				'body-bg-color': colorsTheme1.darkBlue,
 				'nav-link-color': colorsTheme1.white,
 				'btn-font-color': colorsTheme1.white,
-				'btn-google-color': colorsTheme1.pastelBlue,
+				'pastel-blue': colorsTheme1.pastelBlue
 			},
 			/**
 			 * Les images de fond.

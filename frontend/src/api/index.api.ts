@@ -1,4 +1,4 @@
-import { authApi, crudApi } from './user/user.api';
+import { authApi, dataApi } from './user/user.api';
 
 // ===========================================
 // INDEX API - SINGLETONS
@@ -7,4 +7,4 @@ import { authApi, crudApi } from './user/user.api';
  * Gèrent les requêtes API de l'application.
  */
 
-export { authApi, crudApi };
+export { authApi, dataApi };

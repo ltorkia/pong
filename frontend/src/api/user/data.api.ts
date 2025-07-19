@@ -6,10 +6,10 @@ import { secureFetch } from '../../utils/app.utils';
 import { AuthResponse } from 'src/types/api.types';
 
 // ===========================================
-// CRUD API
+// DATA API
 // ===========================================
 /**
- * Ce fichier contient la classe CrudApi, qui fournit des méthodes pour
+ * Ce fichier contient la classe DataApi, qui fournit des méthodes pour
  * interagir avec l'API de gestion des utilisateurs en utilisant la fonction
  * utilitaire secureFetch pour des requêtes HTTP sécurisées.
  * 
@@ -17,7 +17,7 @@ import { AuthResponse } from 'src/types/api.types';
  * des utilisateurs enregistrés en base de données. Elles utilisent secureFetch
  * pour envoyer des requêtes HTTP sécurisées au serveur afin de réaliser ces opérations.
  */
-export class CrudApi {
+export class DataApi {
 
 	// ===========================================
 	// GET REQUESTS - DATABASE SELECT

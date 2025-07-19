@@ -2,7 +2,7 @@
 
 	/* USER LIST */
 	.avatar-img {
-		@apply w-14 h-14 object-cover object-center
+		@apply w-20 h-20 object-cover object-center
 		rounded-full border border-white/65;
 	}
 
@@ -36,7 +36,7 @@
 	}
 
 	.user-line button {
-		@apply text-btn-google-color font-normal lowercase px-3 hover:text-blue-500;
+		@apply text-pastel-blue font-normal lowercase px-3 hover:text-blue-500;
 	}
 
 	#user-list .user-line:nth-child(odd) button {
@@ -48,7 +48,7 @@
 	}
 
 	#user-cell {
-		@apply flex flex-row justify-center items-center cursor-pointer;
+		@apply relative flex flex-row justify-start items-center cursor-pointer;
 	}
 
 	#user-cell:hover .name-cell {
@@ -58,8 +58,9 @@
 	.name-cell {
 		@apply font-title text-gray-100
 		border border-white/65 rounded-lg px-2 py-0
-		bg-btn-google-color font-bold -ml-5 -rotate-3
-		bg-gradient-to-r from-blue-500 to-btn-google-color
+		bg-pastel-blue font-bold
+		bg-gradient-to-r from-blue-500 to-pastel-blue
+		absolute bottom-0 left-1/2 -translate-x-1/2 -translate-y-1 -rotate-3
 		transition duration-300 ease-in-out;
 	}
 }

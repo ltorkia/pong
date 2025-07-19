@@ -1,6 +1,7 @@
 import { User } from '../../models/user.model';
-import { crudApi } from '../../api/index.api';
+import { dataApi } from '../../api/index.api';
 import { AuthResponse } from '../../types/api.types';
+import { currentService } from '../../services/index.service';
 import { showAlert } from '../../utils/dom.utils';
 import { isValidImage, checkImageExists } from '../../utils/image.utils';
 import { UserStatus } from '../../shared/types/user.types';
@@ -24,7 +25,7 @@ export class DataService {
 	 * @returns {Promise<void>} - Promesse qui se resout lorsque l'utilisateur est mis à jour
 	 */
 	public async updateUser(id: number, userData: Record<string, string>): Promise<void> {
-		const result: AuthResponse = await crudApi.updateUser(id, userData);
+		const result: AuthResponse = await dataApi.updateUser(id, userData);
 		if (result.errorMessage) {
 			console.error(`[${this.constructor.name}] Erreur de mise à jour utilisateur.`);
 			showAlert(result.errorMessage);
@@ -52,7 +53,7 @@ export class DataService {
 		}
 		const formData = new FormData();
 		formData.append('avatar', file);
-		const result: AuthResponse = await crudApi.updateAvatar(id, formData);
+		const result: AuthResponse = await dataApi.updateAvatar(id, formData);
 		if (result.errorMessage) {
 			console.error(`[${this.constructor.name}] Erreur de mise à jour de l'avatar utilisateur.`);
 			showAlert(result.errorMessage);
@@ -61,6 +62,31 @@ export class DataService {
 		console.log(`[${this.constructor.name}] Avatar de l'utilisateur mis à jour.`);
 		showAlert('Image successfully uploaded.', 'alert-avatar', 'success');
 		return true;
+	}
+
+	/**
+	 * Vérifie si l'utilisateur courant est ami avec l'utilisateur d'ID `userId`.
+	 * 
+	 * Fait une requête API pour récupérer la liste des amis de l'utilisateur d'ID `userId`.
+	 * Si la liste est vide ou si la requête échoue, return false.
+	 * 
+	 * Sinon, parcourt la liste des amis pour vérifier si l'utilisateur courant est présent.
+	 * Si l'utilisateur courant est trouvé, return true, sinon return false.
+	 * 
+	 * @param {number} userId - Identifiant de l'utilisateur à vérifier.
+	 * @param {User[]} userFriends - Liste des amis de l'utilisateur.
+	 * @returns {Promise<boolean>} - Promesse qui se résout avec un booléen.
+	 */
+	public async isFriendWithCurrentUser(userId: number, userFriends: User[] | null = null): Promise<boolean> {
+		if (!userFriends) {
+			const friends: User[] = await dataApi.getUserFriends(userId);
+			if (!friends) {
+				return false;
+			}
+			userFriends = friends;
+		}
+		const currentUserId = currentService.getCurrentUser()!.id;
+		return userFriends.some(friend => friend.id === currentUserId);
 	}
 
 	// ============================================================================
