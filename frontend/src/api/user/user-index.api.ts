@@ -1,6 +1,5 @@
 import { UserAuthApi } from './user-auth.api';
 import { UserCrudApi } from './user-crud.api';
-import { UserQueryApi } from './user-query.api';
 
 // ===========================================
 // USER API - SINGLETONS
@@ -27,18 +26,9 @@ const userAuthApi = new UserAuthApi();
 const userCrudApi = new UserCrudApi();
 
 /**
- * Instance unique de la classe UserQueryApi, qui fournit des méthodes pour
- * interagir avec l'API de requêtes utilisateur.
- * 
- * Les méthodes de cette classe permettent de récupérer des utilisateurs
- * en fonction de critères de recherche, comme le nom d'utilisateur, etc.
- */
-const userQueryApi = new UserQueryApi();
-
-/**
  * Exporte les instances uniques des classes UserAuthApi, UserCrudApi et UserQueryApi.
  * 
  * Les instances sont exportées pour être utilisées dans les parties de l'application
  * qui ont besoin d'interagir avec l'API utilisateur.
  */
-export { userAuthApi, userCrudApi, userQueryApi };
+export { userAuthApi, userCrudApi };

@@ -7,6 +7,7 @@ BACK
 - Formater les dates (le fuseau horaire ne semble pas bon dans beginLog et registration)
 - Gérer form settings
 - Gerer proxy pour avatars Google
+- Faire route pour get tournois
 
 
 COMMUN
@@ -22,8 +23,8 @@ FRONT
 - Faire un petit hover sur le bouton/icon previous de register et du modal
 - Ajouter filtres dans barre de recherche de user list
 - Gerer affichage userlist bouton add to friend / friend / self
-- Mieux organiser les updateAvatar etc... (on se perd entre api / user service / image service / data service)
 - Ajuster logique pour getAvatarUrl Google quand le back a fini l'affaire de proxy
+- Faire requete api tournois / modele ?
 
 - check MAJ package.json :
  @tsparticles/engine         ^3.0.2  →   ^3.8.1

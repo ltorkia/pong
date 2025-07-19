@@ -1,5 +1,5 @@
 import { BasePage } from '../base/base.page';
-import { userCrudApi } from '../../api/user/user-index.api';
+import { userCrudApi } from '../../api/index.api';
 import { SearchBarComponent } from '../../components/search-bar/search-bar.component';
 import { UserRowComponent } from '../../components/user-row/user-row.component';
 import { getHTMLElementById } from '../../utils/dom.utils';

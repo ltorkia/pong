@@ -31,6 +31,21 @@ export const DB_CONST = {
 			GOOGLE: 'google',
 		},
 	},
+	GAME: {
+		STATUS: {
+			WAITING: 'waiting',
+			IN_PROGRESS: 'in_progress',
+			CANCELLED: 'cancelled',
+			FINISHED: 'finished',
+		},
+	},
+	FRIENDS: {
+		STATUS: {
+			PENDING: 'pending',
+			ACCEPTED: 'accepted',
+			BLOCKED: 'blocked',
+		},
+	}
 } as const;
 
 /**

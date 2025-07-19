@@ -1,9 +1,9 @@
 import { router } from '../../router/router';
 import { showAlert } from '../../utils/dom.utils';
-import { userAuthApi } from '../../api/user/user-index.api';
+import { userAuthApi } from '../../api/index.api';
 import { AuthResponse, BasicResponse } from '../../types/api.types';
 import { uiStore } from '../../stores/ui.store';
-import { ImageService } from '../services';
+import { isValidImage } from '../../utils/image.utils';
 import { DEFAULT_ROUTE, AUTH_FALLBACK_ROUTE } from '../../config/routes.config';
 import { REGISTERED_MSG } from '../../config/messages.config';
 
@@ -14,7 +14,7 @@ import { REGISTERED_MSG } from '../../config/messages.config';
  * Service centralisé pour la gestion d'authentification  des utilisateurs.
  * Register /Login / Logout
  */
-export class AuthService {
+export class UserAuthService {
 
 	/**
 	 * Inscription d'un utilisateur
@@ -31,7 +31,7 @@ export class AuthService {
 	public async registerUser(formData: FormData): Promise<void> {
 		try {
 			const avatarFile = formData.get('avatar') as File | null;
-			ImageService.isValidImage(avatarFile, true);
+			isValidImage(avatarFile, true);
 
 			const result: AuthResponse = await userAuthApi.registerUser(formData);
 			if (result.errorMessage) {

@@ -1,6 +1,6 @@
 import { BasePage } from '../base/base.page';
 import { RouteConfig } from '../../types/routes.types';
-import { authService, googleService } from '../../services/services';
+import { userAuthService, userGoogleService } from '../../services/index.service';
 import { getHTMLElementById } from '../../utils/dom.utils';
 
 // ===========================================
@@ -37,7 +37,7 @@ export class RegisterPage extends BasePage {
 	 * de connexion Google est initialisé.
 	 */
 	protected async mount(): Promise<void> {
-		googleService.initGoogleSignIn();
+		userGoogleService.initGoogleSignIn();
 	}
 
 	/**
@@ -74,7 +74,7 @@ export class RegisterPage extends BasePage {
 	 */
 	public async cleanup(): Promise<void> {
 		console.log(`[${this.constructor.name}] Nettoyage Google sign in...`);
-		googleService.cleanupGoogleSignIn();
+		userGoogleService.cleanupGoogleSignIn();
 		await super.cleanup();
 	}
 
@@ -94,6 +94,6 @@ export class RegisterPage extends BasePage {
 	protected handleRegisterSubmit = async (event: Event): Promise<void> => {
 		event.preventDefault();
 		const formData = new FormData(this.form);
-		await authService.registerUser(formData);
+		await userAuthService.registerUser(formData);
 	};
 }

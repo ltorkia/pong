@@ -11,7 +11,7 @@ import { DEFAULT_ROUTE } from '../../config/routes.config';
 /**
  * Service centralisé pour Google sign-in.
  */
-export class GoogleService {
+export class UserGoogleService {
 
 	/**
 	 * Initialise le bouton Google Sign-In.

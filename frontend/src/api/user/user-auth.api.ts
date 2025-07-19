@@ -1,6 +1,6 @@
 import { User } from '../../models/user.model';
 import { UserModel } from '../../shared/types/user.types';	// en rouge car dossier local 'shared' != dossier conteneur
-import { dataService } from '../../services/services';
+import { userCurrentService } from '../../services/index.service';
 import { BasicResponse, AuthResponse } from '../../types/api.types';
 import { secureFetch } from '../../utils/app.utils';
 
@@ -41,10 +41,10 @@ export class UserAuthApi {
 		const data: UserModel = await res.json();
 		
 		// Stockage sécurisé via le store
-		dataService.setCurrentUserFromServer(data);
+		userCurrentService.setCurrentUserFromServer(data);
 
 		// Instance avec email en mémoire
-		return dataService.getCurrentUser() as User;
+		return userCurrentService.getCurrentUser() as User;
 	}
 
 	/**
@@ -73,7 +73,7 @@ export class UserAuthApi {
 	 * Inscrit un nouvel utilisateur.
 	 * 
 	 * Envoie une requête POST à la route API `/auth/register` pour inscrire
-	 * un nouvel utilisateur avec les informations données dans l'objet `userData`.
+	 * un nouvel utilisateur avec les informations données dans l'objet `formData`.
 	 * 
 	 * En cas d'erreur, renvoie un objet avec la clé `errorMessage` contenant le message
 	 * d'erreur.
@@ -92,7 +92,7 @@ export class UserAuthApi {
 		if (!res.ok || data.errorMessage || !data.user) {
 			return { errorMessage: data.errorMessage || data.message || 'Erreur avec la récupération de l\'utilisateur' } as AuthResponse;
 		}
-		await dataService.setCurrentUserFromServer(data.user);
+		await userCurrentService.setCurrentUserFromServer(data.user);
 		return data as AuthResponse;
 	}
 
@@ -102,7 +102,8 @@ export class UserAuthApi {
 	 * Envoie une requête POST à la route API `/auth/login` pour connecter
 	 * un utilisateur avec les informations fournies dans l'objet `userData`.
 	 * Si la première "tape de l'authentification réussit, renvoie un objet contenant les informations
-	 * de l'utilisateur qui tente de se connecter. Sinon, renvoie un objet contenant un message d'erreur.
+	 * de l'utilisateur qui tente de se connecter. Si l'utilisateur a activé le 2FA, le champ
+	 * `user.active2Fa` est mis à `true` et on ne stocke pas l'utilisateur tout de suite.
 	 * 
 	 * @param {Record<string, string>} userData Informations de l'utilisateur à connecter.
 	 * @returns {Promise<AuthResponse>} Promesse qui se résout avec les informations de
@@ -120,7 +121,7 @@ export class UserAuthApi {
 			return { errorMessage: data.errorMessage || data.message || 'Erreur inconnue' } as AuthResponse;
 		}
 		if (!data.user.active2Fa) {
-			await dataService.setCurrentUserFromServer(data.user);
+			await userCurrentService.setCurrentUserFromServer(data.user);
 		}
 		return data as AuthResponse;
 	}
@@ -176,7 +177,7 @@ export class UserAuthApi {
 		if (!res.ok || data.errorMessage || !data.user) {
 			return { errorMessage: data.errorMessage || data.message || 'Erreur avec la récupération de l\'utilisateur' };
 		}
-		await dataService.setCurrentUserFromServer(data.user);
+		await userCurrentService.setCurrentUserFromServer(data.user);
 		return data as AuthResponse;
 	}
 
@@ -204,7 +205,7 @@ export class UserAuthApi {
 		if (!res.ok || data.errorMessage || !data.user) {
 			return { errorMessage: data.errorMessage || data.message || 'Erreur lors de la connexion Google' };
 		}
-		dataService.setCurrentUserFromServer(data.user);
+		userCurrentService.setCurrentUserFromServer(data.user);
 		return data as AuthResponse;
 	}
 
@@ -227,7 +228,7 @@ export class UserAuthApi {
 		if (!res.ok || data.errorMessage) {
 			return { errorMessage: data.errorMessage || data.message || 'Erreur inconnue' } as BasicResponse;
 		}
-		dataService.clearCurrentUser();
+		userCurrentService.clearCurrentUser();
 		return data as BasicResponse;
 	}
 

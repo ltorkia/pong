@@ -1,4 +1,4 @@
-import { pageService } from '../services';
+import { pageService } from '../index.service';
 import { routesConfig } from '../../config/routes.config';
 import { router, Router } from '../../router/router';
 import { RouteConfig, RouteParams } from '../../types/routes.types';

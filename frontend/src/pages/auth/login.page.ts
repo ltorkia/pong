@@ -1,6 +1,6 @@
 import { BasePage } from '../base/base.page';
 import { RouteConfig } from '../../types/routes.types';
-import { authService, googleService } from '../../services/services';
+import { userAuthService, userGoogleService } from '../../services/index.service';
 import { TwofaModalComponent } from '../../components/twofa-modal/twofa-modal.component';
 import { ComponentConfig } from '../../types/components.types';
 import { COMPONENT_NAMES, HTML_COMPONENT_CONTAINERS } from '../../config/components.config';
@@ -67,7 +67,7 @@ export class LoginPage extends BasePage {
 	 * de connexion Google est initialisé.
 	 */
 	protected async mount(): Promise<void> {
-		await googleService.initGoogleSignIn();
+		await userGoogleService.initGoogleSignIn();
 	}
 
 	/**
@@ -103,7 +103,7 @@ export class LoginPage extends BasePage {
 	 */
 	public async cleanup(): Promise<void> {
 		console.log(`[${this.constructor.name}] Nettoyage Google sign in...`);
-		googleService.cleanupGoogleSignIn();
+		userGoogleService.cleanupGoogleSignIn();
 		await super.cleanup();
 	}
 
@@ -147,7 +147,7 @@ export class LoginPage extends BasePage {
 		event.preventDefault();
 		const formData = new FormData(this.form);
 		const data = Object.fromEntries(formData.entries()) as Record<string, string>;
-		const loginResult = await authService.loginUser(data);
+		const loginResult = await userAuthService.loginUser(data);
 
 		// Affiche le modal 2FA seulement si login OK et 2FA activé
 		if (!loginResult || loginResult.errorMessage || !loginResult.user!.active2Fa) {

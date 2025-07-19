@@ -1,16 +1,13 @@
 import { User } from '../../models/user.model';
 import { userStore } from '../../stores/user.store';
-import { UserModel, SafeUserModel, UserStatus } from '../../shared/types/user.types';
+import { UserModel, SafeUserModel } from '../../shared/types/user.types';
 
 /**
- * Service de gestion des utilisateurs et de la logique métier.
+ * Service de gestion de l'utilisateur courant en RAM et local storage.
  * 
- * Centralise toutes les opérations sur les utilisateurs :
- * - Gestion de l'utilisateur courant
- * - Opérations métier sur les utilisateurs
- * - Orchestration entre le store et l'API
+ * Centralise toutes les opérations sur l'utilisateur courant.
  */
-export class DataService {
+export class UserCurrentService {
 	private currentUser: User | null = null;
 
 	// ============================================================================
@@ -132,92 +129,5 @@ export class DataService {
 		this.setCurrentUser(user);
 		console.log(`[${this.constructor.name}] User restauré:`, this.currentUser);
 		return this.currentUser;
-	}
-
-	// ============================================================================
-	// MÉTHODES UTILITAIRES
-	// ============================================================================
-
-	/**
-	 * Convertit un statut en libellé lisible.
-	 * 
-	 * @returns Libellé lisible
-	 */
-	public showStatusLabel(user: User): string {
-		switch (user.status) {
-			case 'online': return '<span class="text-green-500">🟢 online </span>';
-			case 'offline': return '<span class="text-red-500">🔴 offline </span>';
-			case 'in-game': return '<span class="text-yellow-500">🟡 in game</span>';
-			default: return 'Unknown';
-		}
-	}
-
-	// ============================================================================
-	// MANIPULATION DES COLLECTIONS D'UTILISATEURS
-	// ============================================================================
-
-	/**
-	 * Filtre les utilisateurs actifs (non supprimés).
-	 * 
-	 * @param {User[]} users - Tableau d'instances User
-	 * @returns {User[]} Tableau d'utilisateurs actifs
-	 */
-	public static getActiveUsers(users: User[]): User[] {
-		return users.filter(user => user.isActive);
-	}
-
-	/**
-	 * Filtre les utilisateurs en ligne.
-	 * 
-	 * @param {User[]} users - Tableau d'instances User
-	 * @returns {User[]} Tableau d'utilisateurs en ligne
-	 */
-	public static getOnlineUsers(users: User[]): User[] {
-		return users.filter(user => user.isOnline());
-	}
-
-	/**
-	 * Filtre les utilisateurs par statut.
-	 * 
-	 * @param {User[]} users - Tableau d'instances User
-	 * @param {UserStatus} status - Statut à filtrer
-	 * @returns {User[]} Tableau d'utilisateurs avec le statut spécifié
-	 */
-	public static getUsersByStatus(users: User[], status: UserStatus): User[] {
-		return users.filter(user => user.status === status);
-	}
-
-	/**
-	 * Recherche des utilisateurs par nom d'utilisateur.
-	 * 
-	 * @param {User[]} users - Tableau d'instances User
-	 * @param {string} searchTerm - Terme de recherche
-	 * @returns {User[]} Tableau d'utilisateurs correspondants
-	 */
-	public static searchByUsername(users: User[], searchTerm: string): User[] {
-		const term = searchTerm.toLowerCase();
-		return users.filter(user => 
-			user.username.toLowerCase().includes(term)
-		);
-	}
-
-	/**
-	 * Trie les utilisateurs par taux de victoire décroissant.
-	 * 
-	 * @param {User[]} users - Tableau d'instances User
-	 * @returns {User[]} Tableau d'utilisateurs triés
-	 */
-	public static sortByWinRate(users: User[]): User[] {
-		return [...users].sort((a, b) => b.winRate - a.winRate);
-	}
-
-	/**
-	 * Trie les utilisateurs par nombre de parties jouées décroissant.
-	 * 
-	 * @param {User[]} users - Tableau d'instances User
-	 * @returns {User[]} Tableau d'utilisateurs triés
-	 */
-	public static sortByGamesPlayed(users: User[]): User[] {
-		return [...users].sort((a, b) => b.gamePlayed - a.gamePlayed);
 	}
 }

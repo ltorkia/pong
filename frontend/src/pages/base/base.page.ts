@@ -1,12 +1,11 @@
 import { RouteConfig } from '../../types/routes.types';
 import { User } from '../../models/user.model';
-import { dataService } from '../../services/services';
+import { userCurrentService, userDataService } from '../../services/index.service';
 import { checkUserLogged } from '../../utils/app.utils'; 
 import { BaseComponent } from '../../components/base/base.component';
 import { NavbarComponent } from '../../components/navbar/navbar.component';
 import { ComponentName, ComponentConfig } from '../../types/components.types';
 import { loadTemplate, getContainerApp, getHTMLElementById } from '../../utils/dom.utils';
-import { ImageService } from '../../services/services';
 import { APP_ID } from '../../config/routes.config';
 import { COMPONENT_NAMES } from '../../config/components.config';
 import { LOADING_PAGE_ERR } from '../../config/messages.config';
@@ -41,7 +40,7 @@ export abstract class BasePage {
 	constructor(config: RouteConfig) {
 		this.config = config;
 		this.container = getContainerApp();
-		this.currentUser = dataService.getCurrentUser();
+		this.currentUser = userCurrentService.getCurrentUser();
 		this.templatePath = this.config.templatePath;
 		this.components = this.config.components;
 		this.componentInstances = {};
@@ -108,7 +107,7 @@ export abstract class BasePage {
 	protected async preRenderCheck(): Promise<void> {
 		checkUserLogged(this.config.isPublic);
 		if (this.currentUser) {
-			this.currentUserAvatarURL = await ImageService.getUserAvatarURL(this.currentUser);
+			this.currentUserAvatarURL = await userDataService.getUserAvatarURL(this.currentUser);
 		}
 	}
 

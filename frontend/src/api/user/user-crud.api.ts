@@ -1,7 +1,8 @@
 import { User } from '../../models/user.model';
+import { Game } from '../../models/game.model';
+import { userDataService, userCurrentService } from '../../services/index.service';
 import { SafeUserModel, PublicUser } from '../../shared/types/user.types';	// en rouge car dossier local 'shared' != dossier conteneur
 import { secureFetch } from '../../utils/app.utils';
-import { dataService } from '../../services/services';
 import { AuthResponse } from 'src/types/api.types';
 
 // ===========================================
@@ -68,6 +69,32 @@ export class UserCrudApi {
 	}
 
 	/**
+	 * Récupère la liste des utilisateurs actifs.
+	 *
+	 * Envoie une requête pour obtenir tous les utilisateurs,
+	 * puis filtre ceux qui sont actifs (non supprimés).
+	 * 
+	 * @returns {Promise<User[]>} - Promesse qui se résout avec un tableau d'instances `User` actifs.
+	 */
+	public async getActiveUsers(): Promise<User[]> {
+		const users: User[] = await this.getUsers();
+		return userDataService.getActiveUsers(users) as User[];
+	}
+
+	/**
+	 * Récupère la liste des utilisateurs en ligne.
+	 *
+	 * Envoie une requête pour obtenir tous les utilisateurs,
+	 * puis filtre ceux qui sont actuellement en ligne.
+	 * 
+	 * @returns {Promise<User[]>} - Promesse qui se résout avec un tableau d'instances `User` en ligne.
+	 */
+	public async getOnlineUsers(): Promise<User[]> {
+		const users: User[] = await this.getUsers();
+		return userDataService.getOnlineUsers(users) as User[];
+	}
+
+	/**
 	 * Récupère la liste des amis d'un utilisateur.
 	 *
 	 * Envoie une requête GET à la route API `/users/:id/friends` pour récupérer
@@ -88,6 +115,23 @@ export class UserCrudApi {
 		}
 		const data: PublicUser[] = await res.json();
 		return User.fromPublicJSONArray(data) as User[];
+	}
+
+	/**
+	 * Récupère la liste des jeux d'un utilisateur.
+	 *
+	 * Envoie une requête pour obtenir tous les jeux liés à un utilisateur.
+	 * 
+	 * @param {number} id - L'identifiant de l'utilisateur.
+	 * @returns {Promise<Game[]>} - Promesse qui se résout avec un tableau d'instances `Game` jouables par l'utilisateur.
+	 */
+	public async getUserGames(id: number): Promise<Game[]> {
+		const res: Response = await secureFetch(`/api/users/${id}/games`, { method: 'GET' });
+		if (!res.ok) {
+			throw new Error('Erreur de l\'API');
+		}
+		const data: Game[] = await res.json();
+		return Game.fromJSONArray(data) as Game[];
 	}
 
 	// ===========================================
@@ -117,7 +161,7 @@ export class UserCrudApi {
 		if (!res.ok || data.errorMessage || !data.user) {
 			return { errorMessage: data.errorMessage || data.message || 'Erreur lors de la mise à jour' };
 		}
-		await dataService.updateCurrentUser(data.user);
+		await userCurrentService.updateCurrentUser(data.user);
 		return data as AuthResponse;
 	}
 
@@ -145,7 +189,7 @@ export class UserCrudApi {
 		if (!res.ok || data.errorMessage || !data.user) {
 			return { errorMessage: data.errorMessage || 'Erreur lors de la mise à jour' };
 		}			
-		await dataService.updateCurrentUser(data.user);
+		await userCurrentService.updateCurrentUser(data.user);
 		return data as AuthResponse;
 	}
 }

@@ -1,6 +1,6 @@
 import { User } from '../../models/user.model';
-import { dataService } from '../services';
-import { userAuthApi } from '../../api/user/user-index.api';
+import { userCurrentService } from '../index.service';
+import { userAuthApi } from '../../api/index.api';
 import { uiStore } from '../../stores/ui.store';
 import { COOKIES_CONST } from '../../shared/config/constants.config'; // en rouge car dossier local 'shared' != dossier du conteneur
 
@@ -10,7 +10,7 @@ import { COOKIES_CONST } from '../../shared/config/constants.config'; // en roug
 /**
  * Service centralisé pour gérer la session de l'utilisateur.
  */
-export class SessionService {
+export class UserSessionService {
 
 	/**
 	 * Charge l'utilisateur si un cookie d'authentification est présent,
@@ -55,13 +55,13 @@ export class SessionService {
 	 */
 	public async loadOrRestoreUser(): Promise<User | null> {
 		const hasCookie = this.hasAuthCookie();
-		const storedUser = dataService.getCurrentUser();
+		const storedUser = userCurrentService.getCurrentUser();
 
 		// Pas de cookie = pas connecté
 		if (!hasCookie) {
 			if (storedUser) {
 				console.log(`[${this.constructor.name}] Cookie supprimé, nettoyage store`);
-				dataService.clearCurrentUser();
+				userCurrentService.clearCurrentUser();
 			}
 			return null;
 		}
@@ -92,7 +92,7 @@ export class SessionService {
 	private async restoreUser(): Promise<User | null> {
 
 		// Essayer localStorage d'abord
-		const user = dataService.restoreUser();
+		const user = userCurrentService.restoreUser();
 		if (user) {
 			console.log(`[${this.constructor.name}] Utilisateur localStorage trouvé, validation serveur en cours...`);
 			uiStore.animateNavbarOut = true;
@@ -103,7 +103,7 @@ export class SessionService {
 		try {
 			const apiUser = await userAuthApi.getMe();
 			if (apiUser) {
-				const user = dataService.getCurrentUser();
+				const user = userCurrentService.getCurrentUser();
 				uiStore.animateNavbarOut = true;
 				console.log(`[${this.constructor.name}] Utilisateur chargé via API`);
 				return user;
@@ -138,7 +138,7 @@ export class SessionService {
 				// Si la validation échoue, c'est que l'utilisateur
 				// n'est plus authentifié côté serveur.
 				console.log(`[${this.constructor.name}] Session expirée côté serveur → nettoyage`);
-				dataService.clearCurrentUser();
+				userCurrentService.clearCurrentUser();
 				return null;
 			}
 		} catch (err) {

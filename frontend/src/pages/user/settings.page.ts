@@ -1,8 +1,7 @@
 import { BasePage } from '../base/base.page';
 import { RouteConfig } from '../../types/routes.types';
-import { ImageService } from '../../services/services';
-import { userAuthApi } from '../../api/user/user-index.api';
-import { crudService } from '../../services/services';
+import { userDataService } from '../../services/index.service';
+import { userAuthApi } from '../../api/index.api';
 import { toggleClass, getHTMLElementById, getHTMLElementByClass, showAlert } from '../../utils/dom.utils';
 
 // ===========================================
@@ -163,11 +162,11 @@ export class SettingsPage extends BasePage {
 			return;
 		}
 		this.alertMsgForm.classList.add('hidden');
-		const result = await ImageService.uploadAvatar(this.currentUser!.id, file);
+		const result = await userDataService.updateAvatar(this.currentUser!.id, file);
 		if (result === false) {
 			return;
 		}
-		this.currentUserAvatarURL = await ImageService.getUserAvatarURL(this.currentUser!);
+		this.currentUserAvatarURL = await userDataService.getUserAvatarURL(this.currentUser!);
 		this.loadAvatar();
 	}
 
@@ -205,6 +204,6 @@ export class SettingsPage extends BasePage {
 		this.alertMsgAvatar.classList.add('hidden');
 		const formData = new FormData(this.form);
 		const data = Object.fromEntries(formData.entries()) as Record<string, string>;
-		await crudService.updateCurrentUser(this.currentUser!.id, data);
+		await userDataService.updateUser(this.currentUser!.id, data);
 	};
 }

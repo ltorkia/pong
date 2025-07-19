@@ -1,8 +1,8 @@
 import { BasePage } from '../base/base.page';
 import { RouteConfig, RouteParams } from '../../types/routes.types';
-import { userCrudApi } from '../../api/user/user-index.api';
 import { User } from '../../models/user.model';
-import { ImageService } from '../../services/services';
+import { userCrudApi } from '../../api/index.api';
+import { userDataService } from '../../services/index.service';
 
 // ===========================================
 // PROFILE PAGE
@@ -68,7 +68,7 @@ export class ProfilePage extends BasePage {
 		const userAvatar = clone.querySelector('.avatar-cell') as HTMLElement;
 		const img = document.createElement('img');
 		img.classList.add('avatar-img');
-		img.setAttribute('src', await ImageService.getUserAvatarURL(this.user!));
+		img.setAttribute('src', await userDataService.getUserAvatarURL(this.user!));
 		img.setAttribute('loading', 'lazy');
 
 		img.alt = `${this.user!.username}'s avatar`;

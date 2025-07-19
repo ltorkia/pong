@@ -5,9 +5,8 @@ import { BaseComponent } from '../base/base.component';
 import { RouteConfig } from '../../types/routes.types';
 import { router } from '../../router/router';
 import { ComponentConfig } from '../../types/components.types';
-import { ImageService } from '../../services/core/image.service';
 import { User } from '../../models/user.model';
-import { dataService } from '../../services/services';
+import { userDataService } from '../../services/index.service';
 import { getHTMLElementById, getHTMLElementByClass } from '../../utils/dom.utils';
 
 // ===========================================
@@ -101,11 +100,11 @@ export class UserRowComponent extends BaseComponent {
 	 */
 	protected async mount(): Promise<void> {
 		this.userCell.setAttribute('title', `${this.user!.username}'s profile`);
-		this.avatarImg.setAttribute('src', await ImageService.getUserAvatarURL(this.user!));
+		this.avatarImg.setAttribute('src', await userDataService.getUserAvatarURL(this.user!));
 		this.avatarImg.setAttribute('alt', `${this.user!.username}'s avatar`);
 		this.avatarImg.setAttribute('loading', 'lazy');
 		this.nameCell.textContent = this.user!.username;
-		this.statusCell.innerHTML = dataService.showStatusLabel(this.user!);
+		this.statusCell.innerHTML = userDataService.showStatusLabel(this.user!);
 		if (this.levelCell) {
 			if ('winRate' in this.user! && this.user.winRate !== undefined) {
 				this.levelCell.textContent = `Win rate: ${this.user.winRate}%`;

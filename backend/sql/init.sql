@@ -33,7 +33,7 @@ CREATE TABLE IF NOT EXISTS Game (
 	begin DATETIME NOT NULL DEFAULT (datetime('now')),											-- date et heure de debut du jeu, par defaut quand la table est creee (ouverture du jeu)
 	end DATETIME,																				-- date et heure de fin du jeu, NULL si le jeu n'est pas fini
 	tournament INTEGER DEFAULT 0 NOT NULL CHECK (tournament IN (0, 1)),							-- pour preciser si c'est un jeu de tournoi ou non, 0 = non, 1 = oui
-	status TEXT NOT NULL CHECK (status IN ('waiting', 'in_progress', 'cancelled', 'finished')),	-- pour preciser si en cours, annule ou termine                                                             -- jeu en cours, termine, ou pas encore commence si tournoi ? 
+	status TEXT DEFAULT 'waiting' NOT NULL CHECK (status IN ('waiting', 'in_progress', 'cancelled', 'finished')),	-- pour preciser si en cours, annule ou termine                                                             -- jeu en cours, termine, ou pas encore commence si tournoi ? 
 	temporary_result INTEGER DEFAULT 0 NOT NULL													-- au cas ou le serveur plante, possibilite de recuperer le score en cours
 );
 
@@ -63,8 +63,8 @@ CREATE TABLE IF NOT EXISTS Chat (
 CREATE TABLE IF NOT EXISTS Friends (
 	user1_id INTEGER NOT NULL,
 	user2_id INTEGER NOT NULL,
-	status TEXT NOT NULL CHECK (status IN ('pending', 'accepted', 'blocked')),	-- pour checker le status, oui, non, en attente
-	is_blocked INTEGER,
+	status TEXT DEFAULT 'pending' NOT NULL CHECK (status IN ('pending', 'accepted', 'blocked')),	-- pour checker le status, oui, non, en attente
+	is_blocked INTEGER DEFAULT 0 NOT NULL CHECK (is_blocked IN (0, 1)),
 	date DATETIME NOT NULL DEFAULT (datetime('now')),
 	FOREIGN KEY (user1_id) REFERENCES User(id) ON DELETE CASCADE,
 	FOREIGN KEY (user2_id) REFERENCES User(id) ON DELETE CASCADE,
