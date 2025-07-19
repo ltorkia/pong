@@ -87,7 +87,8 @@ export class User {
 			timePlayed: this.timePlayed,
 			nFriends: this.nFriends,
 			beginLog: this.beginLog,
-			endLog: this.endLog
+			endLog: this.endLog,
+			status: this.status
 		};
 	}
 
@@ -219,18 +220,18 @@ export class User {
 			'', // Email vide pour les données publiques
 			4,  // SecretQuestionNumberNumber à 4
 			'', // Registration vide
-			'', // beginLog vide
-			'', // endLog vide
+			data.beginLog ?? '',
+			data.endLog ?? '',
 			0,  // Tournament à 0
 			data.gamePlayed ?? 0,
 			data.gameWin ?? 0,
 			data.gameLoose ?? 0,
 			data.timePlayed ?? 0,
 			data.nFriends ?? 0,
-			DB_CONST.USER.STATUS.OFFLINE, // Status par défaut
+			data.status ?? DB_CONST.USER.STATUS.OFFLINE,
 			0, // isDeleted à 0 par défaut
 			DB_CONST.USER.REGISTER_FROM.LOCAL, // registerFrom par défaut
-			0 // active2Fa à 0 par défaut
+			0, // active2Fa à 0 par défaut
 		);
 	}
 

@@ -39,8 +39,8 @@ export type AvatarResult =
 	| { success: false; errorMessage: string; statusCode?: number };
 
 export type FastifyFileSizeError = {
-		code: string;
-		message: string;
-		name: string;
-		statusCode?: number;
-	};
+	code: string;
+	message: string;
+	name: string;
+	statusCode?: number;
+};

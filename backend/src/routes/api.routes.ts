@@ -42,15 +42,6 @@ export async function apiRoutes(app: FastifyInstance) {
 		try {
 			const decoded = await request.jwtVerify<JwtPayload>();
 
-			// Si JWT invalide, on clear les cookies d'authentification
-			if (!decoded || !decoded?.id) {
-				clearAuthCookies(reply);
-				return reply.status(401).send({
-					error: 'Unauthorized',
-					message: 'Token JWT invalide - payload manquant',
-				});
-			}
-
 			// On check que l'utilisateur existe bien en bdd
 			// Si non on clear les cookies d'authentification
 			const user = await getUser(decoded.id);

@@ -88,6 +88,7 @@ export interface PublicUser {
 	nFriends: number;
 	beginLog: string;
 	endLog: string;
+	status: UserStatus;
 }
 
 /**

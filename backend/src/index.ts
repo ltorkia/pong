@@ -4,7 +4,7 @@ import fastifyCookie from '@fastify/cookie';
 import fastifyJwt from '@fastify/jwt';
 import fastifyMultipart from '@fastify/multipart';
 import fastifyWs from '@fastify/websocket';
-import { IMAGE_CONST } from './shared/config/constants.config';
+import { IMAGE_CONST, COOKIES_CONST } from './shared/config/constants.config';
 // import { SocketStream } from '@fastify/websocket';
 
 // Database
@@ -64,7 +64,7 @@ async function start() {
 	app.register(fastifyJwt, {
 		secret: jwtSecret,
 		cookie: {
-			cookieName: 'auth_token',
+			cookieName: COOKIES_CONST.AUTH.TOKEN_KEY,
 			signed: false
 		}
 	});

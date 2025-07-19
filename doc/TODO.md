@@ -23,7 +23,6 @@ FRONT
 - Ajouter filtres dans barre de recherche de user list
 - Gerer affichage userlist bouton add to friend / friend / self
 - Mieux organiser les updateAvatar etc... (on se perd entre api / user service / image service / data service)
-- Vérifier systeme middleware/hook pour auth jwt verif des routes dans le back
 - Ajuster logique pour getAvatarUrl Google quand le back a fini l'affaire de proxy
 
 - check MAJ package.json :

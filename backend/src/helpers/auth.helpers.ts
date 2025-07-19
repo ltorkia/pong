@@ -86,19 +86,6 @@ export function clearAuthCookies(reply: FastifyReply) {
 	});
 }
 
-/**
- * Vérification d'authentification :
- * check si l'utilisateur est connecté et autorisé à accéder à la route
- */
-export function requireAuth(request: FastifyRequest, reply: FastifyReply): JwtPayload | undefined {
-	const user = request.user as JwtPayload | undefined;
-	if (!user || !user.id) {
-		reply.status(401).send({ error: 'Unauthorized' });
-		return undefined;
-	}
-	return user;
-}
-
 /*propose un nouveau nom pour register*/
 export async function searchNewName(username: string) {
 	const now = Date.now();

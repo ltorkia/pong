@@ -1,17 +1,12 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { getUser } from '../db/user';
-import { requireAuth } from '../helpers/auth.helpers';
+import { JwtPayload } from '../types/jwt.types';
 import { UserModel } from '../shared/types/user.types'; // en rouge car dossier local 'shared' != dossier conteneur
 
 export async function apiMe(app: FastifyInstance) {
 
 	app.get('/', async (request: FastifyRequest, reply: FastifyReply) => {
-
-		const jwtUser = requireAuth(request, reply);
-		if (!jwtUser) {
-			return;
-		}
-		
+		const jwtUser = request.user as JwtPayload;;
 		try {
 			const dbUser: UserModel = await getUser(jwtUser.id);
 			if (!dbUser) {

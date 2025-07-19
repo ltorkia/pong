@@ -1,8 +1,7 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { getAllUsers, getAllUsersInfos, getUser, getUserFriends, getUserGames, getUserChat, getAvatar, getUserAllInfo } from '../db/user';
-import { requireAuth } from '../helpers/auth.helpers';
 import { UserModel, SafeUserModel, PublicUser, Friends } from '../shared/types/user.types';
-import { insertAvatar } from 'src/db/usermaj';
+import { insertAvatar } from '../db/usermaj';
 import { Buffer } from 'buffer';
 import bcrypt from 'bcrypt';
 import { GetAvatarFromBuffer, bufferizeStream } from '../helpers/image.helpers';
@@ -14,10 +13,6 @@ import { promises as fs } from 'fs';
 export async function usersRoutes(app: FastifyInstance) {
 	// pour afficher tous les users
 	app.get('/', async (request: FastifyRequest, reply: FastifyReply): Promise<SafeUserModel[] | void> => {
-		const jwtUser = requireAuth(request, reply);
-		if (!jwtUser) {
-			return;
-		}
 		// const users: UserBasic[] = await getAllUsers();
 		const users: SafeUserModel[] = await getAllUsersInfos();
 		return users;
@@ -25,10 +20,6 @@ export async function usersRoutes(app: FastifyInstance) {
 
 	// pour afficher des infos detaillees sur un user specifique sans le password
 	app.get('/:id', async (request: FastifyRequest, reply: FastifyReply): Promise<SafeUserModel | void> => {
-		const jwtUser = requireAuth(request, reply);
-		if (!jwtUser) {
-			return;
-		}
 		const { id } = request.params as { id: number };
 		const user: SafeUserModel = await getUser(id);
 		if (!user)
@@ -38,10 +29,6 @@ export async function usersRoutes(app: FastifyInstance) {
 
 	// pour afficher les potos de klk1 -> id = la personne concernee
 	app.get('/:id/friends', async(request: FastifyRequest, reply: FastifyReply): Promise<PublicUser[] | void> => {
-		const jwtUser = requireAuth(request, reply);
-		if (!jwtUser) {
-			return;
-		}
 		const { id } = request.params as { id: number };
 		const friends: PublicUser[] = await getUserFriends(id);
 		if (!friends)
@@ -50,10 +37,6 @@ export async function usersRoutes(app: FastifyInstance) {
 	})
 
 	app.get('/:id/games', async(request: FastifyRequest, reply: FastifyReply) => {
-		const jwtUser = requireAuth(request, reply);
-		if (!jwtUser) {
-			return;
-		}
 		const { id } = request.params as { id: number };
 		const games = await getUserGames(id);
 		// console.log("id = ", id);
@@ -63,10 +46,6 @@ export async function usersRoutes(app: FastifyInstance) {
 	})
 
 	app.get('/:id1/:id2/chat', async(request: FastifyRequest, reply: FastifyReply) => {
-		const jwtUser = requireAuth(request, reply);
-		if (!jwtUser) {
-			return;
-		}
 		const { id1 } = request.params as { id1: number };
 		const { id2 } = request.params as { id2: number };
 		// console.log("id1 = ", id1);
@@ -126,10 +105,6 @@ export async function usersRoutes(app: FastifyInstance) {
 	})
 
 	app.put('/:id/moduser', async(request: FastifyRequest, reply: FastifyReply) => {
-			const jwtUser = requireAuth(request, reply);
-			if (!jwtUser) {
-				return;
-			}
 			const { id } = request.params as { id: number };
 			console.log("reauest = ", request.body);
 
