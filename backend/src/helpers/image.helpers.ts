@@ -1,5 +1,5 @@
 import { insertAvatar } from '../db/usermaj';
-import { UserPassword, AvatarResult } from '../types/user.types';
+import { AvatarResult, UserPassword } from '../types/user.types';
 import { AvatarMimeType } from '../shared/types/user.types'; // en rouge car dossier local 'shared' != dossier conteneur
 import { IMAGE_CONST } from '../shared/config/constants.config'; // en rouge car dossier local 'shared' != dossier conteneur
 import { MultipartFile } from '@fastify/multipart';

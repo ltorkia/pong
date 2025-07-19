@@ -5,7 +5,7 @@ import { insertUser, getUser, getUserP, getUser2FA } from '../db/user';
 import { insertAvatar , eraseCode2FA, insertCode2FA} from '../db/usermaj';
 import { ProcessAuth, clearAuthCookies } from '../helpers/auth.helpers';
 import { GetAvatarFromBuffer, bufferizeStream } from '../helpers/image.helpers';
-import { GoogleUserInfo, UserPassword, User2FA, FastifyFileSizeError } from '../types/user.types';
+import { GoogleUserInfo, UserPassword, User2FA, FastifyFileSizeError, AvatarResult } from '../types/user.types';
 import { UserModel } from '../shared/types/user.types'; // en rouge car dossier local 'shared' != dossier conteneur
 import { DB_CONST } from '../shared/config/constants.config'; // en rouge car dossier local 'shared' != dossier conteneur
 import { Buffer } from 'buffer';
@@ -168,7 +168,6 @@ export async function authRoutes(app: FastifyInstance) {
 			}
 			//on cree l user avec les donnees a inserer une fois le safeparse effectue
 			let userToInsert = result.data as RegisterInput; //datatext
-
 			//on hash le password dans un souci de confidentialite
 			userToInsert.password = await bcrypt.hash(userToInsert.password, 10);
 
@@ -180,14 +179,36 @@ export async function authRoutes(app: FastifyInstance) {
 				});
 			}
 
-			const user: UserModel = await getUser(null, userToInsert.email);
+			// SALUT !
+			// Ai rajouté le retour de l'avatar en cas d'erreur ( const result: AvatarResult = await GetAvatarFromBuffer ),
+			// parce que sans ça je récupère jamais les errorMessages de getAvatarFromBuffer, mais d'un autre
+			// côté j'ai aussi vu que t'as rajouté des cas d'erreur dans ton catch donc je sais pas
+
+			// Pour le 2FA (option sans 2FA quoi) j'ai rajouté vite fait les requêtes utilisateur pour pouvoir le stocker direct côté front
+			// apres registration, mais comme tu peux le voir ça fait trois requêtes d'un coup :
+			// faut récupérer le user apres l'insertion de l'avatar pour pouvoir check if (!user.active2Fa),
+			// et une autre fois après ProcessAuth pour avoir le majLastLog à jour etc...
+			// Y'a surement plus intuitif et plus propre, j'ai pas vraiment cherché plus loin je te laisse voir ça comme tu veux hihihiii
+
+			// Ai aussi rajouté le await devant les ProcessAuth et GetAvatarFromBuffer parce que ça merdait dans mes tests
+			// depuis ces dernières modifs. Valaaa c'est tout pour register O_O
+
+			const userInfos: UserPassword = await getUserP(userToInsert.email);
 			if (avatarFile && avatarBuffer) {
-				GetAvatarFromBuffer(reply, user, avatarFile, avatarBuffer)
+				const result: AvatarResult = await GetAvatarFromBuffer(reply, userInfos, avatarFile, avatarBuffer);
+				if (result.success === false) {
+					return reply.status(result.statusCode!).send({
+						statusCode: result.statusCode,
+						errorMessage: result.errorMessage || 'Erreur lors de l’insertion de l’avatar',
+					});
+				}
 			}
 
+			let user: UserModel = await getUser(null, userToInsert.email);
 			if (!user.active2Fa) {
-				await ProcessAuth(app, { id: user.id, username: user.username }, reply);
+				await ProcessAuth(app, userInfos, reply);
 			}
+			user = await getUser(null, userToInsert.email);
 
 			return reply.status(200).send({
 				statusCode: 200,

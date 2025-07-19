@@ -1,3 +1,5 @@
+import { UserSortField, SortOrder } from "../types/user.types";
+
 // ===========================================
 // CONSTANTS CONFIG
 // ===========================================
@@ -83,3 +85,27 @@ export const IMAGE_CONST = {
 		TYPE_ERROR: 'Select a valid image (JPG, PNG, GIF, WebP).'
 	}
 }
+
+/**
+ * Liste des champs de tri et des ordres autorisés
+ * pour les requêtes utilisateurs.
+ */
+
+export const ALLOWED_SORT_FIELDS: Record<UserSortField, string> = {
+	id: 'id',
+	username: 'username',
+	registration: 'registration',
+	game_played: 'game_played',
+	game_win: 'game_win',
+	game_loose: 'game_loose',
+	time_played: 'time_played',
+	n_friends: 'n_friends',
+	status: 'status',
+	is_deleted: 'is_deleted',
+	register_from: 'register_from'
+};
+export const ALLOWED_SEARCH_FIELDS: Record<UserSortField, string> = ALLOWED_SORT_FIELDS;
+export const ALLOWED_SORT_ORDERS: Record<SortOrder, string> = {
+	ASC: 'ASC',
+	DESC: 'DESC'
+};

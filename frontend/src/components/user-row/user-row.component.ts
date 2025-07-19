@@ -35,6 +35,7 @@ export class UserRowComponent extends BaseComponent {
 	private levelCell!: HTMLElement;
 	private profilePath!: string;
 	private addFriendButton!: HTMLButtonElement;
+	private challengeButton!: HTMLButtonElement;
 
 	/**
 	 * Constructeur du composant de ligne d'utilisateur.
@@ -91,6 +92,7 @@ export class UserRowComponent extends BaseComponent {
 		this.levelCell = getHTMLElementByClass('level-cell', this.container) as HTMLElement;
 		this.profilePath = `/user/${this.user!.id}`;
 		this.addFriendButton = getHTMLElementById('add-friend-button', this.container) as HTMLButtonElement;
+		this.challengeButton = getHTMLElementById('challenge-button', this.container) as HTMLButtonElement;
 	}
 
 	/**
@@ -107,14 +109,14 @@ export class UserRowComponent extends BaseComponent {
 		if (this.user!.id === this.currentUser!.id) {
 			this.userCell.setAttribute('title', 'Your profile');
 			this.avatarImg.setAttribute('alt', 'Your avatar');
-			this.addFriendButton.classList.add('hidden');
 		} else {
 			this.userCell.setAttribute('title', `${this.user!.username}'s profile`);
 			this.avatarImg.setAttribute('alt', `${this.user!.username}'s avatar`);
+			this.challengeButton.classList.remove('hidden');
 		}
 		const isFriend = await dataService.isFriendWithCurrentUser(this.user!.id, this.userFriends);
-		if (isFriend) {
-			this.addFriendButton.classList.add('hidden');
+		if (!isFriend && this.user!.id !== this.currentUser!.id) {
+			this.addFriendButton.classList.remove('hidden');
 		}
 		this.avatarImg.setAttribute('loading', 'lazy');
 		this.avatarImg.setAttribute('src', await dataService.getUserAvatarURL(this.user!));

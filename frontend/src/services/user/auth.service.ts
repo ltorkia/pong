@@ -31,8 +31,9 @@ export class AuthService {
 	public async register(formData: FormData): Promise<void> {
 		try {
 			const avatarFile = formData.get('avatar') as File | null;
-			isValidImage(avatarFile, true);
-
+			if (!isValidImage(avatarFile, true)) {
+				return;
+			};
 			const result: AuthResponse = await authApi.registerUser(formData);
 			if (result.errorMessage) {
 				console.error(`[${this.constructor.name}] Erreur d\'inscription.`);

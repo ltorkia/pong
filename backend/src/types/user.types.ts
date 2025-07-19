@@ -1,4 +1,4 @@
-import { RegisterMethod } from '../shared/types/user.types';	// en rouge car dossier local 'shared' != dossier conteneur
+import { RegisterMethod, UserSortField, SortOrder } from '../shared/types/user.types';	// en rouge car dossier local 'shared' != dossier conteneur
 
 export interface GoogleUserInfo {
 	email: string;

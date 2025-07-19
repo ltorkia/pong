@@ -129,3 +129,23 @@ export interface Friends {
 	beginLog: number;
 	endLog: number;
 }
+
+/**
+ * Interfaces et types pour les requêtes utilisateurs avec pagination et paramètres de tri.
+ */
+
+export interface PaginationInfo {
+	currentPage: number;
+	totalPages: number;
+	totalUsers: number;
+	hasNextPage: boolean;
+	hasPreviousPage: boolean;
+	limit: number;
+}
+export interface PaginatedUsers {
+	users: SafeUserModel[];
+	pagination: PaginationInfo;
+}
+export type SortOrder = 'ASC' | 'DESC';
+export type UserSortField = 'id' | 'username' | 'registration' | 'game_played' | 'game_win' | 'game_loose' | 'time_played' | 'n_friends' | 'status' | 'is_deleted' | 'register_from';
+export type UserSearchField = UserSortField;
