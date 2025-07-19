@@ -41,7 +41,8 @@ export class AuthService {
 			}
 			console.log(`[${this.constructor.name}] Utilisateur inscrit :`, result);
 			alert(REGISTERED_MSG);
-			await router.redirect(AUTH_FALLBACK_ROUTE);
+			uiStore.animateNavbarOut = true;
+			await router.redirect(DEFAULT_ROUTE);
 
 		} catch (err) {
 			console.error(`[${this.constructor.name}] Erreur réseau ou serveur`, err);

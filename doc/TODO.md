@@ -2,15 +2,15 @@ TODO / problèmes rencontrés / questions / pense-bête
 
 BACK
 
-- Vérifier systeme middleware/hook pour auth jwt verif des routes
 - QR code
 - Faire un autre majLastlog() à mettre dans route logout pour mettre le status à offline et le timestamp de déconnexion
 - Formater les dates (le fuseau horaire ne semble pas bon dans beginLog et registration)
+- Gérer form settings
 
 
 COMMUN
 
-- Gerer 2FA dans choix utilisateur (champ DB + adaptation avec ou sans 2fa)
+- RAS
 
 FRONT
 
@@ -20,8 +20,9 @@ FRONT
 - Ajouter "Mot de passe oublie ?" avec gestion question secrete dans modal
 - Faire un petit hover sur le bouton/icon previous de register et du modal
 - Ajouter filtres dans barre de recherche de user list
-- Ajouter case à cocher pour 2FA dans settings
 - Gerer affichage userlist bouton add to friend / friend / self
+- Mieux organiser les updateAvatar etc... (on se perd entre api / user service / image service / data service)
+- Vérifier systeme middleware/hook pour auth jwt verif des routes dans le back
 
 - check MAJ package.json :
  @tsparticles/engine         ^3.0.2  →   ^3.8.1

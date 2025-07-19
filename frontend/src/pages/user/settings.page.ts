@@ -19,6 +19,8 @@ export class SettingsPage extends BasePage {
 	private questionInput!: HTMLInputElement;
 	private dropdownTitles!: NodeListOf<HTMLHeadingElement>;
 	private form!: HTMLFormElement;
+	private alertMsgForm!: HTMLElement;
+	private alertMsgAvatar!: HTMLElement;
 
 	/**
 	 * Constructeur de la page des paramètres.
@@ -48,16 +50,18 @@ export class SettingsPage extends BasePage {
 	 * @returns {Promise<void>} Une promesse qui se résout lorsque les éléments HTML ont été stockés.
 	 */
 	protected async beforeMount(): Promise<void> {
-		if (!this.currentUser!.email) {
+		if (!this.currentUser!.email || !this.currentUser!.secretQuestionNumber) {
 			this.currentUser = await userAuthApi.getMe();
 		}
-		this.avatarContainer = getHTMLElementById('avatar-container') as HTMLElement;
-		this.avatarInput = getHTMLElementById('avatar-input') as HTMLInputElement;
-		this.emailInput = getHTMLElementById('email') as HTMLInputElement;
-		this.usernameInput = getHTMLElementById('username') as HTMLInputElement;
-		this.questionInput = getHTMLElementById('question') as HTMLInputElement;
+		this.avatarContainer = getHTMLElementById('avatar-container', this.container) as HTMLElement;
+		this.avatarInput = getHTMLElementById('avatar-input', this.container) as HTMLInputElement;
+		this.emailInput = getHTMLElementById('email', this.container) as HTMLInputElement;
+		this.usernameInput = getHTMLElementById('username', this.container) as HTMLInputElement;
+		this.questionInput = getHTMLElementById('question', this.container) as HTMLInputElement;
 		this.dropdownTitles = this.container.querySelectorAll('.dropdown-title') as NodeListOf<HTMLHeadingElement>;
-		this.form = getHTMLElementById('settings-form') as HTMLFormElement;
+		this.form = getHTMLElementById('settings-form', this.container) as HTMLFormElement;
+		this.alertMsgForm = getHTMLElementById('alert', this.container) as HTMLElement;
+		this.alertMsgAvatar = getHTMLElementById('alert-avatar', this.container) as HTMLElement;
 	}
 
 	/**
@@ -158,6 +162,7 @@ export class SettingsPage extends BasePage {
 		if (!file) { 
 			return;
 		}
+		this.alertMsgForm.classList.add('hidden');
 		const result = await ImageService.uploadAvatar(this.currentUser!.id, file);
 		if (result === false) {
 			return;
@@ -197,6 +202,7 @@ export class SettingsPage extends BasePage {
 	 */
 	protected handleSettingsSubmit = async (event: Event): Promise<void> => {
 		event.preventDefault();
+		this.alertMsgAvatar.classList.add('hidden');
 		const formData = new FormData(this.form);
 		const data = Object.fromEntries(formData.entries()) as Record<string, string>;
 		await crudService.updateCurrentUser(this.currentUser!.id, data);

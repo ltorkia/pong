@@ -70,17 +70,6 @@ export class LoginPage extends BasePage {
 		await googleService.initGoogleSignIn();
 	}
 
-	// /**
-	//  * Charge les composants propres à cette page.
-	//  * 
-	//  * Cette méthode injecte le composant de modal de double authentification.
-	//  * 
-	//  * @returns {Promise<void>} Une promesse qui se résout lorsque les composants sont chargés.
-	//  */
-	// protected async loadSpecificComponents(): Promise<void> {
-	// 	await this.injectTwofaModal();
-	// }
-
 	/**
 	 * Attacher les gestionnaires d'événement.
 	 *

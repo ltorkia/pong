@@ -191,6 +191,7 @@ export async function authRoutes(app: FastifyInstance) {
 
 			return reply.status(200).send({
 				statusCode: 200,
+				user: user,
 				message: 'Successful registration.'
 			});
 
@@ -246,6 +247,8 @@ export async function authRoutes(app: FastifyInstance) {
 
 			const user: UserModel = await getUser(validUser.id);
 			if (!user.active2Fa) {
+				console.log(user, user.active2Fa);
+				console.log("on process authhhhhhhhhhhhhhhhhhhhhhhhhhhhh");
 				await ProcessAuth(app, validUser, reply);
 			}
 

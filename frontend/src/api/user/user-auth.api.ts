@@ -89,9 +89,10 @@ export class UserAuthApi {
 			credentials: 'include',
 		});
 		const data: AuthResponse = await res.json();
-		if (!res.ok || data.errorMessage) {
+		if (!res.ok || data.errorMessage || !data.user) {
 			return { errorMessage: data.errorMessage || data.message || 'Erreur avec la récupération de l\'utilisateur' } as AuthResponse;
 		}
+		await dataService.setCurrentUserFromServer(data.user);
 		return data as AuthResponse;
 	}
 
@@ -119,7 +120,7 @@ export class UserAuthApi {
 			return { errorMessage: data.errorMessage || data.message || 'Erreur inconnue' } as AuthResponse;
 		}
 		if (!data.user.active2Fa) {
-			dataService.setCurrentUserFromServer(data.user);
+			await dataService.setCurrentUserFromServer(data.user);
 		}
 		return data as AuthResponse;
 	}
@@ -175,7 +176,7 @@ export class UserAuthApi {
 		if (!res.ok || data.errorMessage || !data.user) {
 			return { errorMessage: data.errorMessage || data.message || 'Erreur avec la récupération de l\'utilisateur' };
 		}
-		dataService.setCurrentUserFromServer(data.user);
+		await dataService.setCurrentUserFromServer(data.user);
 		return data as AuthResponse;
 	}
 
