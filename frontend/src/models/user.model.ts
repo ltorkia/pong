@@ -86,6 +86,8 @@ export class User {
 			gameLoose: this.gameLoose,
 			timePlayed: this.timePlayed,
 			nFriends: this.nFriends,
+			beginLog: this.beginLog,
+			endLog: this.endLog
 		};
 	}
 
@@ -112,7 +114,8 @@ export class User {
 			nFriends: this.nFriends,
 			status: this.status,
 			isDeleted: this.isDeleted,
-			registerFrom: this.registerFrom
+			registerFrom: this.registerFrom,
+			active2Fa: this.active2Fa
 		};
 	}
 
@@ -141,7 +144,8 @@ export class User {
 			nFriends: this.nFriends,
 			status: this.status,
 			isDeleted: this.isDeleted,
-			registerFrom: this.registerFrom
+			registerFrom: this.registerFrom,
+			active2Fa: this.active2Fa
 		};
 	}
 
@@ -179,7 +183,7 @@ export class User {
 			data.timePlayed ?? 0,
 			data.nFriends ?? 0,
 			data.status ?? DB_CONST.USER.STATUS.OFFLINE,
-			data.isDeleted ?? false,
+			data.isDeleted ?? 0,
 			data.registerFrom ?? DB_CONST.USER.REGISTER_FROM.LOCAL,
 			data.active2Fa ?? 0
 		);
@@ -218,7 +222,7 @@ export class User {
 			'', // beginLog vide
 			'', // endLog vide
 			0,  // Tournament à 0
-			data.gameLayed ?? 0,
+			data.gamePlayed ?? 0,
 			data.gameWin ?? 0,
 			data.gameLoose ?? 0,
 			data.timePlayed ?? 0,

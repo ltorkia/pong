@@ -1,6 +1,6 @@
 import { User } from '../../models/user.model';
 import { userStore } from '../../stores/user.store';
-import { UserModel, SafeUserModel, UserStatus } from '../shared/types/user.types';
+import { UserModel, SafeUserModel, UserStatus } from '../../shared/types/user.types';
 
 /**
  * Service de gestion des utilisateurs et de la logique métier.

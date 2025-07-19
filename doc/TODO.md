@@ -6,23 +6,25 @@ BACK
 - Faire un autre majLastlog() à mettre dans route logout pour mettre le status à offline et le timestamp de déconnexion
 - Formater les dates (le fuseau horaire ne semble pas bon dans beginLog et registration)
 - Gérer form settings
+- Gerer proxy pour avatars Google
 
 
 COMMUN
 
-- RAS
+- Ajuster conf nginx prod pour websockets
 
 FRONT
 
 - Faire un middleware à wrapper dans chaque fonction qui implique de checker si le user est connecté
 - Rajouter le nom du user connecté sur la navbar ?
-- Faire components page profil / stats
+- Faire page profil (stats globales user) / dashboard (match history, 1vs1, tournois etc)
 - Ajouter "Mot de passe oublie ?" avec gestion question secrete dans modal
 - Faire un petit hover sur le bouton/icon previous de register et du modal
 - Ajouter filtres dans barre de recherche de user list
 - Gerer affichage userlist bouton add to friend / friend / self
 - Mieux organiser les updateAvatar etc... (on se perd entre api / user service / image service / data service)
 - Vérifier systeme middleware/hook pour auth jwt verif des routes dans le back
+- Ajuster logique pour getAvatarUrl Google quand le back a fini l'affaire de proxy
 
 - check MAJ package.json :
  @tsparticles/engine         ^3.0.2  →   ^3.8.1

@@ -1,5 +1,5 @@
 import { User } from '../../models/user.model';
-import { SafeUserModel, Friends } from '../../shared/types/user.types';	// en rouge car dossier local 'shared' != dossier conteneur
+import { SafeUserModel, PublicUser } from '../../shared/types/user.types';	// en rouge car dossier local 'shared' != dossier conteneur
 import { secureFetch } from '../../utils/app.utils';
 import { dataService } from '../../services/services';
 import { AuthResponse } from 'src/types/api.types';
@@ -86,7 +86,7 @@ export class UserCrudApi {
 		if (!res.ok) {
 			throw new Error('Erreur de l\'API');
 		}
-		const data: Friends[] = await res.json();
+		const data: PublicUser[] = await res.json();
 		return User.fromPublicJSONArray(data) as User[];
 	}
 

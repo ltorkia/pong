@@ -71,7 +71,7 @@ export class AuthService {
 				return { errorMessage: data.errorMessage };
 			}
 
-			if (data.user.active2Fa) {
+			if (data.user!.active2Fa) {
 				// Mode 2FA activé: pas de redirection, c’est LoginPage qui gère le popup
 				console.log(`[${this.constructor.name}] Authentification réussie (étape 1), 2FA requis`);
 				return data as AuthResponse;

@@ -1,4 +1,4 @@
-import { PositionObj, GameData } from "../shared/game.types"
+import { PositionObj, GameData } from "../../shared/types/game.types"
 
 const clamp = (val: number, min: number, max: number) => { return Math.min(Math.max(val, min), max) };
 

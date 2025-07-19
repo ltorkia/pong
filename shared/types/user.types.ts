@@ -86,6 +86,8 @@ export interface PublicUser {
 	gameLoose: number;
 	timePlayed: number;
 	nFriends: number;
+	beginLog: string;
+	endLog: string;
 }
 
 /**

@@ -5,7 +5,7 @@ import { ChatMessage } from '../types/chat.types';
 import { searchNewName } from '../helpers/auth.helpers';
 import { UserPassword, User2FA, UserForChangeData } from '../types/user.types';
 import { DB_CONST } from '../shared/config/constants.config'; // en rouge car dossier local 'shared' != dossier conteneur
-import { UserModel, SafeUserModel, UserBasic, UserWithAvatar, Friends } from '../shared/types/user.types'; // en rouge car dossier local 'shared' != dossier conteneur
+import { UserModel, SafeUserModel, UserBasic, UserWithAvatar, PublicUser, Friends } from '../shared/types/user.types'; // en rouge car dossier local 'shared' != dossier conteneur
 import { snakeToCamel, snakeArrayToCamel } from '../helpers/types.helpers';
 
 // retourne les infos d un user particulier - userId = le id de l user a afficher
@@ -99,7 +99,7 @@ export async function getUserFriends(userId: number) {
 		`,
 		[userId, userId]
 	);
-	return snakeArrayToCamel(friends) as Friends[];
+	return snakeArrayToCamel(friends) as PublicUser[];
 }
 // pour insert : const [u1, u2] = [userIdA, userIdB].sort((a, b) => a - b);
 		

@@ -150,7 +150,7 @@ export class LoginPage extends BasePage {
 		const loginResult = await authService.loginUser(data);
 
 		// Affiche le modal 2FA seulement si login OK et 2FA activé
-		if (!loginResult || loginResult.errorMessage || !loginResult.user.active2Fa) {
+		if (!loginResult || loginResult.errorMessage || !loginResult.user!.active2Fa) {
 			return;
 		}
 
