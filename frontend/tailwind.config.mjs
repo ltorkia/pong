@@ -130,7 +130,11 @@ export default {
 						opacity: '1',
 						transform: 'scale(1) translateY(0)'
 					}
-				}
+				},
+				fadeInUp: {
+				'0%': { opacity: '0', transform: 'translateY(10px)' },
+				'100%': { opacity: '1', transform: 'translateY(0)' },
+				},
 			},
 			/**
 			 * Les animations (adaptation des Keyframes).
@@ -142,6 +146,7 @@ export default {
 				'letter-float-3': 'letterFloat 4s ease-in-out infinite 0.4s',
 				'letter-float-4': 'letterFloat 4s ease-in-out infinite 0.6s',
 				'logo-appear': 'logoAppear 1s ease-out',
+        		'fadeInUp': 'fadeInUp 0.2s ease-out',
 			}
 		},
 	},

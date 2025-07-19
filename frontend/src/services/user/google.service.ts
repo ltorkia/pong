@@ -1,7 +1,7 @@
 import { router } from '../../router/router';
 import { showAlert } from '../../utils/dom.utils';
-import { userAuthApi } from '../../api/user/user-index.api';
-import { uiStore } from '../../stores/ui.store';
+import { authApi } from '../../api/user/user.api';
+import { animationService } from '../index.service';
 import { getHTMLElementById, getHTMLScriptElement } from '../../utils/dom.utils';
 import { DEFAULT_ROUTE } from '../../config/routes.config';
 
@@ -11,7 +11,7 @@ import { DEFAULT_ROUTE } from '../../config/routes.config';
 /**
  * Service centralisé pour Google sign-in.
  */
-export class UserGoogleService {
+export class GoogleService {
 
 	/**
 	 * Initialise le bouton Google Sign-In.
@@ -133,13 +133,13 @@ export class UserGoogleService {
 	public async googleConnectUser(response: google.accounts.id.CredentialResponse): Promise<void> {
 		const id_token = response.credential;
 		try {
-			const result = await userAuthApi.googleConnectUser(id_token);
+			const result = await authApi.googleConnectUser(id_token);
 			if (result.errorMessage) {
 				console.error(`[${this.constructor.name}] Erreur Google Auth :`, result.errorMessage);
 				showAlert(result.errorMessage);
 				return;
 			}
-			uiStore.animateNavbarOut = true;
+			animationService.animateNavbarOut = true;
 			await router.redirect(DEFAULT_ROUTE);
 
 		} catch (err) {

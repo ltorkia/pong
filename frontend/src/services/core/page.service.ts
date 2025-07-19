@@ -1,5 +1,5 @@
 import { particlesService } from '../index.service';
-import { uiStore } from '../../stores/ui.store';
+import { animationService } from '../index.service'
 import { getHTMLElementById } from '../../utils/dom.utils';
 import { APP_ID } from '../../config/routes.config';
 import { RouteConfig, PageInstance } from '../../types/routes.types';
@@ -46,19 +46,13 @@ export class PageService {
 		this.toggleParticles(config);
 		const appDiv = getHTMLElementById(APP_ID);
 		const navbarDiv = getHTMLElementById(HTML_COMPONENT_CONTAINERS.NAVBAR_ID);
-		await this.pageTransitionOut(appDiv);
-		if (uiStore.animateNavbarOut === true) {
-			await this.navbarTransitionOut(navbarDiv);
-			uiStore.animateNavbarOut = false;
-		}
+		await animationService.pageTransitionOut(appDiv);
+		await this.checkNavbarAnimationIn(navbarDiv);
 		await this.cleanup();
 		this.currentPage = page;
-		await this.pageTransitionIn(appDiv);
+		await animationService.pageTransitionIn(appDiv);
 		await this.currentPage.render();
-		if (uiStore.animateNavbarIn === true) {
-			await this.navbarTransitionIn(navbarDiv);
-			uiStore.animateNavbarIn = false;
-		}
+		await this.checkNavbarAnimationOut(navbarDiv);
 	}
 
 	/**
@@ -78,69 +72,33 @@ export class PageService {
 	}
 
 	/**
-	 * Transition de la page vers l'entrée.
+	 * Vérifie si une animation de transition de la navbar vers la sortie est en cours.
+	 * Si c'est le cas, attend que l'animation soit terminée, puis annule l'animation.
 	 * 
-	 * - Retire la classe 'scale-90' pour annuler le zoom-out.
-	 * - Ajoute la classe 'scale-100' pour appliquer le zoom-in.
-	 * - Retire la classe 'scale-100' après 300ms.
-	 * 
-	 * @param {HTMLElement} container - Élément HTML à transitionner.
-	 * @returns {Promise<void>} Une promesse qui se résout lorsque la transition est terminée.
+	 * @param {HTMLElement} container - Élément HTML de la navbar.
+	 * @returns {Promise<void>} Une promesse qui se résout lorsque l'animation est terminée.
 	 */
-	private async pageTransitionIn(container: HTMLElement): Promise<void> {
-		container.classList.remove('scale-90');
-		container.classList.add('scale-100');
-		setTimeout(() => container.classList.remove('scale-100'), 300);
-	}
-
-	/**
-	 * Transition de la page vers la sortie.
-	 * 
-	 * - Ajoute la classe 'scale-90' pour appliquer le zoom-out.
-	 * - Retire la classe 'scale-90' après 300ms.
-	 * - Attend 120ms pour que la transition soit terminée avant de continuer.
-	 * 
-	 * @param {HTMLElement} container - Élément HTML à transitionner.
-	 * @returns {Promise<void>} Une promesse qui se résout lorsque la transition est terminée.
-	 */
-	private async pageTransitionOut(container: HTMLElement): Promise<void> {
-		container.classList.add('scale-90');
-		setTimeout(() => container.classList.remove('scale-90'), 300);
-		await new Promise(resolve => setTimeout(resolve, 120));
-	}
-
-	/**
-	 * Transition de la navbar de la position cachée vers la position visible.
-	 * 
-	 * - Retire la classe '-translate-y-[--navbar-height]' pour annuler la translation vers le haut.
-	 * - Ajoute la classe 'translate-y-0' pour appliquer la translation vers le bas.
-	 * - Retire la classe 'translate-y-0' après 300ms.
-	 * 
-	 * @param {HTMLElement} container - Élément HTML de la navbar à transitionner.
-	 * @returns {Promise<void>} Une promesse qui se résout lorsque la transition est terminée.
-	 */
-	private async navbarTransitionIn(container: HTMLElement): Promise<void> {
-		container.classList.remove('-translate-y-[--navbar-height]');
-		container.classList.add('translate-y-0');
-		setTimeout(() => container.classList.remove('translate-y-0'), 300);
+	private async checkNavbarAnimationIn(container: HTMLElement): Promise<void> {
+		if (animationService.animateNavbarOut === true) {
+			await animationService.navbarTransitionOut(container);
+			animationService.animateNavbarOut = false;
+		}
 	}
 	
 	/**
 	 * Transition de la navbar de la position visible vers la position cachée.
 	 *
-	 * - Retire la classe 'translate-y-0' pour annuler la translation vers le bas.
-	 * - Ajoute la classe '-translate-y-[--navbar-height]' pour appliquer la translation vers le haut.
-	 * - Retire la classe '-translate-y-[--navbar-height]' après 300ms.
-	 * - Attend 200ms pour que la transition soit terminée avant de continuer.
-	 *
+	 * Si animateNavbarIn est à true, on lance la transition de la navbar
+	 * vers la position cachée.
+	 * 
 	 * @param {HTMLElement} container - Élément HTML de la navbar à transitionner.
 	 * @returns {Promise<void>} Une promesse qui se résout lorsque la transition est terminée.
-	 */	
-	private async navbarTransitionOut(container: HTMLElement): Promise<void> {
-		container.classList.remove('translate-y-0');
-		container.classList.add('-translate-y-[--navbar-height]');
-		setTimeout(() => container.classList.remove('-translate-y-[--navbar-height]'), 300);
-		await new Promise(resolve => setTimeout(resolve, 200));
+	 */
+	private async checkNavbarAnimationOut(container: HTMLElement): Promise<void> {
+		if (animationService.animateNavbarIn === true) {
+			await animationService.navbarTransitionIn(container);
+			animationService.animateNavbarIn = false;
+		}
 	}
 
 	/**

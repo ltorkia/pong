@@ -1,21 +1,20 @@
 import { User } from '../../models/user.model';
-import { userCrudApi } from '../../api/index.api';
+import { crudApi } from '../../api/index.api';
 import { AuthResponse } from '../../types/api.types';
 import { showAlert } from '../../utils/dom.utils';
 import { isValidImage, checkImageExists } from '../../utils/image.utils';
 import { UserStatus } from '../../shared/types/user.types';
 import { DB_CONST, IMAGE_CONST } from '../../shared/config/constants.config'; // en rouge car dossier local 'shared' != dossier conteneur
 
+// ============================================================================
+// DATA SERVICE
+// ============================================================================
 /**
  * Service de gestion des utilisateurs et de la logique métier.
  * 
  * Centralise toutes les opérations sur les utilisateurs.
  */
-export class UserDataService {
-	
-	// ============================================================================
-	// OPÉRATIONS METIER / CRUD SUR UN UTILISATEUR
-	// ============================================================================
+export class DataService {
 
 	/**
 	 * Met à jour les propriétés de l'utilisateur avec de nouvelles données.
@@ -25,7 +24,7 @@ export class UserDataService {
 	 * @returns {Promise<void>} - Promesse qui se resout lorsque l'utilisateur est mis à jour
 	 */
 	public async updateUser(id: number, userData: Record<string, string>): Promise<void> {
-		const result: AuthResponse = await userCrudApi.updateUser(id, userData);
+		const result: AuthResponse = await crudApi.updateUser(id, userData);
 		if (result.errorMessage) {
 			console.error(`[${this.constructor.name}] Erreur de mise à jour utilisateur.`);
 			showAlert(result.errorMessage);
@@ -53,7 +52,7 @@ export class UserDataService {
 		}
 		const formData = new FormData();
 		formData.append('avatar', file);
-		const result: AuthResponse = await userCrudApi.updateAvatar(id, formData);
+		const result: AuthResponse = await crudApi.updateAvatar(id, formData);
 		if (result.errorMessage) {
 			console.error(`[${this.constructor.name}] Erreur de mise à jour de l'avatar utilisateur.`);
 			showAlert(result.errorMessage);

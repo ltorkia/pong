@@ -2,8 +2,8 @@
 import template from './navbar.component.html?raw';
 
 import { BaseComponent } from '../base/base.component';
-import { uiStore } from '../../stores/ui.store';
-import { userAuthService } from '../../services/index.service';
+import { authService } from '../../services/index.service';
+import { animationService } from '../../services/index.service';
 import { RouteConfig } from '../../types/routes.types';
 import { ComponentConfig } from '../../types/components.types';
 import { toggleClass } from '../../utils/dom.utils';
@@ -15,13 +15,13 @@ import { DB_CONST } from '../../shared/config/constants.config';
 // NAVBAR COMPONENT
 // ===========================================
 /**
- * Composant de la navbar.
+ * Composant de la barre de navigation.
  *
- * La navbar permet de naviguer entre les différentes pages
- * de l'application. Elle est injectée dans la balise HTML qui a l'id "navbar".
- * La navbar injecte un lien vers le profil de l'utilisateur actuel.
+ * Ce composant permet la navigation entre les différentes pages
+ * de l'application. Il est injecté dans l'élément HTML avec l'id "navbar".
+ * Un lien vers le profil de l'utilisateur actuel est inclus dans la barre de navigation.
  * La méthode publique `setActiveLink(route)` est appelée à chaque changement de route
- * par le service de routing pour la mise à jour visuelle du lien actif.
+ * par le service de routage pour mettre à jour visuellement le lien actif.
  */
 export class NavbarComponent extends BaseComponent {
 	private homeLogoLink!: HTMLElement;
@@ -278,7 +278,7 @@ export class NavbarComponent extends BaseComponent {
 	 * 
 	 * Lors d'un clic sur le bouton logout, on annule l'événement de navigation,
 	 * on enclenche la destruction de la navbar, on active sa transition de sortie,
-	 * et on appelle la méthode logoutUser() du userAuthService pour déconnecter l'utilisateur.
+	 * et on appelle la méthode logout() du authService pour déconnecter l'utilisateur.
 	 * 
 	 * @param {MouseEvent} event L'événement de clic.
 	 * @returns {Promise<void>} Promesse qui se résout lorsque l'opération est terminée.
@@ -286,7 +286,7 @@ export class NavbarComponent extends BaseComponent {
 	private handleLogoutClick = async (event: MouseEvent): Promise<void> => {
 		event.preventDefault();
 		this.componentConfig.destroy = true;
-		uiStore.animateNavbarOut = true;
-		await userAuthService.logoutUser();
+		animationService.animateNavbarOut = true;
+		await authService.logout();
 	};
 }

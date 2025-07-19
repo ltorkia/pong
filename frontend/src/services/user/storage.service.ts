@@ -1,8 +1,8 @@
-import { User } from '../models/user.model';
-import { SafeUserModel } from '../shared/types/user.types';	// en rouge car dossier local 'shared' != dossier conteneur
+import { User } from '../../models/user.model';
+import { SafeUserModel } from '../../shared/types/user.types';	// en rouge car dossier local 'shared' != dossier conteneur
 
 // ===========================================
-// USER STORE
+// STORAGE SERVICE
 // ===========================================
 /**
  * Classe de gestion de l'utilisateur courant
@@ -12,7 +12,7 @@ import { SafeUserModel } from '../shared/types/user.types';	// en rouge car doss
  * sous forme de JSON. Cela permet de le récupérer
  * même après fermeture du navigateur.
  */
-export class UserStore {
+export class StorageService {
 	private storedUser: SafeUserModel | null = null;
 
 	/**
@@ -37,6 +37,7 @@ export class UserStore {
 	public clearCurrentUser() {
 		this.storedUser = null;
 		localStorage.removeItem('currentUser');
+		console.log(`[${this.constructor.name}] Utilisateur supprimé en local storage`);
 	}
 
 	/**
@@ -48,7 +49,6 @@ export class UserStore {
 	 * 
 	 * @returns {User} L'utilisateur restauré, ou null si la restaurtion a échoué.
 	 */
-	// TODO: Prévoir le cas où le user est restauré sans email dans la mémoire vive (faire un fallback api)
 	public restoreFromStorage(): SafeUserModel | null {
 		if (this.storedUser) {
 			return this.storedUser;
@@ -61,13 +61,3 @@ export class UserStore {
 		return this.storedUser;
 	}
 }
-
-/**
- * Instance unique du store d'état de l'utilisateur.
- * 
- * Stocke l'utilisateur courant en local storage.
- * 
- * Permet de gérer la connexion et la déconnexion de l'utilisateur,
- * ainsi que la mise à jour de l'utilisateur courant.
- */
-export const userStore = new UserStore();

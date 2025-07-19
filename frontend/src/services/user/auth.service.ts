@@ -1,8 +1,8 @@
 import { router } from '../../router/router';
 import { showAlert } from '../../utils/dom.utils';
-import { userAuthApi } from '../../api/index.api';
+import { authApi } from '../../api/index.api';
+import { animationService } from '../index.service';
 import { AuthResponse, BasicResponse } from '../../types/api.types';
-import { uiStore } from '../../stores/ui.store';
 import { isValidImage } from '../../utils/image.utils';
 import { DEFAULT_ROUTE, AUTH_FALLBACK_ROUTE } from '../../config/routes.config';
 import { REGISTERED_MSG } from '../../config/messages.config';
@@ -14,7 +14,7 @@ import { REGISTERED_MSG } from '../../config/messages.config';
  * Service centralisé pour la gestion d'authentification  des utilisateurs.
  * Register /Login / Logout
  */
-export class UserAuthService {
+export class AuthService {
 
 	/**
 	 * Inscription d'un utilisateur
@@ -28,20 +28,20 @@ export class UserAuthService {
 	 * @returns {Promise<void>} Promesse qui se résout lorsque l'opération est terminée.
 	 * @throws {Error} Si la requête échoue.
 	 */
-	public async registerUser(formData: FormData): Promise<void> {
+	public async register(formData: FormData): Promise<void> {
 		try {
 			const avatarFile = formData.get('avatar') as File | null;
 			isValidImage(avatarFile, true);
 
-			const result: AuthResponse = await userAuthApi.registerUser(formData);
+			const result: AuthResponse = await authApi.registerUser(formData);
 			if (result.errorMessage) {
-				console.error(`[${this.constructor.name}] Erreur d\'inscription :`, result);
+				console.error(`[${this.constructor.name}] Erreur d\'inscription.`);
 				showAlert(result.errorMessage);
 				return;
 			}
-			console.log(`[${this.constructor.name}] Utilisateur inscrit :`, result);
+			console.log(`[${this.constructor.name}] Utilisateur inscrit.`);
 			alert(REGISTERED_MSG);
-			uiStore.animateNavbarOut = true;
+			animationService.animateNavbarOut = true;
 			await router.redirect(DEFAULT_ROUTE);
 
 		} catch (err) {
@@ -62,11 +62,11 @@ export class UserAuthService {
 	 * l'utilisateur qui tente de se connecter ou un objet d'erreur.
 	 * @throws {Error} Si la requête échoue ou en cas d'erreur réseau.
 	 */
-	public async loginUser(userData: Record<string, string>): Promise<AuthResponse> {
+	public async login(userData: Record<string, string>): Promise<AuthResponse> {
 		try {
-			const data: AuthResponse = await userAuthApi.loginUser(userData);
+			const data: AuthResponse = await authApi.loginUser(userData);
 			if (data.errorMessage) {
-				console.error(`[${this.constructor.name}] Erreur d'authentification :`, data);
+				console.error(`[${this.constructor.name}] Erreur d'authentification.`);
 				showAlert(data.errorMessage);
 				return { errorMessage: data.errorMessage };
 			}
@@ -79,7 +79,7 @@ export class UserAuthService {
 			// Sinon connexion réussie, redirection vers la page d'accueil
 			console.log(`[${this.constructor.name}] Authentification réussie sans 2FA`);
 
-			uiStore.animateNavbarOut = true;
+			animationService.animateNavbarOut = true;
 			await router.redirect(DEFAULT_ROUTE);
 			return data as AuthResponse;
 
@@ -101,7 +101,7 @@ export class UserAuthService {
 	 * un message d'erreur ou un message de confirmation.
 	 */
 	public async send2FA(userData: Record<string, string>): Promise<AuthResponse> {
-		const res2FA: AuthResponse = await userAuthApi.send2FA(userData);
+		const res2FA: AuthResponse = await authApi.send2FA(userData);
 		if (res2FA.errorMessage) {
 			return { errorMessage: res2FA.errorMessage || res2FA.message || 'Erreur inconnue' } as AuthResponse;
 		}
@@ -121,17 +121,17 @@ export class UserAuthService {
 	 *   authentifié ou un objet d'erreur.
 	 * @throws {Error} Si la requête échoue ou en cas d'erreur réseau.
 	 */
-	public async twofaConnectUser(userData: Record<string, string>): Promise<AuthResponse> {
+	public async twofaConnect(userData: Record<string, string>): Promise<AuthResponse> {
 		try {
-			const result: AuthResponse = await userAuthApi.twofaConnectUser(userData);
+			const result: AuthResponse = await authApi.twofaConnectUser(userData);
 			if (result.errorMessage) {
-				console.error(`[${this.constructor.name}] Erreur d'authentification :`, result);
+				console.error(`[${this.constructor.name}] Erreur d'authentification.`);
 				return { errorMessage: result.errorMessage };
 			}
-			console.log(`[${this.constructor.name}] Utilisateur connecté :`, result);
+			console.log(`[${this.constructor.name}] Utilisateur connecté.`);
 
 			// Redirection home
-			uiStore.animateNavbarOut = true;
+			animationService.animateNavbarOut = true;
 			await router.redirect(DEFAULT_ROUTE);
 
 			return result;
@@ -153,16 +153,16 @@ export class UserAuthService {
 	 * @returns {Promise<void>} Promesse qui se résout lorsque l'opération est terminée.
 	 * @throws {Error} Si la requête échoue ou en cas d'erreur réseau.
 	 */
-	public async logoutUser(): Promise<void> {
+	public async logout(): Promise<void> {
 		try {
-			const result: BasicResponse = await userAuthApi.logoutUser();
+			const result: BasicResponse = await authApi.logoutUser();
 			if (result.errorMessage) {
-				console.error(`[${this.constructor.name}] Erreur lors du logout :`, result);
+				console.error(`[${this.constructor.name}] Erreur lors du logout.`);
 				showAlert(result.errorMessage);
 				return;
 			}
-			uiStore.animateNavbarOut = true;
-			console.log(`[${this.constructor.name}] Utilisateur déconnecté :`, result);
+			animationService.animateNavbarOut = true;
+			console.log(`[${this.constructor.name}] Utilisateur déconnecté.`);
 			
 			// Redirection SPA vers login
 			console.log(`[${this.constructor.name}] Déconnexion réussie. Redirection /login`);

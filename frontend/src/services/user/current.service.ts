@@ -1,35 +1,29 @@
 import { User } from '../../models/user.model';
-import { userStore } from '../../stores/user.store';
+import { storageService } from '../index.service';
 import { UserModel, SafeUserModel } from '../../shared/types/user.types';
 
+// ===========================================
+// CURRENT SERVICE
+// ===========================================
 /**
- * Service de gestion de l'utilisateur courant en RAM et local storage.
- * 
- * Centralise toutes les opérations sur l'utilisateur courant.
+ * Classe de gestion de l'utilisateur courant (singleton).
+ *
+ * Stocke l'utilisateur courant en mémoire vive (this.currentUser)
+ * et en local storage (sans email).
+ * Permet de récupérer l'utilisateur courant, de l'initialiser
+ * et de le mettre à jour.
+ *
+ * L'utilisateur courant est stocké en local storage
+ * sous forme de JSON avec les propriétés de l'utilisateur
+ * sauf l'email. Cela permet de récupérer l'utilisateur
+ * même après fermeture du navigateur.
+ *
+ * La méthode setCurrentUserFromServer met à jour l'utilisateur
+ * courant avec les données complètes du serveur (y compris l'email)
+ * mais n'enregistre que les données sans email en local storage.
  */
-export class UserCurrentService {
+export class CurrentService {
 	private currentUser: User | null = null;
-
-	// ============================================================================
-	// GESTION DE L'UTILISATEUR COURANT
-	// ============================================================================
-	/**
-	 * Classe de gestion de l'utilisateur courant (singleton).
-	 *
-	 * Stocke l'utilisateur courant en mémoire vive (this.currentUser)
-	 * et en local storage (sans email).
-	 * Permet de récupérer l'utilisateur courant, de l'initialiser
-	 * et de le mettre à jour.
-	 *
-	 * L'utilisateur courant est stocké en local storage
-	 * sous forme de JSON avec les propriétés de l'utilisateur
-	 * sauf l'email. Cela permet de récupérer l'utilisateur
-	 * même après fermeture du navigateur.
-	 *
-	 * La méthode setCurrentUserFromServer met à jour l'utilisateur
-	 * courant avec les données complètes du serveur (y compris l'email)
-	 * mais n'enregistre que les données sans email en local storage.
-	 */
 
 	/**
 	 * Vérifie si l'utilisateur courant existe.
@@ -60,7 +54,7 @@ export class UserCurrentService {
 	 */
 	public setCurrentUser(user: User) {
 		this.currentUser = user;
-		userStore.setCurrentUser(this.currentUser);
+		storageService.setCurrentUser(this.currentUser);
 	}
 
 	/**
@@ -73,7 +67,7 @@ export class UserCurrentService {
 	 */
 	public async setCurrentUserFromServer(userData: UserModel): Promise<void> {
 		this.currentUser = User.fromJSON(userData);
-		userStore.setCurrentUser(this.currentUser);
+		storageService.setCurrentUser(this.currentUser);
 		console.log(`[${this.constructor.name}] Utilisateur mis à jour depuis serveur (email en mémoire uniquement):`, this.currentUser);
 	}
 
@@ -89,7 +83,7 @@ export class UserCurrentService {
 			return null;
 		}
 		Object.assign(this.currentUser, updates);
-		userStore.setCurrentUser(this.currentUser);
+		storageService.setCurrentUser(this.currentUser);
 		console.log(`[${this.constructor.name}] Utilisateur courant mis à jour`);
 		return this.currentUser;
 	}
@@ -106,8 +100,7 @@ export class UserCurrentService {
 			return;
 		}
 		this.currentUser = null;
-		userStore.clearCurrentUser();
-		console.log(`[${this.constructor.name}] Utilisateur supprimé`);
+		storageService.clearCurrentUser();
 	}
 
 	/**
@@ -120,7 +113,7 @@ export class UserCurrentService {
 	 * @returns {User | null} L'utilisateur restauré, ou null si la restaurtion a échoué.
 	 */
 	public restoreUser(): User | null {
-		const storedUser: SafeUserModel | null = userStore.restoreFromStorage();
+		const storedUser: SafeUserModel | null = storageService.restoreFromStorage();
 		if (!storedUser) {
 			console.log(`[${this.constructor.name}] Pas d'utilisateur stocké localement`);
 			return null;

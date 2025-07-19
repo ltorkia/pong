@@ -1,7 +1,7 @@
 import { BasePage } from '../base/base.page';
 import { RouteConfig } from '../../types/routes.types';
-import { userDataService } from '../../services/index.service';
-import { userAuthApi } from '../../api/index.api';
+import { dataService } from '../../services/index.service';
+import { authApi } from '../../api/index.api';
 import { toggleClass, getHTMLElementById, getHTMLElementByClass, showAlert } from '../../utils/dom.utils';
 
 // ===========================================
@@ -50,7 +50,7 @@ export class SettingsPage extends BasePage {
 	 */
 	protected async beforeMount(): Promise<void> {
 		if (!this.currentUser!.email || !this.currentUser!.secretQuestionNumber) {
-			this.currentUser = await userAuthApi.getMe();
+			this.currentUser = await authApi.getMe();
 		}
 		this.avatarContainer = getHTMLElementById('avatar-container', this.container) as HTMLElement;
 		this.avatarInput = getHTMLElementById('avatar-input', this.container) as HTMLInputElement;
@@ -162,11 +162,11 @@ export class SettingsPage extends BasePage {
 			return;
 		}
 		this.alertMsgForm.classList.add('hidden');
-		const result = await userDataService.updateAvatar(this.currentUser!.id, file);
+		const result = await dataService.updateAvatar(this.currentUser!.id, file);
 		if (result === false) {
 			return;
 		}
-		this.currentUserAvatarURL = await userDataService.getUserAvatarURL(this.currentUser!);
+		this.currentUserAvatarURL = await dataService.getUserAvatarURL(this.currentUser!);
 		this.loadAvatar();
 	}
 
@@ -204,6 +204,6 @@ export class SettingsPage extends BasePage {
 		this.alertMsgAvatar.classList.add('hidden');
 		const formData = new FormData(this.form);
 		const data = Object.fromEntries(formData.entries()) as Record<string, string>;
-		await userDataService.updateUser(this.currentUser!.id, data);
+		await dataService.updateUser(this.currentUser!.id, data);
 	};
 }

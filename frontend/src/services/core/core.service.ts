@@ -1,10 +1,9 @@
 import { AppService } from './app.service';
 import { RoutingService } from './routing.service';
 import { PageService } from './page.service';
-import { ParticlesService } from './particles.service';
 
 // ===========================================
-// CORE INDEX SERVICE - SINGLETONS
+// CORE SERVICES - SINGLETONS
 // ===========================================
 /**
  * Gèrent les logiques métier principales de l'application.
@@ -38,14 +37,3 @@ export const routingService = new RoutingService();
  * - garder une référence à la page actuellement affichée (currentPage)
  */
 export const pageService = new PageService();
-
-/**
- * Instance unique du service de gestion des particules.
- * 
- * Ce service est responsable de:
- * - charger les particules en utilisant la librairie tsParticles
- * - activer ou désactiver l'affichage des particules
- * 
- *  La configuration des particules est stockée dans le fichier theme.config.ts.
- */
-export const particlesService = new ParticlesService();

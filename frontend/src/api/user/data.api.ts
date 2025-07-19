@@ -1,15 +1,15 @@
 import { User } from '../../models/user.model';
 import { Game } from '../../models/game.model';
-import { userDataService, userCurrentService } from '../../services/index.service';
+import { dataService, currentService } from '../../services/index.service';
 import { SafeUserModel, PublicUser } from '../../shared/types/user.types';	// en rouge car dossier local 'shared' != dossier conteneur
 import { secureFetch } from '../../utils/app.utils';
 import { AuthResponse } from 'src/types/api.types';
 
 // ===========================================
-// USER CRUD API
+// CRUD API
 // ===========================================
 /**
- * Ce fichier contient la classe UserCrudApi, qui fournit des méthodes pour
+ * Ce fichier contient la classe CrudApi, qui fournit des méthodes pour
  * interagir avec l'API de gestion des utilisateurs en utilisant la fonction
  * utilitaire secureFetch pour des requêtes HTTP sécurisées.
  * 
@@ -17,7 +17,7 @@ import { AuthResponse } from 'src/types/api.types';
  * des utilisateurs enregistrés en base de données. Elles utilisent secureFetch
  * pour envoyer des requêtes HTTP sécurisées au serveur afin de réaliser ces opérations.
  */
-export class UserCrudApi {
+export class CrudApi {
 
 	// ===========================================
 	// GET REQUESTS - DATABASE SELECT
@@ -78,7 +78,7 @@ export class UserCrudApi {
 	 */
 	public async getActiveUsers(): Promise<User[]> {
 		const users: User[] = await this.getUsers();
-		return userDataService.getActiveUsers(users) as User[];
+		return dataService.getActiveUsers(users) as User[];
 	}
 
 	/**
@@ -91,7 +91,7 @@ export class UserCrudApi {
 	 */
 	public async getOnlineUsers(): Promise<User[]> {
 		const users: User[] = await this.getUsers();
-		return userDataService.getOnlineUsers(users) as User[];
+		return dataService.getOnlineUsers(users) as User[];
 	}
 
 	/**
@@ -161,7 +161,7 @@ export class UserCrudApi {
 		if (!res.ok || data.errorMessage || !data.user) {
 			return { errorMessage: data.errorMessage || data.message || 'Erreur lors de la mise à jour' };
 		}
-		await userCurrentService.updateCurrentUser(data.user);
+		await currentService.updateCurrentUser(data.user);
 		return data as AuthResponse;
 	}
 
@@ -189,7 +189,7 @@ export class UserCrudApi {
 		if (!res.ok || data.errorMessage || !data.user) {
 			return { errorMessage: data.errorMessage || 'Erreur lors de la mise à jour' };
 		}			
-		await userCurrentService.updateCurrentUser(data.user);
+		await currentService.updateCurrentUser(data.user);
 		return data as AuthResponse;
 	}
 }

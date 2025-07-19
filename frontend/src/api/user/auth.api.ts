@@ -1,11 +1,11 @@
 import { User } from '../../models/user.model';
 import { UserModel } from '../../shared/types/user.types';	// en rouge car dossier local 'shared' != dossier conteneur
-import { userCurrentService } from '../../services/index.service';
+import { currentService } from '../../services/index.service';
 import { BasicResponse, AuthResponse } from '../../types/api.types';
 import { secureFetch } from '../../utils/app.utils';
 
 // ===========================================
-// USER AUTH API
+// AUTH API
 // ===========================================
 /**
  * Classe d'authentication de l'API de l'utilisateur.
@@ -15,7 +15,7 @@ import { secureFetch } from '../../utils/app.utils';
  * en ligne avec le token JWT, valider les sessions, 
  * s'authentifier, s'inscrire, se déconnecter.
  */
-export class UserAuthApi {
+export class AuthApi {
 
 	// ===========================================
 	// GET REQUESTS - ROUTES PROTEGEES PAR JWT
@@ -41,10 +41,10 @@ export class UserAuthApi {
 		const data: UserModel = await res.json();
 		
 		// Stockage sécurisé via le store
-		userCurrentService.setCurrentUserFromServer(data);
+		currentService.setCurrentUserFromServer(data);
 
 		// Instance avec email en mémoire
-		return userCurrentService.getCurrentUser() as User;
+		return currentService.getCurrentUser() as User;
 	}
 
 	/**
@@ -92,7 +92,7 @@ export class UserAuthApi {
 		if (!res.ok || data.errorMessage || !data.user) {
 			return { errorMessage: data.errorMessage || data.message || 'Erreur avec la récupération de l\'utilisateur' } as AuthResponse;
 		}
-		await userCurrentService.setCurrentUserFromServer(data.user);
+		await currentService.setCurrentUserFromServer(data.user);
 		return data as AuthResponse;
 	}
 
@@ -121,7 +121,7 @@ export class UserAuthApi {
 			return { errorMessage: data.errorMessage || data.message || 'Erreur inconnue' } as AuthResponse;
 		}
 		if (!data.user.active2Fa) {
-			await userCurrentService.setCurrentUserFromServer(data.user);
+			await currentService.setCurrentUserFromServer(data.user);
 		}
 		return data as AuthResponse;
 	}
@@ -177,7 +177,7 @@ export class UserAuthApi {
 		if (!res.ok || data.errorMessage || !data.user) {
 			return { errorMessage: data.errorMessage || data.message || 'Erreur avec la récupération de l\'utilisateur' };
 		}
-		await userCurrentService.setCurrentUserFromServer(data.user);
+		await currentService.setCurrentUserFromServer(data.user);
 		return data as AuthResponse;
 	}
 
@@ -205,7 +205,7 @@ export class UserAuthApi {
 		if (!res.ok || data.errorMessage || !data.user) {
 			return { errorMessage: data.errorMessage || data.message || 'Erreur lors de la connexion Google' };
 		}
-		userCurrentService.setCurrentUserFromServer(data.user);
+		currentService.setCurrentUserFromServer(data.user);
 		return data as AuthResponse;
 	}
 
@@ -228,7 +228,7 @@ export class UserAuthApi {
 		if (!res.ok || data.errorMessage) {
 			return { errorMessage: data.errorMessage || data.message || 'Erreur inconnue' } as BasicResponse;
 		}
-		userCurrentService.clearCurrentUser();
+		currentService.clearCurrentUser();
 		return data as BasicResponse;
 	}
 

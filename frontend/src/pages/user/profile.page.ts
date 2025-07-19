@@ -1,8 +1,8 @@
 import { BasePage } from '../base/base.page';
 import { RouteConfig, RouteParams } from '../../types/routes.types';
 import { User } from '../../models/user.model';
-import { userCrudApi } from '../../api/index.api';
-import { userDataService } from '../../services/index.service';
+import { crudApi } from '../../api/index.api';
+import { dataService } from '../../services/index.service';
 
 // ===========================================
 // PROFILE PAGE
@@ -36,7 +36,7 @@ export class ProfilePage extends BasePage {
 		if (typeof this.userId !== 'number') {
 			throw new Error('User ID invalide ou manquant');
 		}
-		this.user = await userCrudApi.getUserById(this.userId);
+		this.user = await crudApi.getUserById(this.userId);
 	}
 
 	/**
@@ -68,7 +68,7 @@ export class ProfilePage extends BasePage {
 		const userAvatar = clone.querySelector('.avatar-cell') as HTMLElement;
 		const img = document.createElement('img');
 		img.classList.add('avatar-img');
-		img.setAttribute('src', await userDataService.getUserAvatarURL(this.user!));
+		img.setAttribute('src', await dataService.getUserAvatarURL(this.user!));
 		img.setAttribute('loading', 'lazy');
 
 		img.alt = `${this.user!.username}'s avatar`;

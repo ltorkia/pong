@@ -1,6 +1,6 @@
 import { RouteConfig } from '../../types/routes.types';
 import { User } from '../../models/user.model';
-import { userCurrentService, userDataService } from '../../services/index.service';
+import { currentService, dataService } from '../../services/index.service';
 import { checkUserLogged } from '../../utils/app.utils'; 
 import { BaseComponent } from '../../components/base/base.component';
 import { NavbarComponent } from '../../components/navbar/navbar.component';
@@ -40,7 +40,7 @@ export abstract class BasePage {
 	constructor(config: RouteConfig) {
 		this.config = config;
 		this.container = getContainerApp();
-		this.currentUser = userCurrentService.getCurrentUser();
+		this.currentUser = currentService.getCurrentUser();
 		this.templatePath = this.config.templatePath;
 		this.components = this.config.components;
 		this.componentInstances = {};
@@ -107,7 +107,7 @@ export abstract class BasePage {
 	protected async preRenderCheck(): Promise<void> {
 		checkUserLogged(this.config.isPublic);
 		if (this.currentUser) {
-			this.currentUserAvatarURL = await userDataService.getUserAvatarURL(this.currentUser);
+			this.currentUserAvatarURL = await dataService.getUserAvatarURL(this.currentUser);
 		}
 	}
 

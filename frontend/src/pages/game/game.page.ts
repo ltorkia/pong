@@ -14,7 +14,7 @@ import { RouteConfig } from '../../types/routes.types';
  * 
  * NB: Les services sont des singletons instanciés une seule fois dans frontend/src/services/services.ts
  * 		et à importer dans le fichier qui t'interesse pour récupérer les méthodes de cette instance unique.
- * 		Il en est de même pour l'utilisateur actuellement connecté: userStore dans frontend/src/stores/user.store.ts
+ * 		Il en est de même pour l'utilisateur actuellement connecté: storageService dans frontend/src/stores/user.store.ts
  * 
  * Fichiers utiles pour faire ta petite popote:
  * -> GameService: frontend/src/services/game.service.ts

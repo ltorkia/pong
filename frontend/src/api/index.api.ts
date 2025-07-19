@@ -1,10 +1,10 @@
-import { userAuthApi, userCrudApi } from './user/user-index.api';
+import { authApi, crudApi } from './user/user.api';
 
 // ===========================================
-// API - SINGLETONS
+// INDEX API - SINGLETONS
 // ===========================================
 /**
  * Gèrent les requêtes API de l'application.
  */
 
-export { userAuthApi, userCrudApi };
+export { authApi, crudApi };

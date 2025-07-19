@@ -1,13 +1,14 @@
-import { appService, routingService, pageService, particlesService } from './core/core.service';
-import { userAuthService, userGoogleService, userSessionService, userCurrentService, userDataService } from './user/user-index.service';
-// import { gameServices } from './game/game-index.service';
+import { appService, routingService, pageService } from './core/core.service';
+import { animationService, particlesService } from './ui/ui.service';
+import { authService, googleService, storageService, sessionService, currentService, dataService } from './user/user.service';
 
 // ===========================================
-// SERVICES - SINGLETONS
+// INDEX SERVICES - SINGLETONS
 // ===========================================
 /**
- * Gèrent les logiques métier de l'application.
+ * Gèrent les logiques métier / ui de l'application.
  */
 
-export { appService, routingService, pageService, particlesService };
-export { userAuthService, userGoogleService, userSessionService, userCurrentService, userDataService };
+export { appService, routingService, pageService };
+export { animationService, particlesService };
+export { authService, googleService, storageService, sessionService, currentService, dataService };

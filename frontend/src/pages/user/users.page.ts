@@ -1,5 +1,5 @@
 import { BasePage } from '../base/base.page';
-import { userCrudApi } from '../../api/index.api';
+import { crudApi } from '../../api/index.api';
 import { SearchBarComponent } from '../../components/search-bar/search-bar.component';
 import { UserRowComponent } from '../../components/user-row/user-row.component';
 import { getHTMLElementById } from '../../utils/dom.utils';
@@ -107,37 +107,43 @@ export class UsersPage extends BasePage {
 	/**
 	 * Injecte les lignes du tableau de la liste des utilisateurs (user-row) dans le DOM.
 	 * 
-	 * Cette méthode  utilise l'API pour obtenir la liste des utilisateurs 
+	 * Cette méthode utilise l'API pour obtenir la liste des utilisateurs 
 	 * et crée dynamiquement un UserRowComponent pour chaque utilisateur.
-	 * Chaque ligne utilisateur est ensuite rendue et ajoutée à l'élément HTML 
-	 * identifié par `userListId`. L'ID de chaque ligne est incrémenté en 
-	 * ajoutant l'index de la boucle à la clé de l'instance de composant.
-	 * Les instances de chaque ligne sont stockées dans la propriété 
-	 * componentInstances avec l'ID de la ligne comme clé.
+	 * Chaque ligne utilisateur est stockée dans un tableau de promesses 
+	 * qui sont résolues en même temps (traitement asynchrone de chaque ligne).
+	 * Les instances de chaque ligne sont stockées dans la propriété componentInstances 
+	 * avec l'ID de la ligne comme clé. L'ID de chaque ligne est incrémenté en ajoutant 
+	 * l'index de la boucle à la clé de l'instance de composant.
 	 * 
 	 * @throws {Error} Lance une erreur si la configuration du composant user-row est invalide.
 	 * @returns {Promise<void>} Une promesse qui se résout lorsque tous les composants utilisateur 
 	 * sont injectés dans le DOM.
 	 */
 	protected async injectUserList(): Promise<void> {
-		const users = await userCrudApi.getUsers();
+		const users = await crudApi.getUsers();
 		this.userList = getHTMLElementById(HTML_COMPONENT_CONTAINERS.USER_LIST_ID);
+
+		const renderPromises: Promise<void>[] = [];
 
 		let i = 1;
 		for (const user of users) {
 			let tempContainer = document.createElement('div');
 			const rowComponent = new UserRowComponent(this.config, this.userRowConfig!, tempContainer, user);
-			await rowComponent.render();
-
-			const userLine = tempContainer.querySelector('.user-line');
-			if (userLine) {
-				userLine.id = `${COMPONENT_NAMES.USER_ROW}-${i}`;
-				this.userList.appendChild(userLine);
-			}
 			const instanceKey = `${this.userRowConfig!.name}-${user.id}`;
 			this.addToComponentInstances(instanceKey, rowComponent);
-			i++;
+
+			renderPromises.push(
+				rowComponent.render().then(() => {
+					const userLine = tempContainer.querySelector('.user-line');
+					if (userLine) {
+						userLine.id = `${COMPONENT_NAMES.USER_ROW}-${i++}`;
+						userLine.classList.add('animate-fadeInUp');
+						this.userList.appendChild(userLine);
+					}
+				})
+			);
 		}
+		await Promise.all(renderPromises);
 		console.log(`[${this.constructor.name}] Composant '${this.userRowConfig!.name}' généré`);
 	}
 }
