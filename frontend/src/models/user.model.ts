@@ -35,8 +35,9 @@ export class User {
 		public timePlayed: number,
 		public nFriends: number,
 		public status: UserStatus,
-		public isDeleted: boolean,
-		public registerFrom: RegisterMethod
+		public isDeleted: number,
+		public registerFrom: RegisterMethod,
+		public active2Fa: number
 	) {}
 
 	// ============================================================================
@@ -179,7 +180,8 @@ export class User {
 			data.nFriends ?? 0,
 			data.status ?? DB_CONST.USER.STATUS.OFFLINE,
 			data.isDeleted ?? false,
-			data.registerFrom ?? DB_CONST.USER.REGISTER_FROM.LOCAL
+			data.registerFrom ?? DB_CONST.USER.REGISTER_FROM.LOCAL,
+			data.active2Fa ?? 0
 		);
 	}
 
@@ -222,8 +224,9 @@ export class User {
 			data.timePlayed ?? 0,
 			data.nFriends ?? 0,
 			DB_CONST.USER.STATUS.OFFLINE, // Status par défaut
-			false, // isDeleted par défaut
-			DB_CONST.USER.REGISTER_FROM.LOCAL // registerFrom par défaut
+			0, // isDeleted à 0 par défaut
+			DB_CONST.USER.REGISTER_FROM.LOCAL, // registerFrom par défaut
+			0 // active2Fa à 0 par défaut
 		);
 	}
 

@@ -41,7 +41,7 @@ export class CrudService {
 			return false;
 		}
 		console.log(`[${this.constructor.name}] Avatar de l'utilisateur mis à jour.`);
-		showAlert('Image successfully uploaded.', 'alert', 'success');
+		showAlert('Image successfully uploaded.', 'alert-avatar', 'success');
 		return true;
 	}
 }

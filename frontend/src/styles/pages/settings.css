@@ -34,7 +34,7 @@
 
 	/* SETTINGS FORM */
 	#settings-form {
-		@apply mt-1 px-0
+		@apply mt-3 px-0
 		mobile:px-0;
 	}
 

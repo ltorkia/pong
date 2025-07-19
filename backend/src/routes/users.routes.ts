@@ -103,7 +103,7 @@ export async function usersRoutes(app: FastifyInstance) {
 			const { id } = request.params as { id: number };
 			if (avatarFile && avatarBuffer)
 			{
-				user = await getUser(id, null);
+				user = await getUser(id);
 				if (user.avatar != "default.png")
 				{
 					try {await fs.unlink(`./uploads/avatars/${user.avatar}`);}
@@ -111,7 +111,7 @@ export async function usersRoutes(app: FastifyInstance) {
 				}
 				await GetAvatarFromBuffer(reply, user, avatarFile, avatarBuffer);
 			}
-			user = await getUser(id, null);
+			user = await getUser(id);
 			console.log(user!.avatar);
 			return reply.status(200).send({
 				statusCode: 200,

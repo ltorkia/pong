@@ -14,7 +14,7 @@
 	#alert {
 		@apply mt-4;
 	}
-	#alert, #twofa-error {
+	#alert, #alert-avatar, #twofa-error {
 		@apply font-classic text-sm text-center
 		border px-4 py-3 rounded cursor-default;
 	}

@@ -54,8 +54,9 @@ export interface SafeUserModel {
 	timePlayed: number;
 	nFriends: number;
 	status: UserStatus;
-	isDeleted: boolean;
+	isDeleted: number;
 	registerFrom: RegisterMethod;
+	active2Fa: number;
 }
 
 /**

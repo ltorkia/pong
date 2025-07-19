@@ -63,17 +63,24 @@ export class AuthService {
 	 */
 	public async loginUser(userData: Record<string, string>): Promise<AuthResponse> {
 		try {
-			const result: AuthResponse = await userAuthApi.loginUser(userData);
-
-			if (result.errorMessage) {
-				console.error(`[${this.constructor.name}] Erreur d'authentification :`, result);
-				showAlert(result.errorMessage);
-				return { errorMessage: result.errorMessage };
+			const data: AuthResponse = await userAuthApi.loginUser(userData);
+			if (data.errorMessage) {
+				console.error(`[${this.constructor.name}] Erreur d'authentification :`, data);
+				showAlert(data.errorMessage);
+				return { errorMessage: data.errorMessage };
 			}
 
-			// Pas de redirection ici: c’est LoginPage gère le popup
-			console.log(`[${this.constructor.name}] Authentification réussie (étape 1), 2FA requis`);
-			return result;
+			if (data.user.active2Fa) {
+				// Mode 2FA activé: pas de redirection, c’est LoginPage qui gère le popup
+				console.log(`[${this.constructor.name}] Authentification réussie (étape 1), 2FA requis`);
+				return data as AuthResponse;
+			}
+			// Sinon connexion réussie, redirection vers la page d'accueil
+			console.log(`[${this.constructor.name}] Authentification réussie sans 2FA`);
+
+			uiStore.animateNavbarOut = true;
+			await router.redirect(DEFAULT_ROUTE);
+			return data as AuthResponse;
 
 		} catch (err) {
 			console.error(`[${this.constructor.name}] Erreur réseau ou serveur`, err);

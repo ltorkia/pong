@@ -184,6 +184,11 @@ export async function authRoutes(app: FastifyInstance) {
 			if (avatarFile && avatarBuffer) {
 				GetAvatarFromBuffer(reply, user, avatarFile, avatarBuffer)
 			}
+
+			if (!user.active2Fa) {
+				await ProcessAuth(app, { id: user.id, username: user.username }, reply);
+			}
+
 			return reply.status(200).send({
 				statusCode: 200,
 				message: 'Successful registration.'
@@ -238,8 +243,15 @@ export async function authRoutes(app: FastifyInstance) {
 					errorMessage: 'Password does not match.'
 				});
 			}
+
+			const user: UserModel = await getUser(validUser.id);
+			if (!user.active2Fa) {
+				await ProcessAuth(app, validUser, reply);
+			}
+
 			return reply.status(200).send({
 				statusCode: 200,
+				user: user,
 				message: 'All infos are correct.'
 			});
 			

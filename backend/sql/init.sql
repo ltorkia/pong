@@ -21,6 +21,7 @@ CREATE TABLE IF NOT EXISTS User (
 	status TEXT DEFAULT 'offline' NOT NULL CHECK (status IN ('online', 'offline', 'in-game')),
 	is_deleted INTEGER DEFAULT 0 NOT NULL CHECK (is_deleted IN (0, 1)),							-- pour savoir si le compte est actif ou non (on garde le user en bdd meme apres desinscription pour garder les stats des jeux pour ses partenaires toujours inscrits), 0 = actif, 1 = pas actif
 	register_from TEXT DEFAULT 'local' NOT NULL CHECK (register_from IN ('local', 'google')),	-- pour savoir si le user s'est inscrit via le site ou via Google, utile pour l'authentification
+	active_2FA INTEGER DEFAULT 0 NOT NULL CHECK (active_2FA IN (0, 1)),
 	code_2FA TEXT,
 	code_2FA_expire_at INTEGER
 );

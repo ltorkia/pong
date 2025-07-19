@@ -70,16 +70,16 @@ export class LoginPage extends BasePage {
 		await googleService.initGoogleSignIn();
 	}
 
-	/**
-	 * Charge les composants propres à cette page.
-	 * 
-	 * Cette méthode injecte le composant de modal de double authentification.
-	 * 
-	 * @returns {Promise<void>} Une promesse qui se résout lorsque les composants sont chargés.
-	 */
-	protected async loadSpecificComponents(): Promise<void> {
-		await this.injectTwofaModal();
-	}
+	// /**
+	//  * Charge les composants propres à cette page.
+	//  * 
+	//  * Cette méthode injecte le composant de modal de double authentification.
+	//  * 
+	//  * @returns {Promise<void>} Une promesse qui se résout lorsque les composants sont chargés.
+	//  */
+	// protected async loadSpecificComponents(): Promise<void> {
+	// 	await this.injectTwofaModal();
+	// }
 
 	/**
 	 * Attacher les gestionnaires d'événement.
@@ -160,11 +160,13 @@ export class LoginPage extends BasePage {
 		const data = Object.fromEntries(formData.entries()) as Record<string, string>;
 		const loginResult = await authService.loginUser(data);
 
-		// Affiche le modal 2FA seulement si login OK
-		if (!loginResult || loginResult.errorMessage) {
-			console.error('Erreur login ou 2FA:', loginResult?.errorMessage);
+		// Affiche le modal 2FA seulement si login OK et 2FA activé
+		if (!loginResult || loginResult.errorMessage || !loginResult.user.active2Fa) {
 			return;
 		}
+
+		// Injecte le composant 2FA
+		await this.injectTwofaModal();
 
 		// Récupère l’instance du composant 2FA
 		const modal = this.getComponentInstance<TwofaModalComponent>(COMPONENT_NAMES.TWOFA_MODAL);

@@ -1,9 +1,9 @@
-			<!-- <div id="alert" aria-live="assertive" class="mb-8 hidden"></div> -->
 			<div class="section-box mid-box" id="settings-box">
 				<div class="avatar" id="avatar-container">
 					<i class="fas fa-camera camera-icon"></i>
 					<input type="file" id="avatar-input" class="avatar-input" accept="image/*">
 				</div>
+				<div id="alert-avatar" aria-live="assertive" class="mb-6 hidden"></div>
 				<form class="form-box" id="settings-form">
 
 					<div class="fields-container">
@@ -79,6 +79,14 @@
 								</div>
 							</div>
 						</div>
+
+					<!-- Checkbox 2FA -->
+					<div class="dropdown-title">
+						<label for="enable-2fa" class="cursor-pointer select-none">
+						<input type="checkbox" id="enable-2fa" name="enable-2fa" class="mr-2 align-middle" />
+						Enable two-factor authentication (2FA)
+						</label>
+					</div>
 
 					</div> 
 

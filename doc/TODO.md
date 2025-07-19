@@ -5,6 +5,7 @@ BACK
 - Vérifier systeme middleware/hook pour auth jwt verif des routes
 - QR code
 - Faire un autre majLastlog() à mettre dans route logout pour mettre le status à offline et le timestamp de déconnexion
+- Formater les dates (le fuseau horaire ne semble pas bon dans beginLog et registration)
 
 
 COMMUN
@@ -20,6 +21,7 @@ FRONT
 - Faire un petit hover sur le bouton/icon previous de register et du modal
 - Ajouter filtres dans barre de recherche de user list
 - Ajouter case à cocher pour 2FA dans settings
+- Gerer affichage userlist bouton add to friend / friend / self
 
 - check MAJ package.json :
  @tsparticles/engine         ^3.0.2  →   ^3.8.1
