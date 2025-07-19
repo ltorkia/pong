@@ -1,21 +1,5 @@
 @layer components {
 
-	/* SEARCH BAR */
-	#search-bar {
-		@apply w-full flex flex-row justify-center items-center
-		bg-white/20 backdrop-blur-md border border-white/20
-		rounded-full p-2 px-4 mb-4 space-x-5
-		transition duration-300 ease-in-out;
-	}
-
-	#search-bar input {
-		@apply w-auto text-gray-700;
-	}
-
-	#search-bar button {
-		@apply text-btn-google-color;
-	}
-
 	/* USER LIST */
 	.avatar-img {
 		@apply w-14 h-14 object-cover object-center

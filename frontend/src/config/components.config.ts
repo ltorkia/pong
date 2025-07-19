@@ -1,5 +1,6 @@
 import { TwofaModalComponent } from '../components/twofa-modal/twofa-modal.component';
 import { NavbarComponent } from '../components/navbar/navbar.component';
+import { SearchBarComponent } from '../components/search-bar/search-bar.component';
 import { UserRowComponent } from '../components/user-row/user-row.component';
 import { ComponentConfig } from '../types/components.types';
 
@@ -30,6 +31,7 @@ import { ComponentConfig } from '../types/components.types';
 export const HTML_COMPONENT_CONTAINERS = {
 	TWOFA_MODAL_ID: 'twofa-modal',
 	NAVBAR_ID: 'navbar',
+	SEARCH_BAR_ID: 'search-bar',
 	USER_LIST_ID: 'user-list',
 } as const;
 
@@ -43,6 +45,7 @@ export const HTML_COMPONENT_CONTAINERS = {
 export const COMPONENT_NAMES = {
 	TWOFA_MODAL: 'twofa-modal',
 	NAVBAR: 'navbar',
+	SEARCH_BAR: 'search-bar',
 	USER_ROW: 'user-row',
 } as const;
 
@@ -56,6 +59,7 @@ export const COMPONENT_NAMES = {
 export const COMPONENT_PATHS = {
 	[COMPONENT_NAMES.TWOFA_MODAL]: '/components/twofa-modal/twofa-modal.component.html',
 	[COMPONENT_NAMES.NAVBAR]: '/components/navbar/navbar.component.html',
+	[COMPONENT_NAMES.SEARCH_BAR]: '/components/search-bar/search-bar.component.html',
 	[COMPONENT_NAMES.USER_ROW]: '/components/user-row/user-row.component.html',
 } as const;
 
@@ -99,6 +103,14 @@ export const componentsConfig: ComponentConfig[] = [
 		isPersistent: true,
 		destroy: true
 		// instance: créee et stockée ici lors de la connexion, undefined avant ça
+	},
+	{
+		name: COMPONENT_NAMES.SEARCH_BAR,
+		componentConstructor: SearchBarComponent,
+		templatePath: COMPONENT_PATHS[COMPONENT_NAMES.SEARCH_BAR],
+		containerId: HTML_COMPONENT_CONTAINERS.SEARCH_BAR_ID,
+		isPublic: false,
+		isPersistent: false
 	},
 	{
 		name: COMPONENT_NAMES.USER_ROW,

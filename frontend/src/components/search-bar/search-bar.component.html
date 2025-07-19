@@ -1,0 +1,70 @@
+
+					<!-- <input type="text" id="search-input" placeholder="Search by username">
+					<button class="btn smaller-btn mt-0" id="search-button">Search</button> -->
+					
+                <!-- Ligne principale de recherche -->
+					<div class="search-main">
+						<input type="text" id="search-input" placeholder="Rechercher par nom d'utilisateur...">
+						<button id="search-button">Rechercher</button>
+						<button class="filters-toggle" id="filters-toggle">
+							<span>Filtres</span>
+							<svg class="w-4 h-4 transition-transform duration-200" id="filters-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+							</svg>
+						</button>
+					</div>
+
+					<!-- Filtres avancés -->
+					<div class="filters-container hidden" id="filters-container">
+						<!-- Filtre par statut -->
+						<div class="filter-group">
+							<label class="filter-label">Statut :</label>
+							<select class="filter-select" id="status-filter">
+								<option value="">Tous</option>
+								<option value="online">🟢 En ligne</option>
+								<option value="offline">⚪ Hors ligne</option>
+								<option value="ingame">🟠 En jeu</option>
+								<option value="away">🟡 Absent</option>
+							</select>
+						</div>
+
+						<!-- Filtre par niveau -->
+						<div class="filter-group">
+							<label class="filter-label">Niveau :</label>
+							<select class="filter-select" id="level-filter">
+								<option value="">Tous niveaux</option>
+								<option value="1-10">1-10</option>
+								<option value="11-25">11-25</option>
+								<option value="26-50">26-50</option>
+								<option value="51+">51+</option>
+							</select>
+						</div>
+
+						<!-- Filtre par région -->
+						<div class="filter-group">
+							<label class="filter-label">Région :</label>
+							<select class="filter-select" id="region-filter">
+								<option value="">Toutes régions</option>
+								<option value="EU">Europe</option>
+								<option value="NA">Amérique du Nord</option>
+								<option value="ASIA">Asie</option>
+								<option value="OCE">Océanie</option>
+							</select>
+						</div>
+
+						<!-- Filtres par checkboxes -->
+						<div class="filter-group">
+							<input type="checkbox" id="friends-only" class="filter-checkbox">
+							<label for="friends-only" class="filter-label">Amis uniquement</label>
+						</div>
+
+						<div class="filter-group">
+							<input type="checkbox" id="verified-only" class="filter-checkbox">
+							<label for="verified-only" class="filter-label">Comptes vérifiés</label>
+						</div>
+
+						<!-- Bouton reset filtres -->
+						<button class="text-xs text-gray-500 hover:text-gray-400 underline transition duration-200" id="reset-filters">
+							Réinitialiser
+						</button>
+					</div>

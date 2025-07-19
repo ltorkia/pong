@@ -1,6 +1,4 @@
-import { UploadResult, UploadValidationResult } from '../../types/return.types';
 import { DB_CONST, IMAGE_CONST } from '../../shared/config/constants.config'; // en rouge car dossier local 'shared' != dossier conteneur
-import { BasicResponse } from '../../types/api.types';
 import { showAlert } from '../../utils/dom.utils';
 import { User } from '../../models/user.model';
 import { crudService } from '../../services/services';

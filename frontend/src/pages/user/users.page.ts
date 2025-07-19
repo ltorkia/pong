@@ -1,10 +1,12 @@
 import { BasePage } from '../base/base.page';
 import { userCrudApi } from '../../api/user/user-index.api';
+import { SearchBarComponent } from '../../components/search-bar/search-bar.component';
 import { UserRowComponent } from '../../components/user-row/user-row.component';
 import { getHTMLElementById } from '../../utils/dom.utils';
 import { RouteConfig } from '../../types/routes.types';
 import { ComponentConfig } from '../../types/components.types';
 import { COMPONENT_NAMES, HTML_COMPONENT_CONTAINERS } from '../../config/components.config';
+import { ComponentName } from '../../types/components.types';
 
 // ===========================================
 // USERS PAGE
@@ -15,7 +17,10 @@ import { COMPONENT_NAMES, HTML_COMPONENT_CONTAINERS } from '../../config/compone
  * Permet d'afficher la liste des utilisateurs enregistrés sur le site.
  */
 export class UsersPage extends BasePage {
-	private componentConfig?: ComponentConfig;
+	private searchBarConfig: ComponentConfig | null = null;
+	private userRowConfig: ComponentConfig | null = null;
+	private searchBar!: HTMLElement;
+	private userList!: HTMLElement;
 
 	/**
 	 * Constructeur de la page des utilisateurs.
@@ -36,8 +41,8 @@ export class UsersPage extends BasePage {
 	 * Préparation avant le montage de la page des utilisateurs.
 	 * 
 	 * Vérifie que l'utilisateur est connecté et s'assure que la configuration
-	 * du composant 'userRow' est valide avant de le monter. 
-	 * Si la configuration est invalide, une erreur est lancée.
+	 * des composants 'searchBar' et 'userRow' est valide avant de les monter. 
+	 * Si une configuration est invalide, une erreur est lancée.
 	 * 
 	 * @returns {Promise<void>} Une promesse qui se résout lorsque les composants sont chargés.
 	 * @throws {Error} Lance une erreur si la configuration du composant 'userRow' est invalide.
@@ -46,28 +51,58 @@ export class UsersPage extends BasePage {
 		if (!this.components) {
 			return;
 		}
-		const config = this.components[COMPONENT_NAMES.USER_ROW];
-		if (!config || !this.shouldRenderComponent(config)
-			|| !this.isValidConfig(config, false)) {
-			throw new Error(`Configuration du composant '${COMPONENT_NAMES.USER_ROW}' invalide`);
-		}
-		this.componentConfig = config;
+		this.searchBarConfig = this.checkComponentConfig(COMPONENT_NAMES.SEARCH_BAR);
+		this.userRowConfig = this.checkComponentConfig(COMPONENT_NAMES.USER_ROW);
 	}
 
 	/**
 	 * Charge les composants propres à cette page.
 	 * 
-	 * Cette méthode charge les lignes du tableau de la liste des utilisateurs (user-row).
+	 * Cette méthode charge la barre de recherche et les lignes du tableau de la liste des utilisateurs (user-row).
 	 * 
 	 * @returns {Promise<void>} Une promesse qui se résout lorsque les composants sont chargés.
 	 */
 	protected async loadSpecificComponents(): Promise<void> {
+		await this.injectSearchBar();
 		await this.injectUserList();
 	}
 
 	// ===========================================
 	// METHODES PRIVATES
 	// ===========================================
+
+	/**
+	 * Vérifie que la configuration d'un composant est valide et la retourne.
+	 *
+	 * Vérifie que la configuration du composant est présente dans la configuration
+	 * de la page, que le composant doit être rendu et que la configuration est
+	 * valide. Si une des conditions n'est pas remplie, une erreur est lancée.
+	 * 
+	 * @param {ComponentName} componentName Le nom du composant à vérifier.
+	 * @returns {ComponentConfig} La configuration valide du composant.
+	 * @throws {Error} Si la configuration est invalide.
+	 */
+	protected checkComponentConfig(componentName: ComponentName): ComponentConfig {
+		const config: ComponentConfig | undefined = this.components?.[componentName];
+		if (!config || !this.shouldRenderComponent(config) || !this.isValidConfig(config, false)) {
+			throw new Error(`Configuration du composant '${componentName}' invalide`);
+		}
+		return config;
+	}
+
+	/**
+	 * Injecte la barre de recherche dans le DOM.
+	 * 
+	 * Cette méthode charge le composant de la barre de recherche (search-bar) et l'injecte
+	 * dans le DOM en utilisant la balise HTML dont l'id est passé en paramètre.
+	 * 
+	 * @returns {Promise<void>} Une promesse qui se résout lorsque le composant est injecté.
+	 */
+	protected async injectSearchBar(): Promise<void> {
+		this.searchBar = getHTMLElementById(HTML_COMPONENT_CONTAINERS.SEARCH_BAR_ID);
+		const searchBarComponent = new SearchBarComponent(this.config, this.searchBarConfig!, this.searchBar);
+		await searchBarComponent.render();
+	}
 
 	/**
 	 * Injecte les lignes du tableau de la liste des utilisateurs (user-row) dans le DOM.
@@ -86,23 +121,23 @@ export class UsersPage extends BasePage {
 	 */
 	protected async injectUserList(): Promise<void> {
 		const users = await userCrudApi.getUsers();
-		const userList = getHTMLElementById(HTML_COMPONENT_CONTAINERS.USER_LIST_ID);
+		this.userList = getHTMLElementById(HTML_COMPONENT_CONTAINERS.USER_LIST_ID);
 
 		let i = 1;
 		for (const user of users) {
 			let tempContainer = document.createElement('div');
-			const rowComponent = new UserRowComponent(this.config, this.componentConfig!, tempContainer, user);
+			const rowComponent = new UserRowComponent(this.config, this.userRowConfig!, tempContainer, user);
 			await rowComponent.render();
 
 			const userLine = tempContainer.querySelector('.user-line');
 			if (userLine) {
 				userLine.id = `${COMPONENT_NAMES.USER_ROW}-${i}`;
-				userList.appendChild(userLine);
+				this.userList.appendChild(userLine);
 			}
-			const instanceKey = `${this.componentConfig!.name}-${user.id}`;
+			const instanceKey = `${this.userRowConfig!.name}-${user.id}`;
 			this.addToComponentInstances(instanceKey, rowComponent);
 			i++;
 		}
-		console.log(`[${this.constructor.name}] Composant '${this.componentConfig!.name}' généré`);
+		console.log(`[${this.constructor.name}] Composant '${this.userRowConfig!.name}' généré`);
 	}
 }

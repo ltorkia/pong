@@ -12,6 +12,7 @@
 
 @import '../components/twofa-modal/twofa-modal.component.css';
 @import '../components/navbar/navbar.component.css';
+@import '../components/search-bar/search-bar.component.css';
 @import '../components/user-row/user-row.component.css';
 
 @import './pages/home.css';

@@ -187,6 +187,7 @@ export const routesConfig: RouteConfig[] = [
 		templatePath: TEMPLATE_PATHS.USERS,
 		components: {
 			[COMPONENT_NAMES.NAVBAR]: getComponentConfig(COMPONENT_NAMES.NAVBAR),
+			[COMPONENT_NAMES.SEARCH_BAR]: getComponentConfig(COMPONENT_NAMES.SEARCH_BAR),
 			[COMPONENT_NAMES.USER_ROW]: getComponentConfig(COMPONENT_NAMES.USER_ROW)
 		},
 		isPublic: false,
