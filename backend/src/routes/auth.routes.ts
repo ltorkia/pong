@@ -73,9 +73,9 @@ async function doubleAuth(app: FastifyInstance) {
         if (!checkUser)
             return (reply.status(400).send({ message: "email doesn't exist" }));
         eraseCode2FA(checkUser.email);
-        if (checkUser.code_2FA_expire_at < Date.now())
+        if (checkUser.code2FaExpireAt < Date.now())
             return (reply.status(400).send({ message: "Timeout" }));
-        if (result.data.password != checkUser.code_2FA)
+        if (result.data.password != checkUser.code2Fa)
             return (reply.status(400).send({ message: "Wrong code" }));
 
         const user: UserModel | null = await getUser(null, result.data.email);
@@ -224,7 +224,7 @@ export async function authRoutes(app: FastifyInstance) {
 				});
 			}
 
-			if (validUser && validUser.register_from === DB_CONST.USER.REGISTER_FROM.GOOGLE) {
+			if (validUser && validUser.registerFrom === DB_CONST.USER.REGISTER_FROM.GOOGLE) {
 				return reply.status(402).send({
 					statusCode: 402,
 					errorMessage: 'Email already register from Google.'
@@ -293,7 +293,7 @@ export async function authRoutes(app: FastifyInstance) {
 			const payloadDecoded = JSON.parse(Buffer.from(parts[1], 'base64url').toString()) as GoogleUserInfo;
 
 			const email = payloadDecoded.email;
-			const username = payloadDecoded.given_name ?? payloadDecoded.name?.split(' ')[0] ?? 'GoogleUser';
+			const username = payloadDecoded.givenName ?? payloadDecoded.name?.split(' ')[0] ?? 'GoogleUser';
 			const avatar = payloadDecoded.picture ?? DB_CONST.USER.DEFAULT_AVATAR;
 			let user = await getUserP(email);
 			if (user && user.password) {

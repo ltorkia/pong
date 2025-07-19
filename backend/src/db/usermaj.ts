@@ -23,7 +23,7 @@ export async function changeUserData(id: number, user: UserForChangeData)
                 SET username = ?, password = ?, email = ?, secret_question_number = ?, secret_question_answer = ?
                 WHERE (id = ?)
                `,
-       [user.username, user.password, user.email, user.secret_question_number, user.secret_question_answer, user.id]);
+       [user.username, user.password, user.email, user.secretQuestionNumber, user.secretQuestionAnswer, user.id]);
 }
 
 export async function changePassword(username: string, password: string)

@@ -2,7 +2,7 @@ import { RegisterMethod } from '../shared/types/user.types';	// en rouge car dos
 
 export interface GoogleUserInfo {
 	email: string;
-	given_name?: string;
+	givenName?: string;
 	picture?: string;
 	name?: string;
 }
@@ -12,7 +12,7 @@ export interface UserPassword {
 	username: string;
 	email: string;
 	password: string;
-	register_from: RegisterMethod;
+	registerFrom: RegisterMethod;
 }
 
 export interface UserForChangeData {
@@ -20,18 +20,18 @@ export interface UserForChangeData {
 	username: string;
 	email: string;
 	password: string;
-	register_from: RegisterMethod;
-	secret_question_number: number;
-	secret_question_answer: string;
+	registerFrom: RegisterMethod;
+	secretQuestionNumber: number;
+	secretQuestionAnswer: string;
 }
 
 export interface User2FA {
 	id: number;
 	username: string;
 	email: string;
-	code_2FA: string;
-	code_2FA_expire_at: number;
-	register_from: RegisterMethod;
+	code2Fa: string;
+	code2FaExpireAt: number;
+	registerFrom: RegisterMethod;
 }
 
 export type AvatarResult =
