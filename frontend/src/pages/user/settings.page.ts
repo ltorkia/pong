@@ -17,7 +17,6 @@ export class SettingsPage extends BasePage {
 	private emailInput!: HTMLInputElement;
 	private usernameInput!: HTMLInputElement;
 	private questionInput!: HTMLInputElement;
-	private answerInput!: HTMLInputElement;
 	private dropdownTitles!: NodeListOf<HTMLHeadingElement>;
 	private form!: HTMLFormElement;
 
@@ -57,7 +56,6 @@ export class SettingsPage extends BasePage {
 		this.emailInput = getHTMLElementById('email') as HTMLInputElement;
 		this.usernameInput = getHTMLElementById('username') as HTMLInputElement;
 		this.questionInput = getHTMLElementById('question') as HTMLInputElement;
-		this.answerInput = getHTMLElementById('answer') as HTMLInputElement;
 		this.dropdownTitles = this.container.querySelectorAll('.dropdown-title') as NodeListOf<HTMLHeadingElement>;
 		this.form = getHTMLElementById('settings-form') as HTMLFormElement;
 	}
@@ -126,8 +124,7 @@ export class SettingsPage extends BasePage {
 	private preFillForm(): void {
 		this.emailInput.value = this.currentUser!.email;
 		this.usernameInput.value = this.currentUser!.username;
-		this.questionInput.value = this.currentUser!.secretQuestion.toString();
-		this.answerInput.value = this.currentUser!.secretAnswer;
+		this.questionInput.value = this.currentUser!.secretQuestionNumber.toString();
 	}
 
 	// ===========================================

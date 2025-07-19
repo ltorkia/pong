@@ -25,7 +25,6 @@ export class User {
 		public avatar: string,
 		public email: string,
 		public secretQuestionNumber: number,
-		public secretQuestionAnswer: string,
 		public registration: string,
 		public beginLog: string,
 		public endLog: string,
@@ -130,7 +129,6 @@ export class User {
 			avatar: this.avatar,
 			email: this.email,
 			secretQuestionNumber: this.secretQuestionNumber,
-			secretQuestionAnswer: this.secretQuestionAnswer,
 			registration: this.registration,
 			beginLog: this.beginLog,
 			endLog: this.endLog,
@@ -170,7 +168,6 @@ export class User {
 			data.avatar ?? DB_CONST.USER.DEFAULT_AVATAR,
 			data.email ?? '',
 			data.secretQuestionNumber ?? 4,
-			data.secretQuestionNumberAnswer ?? '',
 			data.registration ?? '',
 			data.beginLog ?? '',
 			data.endLog ?? '',
@@ -215,7 +212,6 @@ export class User {
 			data.avatar ?? DB_CONST.USER.DEFAULT_AVATAR,
 			'', // Email vide pour les données publiques
 			0,  // SecretQuestionNumberNumber à 0
-			'', // SecretQuestionNumberAnswer vide
 			'', // Registration vide
 			'', // beginLog vide
 			'', // endLog vide
