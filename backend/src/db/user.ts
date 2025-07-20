@@ -88,53 +88,6 @@ export async function getUsersWithPagination(
 	};
 }
 
-// Même chose pour recherche avec filtres simples
-export async function searchUsersWithPagination(
-	searchField: UserSortField = 'username', searchTerm: string, page: number = 1, limit: number = 10, sortBy: UserSortField = 'username', sortOrder: SortOrder = 'ASC'): Promise<PaginatedUsers> {
-	const db = await getDb();
-	const offset = (page - 1) * limit;
-
-	const safeSortBy = ALLOWED_SORT_FIELDS[sortBy] || 'username';
-	const safeSortOrder = ALLOWED_SORT_ORDERS[sortOrder] || 'ASC';
-	const safeSearchField = ALLOWED_SEARCH_FIELDS[searchField] || 'username';
-	const safeSearchTerm = sanitizeSearchTerm(searchTerm);
-	const likePattern = `%${safeSearchTerm}%`;
-	const users = await db.all(
-		`
-		SELECT id, username, registration, 
-			   begin_log, end_log, tournament, avatar, 
-			   game_played, game_win, game_loose, time_played, 
-			   n_friends, status, is_deleted, register_from 
-		FROM User 
-		WHERE ${safeSearchField} LIKE ?
-		ORDER BY ${safeSortBy} ${safeSortOrder}
-		LIMIT ? OFFSET ?
-		`,
-		[likePattern, limit, offset]
-	);
-	const totalResult = await db.get(
-		`
-		SELECT COUNT(*) as total 
-		FROM User 
-		WHERE ${safeSearchField} LIKE ?
-		`,
-		[likePattern]
-	);
-	const total = totalResult.total;
-	const totalPages = Math.ceil(total / limit);
-	return {
-			users: snakeArrayToCamel(users) as SafeUserModel[],
-			pagination: {
-			currentPage: page,
-			totalPages,
-			totalUsers: total,
-			hasNextPage: page < totalPages,
-			hasPreviousPage: page > 1,
-			limit
-		} as PaginationInfos
-	};
-}
-
 // retourne les infos de tous les users pour l authentification 
 export async function getUserP(email: string) {
 	const db = await getDb();

@@ -68,6 +68,23 @@ export class DataApi {
 		return User.fromSafeJSONArray(data) as User[];
 	}
 
+	/**
+	 * Récupère une page de la liste des utilisateurs enregistrés en base de données.
+	 *
+	 * Envoie une requête GET à la route API `/users/page/:page/:limit` pour récupérer
+	 * les informations de `limit` utilisateurs stockés en base de données, en commençant
+	 * par le `page`-ième élément.
+	 *
+	 * Si la requête réussit, renvoie un objet contenant un tableau d'instances `User`
+	 * contenant les informations de `limit` utilisateurs stockés en base de données,
+	 * ainsi que des informations de pagination.
+	 * Sinon, lève une erreur.
+	 *
+	 * @param {number} page Numéro de la page à récupérer.
+	 * @param {number} limit Nombre d'utilisateurs à récupérer.
+	 * @returns {Promise<PaginatedUsers>} Promesse qui se résout avec un objet contenant
+	 *  un tableau d'instances `User` et des informations de pagination.
+	 */
 	public async getUsersByPage(page: number = 1, limit: number = 10): Promise<PaginatedUsers> {
 		const res: Response = await secureFetch(`/api/users/page/${page}/${limit}`, { method: 'GET' });
 		if (!res.ok) {

@@ -1,6 +1,6 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { getUser, getUserFriends, getUserGames, getUserChat, getAvatar, getUserAllInfo } from '../db/user';
-import { getAllUsers, getAllUsersInfos, getUsersWithPagination, searchUsersWithPagination } from '../db/user';
+import { getAllUsers, getAllUsersInfos, getUsersWithPagination } from '../db/user';
 import { UserModel, SafeUserModel, PublicUser, Friends, PaginatedUsers, SortOrder, UserSortField, UserSearchField } from '../shared/types/user.types';
 import { insertAvatar } from '../db/usermaj';
 import { Buffer } from 'buffer';
@@ -41,36 +41,6 @@ export async function usersRoutes(app: FastifyInstance) {
 				return result;
 		} catch (error) {
 			console.error('Erreur lors de la récupération des utilisateurs:', error);
-			return reply.status(500).send({ error: 'Erreur interne du serveur' });
-		}
-	})
-
-	// Pour afficher tous les users avec pagination et critères de recherche
-	// Query params (optionnels) : sortBy, sortOrder, searchField
-	// Exemple : /api/users/search/1/10?sortBy=username&sortOrder=ASC&searchField=username
-	app.get('/search/:query/:page/:limit', async (request: FastifyRequest<{ 
-		Params: { query: string; page: string; limit: string }; 
-		Querystring: { sortBy?: UserSortField; sortOrder?: SortOrder, searchField?: UserSearchField } }>, 
-		reply: FastifyReply): Promise<PaginatedUsers | void> => {
-		try {
-			const { query, page, limit } = request.params;
-			const { sortBy = 'username', sortOrder = 'ASC', searchField = 'username' } = request.query;
-			const decodedQuery = decodeURIComponent(query);
-			if (!decodedQuery || decodedQuery.trim().length < 2) {
-				return reply.status(400).send({ error: 'Le terme de recherche doit contenir au moins 2 caractères' });
-			}
-			const pageNum = parseInt(page);
-			const limitNum = parseInt(limit);
-			if (isNaN(pageNum) || pageNum < 1) {
-				return reply.status(400).send({ error: 'Le paramètre page doit être un nombre positif' });
-			}
-			if (isNaN(limitNum) || limitNum < 1 || limitNum > 100) {
-				return reply.status(400).send({ error: 'Le paramètre limit doit être entre 1 et 100' });
-			}
-			const result: PaginatedUsers = await searchUsersWithPagination(searchField, decodedQuery.trim(), pageNum, limitNum, sortBy, sortOrder);
-			return result;
-		} catch (error) {
-			console.error('Erreur lors de la recherche d\'utilisateurs:', error);
 			return reply.status(500).send({ error: 'Erreur interne du serveur' });
 		}
 	})
@@ -229,8 +199,8 @@ export async function usersRoutes(app: FastifyInstance) {
 		}
 		// else
 			// dataUserToUpdate.password = dataUser.password;	
-			dataUserToUpdate.secret_question_answer = dataUserReceived.answer;
-			dataUserToUpdate.secret_question_number = dataUserReceived.question;
+			dataUserToUpdate.secretQuestionAnswer = dataUserReceived.answer;
+			dataUserToUpdate.secretQuestionNumber = dataUserReceived.question;
 		await changeUserData(id, dataUserToUpdate);
 		const user = await getUser(id);
 		return reply.status(200).send({

@@ -16,6 +16,7 @@ export class SettingsPage extends BasePage {
 	private emailInput!: HTMLInputElement;
 	private usernameInput!: HTMLInputElement;
 	private questionInput!: HTMLInputElement;
+	private twoFaInput!: HTMLInputElement;
 	private dropdownTitles!: NodeListOf<HTMLHeadingElement>;
 	private form!: HTMLFormElement;
 	private alertMsgForm!: HTMLElement;
@@ -49,7 +50,7 @@ export class SettingsPage extends BasePage {
 	 * @returns {Promise<void>} Une promesse qui se résout lorsque les éléments HTML ont été stockés.
 	 */
 	protected async beforeMount(): Promise<void> {
-		if (!this.currentUser!.email || !this.currentUser!.secretQuestionNumber) {
+		if (!this.currentUser!.email) {
 			this.currentUser = await authApi.getMe();
 		}
 		this.avatarContainer = getHTMLElementById('avatar-container', this.container) as HTMLElement;
@@ -57,6 +58,7 @@ export class SettingsPage extends BasePage {
 		this.emailInput = getHTMLElementById('email', this.container) as HTMLInputElement;
 		this.usernameInput = getHTMLElementById('username', this.container) as HTMLInputElement;
 		this.questionInput = getHTMLElementById('question', this.container) as HTMLInputElement;
+		this.twoFaInput = getHTMLElementById('enable-2fa', this.container) as HTMLInputElement;
 		this.dropdownTitles = this.container.querySelectorAll('.dropdown-title') as NodeListOf<HTMLHeadingElement>;
 		this.form = getHTMLElementById('settings-form', this.container) as HTMLFormElement;
 		this.alertMsgForm = getHTMLElementById('alert', this.container) as HTMLElement;
@@ -124,10 +126,21 @@ export class SettingsPage extends BasePage {
 		});
 	}
 
+	/**
+	 * Remplit les champs du formulaire de paramètres de l'utilisateur
+	 * avec les informations actuelles de l'utilisateur actuel.
+	 * 
+	 * Remplit les champs suivants:
+	 * - email: l'adresse e-mail actuelle de l'utilisateur.
+	 * - username: le nom d'utilisateur actuel de l'utilisateur.
+	 * - secretQuestionNumber: le numéro de la question secrète actuelle de l'utilisateur.
+	 * - active2Fa: si l'utilisateur a activé ou non l'authentification à 2 facteurs.
+	 */
 	private preFillForm(): void {
 		this.emailInput.value = this.currentUser!.email;
 		this.usernameInput.value = this.currentUser!.username;
 		this.questionInput.value = this.currentUser!.secretQuestionNumber.toString();
+		this.twoFaInput.checked = this.currentUser!.active2Fa === 1;
 	}
 
 	// ===========================================
@@ -155,6 +168,14 @@ export class SettingsPage extends BasePage {
 		this.handleAvatarChange(event);
 	};
 
+	/**
+	 * Gère l'événement de changement pour l'input d'avatar.
+	 * Valide l'image, l'affiche en prévisualisation et l'envoie sur le serveur.
+	 *
+	 * @param {Event} event - L'événement de changement déclenché lorsque le fichier est sélectionné.
+	 *
+	 * @returns {Promise<void>} - Une promesse qui se résout lorsque l'avatar est mis à jour.
+	 */
 	private async handleAvatarChange(event: Event): Promise<void> {
 		const target = event.target as HTMLInputElement;
 		const file = target.files?.[0];
@@ -204,6 +225,9 @@ export class SettingsPage extends BasePage {
 		this.alertMsgAvatar.classList.add('hidden');
 		const formData = new FormData(this.form);
 		const data = Object.fromEntries(formData.entries()) as Record<string, string>;
-		await dataService.updateUser(this.currentUser!.id, data);
+		const result = await dataService.updateUser(this.currentUser!.id, data);
+		if (result === true) {
+			this.preFillForm();
+		}
 	};
 }
