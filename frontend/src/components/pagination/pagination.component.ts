@@ -87,17 +87,21 @@ export class PaginationComponent extends BaseComponent {
 		this.paginationInfoElement.textContent = `Page ${currentPage} / ${totalPages} - ${totalUsers} résultats`;
 		this.paginationButtonsContainer.innerHTML = '';
 
-		for (let i = 1; i <= totalPages; i++) {
-			const button = document.createElement('button');
-			button.textContent = i.toString();
-			button.className = 'px-3 py-1 mx-1 border rounded hover:bg-cyan-600 hover:text-white transition';
-			if (i === currentPage) {
-				button.classList.add('bg-cyan-700', 'text-white', 'cursor-default');
-				button.disabled = true;
-			}
-			button.addEventListener('click', () => this.handlePageClick(i));
-			this.paginationButtonsContainer.appendChild(button);
-		}
+		if (totalPages <= 1) return;
+
+		this.renderPaginationButtons();
+
+		// for (let i = 1; i <= totalPages; i++) {
+		// 	const button = document.createElement('button');
+		// 	button.textContent = i.toString();
+		// 	button.className = 'px-3 py-1 mx-1 border rounded hover:bg-cyan-600 hover:text-white transition';
+		// 	if (i === currentPage) {
+		// 		button.classList.add('bg-cyan-700', 'text-white', 'cursor-default');
+		// 		button.disabled = true;
+		// 	}
+		// 	button.addEventListener('click', () => this.handlePageClick(i));
+		// 	this.paginationButtonsContainer.appendChild(button);
+		// }
 	}
 
 	// ===========================================
@@ -117,6 +121,140 @@ export class PaginationComponent extends BaseComponent {
 	 */
 	private async loadTemplateDev(): Promise<void> {
 		this.loadTemplate(template);
+	}
+
+	/**
+	 * Génère et affiche tous les boutons de pagination avec une logique avancée.
+	 */
+	private renderPaginationButtons(): void {
+		const { totalPages, currentPage, hasPreviousPage, hasNextPage } = this.paginationInfos;
+
+		// Bouton Précédent
+		if (hasPreviousPage) {
+			this.createPaginationButton('‹ Previous', currentPage - 1, 'prev-btn');
+		}
+
+		// Logique d'affichage des pages
+		const pages = this.calculateVisiblePages(currentPage, totalPages);
+		
+		pages.forEach((page, index) => {
+			if (page === '...') {
+				this.createEllipsis();
+			} else {
+				this.createPaginationButton(
+					page.toString(), 
+					page as number, 
+					page === currentPage ? 'current-page' : 'page-btn'
+				);
+			}
+		});
+
+		// Bouton Suivant
+		if (hasNextPage) {
+			this.createPaginationButton('Next ›', currentPage + 1, 'next-btn');
+		}
+	}
+
+	/**
+	 * Calcule les pages à afficher selon une logique intelligente.
+	 * 
+	 * @param {number} currentPage La page courante
+	 * @param {number} totalPages Le nombre total de pages
+	 * @returns {Array<number | string>} Un tableau contenant les numéros de pages et les ellipses
+	 */
+	private calculateVisiblePages(currentPage: number, totalPages: number): Array<number | string> {
+		const pages: Array<number | string> = [];
+		const maxVisiblePages = 5; // Nombre maximum de boutons de page visibles
+
+		if (totalPages <= maxVisiblePages) {
+			// Si peu de pages, afficher toutes les pages
+			for (let i = 1; i <= totalPages; i++) {
+				pages.push(i);
+			}
+		} else {
+			// Toujours afficher la première page
+			pages.push(1);
+
+			if (currentPage <= 3) {
+				// Début : 1, 2, 3, 4, ..., dernière
+				for (let i = 2; i <= 4; i++) {
+					pages.push(i);
+				}
+				if (totalPages > 4) {
+					pages.push('...');
+					pages.push(totalPages);
+				}
+			} else if (currentPage >= totalPages - 2) {
+				// Fin : 1, ..., avant-avant-dernière, avant-dernière, dernière
+				pages.push('...');
+				for (let i = totalPages - 3; i <= totalPages; i++) {
+					if (i > 1) {
+						pages.push(i);
+					}
+				}
+			} else {
+				// Milieu : 1, ..., précédente, courante, suivante, ..., dernière
+				pages.push('...');
+				for (let i = currentPage - 1; i <= currentPage + 1; i++) {
+					pages.push(i);
+				}
+				pages.push('...');
+				pages.push(totalPages);
+			}
+		}
+
+		return pages;
+	}
+
+	/**
+	 * Crée un bouton de pagination.
+	 * 
+	 * @param {string} text Le texte à afficher sur le bouton
+	 * @param {number} page Le numéro de page associé au bouton
+	 * @param {string} type Le type de bouton pour le styling
+	 */
+	private createPaginationButton(text: string, page: number, type: string): void {
+		const button = document.createElement('button');
+		button.textContent = text;
+		button.className = this.getButtonClasses(type);
+		
+		if (type === 'current-page') {
+			button.disabled = true;
+		}
+		
+		button.addEventListener('click', () => this.handlePageClick(page));
+		this.paginationButtonsContainer.appendChild(button);
+	}
+
+	/**
+	 * Crée un élément ellipsis (...) non cliquable.
+	 */
+	private createEllipsis(): void {
+		const ellipsis = document.createElement('span');
+		ellipsis.textContent = '...';
+		ellipsis.className = 'px-3 py-1 mx-1 text-gray-500 cursor-default';
+		this.paginationButtonsContainer.appendChild(ellipsis);
+	}
+
+	/**
+	 * Retourne les classes CSS appropriées selon le type de bouton.
+	 * 
+	 * @param {string} type Le type de bouton
+	 * @returns {string} Les classes CSS à appliquer
+	 */
+	private getButtonClasses(type: string): string {
+		const baseClasses = 'px-3 py-1 mx-1 border rounded transition duration-200';
+		
+		switch (type) {
+			case 'current-page':
+				return `${baseClasses} bg-cyan-700 text-white cursor-default border-cyan-700`;
+			case 'prev-btn':
+			case 'next-btn':
+				return `${baseClasses} bg-gray-100 hover:bg-cyan-600 hover:text-white hover:border-cyan-600 border-gray-300`;
+			case 'page-btn':
+			default:
+				return `${baseClasses} bg-white hover:bg-cyan-600 hover:text-white hover:border-cyan-600 border-gray-300`;
+		}
 	}
 
 	// ===========================================
