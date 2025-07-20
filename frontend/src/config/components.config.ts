@@ -2,6 +2,7 @@ import { TwofaModalComponent } from '../components/twofa-modal/twofa-modal.compo
 import { NavbarComponent } from '../components/navbar/navbar.component';
 import { SearchBarComponent } from '../components/search-bar/search-bar.component';
 import { UserRowComponent } from '../components/user-row/user-row.component';
+import { PaginationComponent } from '../components/pagination/pagination.component';
 import { ComponentConfig } from '../types/components.types';
 
 // ===========================================
@@ -33,6 +34,7 @@ export const HTML_COMPONENT_CONTAINERS = {
 	NAVBAR_ID: 'navbar',
 	SEARCH_BAR_ID: 'search-bar',
 	USER_LIST_ID: 'user-list',
+	PAGINATION_ID: 'pagination',
 } as const;
 
 /**
@@ -47,6 +49,7 @@ export const COMPONENT_NAMES = {
 	NAVBAR: 'navbar',
 	SEARCH_BAR: 'search-bar',
 	USER_ROW: 'user-row',
+	PAGINATION: 'pagination',
 } as const;
 
 /**
@@ -61,6 +64,7 @@ export const COMPONENT_PATHS = {
 	[COMPONENT_NAMES.NAVBAR]: '/components/navbar/navbar.component.html',
 	[COMPONENT_NAMES.SEARCH_BAR]: '/components/search-bar/search-bar.component.html',
 	[COMPONENT_NAMES.USER_ROW]: '/components/user-row/user-row.component.html',
+	[COMPONENT_NAMES.PAGINATION]: '/components/pagination/pagination.component.html',
 } as const;
 
 /**
@@ -117,6 +121,14 @@ export const componentsConfig: ComponentConfig[] = [
 		componentConstructor: UserRowComponent,
 		templatePath: COMPONENT_PATHS[COMPONENT_NAMES.USER_ROW],
 		containerId: HTML_COMPONENT_CONTAINERS.USER_LIST_ID,
+		isPublic: false,
+		isPersistent: false
+	},
+	{
+		name: COMPONENT_NAMES.PAGINATION,
+		componentConstructor: PaginationComponent,
+		templatePath: COMPONENT_PATHS[COMPONENT_NAMES.PAGINATION],
+		containerId: HTML_COMPONENT_CONTAINERS.PAGINATION_ID,
 		isPublic: false,
 		isPersistent: false
 	}

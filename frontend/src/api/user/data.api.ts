@@ -1,7 +1,7 @@
 import { User } from '../../models/user.model';
 import { Game } from '../../models/game.model';
 import { dataService, currentService } from '../../services/index.service';
-import { SafeUserModel, PublicUser } from '../../shared/types/user.types';	// en rouge car dossier local 'shared' != dossier conteneur
+import { SafeUserModel, PublicUser, PaginatedUsers } from '../../shared/types/user.types';	// en rouge car dossier local 'shared' != dossier conteneur
 import { secureFetch } from '../../utils/app.utils';
 import { AuthResponse } from 'src/types/api.types';
 
@@ -66,6 +66,16 @@ export class DataApi {
 		}
 		const data: SafeUserModel[] = await res.json();
 		return User.fromSafeJSONArray(data) as User[];
+	}
+
+	public async getUsersByPage(page: number = 1, limit: number = 10): Promise<PaginatedUsers> {
+		const res: Response = await secureFetch(`/api/users/page/${page}/${limit}`, { method: 'GET' });
+		if (!res.ok) {
+			throw new Error('Erreur de l\'API');
+		}
+		const data: PaginatedUsers = await res.json();
+		data.users = User.fromSafeJSONArray(data.users) as User[];
+		return data as PaginatedUsers;
 	}
 
 	/**

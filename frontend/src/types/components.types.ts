@@ -2,6 +2,7 @@ import { RouteConfig } from '../types/routes.types';
 import { BaseComponent } from '../components/base/base.component';
 import { COMPONENT_NAMES, HTML_COMPONENT_CONTAINERS, COMPONENT_PATHS } from '../config/components.config';
 import { User } from '../models/user.model';
+import { PaginationInfos } from '../shared/types/user.types';
 
 // ===========================================
 // COMPONENTS TYPES
@@ -51,13 +52,23 @@ export interface ComponentConfig {
  * - componentConfig: configuration du composant (de type ComponentConfig)
  * - container: élément HTML dans lequel injecter le contenu du composant
  * - user: utilisateur à afficher dans le composant (facultatif)
+ * - paginationParams: propriétés de pagination + fonction de changement de page (facultatif)
  */
 export type ComponentConstructor = new (
 	routeConfig: RouteConfig,
 	componentConfig: ComponentConfig,
 	container: HTMLElement,
 	user?: User | null,
+	PaginationParams?: PaginationParams
 ) => BaseComponent;
+
+/**
+ * Types pour les paramètres de pagination.
+ */
+export interface PaginationParams {
+	infos: PaginationInfos;
+	onPageChange: (page: number) => void;
+}
 
 /**
  * Types pour les noms de composants.

@@ -5,7 +5,7 @@ import { ChatMessage } from '../types/chat.types';
 import { searchNewName } from '../helpers/auth.helpers';
 import { UserPassword, User2FA, UserForChangeData } from '../types/user.types';
 import { DB_CONST, ALLOWED_SORT_FIELDS, ALLOWED_SEARCH_FIELDS, ALLOWED_SORT_ORDERS } from '../shared/config/constants.config'; // en rouge car dossier local 'shared' != dossier conteneur
-import { UserModel, SafeUserModel, UserBasic, UserWithAvatar, PublicUser, UserSortField, SortOrder, PaginatedUsers, Friends } from '../shared/types/user.types'; // en rouge car dossier local 'shared' != dossier conteneur
+import { UserModel, SafeUserModel, UserBasic, UserWithAvatar, PublicUser, UserSortField, SortOrder, PaginatedUsers, PaginationInfos, Friends } from '../shared/types/user.types'; // en rouge car dossier local 'shared' != dossier conteneur
 import { snakeToCamel, snakeArrayToCamel } from '../helpers/types.helpers';
 import { sanitizeSearchTerm } from '../helpers/query.helpers';
 
@@ -49,17 +49,17 @@ export async function getAllUsersInfos() {
 // Liste des utilisateurs qui permet d'avoir une pagination côté front (pour page Users)
 // avec paramètres optionnels de tri
 export async function getUsersWithPagination(
-	page: number = 1, limit: number = 10, sortBy: UserSortField = 'id', sortOrder: SortOrder = 'ASC'): Promise<PaginatedUsers> {
+	page: number = 1, limit: number = 10, sortBy: UserSortField = 'username', sortOrder: SortOrder = 'ASC'): Promise<PaginatedUsers> {
 	const db = await getDb();
 	const offset = (page - 1) * limit;
 
-	const safeSortBy = ALLOWED_SORT_FIELDS[sortBy] || 'id';
+	const safeSortBy = ALLOWED_SORT_FIELDS[sortBy] || 'username';
 	const safeSortOrder = ALLOWED_SORT_ORDERS[sortOrder] || 'ASC';
 
 	const users = await db.all(
 		`
 		SELECT id, username, registration, 
-				begin_log, end_log, tournament, avatar
+				begin_log, end_log, tournament, avatar,
 				game_played, game_win, game_loose, time_played,
 				n_friends, status, is_deleted, register_from 
 		FROM User 
@@ -84,7 +84,7 @@ export async function getUsersWithPagination(
 			hasNextPage: page < totalPages,
 			hasPreviousPage: page > 1,
 			limit
-		}
+		} as PaginationInfos
 	};
 }
 
@@ -131,7 +131,7 @@ export async function searchUsersWithPagination(
 			hasNextPage: page < totalPages,
 			hasPreviousPage: page > 1,
 			limit
-		}
+		} as PaginationInfos
 	};
 }
 

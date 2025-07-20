@@ -1,4 +1,5 @@
 import { DB_CONST, IMAGE_CONST } from '../config/constants.config';
+import { User } from '../models/user.model';
 
 // ===========================================
 // USER TYPES
@@ -134,7 +135,7 @@ export interface Friends {
  * Interfaces et types pour les requêtes utilisateurs avec pagination et paramètres de tri.
  */
 
-export interface PaginationInfo {
+export interface PaginationInfos {
 	currentPage: number;
 	totalPages: number;
 	totalUsers: number;
@@ -143,8 +144,8 @@ export interface PaginationInfo {
 	limit: number;
 }
 export interface PaginatedUsers {
-	users: SafeUserModel[];
-	pagination: PaginationInfo;
+	users: SafeUserModel[] | User[];
+	pagination: PaginationInfos;
 }
 export type SortOrder = 'ASC' | 'DESC';
 export type UserSortField = 'id' | 'username' | 'registration' | 'game_played' | 'game_win' | 'game_loose' | 'time_played' | 'n_friends' | 'status' | 'is_deleted' | 'register_from';

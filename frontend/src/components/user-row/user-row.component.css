@@ -61,6 +61,7 @@
 		bg-pastel-blue font-bold
 		bg-gradient-to-r from-blue-500 to-pastel-blue
 		absolute bottom-0 left-1/2 -translate-x-1/2 -translate-y-1 -rotate-3
+		max-w-[100px] leading-normal break-words text-center
 		transition duration-300 ease-in-out;
 	}
 }

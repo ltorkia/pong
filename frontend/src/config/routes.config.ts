@@ -203,7 +203,8 @@ export const routesConfig: RouteConfig[] = [
 		components: {
 			[COMPONENT_NAMES.NAVBAR]: getComponentConfig(COMPONENT_NAMES.NAVBAR),
 			[COMPONENT_NAMES.SEARCH_BAR]: getComponentConfig(COMPONENT_NAMES.SEARCH_BAR),
-			[COMPONENT_NAMES.USER_ROW]: getComponentConfig(COMPONENT_NAMES.USER_ROW)
+			[COMPONENT_NAMES.USER_ROW]: getComponentConfig(COMPONENT_NAMES.USER_ROW),
+			[COMPONENT_NAMES.PAGINATION]: getComponentConfig(COMPONENT_NAMES.PAGINATION)
 		},
 		isPublic: false,
 		enableParticles: true

@@ -19,14 +19,16 @@ export async function usersRoutes(app: FastifyInstance) {
 		return users;
 	})
 
-	// pour afficher tous les users avec pagination et paramètres de tri
-	app.get('/:page/:limit', async (request: FastifyRequest<{ 
+	// Pour afficher tous les users avec pagination et paramètres de tri
+	// Query params (optionnels) : sortBy, sortOrder
+	// Exemple : /api/users/page/1/20?sortBy=registration&sortOrder=DESC
+	app.get('/page/:page/:limit', async (request: FastifyRequest<{ 
 		Params: { page: string; limit: string }; 
 		Querystring: { sortBy?: UserSortField; sortOrder?: SortOrder }}>, 
 		reply: FastifyReply): Promise<PaginatedUsers | void> => {
 		try {
 			const { page, limit } = request.params;
-			const { sortBy = 'id', sortOrder = 'ASC' } = request.query;
+			const { sortBy = 'username', sortOrder = 'ASC' } = request.query;
 			const pageNum = parseInt(page);
 			const limitNum = parseInt(limit);
 			if (isNaN(pageNum) || pageNum < 1) {
@@ -43,8 +45,10 @@ export async function usersRoutes(app: FastifyInstance) {
 		}
 	})
 
-	// pour afficher tous les users avec pagination et critères de recherche
-	app.get('/:query/:page/:limit', async (request: FastifyRequest<{ 
+	// Pour afficher tous les users avec pagination et critères de recherche
+	// Query params (optionnels) : sortBy, sortOrder, searchField
+	// Exemple : /api/users/search/1/10?sortBy=username&sortOrder=ASC&searchField=username
+	app.get('/search/:query/:page/:limit', async (request: FastifyRequest<{ 
 		Params: { query: string; page: string; limit: string }; 
 		Querystring: { sortBy?: UserSortField; sortOrder?: SortOrder, searchField?: UserSearchField } }>, 
 		reply: FastifyReply): Promise<PaginatedUsers | void> => {

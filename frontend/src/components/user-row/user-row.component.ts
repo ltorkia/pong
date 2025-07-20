@@ -119,7 +119,9 @@ export class UserRowComponent extends BaseComponent {
 			this.addFriendButton.classList.remove('hidden');
 		}
 		this.avatarImg.setAttribute('loading', 'lazy');
-		this.avatarImg.setAttribute('src', await dataService.getUserAvatarURL(this.user!));
+		const userAvatar = await dataService.getUserAvatarURL(this.user!);
+		console.log(`Avatar URL: ${userAvatar}`, this.user);
+		this.avatarImg.setAttribute('src', userAvatar);
 		this.nameCell.textContent = this.user!.username;
 		this.statusCell.innerHTML = dataService.showStatusLabel(this.user!);
 		if (this.levelCell) {

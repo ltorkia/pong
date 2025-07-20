@@ -1,12 +1,15 @@
 import { BasePage } from '../base/base.page';
+import { User } from '../../models/user.model';
 import { dataApi } from '../../api/index.api';
 import { SearchBarComponent } from '../../components/search-bar/search-bar.component';
 import { UserRowComponent } from '../../components/user-row/user-row.component';
+import { PaginationComponent } from '../../components/pagination/pagination.component';
 import { getHTMLElementById } from '../../utils/dom.utils';
 import { RouteConfig } from '../../types/routes.types';
 import { ComponentConfig } from '../../types/components.types';
 import { COMPONENT_NAMES, HTML_COMPONENT_CONTAINERS } from '../../config/components.config';
 import { ComponentName } from '../../types/components.types';
+import { PaginatedUsers, PaginationInfos, PaginationParams } from '../../shared/types/user.types';
 
 // ===========================================
 // USERS PAGE
@@ -17,10 +20,18 @@ import { ComponentName } from '../../types/components.types';
  * Permet d'afficher la liste des utilisateurs enregistrés sur le site.
  */
 export class UsersPage extends BasePage {
+	private users: User[] | null = null;
+	private paginationInfos: PaginationInfos | null = null;
+	private paginationParams: PaginationParams | null = null;
+	private currentPage: number = 1;
+
 	private searchBarConfig: ComponentConfig | null = null;
 	private userRowConfig: ComponentConfig | null = null;
+	private paginationConfig: ComponentConfig | null = null;
+
 	private searchBar!: HTMLElement;
 	private userList!: HTMLElement;
+	private paginationContainer!: HTMLElement;
 
 	/**
 	 * Constructeur de la page des utilisateurs.
@@ -53,18 +64,26 @@ export class UsersPage extends BasePage {
 		}
 		this.searchBarConfig = this.checkComponentConfig(COMPONENT_NAMES.SEARCH_BAR);
 		this.userRowConfig = this.checkComponentConfig(COMPONENT_NAMES.USER_ROW);
+		this.paginationConfig = this.checkComponentConfig(COMPONENT_NAMES.PAGINATION);
+		
+		this.searchBar = getHTMLElementById(HTML_COMPONENT_CONTAINERS.SEARCH_BAR_ID);
+		this.userList = getHTMLElementById(HTML_COMPONENT_CONTAINERS.USER_LIST_ID);
+		this.paginationContainer = getHTMLElementById(HTML_COMPONENT_CONTAINERS.PAGINATION_ID);
 	}
 
 	/**
 	 * Charge les composants propres à cette page.
 	 * 
-	 * Cette méthode charge la barre de recherche et les lignes du tableau de la liste des utilisateurs (user-row).
+	 * Cette méthode charge la barre de recherche,
+	 * les lignes du tableau de la liste des utilisateurs (user-row),
+	 * et la pagination.
 	 * 
 	 * @returns {Promise<void>} Une promesse qui se résout lorsque les composants sont chargés.
 	 */
 	protected async loadSpecificComponents(): Promise<void> {
 		await this.injectSearchBar();
 		await this.injectUserList();
+		await this.injectPagination();
 	}
 
 	// ===========================================
@@ -82,7 +101,7 @@ export class UsersPage extends BasePage {
 	 * @returns {ComponentConfig} La configuration valide du composant.
 	 * @throws {Error} Si la configuration est invalide.
 	 */
-	protected checkComponentConfig(componentName: ComponentName): ComponentConfig {
+	private checkComponentConfig(componentName: ComponentName): ComponentConfig {
 		const config: ComponentConfig | undefined = this.components?.[componentName];
 		if (!config || !this.shouldRenderComponent(config) || !this.isValidConfig(config, false)) {
 			throw new Error(`Configuration du composant '${componentName}' invalide`);
@@ -98,17 +117,16 @@ export class UsersPage extends BasePage {
 	 * 
 	 * @returns {Promise<void>} Une promesse qui se résout lorsque le composant est injecté.
 	 */
-	protected async injectSearchBar(): Promise<void> {
-		this.searchBar = getHTMLElementById(HTML_COMPONENT_CONTAINERS.SEARCH_BAR_ID);
+	private async injectSearchBar(): Promise<void> {
 		const searchBarComponent = new SearchBarComponent(this.config, this.searchBarConfig!, this.searchBar);
 		await searchBarComponent.render();
+		console.log(`[${this.constructor.name}] Composant '${this.searchBarConfig!.name}' généré`);
 	}
 
 	/**
 	 * Injecte les lignes du tableau de la liste des utilisateurs (user-row) dans le DOM.
 	 * 
-	 * Cette méthode utilise l'API pour obtenir la liste des utilisateurs 
-	 * et crée dynamiquement un UserRowComponent pour chaque utilisateur.
+	 * Cette méthode crée dynamiquement un UserRowComponent pour chaque utilisateur.
 	 * Chaque ligne utilisateur est stockée dans un tableau de promesses 
 	 * qui sont résolues en même temps (traitement asynchrone de chaque ligne).
 	 * Les instances de chaque ligne sont stockées dans la propriété componentInstances 
@@ -119,14 +137,19 @@ export class UsersPage extends BasePage {
 	 * @returns {Promise<void>} Une promesse qui se résout lorsque tous les composants utilisateur 
 	 * sont injectés dans le DOM.
 	 */
-	protected async injectUserList(): Promise<void> {
-		const users = await dataApi.getUsers();
-		this.userList = getHTMLElementById(HTML_COMPONENT_CONTAINERS.USER_LIST_ID);
+	private async injectUserList(): Promise<void> {
 
+		const req: PaginatedUsers = await dataApi.getUsersByPage(this.currentPage);
+		this.users = req.users;
+		this.paginationInfos = req.pagination;
+		if (!this.users || !this.paginationInfos) {
+			return;
+		}
+		this.userList.replaceChildren();
 		const renderPromises: Promise<void>[] = [];
 
 		let i = 1;
-		for (const user of users) {
+		for (const user of this.users!) {
 			let tempContainer = document.createElement('div');
 			const rowComponent = new UserRowComponent(this.config, this.userRowConfig!, tempContainer, user);
 			const instanceKey = `${this.userRowConfig!.name}-${user.id}`;
@@ -148,5 +171,37 @@ export class UsersPage extends BasePage {
 		}
 		await Promise.all(renderPromises);
 		console.log(`[${this.constructor.name}] Composant '${this.userRowConfig!.name}' généré`);
+	}
+
+	/**
+	 * Injecte le composant de pagination dans le DOM.
+	 *
+	 * Crée une instance du composant PaginationComponent avec la configuration
+	 * actuelle et l'injecte dans le conteneur HTML spécifié. Enregistre
+	 * l'instance dans la liste des instances de composants. Affiche un message
+	 * de log une fois que le composant est généré.
+	 * 
+	 * @returns {Promise<void>} Une promesse qui se resilve lorsque le composant de pagination est injecté.
+	 */
+	private async injectPagination(): Promise<void> {
+		this.paginationParams = { 
+			infos: this.paginationInfos!, 
+			onPageChange: (page: number) => this.handlePageChange(page),
+		};
+		const paginationComponent = new PaginationComponent(this.config, this.paginationConfig!, this.paginationContainer, null, this.paginationParams!);
+		await paginationComponent.render();
+		this.addToComponentInstances(COMPONENT_NAMES.PAGINATION, paginationComponent);
+		console.log(`[${this.constructor.name}] Composant '${this.paginationConfig!.name}' généré`);
+	}
+
+	/**
+	 * Gère le changement de page dans la pagination.
+	 * 
+	 * @param {number} page Le numéro de la page sélectionnée.
+	 */
+	private async handlePageChange(page: number): Promise<void> {
+		this.currentPage = page;
+		await this.injectUserList();
+		await this.injectPagination();
 	}
 }
