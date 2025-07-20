@@ -164,14 +164,32 @@ export async function usersRoutes(app: FastifyInstance) {
 	app.put('/:id/moduser', async(request: FastifyRequest, reply: FastifyReply) => {
 			const { id } = request.params as { id: number };
 			console.log("reauest = ", request.body);
+			// let dataTest = request.body;
+			const body = request.body as Record<string, any>;
+
+			// Renommage explicite
+			if ("curr-password" in body) {
+				body["currPassword"] = body["curr-password"];
+				delete body["curr-password"];
+			}
+
+			if ("new-password" in body) {
+				body["newPassword"] = body["new-password"];
+				delete body["new-password"];
+			}
+			if(body["currPassword"] == '')
+				body["currPassword"] = null;
+			if(body["newPassword"] == '')
+				body["newPassword"] = null;			
+			
+			// console.log("reauest avec changement de nom = ", body);
 
 			// console.log("--------------------------request is : " + request.username);
-		const result = ModUserInputSchema.safeParse(request);
+		const result = ModUserInputSchema.safeParse(body);
 		if (!result.success) {
 			const error = result.error.errors[0];
 			return reply.status(400).send({ statusCode: 400, errorMessage: error.message + " in " + error.path });
 		}
-		console.log("result data = ", result.data);
 		//on cree l user avec les donnees a inserer une fois le safeparse effectue
 		const dataUserReceived = result.data as ModUserInput; //datatext - a mod pour current et new pass
 		const dataUser = await getUserAllInfo(id);
@@ -179,35 +197,45 @@ export async function usersRoutes(app: FastifyInstance) {
 		if (dataUser.username != dataUserReceived.username)
 		{
 			const UserNameCheck = await getUser(null, dataUserReceived.username);
-			if (UserNameCheck.id != dataUser.id)
+			if (UserNameCheck && UserNameCheck.id != dataUser.id)
 				return {statusCode : 409, message : "Username already used.<br><b>" + await (searchNewName(dataUserToUpdate.username)) + "</b> is available."};
+			dataUserToUpdate.username = dataUserReceived.username;
 		}
 		if (dataUser.email != dataUserReceived.email)
 		{
 			const UserEmailCheck = await getUser(null, dataUserReceived.email);
-			if (UserEmailCheck.id != dataUser.id)
+			if (UserEmailCheck && UserEmailCheck.id != dataUser.id)
 				return {statusCode: 409, message : "Email already used"};
+			dataUserToUpdate.email = dataUserReceived.email;// console.log("user dans email diff", UserEmailCheck);
 		}
-		if (dataUserReceived.curr_password && dataUserReceived.new_password)
+		if (dataUserReceived.currPassword && dataUserReceived.newPassword)
 		{
 			// dataUserToUpdate.curr_password = await bcrypt.hash(dataUserToUpdate.curr_password, 10);
-
-			const isPassValid = await bcrypt.compare(dataUserReceived.curr_password, dataUser.password);
+			// if (dataUserReceived.newPassword.length() <= 3)
+			// {
+			// 	return reply.status(401).send({
+			// 		statusCode: 401,
+			// 		errorMessage: 'min 3 letters in password'
+			// 	});				
+			// }
+			const isPassValid = await bcrypt.compare(dataUserReceived.currPassword, dataUser.password);
 			if (!isPassValid) {
 				return reply.status(401).send({
 					statusCode: 401,
 					errorMessage: 'Password does not match.'
 				});
 			}
-			dataUserToUpdate.password = await bcrypt.hash(dataUserReceived.new_password, 10);
+			dataUserToUpdate.password = await bcrypt.hash(dataUserReceived.newPassword, 10);
 		}
-		else
-			dataUserToUpdate.password = dataUser.password;
+		// else
+			// dataUserToUpdate.password = dataUser.password;	
+			dataUserToUpdate.secret_question_answer = dataUserReceived.answer;
+			dataUserToUpdate.secret_question_number = dataUserReceived.question;
 		await changeUserData(id, dataUserToUpdate);
-		const user = getUser(id);
+		const user = await getUser(id);
 		return reply.status(200).send({
 			statusCode: 200,
-			message: user
+			user: user
 		});
 
 
