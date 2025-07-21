@@ -23,6 +23,7 @@ export interface UserForChangeData {
 	registerFrom: RegisterMethod;
 	secretQuestionNumber: number;
 	secretQuestionAnswer: string;
+	activeTwoFA: boolean;
 }
 
 export interface User2FA {

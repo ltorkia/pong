@@ -21,10 +21,10 @@ export async function changeUserData(id: number, user: UserForChangeData)
         // const user =
        await db.run(`
                 UPDATE User
-                SET username = ?, password = ?, email = ?, secret_question_number = ?, secret_question_answer = ?
+                SET username = ?, password = ?, email = ?, secret_question_number = ?, secret_question_answer = ?, active_2FA = ?
                 WHERE (id = ?)
                `,
-       [user.username, user.password, user.email, user.secretQuestionNumber, user.secretQuestionAnswer, user.id]);
+       [user.username, user.password, user.email, user.secretQuestionNumber, user.secretQuestionAnswer, user.activeTwoFA, user.id]);
 }
 
 export async function changePassword(username: string, password: string)

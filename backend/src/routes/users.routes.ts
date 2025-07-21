@@ -132,12 +132,13 @@ export async function usersRoutes(app: FastifyInstance) {
 	})
 
 	app.put('/:id/moduser', async(request: FastifyRequest, reply: FastifyReply) => {
+		try {
+		
 			const { id } = request.params as { id: number };
 			console.log("reauest = ", request.body);
-			// let dataTest = request.body;
-			const body = request.body as Record<string, any>;
+			const body = request.body as Record<string, any>; //c est bon any ?
 
-			// Renommage explicite
+			// Renommage explicite pour etre ok avec ts et js
 			if ("curr-password" in body) {
 				body["currPassword"] = body["curr-password"];
 				delete body["curr-password"];
@@ -147,81 +148,83 @@ export async function usersRoutes(app: FastifyInstance) {
 				body["newPassword"] = body["new-password"];
 				delete body["new-password"];
 			}
+
+			let isEnableTwoFa = false;
+			if ("enable-2fa" in body) {
+				isEnableTwoFa = true;
+				delete body["enable-2fa"];				
+			}
+
 			if(body["currPassword"] == '')
 				body["currPassword"] = null;
 			if(body["newPassword"] == '')
 				body["newPassword"] = null;			
 			
-			// console.log("reauest avec changement de nom = ", body);
-
-			// console.log("--------------------------request is : " + request.username);
-		const result = ModUserInputSchema.safeParse(body);
-		if (!result.success) {
-			const error = result.error.errors[0];
-			return reply.status(400).send({ statusCode: 400, errorMessage: error.message + " in " + error.path });
-		}
-		//on cree l user avec les donnees a inserer une fois le safeparse effectue
-		const dataUserReceived = result.data as ModUserInput; //datatext - a mod pour current et new pass
-		const dataUser = await getUserAllInfo(id);
-		let dataUserToUpdate = dataUser;
-		if (dataUser.username != dataUserReceived.username)
-		{
-			const UserNameCheck = await getUser(null, dataUserReceived.username);
-			if (UserNameCheck && UserNameCheck.id != dataUser.id)
-				return {statusCode : 409, message : "Username already used.<br><b>" + await (searchNewName(dataUserToUpdate.username)) + "</b> is available."};
-			dataUserToUpdate.username = dataUserReceived.username;
-		}
-		if (dataUser.email != dataUserReceived.email)
-		{
-			const UserEmailCheck = await getUser(null, dataUserReceived.email);
-			if (UserEmailCheck && UserEmailCheck.id != dataUser.id)
-				return {statusCode: 409, message : "Email already used"};
-			dataUserToUpdate.email = dataUserReceived.email;// console.log("user dans email diff", UserEmailCheck);
-		}
-		if (dataUserReceived.currPassword && dataUserReceived.newPassword)
-		{
-			// dataUserToUpdate.curr_password = await bcrypt.hash(dataUserToUpdate.curr_password, 10);
-			// if (dataUserReceived.newPassword.length() <= 3)
-			// {
-			// 	return reply.status(401).send({
-			// 		statusCode: 401,
-			// 		errorMessage: 'min 3 letters in password'
-			// 	});				
-			// }
-			const isPassValid = await bcrypt.compare(dataUserReceived.currPassword, dataUser.password);
-			if (!isPassValid) {
-				return reply.status(401).send({
-					statusCode: 401,
-					errorMessage: 'Password does not match.'
-				});
+			const result = ModUserInputSchema.safeParse(body);
+			if (!result.success) {
+				const error = result.error.errors[0];
+				return reply.status(400).send({ statusCode: 400, errorMessage: error.message + " in " + error.path });
 			}
-			dataUserToUpdate.password = await bcrypt.hash(dataUserReceived.newPassword, 10);
+
+			//on cree l user avec les donnees a inserer une fois le safeparse effectue
+			const dataUserReceived = result.data as ModUserInput; //datatext - a mod pour current et new pass
+			const dataUser = await getUserAllInfo(id);
+			let dataUserToUpdate = dataUser; //prend par defaut toutes les infos de base de l user
+
+			// check modification pour username
+			if (dataUser.username != dataUserReceived.username)
+			{
+				const UserNameCheck = await getUser(null, dataUserReceived.username);
+				if (UserNameCheck && UserNameCheck.id != dataUser.id)
+					return {statusCode : 409, message : "Username already used.<br><b>" + await (searchNewName(dataUserToUpdate.username)) + "</b> is available."};
+				dataUserToUpdate.username = dataUserReceived.username;
+			}
+
+			// check modification pour email
+			if (dataUser.email != dataUserReceived.email)
+			{
+				const UserEmailCheck = await getUser(null, dataUserReceived.email);
+				if (UserEmailCheck && UserEmailCheck.id != dataUser.id)
+					return {statusCode: 409, message : "Email already used"};
+				dataUserToUpdate.email = dataUserReceived.email;// console.log("user dans email diff", UserEmailCheck);
+			}
+
+			// check modification pour password 
+			if ((dataUserReceived.currPassword && !dataUserReceived.newPassword)
+				|| (!dataUserReceived.currPassword && dataUserReceived.newPassword))
+				return {statusCode: 400, message : "Please fill all the case of password to valid changement"};
+			if (dataUserReceived.currPassword && dataUserReceived.newPassword)
+			{
+				const isPassValid = await bcrypt.compare(dataUserReceived.currPassword, dataUser.password);
+				if (!isPassValid)
+					return {statusCode: 401, message : 'Password does not match.'};
+				dataUserToUpdate.password = await bcrypt.hash(dataUserReceived.newPassword, 10);
+			}
+
+			// check si changement pour answer
+			if (dataUserReceived.answer != '') 
+			{
+				dataUserToUpdate.secretQuestionAnswer = dataUserReceived.answer;
+				dataUserToUpdate.secretQuestionNumber = dataUserReceived.question;
+			}
+
+			//active ou desactive l option 2FA
+			dataUserToUpdate.activeTwoFA = isEnableTwoFa;
+
+			// une fois infos verifiees, changement des datas puis recup du nouvel user
+			await changeUserData(id, dataUserToUpdate);
+			const user = await getUser(id);
+			return reply.status(200).send({
+				statusCode: 200,
+				user: user
+			});
+		} catch (err) {
+			request.log.error(err);
+			return reply.status(500).send({
+				errorMessage: 'Erreur serveur lors de la modif de settings',
+			});
 		}
-		// else
-			// dataUserToUpdate.password = dataUser.password;	
-			dataUserToUpdate.secretQuestionAnswer = dataUserReceived.answer;
-			dataUserToUpdate.secretQuestionNumber = dataUserReceived.question;
-		await changeUserData(id, dataUserToUpdate);
-		const user = await getUser(id);
-		return reply.status(200).send({
-			statusCode: 200,
-			user: user
-		});
-
-
-		
-		// //on hash le password dans un souci de confidentialite
-		// userToInsert.password = await bcrypt.hash(userToInsert.password, 10);
-	
-
-		// 1. parsing des infos donnees
-		
-		// 2. en fonction des elements retrouves ->
-		// 3. if password -> check si password donne ok + hasshing du nouveau + update
-		// 4. if username -> check si nouveau exist deja sinon block
-		// 5. if email -> check si nouveau exist deja sinon block
-		// 7. retourne un objet user si ok et sinon une erreur
-
 	})
-};
+
+}
 
