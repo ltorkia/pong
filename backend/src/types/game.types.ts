@@ -38,14 +38,14 @@ export class Ball {
     public checkPlayerCollision(players: Player[]): boolean {
         for (const player of players) {
             const playerBounds = {
-                xRange: { x0: player.pos.x - 0.30 / 2, x1: player.pos.x + 0.30 / 2 },
-                yRange: { y0: player.pos.y - 0.10 / 2, y1: player.pos.y + 0.10 / 2 }
+                xRange: { x0: player.pos.x - player.width / 2, x1: player.pos.x + player.width / 2 },
+                yRange: { y0: player.pos.y - player.height / 2, y1: player.pos.y + player.height / 2 }
             }
             const xClamp = clamp(this.x, playerBounds.xRange.x0, playerBounds.xRange.x1);
             const yClamp = clamp(this.y, playerBounds.yRange.y0, playerBounds.yRange.y1);
-            if (Math.sqrt(Math.pow(this.x - xClamp, 2) + (Math.pow(this.y - yClamp, 2))) <= this.radius)
+            if (Math.sqrt(Math.pow(this.x - xClamp, 2) + (Math.pow(this.y - yClamp, 2))) <= this.radius / 2)
                 return (true);
-        }
+        } 
         return (false);
     };
     constructor() {
@@ -54,7 +54,7 @@ export class Ball {
         this.vAngle = 60;
         this.vSpeed = 0.01;
         this.radius = 0.03;
-    } 
+    }
 };
 
 export class GameInstance {
@@ -101,16 +101,17 @@ export class GameInstance {
             this.sendGameUpdate();
             then = Date.now();
         }
-
+        console.log("GAME ENDEED");
+        this.endGame();
         // console.log("update!a")
-
     };
 
     private initSizePos(): void {
         if (this.playersCount == 2) {
-            this.players[0].pos.x = -1;
+            this.players[0].pos.x = -1 + this.players[0].width / 2;
             this.players[0].pos.y = this.players[1].pos.y = 0;
-            this.players[1].pos.x = 1;
+            this.players[1].pos.x = 1 - this.players[0].width / 2;
+            console.log("player width = ", this.players[0].width / 2);
         }
     };
 
@@ -123,6 +124,14 @@ export class GameInstance {
         this.gameLoop();
         // this.frameReq = requestAnimationFrame(this.gameLoop.bind(this));
     };
+
+    public endGame(): void {
+        for (const player of this.players) {
+            player.webSocket.send(JSON.stringify({
+            type: "end",
+        }));
+        }
+    }
 
     private sendGameUpdate() {
         const gameUpdate = new GameData(this.players, this.ball);
@@ -140,6 +149,8 @@ export class GameInstance {
             }
         }
     }
+
+    public setGameStarted(started: boolean) {this.gameStarted = started};
 };
 
 export class Lobby {
@@ -155,12 +166,14 @@ export class Lobby {
 export class Game {
 	id: number;
 	// status_win: boolean;
+    players: Player[];
 	duration: number;
     instance: GameInstance;
 
-    constructor(id: number, duration: number, gameInstance: GameInstance) {
+    constructor(id: number, duration: number, gameInstance: GameInstance, players: Player[]) {
         this.id = id;
         this.duration = duration;
         this.instance = gameInstance;
+        this.players = players;
     }
 }

@@ -36,8 +36,13 @@ export class GameMenuMulti extends BasePage {
         this.webSocket?.addEventListener("message", (event) => {
             const msg = JSON.parse(event.data);
             if (msg.type == "start") {
-                console.log(`game starts ! id = ${msg.ID}`);
+                console.log(`game starts ! id = ${msg.gameID}`);
                 this.initGame(msg.playerID, msg.gameID);
+            } else if (msg.type == "end") {
+                console.log("END GAME DETECTED")
+                this.game!.clearScreen();
+                document.querySelector("canvas")?.remove();
+                this.initLobby();
             } else if (msg.type == "GameData") {
                 this.game!.setAllPositions(msg);
             } else if (msg.type == "msg")
@@ -53,7 +58,7 @@ export class GameMenuMulti extends BasePage {
         this.webSocket.onopen = (event) => {
             console.log("Connected!");
             // this.webSocket.send("COUCOU LE SERVEUR");
-            // this.initLobby();
+            this.initLobby();
         };
         this.webSocket.onerror = (event) => {
             this.insertNetworkError();

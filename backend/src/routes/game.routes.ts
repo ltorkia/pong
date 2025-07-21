@@ -13,8 +13,8 @@ function startGame(p1: Player, p2: Player, lobby: Lobby) {
     players.push(p1);
     players.push(p2);
     const game = new GameInstance(2, players);
+    lobby.games.push(new Game(lobby.games.length, 0, game, players));
     const gameID = lobby.games.length;
-    lobby.games.push(new Game(lobby.games.length, 0, game));
     sendMsg(p1.webSocket, `player id = ${p1.playerID} and game id = ${gameID}`);
     sendMsg(p2.webSocket, `player id = ${p2.playerID} and game id = ${gameID}`);
     p1.webSocket.send(JSON.stringify({
@@ -42,6 +42,25 @@ function matchMaking(allPlayers: Player[], newPlayer: Player, app: FastifyInstan
     }
 }
 
+const markPlayersOff = (players: Player[]) => {
+    for (const player of players) {
+        player.inGame = false;
+    }
+}
+
+const setPlayersOffGame = (playerLeft: Player, allGames: Game[]) => {
+    for (const game of allGames) {
+        for (let i = 0; game.players.length; i++) {
+            if (game.players[i] != undefined && game.players[i].webSocket == playerLeft.webSocket) {
+                console.log("players set off game");
+                game.instance.setGameStarted(false);
+                // markPlayersOff(game.players);
+                // allGames.slice(i, 1);
+            }
+        }
+    }
+}
+
 export async function gameRoutes(app: FastifyInstance) {
     app.get('/ws/multiplayer', { websocket: true }, (connection: any, req: any) => {
         const allPlayers: Player[] = app.lobby.allPlayers;
@@ -64,9 +83,12 @@ export async function gameRoutes(app: FastifyInstance) {
         connection.on('close', () => {
             console.log('Connection CLOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOSED');
             for (let i = 0; i < allPlayers.length; i++) {
-                if (allPlayers[i].webSocket == connection)
-                    allPlayers.splice(i, 1);
+                if (allPlayers[i].webSocket == connection) {
+                    setPlayersOffGame(allPlayers[i], app.lobby.games);
+                    // allPlayers.splice(i, 1);
+                }
             }
+            console.log("after close nb players = ", allPlayers.length);
         });
         const newPlayer = new Player(allPlayers.length, connection);
         for (const player of allPlayers) {

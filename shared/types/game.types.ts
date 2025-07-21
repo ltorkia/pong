@@ -39,7 +39,7 @@ export class Player {
 		this.playerID = playerID;
 		this.webSocket = webSocket;
 		this.inGame = false;
-		this.width = 0.10;
+		this.width = 0.02;
 		this.height = 0.30;
 	} 
 }

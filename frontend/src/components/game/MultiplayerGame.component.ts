@@ -12,10 +12,10 @@ export class PlayerBar {
     private ctx: CanvasRenderingContext2D;
 
     public draw(): void {
-        const xPixels = ((this.x + 1) / 2) * this.ctx.canvas.width;
-        const yPixels = (1 - (this.y + 1 / 2)) * this.ctx.canvas.height;
+        const xPixels = ((this.x + 1) / 2) * this.ctx.canvas.clientWidth;
+        const yPixels = (1 - ((this.y + 1) / 2)) * this.ctx.canvas.clientHeight;
         const pixelWidth = this.w * (this.ctx.canvas.width / 2);
-        const pixelHeight = this.h * (this.ctx.canvas.height / 2);
+        const pixelHeight = this.h * (this.ctx.canvas.clientHeight / 2);
         this.ctx.fillStyle = "rgba(255, 0, 0)";
         this.ctx.fillRect(
             xPixels - pixelWidth / 2,
@@ -23,8 +23,8 @@ export class PlayerBar {
             pixelWidth, 
             pixelHeight);
         this.ctx.fillStyle = "rgba(0, 255, 0)";
-        this.ctx.fillRect(this.x, this.y, 1, 1);
-    };
+        this.ctx.fillRect(xPixels, yPixels, 1, 1);
+       };
 
     constructor(ctx: CanvasRenderingContext2D) {
         this.x = 0;
@@ -169,7 +169,7 @@ export class MultiPlayerGame {
     private initSizePos(): void {
         this.gameMoveUnit = 1 / 2;
         for (const player of this.players) {
-            player.w = 0.10;
+            player.w = 0.02;
             player.h = 0.30;
         }
         if (this.playersCount == 2) {
