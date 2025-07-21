@@ -13,6 +13,7 @@ export interface UserPassword {
 	email: string;
 	password: string;
 	registerFrom: RegisterMethod;
+	avatar: string
 }
 
 export interface UserForChangeData {

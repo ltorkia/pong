@@ -92,7 +92,7 @@ export async function getUsersWithPagination(
 export async function getUserP(email: string) {
 	const db = await getDb();
 	const user = await db.get(`
-		SELECT id, username, email, password, register_from
+		SELECT id, username, email, password, register_from, avatar
 		FROM User 
 		WHERE email = ?
 		`,

@@ -29,9 +29,11 @@ export async function bufferizeStream(stream: NodeJS.ReadableStream): Promise<Bu
  * @returns {Promise<AvatarResult>} Une promesse qui se résout avec un objet { success: boolean, errorMessage?: string, statusCode?: number }.
  * Si success est à false, un message d'erreur est fourni, ainsi qu'un code d'erreur HTTP.
  */
-export async function GetAvatarFromBuffer(reply: FastifyReply, user: Partial<UserPassword>, avatarFile: MultipartFile, buffer: Buffer): Promise<AvatarResult> {
+// export async function GetAvatarFromBuffer(reply: FastifyReply, user: Partial<UserPassword>, avatarFile: MultipartFile, buffer: Buffer): Promise<AvatarResult> {
+export async function GetAvatarFromBuffer(reply: FastifyReply, user: Partial<UserPassword>, avatarFileType: string, buffer: Buffer): Promise<AvatarResult> {
 	try {
-		const avatarType = avatarFile.mimetype as AvatarMimeType;
+		// const avatarType = avatarFile.mimetype as AvatarMimeType;
+		const avatarType = avatarFileType as AvatarMimeType;
 		if (!(avatarType in IMAGE_CONST.EXTENSIONS)){
 
 			return reply.status(400).send({

@@ -10,6 +10,8 @@ import { UserModel } from '../shared/types/user.types'; // en rouge car dossier 
 import { DB_CONST } from '../shared/config/constants.config'; // en rouge car dossier local 'shared' != dossier conteneur
 import { Buffer } from 'buffer';
 import nodemailer from 'nodemailer';
+import { Readable } from 'stream';
+import { promises as fs } from 'fs';
 
 async function doubleAuth(app: FastifyInstance) {
     app.post('/2FAsend', async (request: FastifyRequest, reply: FastifyReply) => {
@@ -178,6 +180,7 @@ export async function authRoutes(app: FastifyInstance) {
 					errorMessage: resultinsert.message || 'Erreur lors de l’insertion de l’utilisateur',
 				});
 			}
+			
 
 			// SALUT !
 			// Ai rajouté le retour de l'avatar en cas d'erreur ( const result: AvatarResult = await GetAvatarFromBuffer ),
@@ -195,7 +198,8 @@ export async function authRoutes(app: FastifyInstance) {
 
 			const userInfos: UserPassword = await getUserP(userToInsert.email);
 			if (avatarFile && avatarBuffer) {
-				const result: AvatarResult = await GetAvatarFromBuffer(reply, userInfos, avatarFile, avatarBuffer);
+				// const result: AvatarResult = await GetAvatarFromBuffer(reply, userInfos, avatarFile, avatarBuffer);
+				const result: AvatarResult = await GetAvatarFromBuffer(reply, userInfos, avatarFile.mimetype, avatarBuffer);
 				if (result.success === false) {
 					return reply.status(result.statusCode!).send({
 						statusCode: result.statusCode,
@@ -205,9 +209,9 @@ export async function authRoutes(app: FastifyInstance) {
 			}
 
 			let user: UserModel = await getUser(null, userToInsert.email);
-			if (!user.active2Fa) {
+			// if (!user.active2Fa) {
 				await ProcessAuth(app, userInfos, reply);
-			}
+			// }
 			user = await getUser(null, userToInsert.email);
 
 			return reply.status(200).send({
@@ -299,6 +303,7 @@ export async function authRoutes(app: FastifyInstance) {
 		});
 	});
 
+	// GOOGLE
 	app.post('/google', async (request: FastifyRequest, reply: FastifyReply) => {
 		const { id_token } = request.body as { id_token: string };
 		if (!id_token) {
@@ -331,11 +336,15 @@ export async function authRoutes(app: FastifyInstance) {
 			const email = payloadDecoded.email;
 			const username = payloadDecoded.givenName ?? payloadDecoded.name?.split(' ')[0] ?? 'GoogleUser';
 			const avatar = payloadDecoded.picture ?? DB_CONST.USER.DEFAULT_AVATAR;
+			
+			
+			
+			
 			let user = await getUserP(email);
 			if (user && user.password) {
 				return reply.status(403).send({ errorMessage: 'Account already registered with a local password.' });
 			}
-
+			
 			if (!user) {
 				await insertUser({ email, username }, true);
 				user = await getUserP(email);
@@ -343,8 +352,46 @@ export async function authRoutes(app: FastifyInstance) {
 					return reply.status(500).send({ errorMessage: 'An error occurred while creating your Google account.' });
 				}
 			}
+			
+			
+			// const avatarFile = payloadDecoded.picture;
+			console.log("url picture = ", payloadDecoded.picture);
+			const avatarUrl = payloadDecoded.picture ?? DB_CONST.USER.DEFAULT_AVATAR;
+			if (avatarUrl != DB_CONST.USER.DEFAULT_AVATAR){
+				const response = await fetch(avatarUrl);
+				console.log(response);
+
+				if (user.avatar != "default.png")
+				{
+					try {await fs.unlink(`./uploads/avatars/${user.avatar}`);}
+					catch (err) { console.error(`Erreur lors de la suppression du fichier :`, err);} //ptet caca de faire comme ca jsp
+				}
+				const nodeStream = Readable.fromWeb(response.body as any); 
+				const avatarBuffer = await bufferizeStream(nodeStream);
+				const ext = response.headers.get('content-type') || 'image/jpg';
+	
+				const result: AvatarResult = await GetAvatarFromBuffer(reply, user, ext, avatarBuffer);
+				if (result.success === false) {
+					return reply.status(result.statusCode!).send({
+						statusCode: result.statusCode,
+						errorMessage: result.errorMessage || 'Erreur lors du telechargement de l’avatar',
+					});
+				}
+			}
+			// if (result.success === false) {
+			// 	return reply.status(result.statusCode!).send({
+				// 		statusCode: result.statusCode,
+				// 		errorMessage: result.errorMessage || 'Erreur lors de l’insertion de l’avatar',
+				// 	});
+				// }
+				
+
+		// if (!response.ok) {
+		// 	throw new Error(`Erreur lors du téléchargement de l'image : ${response.status}`);
+		// }
+
 			// On update l'avatar Google en bdd à chaque reconnexion
-			await insertAvatar(avatar, username);
+			// await insertAvatar(avatar, username);
 
 			await ProcessAuth(app, user, reply);
 			const userData: UserModel = await getUser(null, email);

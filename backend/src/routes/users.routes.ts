@@ -115,7 +115,7 @@ export async function usersRoutes(app: FastifyInstance) {
 					try {await fs.unlink(`./uploads/avatars/${user.avatar}`);}
 					catch (err) { console.error(`Erreur lors de la suppression du fichier :`, err);} //ptet caca de faire comme ca jsp
 				}
-				await GetAvatarFromBuffer(reply, user, avatarFile, avatarBuffer);
+				await GetAvatarFromBuffer(reply, user, avatarFile.mimetype, avatarBuffer);
 			}
 			user = await getUser(id);
 			console.log(user!.avatar);
@@ -149,16 +149,17 @@ export async function usersRoutes(app: FastifyInstance) {
 				delete body["new-password"];
 			}
 
+			if(body["currPassword"] == '')
+				body["currPassword"] = null;
+			if(body["newPassword"] == '')
+				body["newPassword"] = null;			
+
 			let isEnableTwoFa = false;
 			if ("enable-2fa" in body) {
 				isEnableTwoFa = true;
 				delete body["enable-2fa"];				
 			}
 
-			if(body["currPassword"] == '')
-				body["currPassword"] = null;
-			if(body["newPassword"] == '')
-				body["newPassword"] = null;			
 			
 			const result = ModUserInputSchema.safeParse(body);
 			if (!result.success) {
