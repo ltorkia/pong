@@ -135,7 +135,7 @@ export async function usersRoutes(app: FastifyInstance) {
 		try {
 		
 			const { id } = request.params as { id: number };
-			console.log("reauest = ", request.body);
+			// console.log("reauest = ", request.body);
 			const body = request.body as Record<string, any>; //c est bon any ?
 
 			// Renommage explicite pour etre ok avec ts et js

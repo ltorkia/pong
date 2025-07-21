@@ -2,8 +2,8 @@ import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import bcrypt from 'bcrypt';
 import { RegisterInput, RegisterInputSchema, LoginInputSchema } from '../types/zod/auth.zod';
 import { insertUser, getUser, getUserP, getUser2FA } from '../db/user';
-import { insertAvatar , eraseCode2FA, insertCode2FA} from '../db/usermaj';
-import { ProcessAuth, clearAuthCookies } from '../helpers/auth.helpers';
+import {insertCode2FA, eraseCode2FA} from '../db/usermaj';
+import { ProcessAuth, clearAuthCookies,  GenerateEmailCode  } from '../helpers/auth.helpers';
 import { GetAvatarFromBuffer, bufferizeStream } from '../helpers/image.helpers';
 import { GoogleUserInfo, UserPassword, User2FA, FastifyFileSizeError, AvatarResult } from '../types/user.types';
 import { UserModel } from '../shared/types/user.types'; // en rouge car dossier local 'shared' != dossier conteneur
@@ -13,9 +13,39 @@ import nodemailer from 'nodemailer';
 import { Readable } from 'stream';
 import { promises as fs } from 'fs';
 
+// async function GenerateEmailCode(reply: FastifyReply, email: string)
+// {
+// 	const code = Math.floor(100000 + Math.random() * 900000).toString();
+// 	const resInsert = await insertCode2FA(email, code);
+// 	if (!resInsert) {
+// 		return reply.status(500).send({
+// 			statusCode: 500,
+// 			errorMessage: 'Erreur lors de l’insertion du code 2FA'
+// 		});
+// 	}
+// 	const transporter = nodemailer.createTransport({
+// 		service: 'gmail',
+// 		auth: {
+// 			user: process.env.EMAIL_2FA,
+// 			pass: process.env.PASS_EMAIL,
+// 		},
+// 	});
+
+// 	await transporter.sendMail({
+// 		from: '"Sécurité" <no-reply@transcendance.com>',
+// 		to: email,
+// 		subject: 'Votre code de vérification',
+// 		text: `Votre code est : ${code}`,
+// 	});
+// 	return (reply.status(200).send({
+// 		statusCode: 200,
+// 		message: 'Code 2FA envoyé avec succès.'
+// 	}));
+// }
+
 async function doubleAuth(app: FastifyInstance) {
     app.post('/2FAsend', async (request: FastifyRequest, reply: FastifyReply) => {
-        const user = await LoginInputSchema.safeParse(request.body);
+        const user = await LoginInputSchema.safeParse(request.body); //a modifier en pram : request.body.user
         if (!user.success) {
             const error = user.error.errors[0];
             console.log(error);
@@ -25,33 +55,11 @@ async function doubleAuth(app: FastifyInstance) {
             });
         }
         try {
-            const code = Math.floor(100000 + Math.random() * 900000).toString();
+			// if (!user.data.option) //a changer apres avec = email
+				return await GenerateEmailCode(reply, user.data.email);
+			// else
+				// GenerateQRCode(reply, user.data.email)
 
-            const resInsert = await insertCode2FA(user.data.email, code);
-            if (!resInsert) {
-                return reply.status(500).send({
-                    statusCode: 500,
-                    errorMessage: 'Erreur lors de l’insertion du code 2FA'
-                });
-            }
-            const transporter = nodemailer.createTransport({
-                service: 'gmail',
-                auth: {
-                    user: process.env.EMAIL_2FA,
-                    pass: process.env.PASS_EMAIL,
-                },
-            });
-
-            await transporter.sendMail({
-                from: '"Sécurité" <no-reply@transcendance.com>',
-                to: user.data.email,
-                subject: 'Votre code de vérification',
-                text: `Votre code est : ${code}`,
-            });
-            return (reply.status(200).send({
-                statusCode: 200,
-                message: 'Code 2FA envoyé avec succès.'
-            }));
         } catch (err) {
             console.log(err)
             request.log.error(err);
@@ -95,47 +103,6 @@ async function doubleAuth(app: FastifyInstance) {
         });
     });
 }
-
-// export async function formdataParsing(request: FastifyRequest, reply: FastifyReply) => {
-// try {
-// 			const elements = await request.parts({
-// 				limits: {
-//     			fileSize: 5 * 1024 * 1024}
-// 			}); //separe les differents elements recuperes
-
-// 			let dataText: Record<string, string> = {}; //stockera les elements textes
-// 			// const fs = require('node:fs') //permet de creer dossier et fichiers
-// 			// const { pipeline } = require('node:stream/promises') //pour transferer fichier ? 
-// 			let avatarFile; //stockera le file de l avatar
-
-
-// 			//preparsing qui dispatch datatext d un cote et l avatar de l autre
-// 			for await (const element of elements) {
-// 				console.log(element);
-// 				if (element.type === 'file' && element.fieldname === 'avatar' && element.filename != '') {
-// 					avatarFile = element;
-// 					break ;
-// 				} else if (element.type === 'field' && typeof element.value === 'string') {
-// 					dataText[element.fieldname] = element.value;
-// 				}
-// 			}
-
-// 			//check les datas texts pour voir si elles correspondent a ce qu on attend
-// 			const result = RegisterInputSchema.safeParse(dataText);
-// 			// const result = RegisterInputSchema.safeParse(request.body);
-// 			if (!result.success) {
-// 				const error = result.error.errors[0];
-// 				return reply.status(400).send({ statusCode: 400, errorMessage: error.message + " in " + error.path });
-// 			}
-// 		} catch (err) {
-// 			request.log.error(err);
-// 			return reply.status(500).send({
-// 				errorMessage: 'Erreur serveur lors de l\'inscription',
-// 			});
-// 		}
-		
-
-// }
 
 export async function authRoutes(app: FastifyInstance) {
 	// REGISTER
@@ -336,9 +303,6 @@ export async function authRoutes(app: FastifyInstance) {
 			const email = payloadDecoded.email;
 			const username = payloadDecoded.givenName ?? payloadDecoded.name?.split(' ')[0] ?? 'GoogleUser';
 			const avatar = payloadDecoded.picture ?? DB_CONST.USER.DEFAULT_AVATAR;
-			
-			
-			
 			
 			let user = await getUserP(email);
 			if (user && user.password) {

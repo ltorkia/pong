@@ -3,7 +3,8 @@ import { JwtPayload } from '../types/jwt.types';
 import { getUser } from '../db/user';
 import { UserPassword } from '../types/user.types';
 import { COOKIES_CONST } from '../shared/config/constants.config'; // en rouge car dossier local 'shared' != dossier conteneur
-import { majLastlog } from '../db/usermaj';
+import { majLastlog, insertCode2FA } from '../db/usermaj';
+import nodemailer from 'nodemailer';
 
 /**
  * Génère un token JWT pour un utilisateur donné
@@ -102,4 +103,39 @@ export async function searchNewName(username: string) {
 			break ;
 	}
 	return username;
+}
+
+export async function GenerateQRCode(reply: FastifyReply, email: string)
+{
+
+}
+
+export async function GenerateEmailCode(reply: FastifyReply, email: string)
+{
+	const code = Math.floor(100000 + Math.random() * 900000).toString();
+	const resInsert = await insertCode2FA(email, code);
+	if (!resInsert) {
+		return reply.status(500).send({
+			statusCode: 500,
+			errorMessage: 'Erreur lors de l’insertion du code 2FA'
+		});
+	}
+	const transporter = nodemailer.createTransport({
+		service: 'gmail',
+		auth: {
+			user: process.env.EMAIL_2FA,
+			pass: process.env.PASS_EMAIL,
+		},
+	});
+
+	await transporter.sendMail({
+		from: '"Sécurité" <no-reply@transcendance.com>',
+		to: email,
+		subject: 'Votre code de vérification',
+		text: `Votre code est : ${code}`,
+	});
+	return (reply.status(200).send({
+		statusCode: 200,
+		message: 'Code 2FA envoyé avec succès.'
+	}));
 }
