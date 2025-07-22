@@ -142,8 +142,8 @@ export async function GenerateEmailCode(reply: FastifyReply, email: string)
 		subject: 'Votre code de vérification',
 		text: `Votre code est : ${code}`,
 	});
-	return (reply.status(200).send({
-		statusCode: 200,
-		message: 'Code 2FA envoyé avec succès.'
-	}));
+	// return (reply.status(200).send({
+	// 	statusCode: 200,
+	// 	message: 'Code 2FA envoyé avec succès.'
+	// }));
 }

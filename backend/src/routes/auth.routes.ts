@@ -18,21 +18,28 @@ async function doubleAuth(app: FastifyInstance) {
     app.post('/2FAsend/:method', async (request: FastifyRequest, reply: FastifyReply) => {
 		const { method } = request.params as { method: string };
 		console.log("method = ", method);
-        const user = await LoginInputSchema.safeParse(request.body); //a modifier en pram : request.body.user
-        if (!user.success) {
-            const error = user.error.errors[0];
+        const userdata = await LoginInputSchema.safeParse(request.body); //a modifier en pram : request.body.user
+        if (!userdata.success) {
+            const error = userdata.error.errors[0];
             console.log(error);
             return reply.status(400).send({
                 statusCode: 400,
                 errorMessage: error.message + " in " + error.path
             });
         }
+		const user = await getUser2FA(userdata.data.email);
+
         try {
 			// console.log(request);
 			if (method === 'email') //a changer apres avec = email
-				return await GenerateEmailCode(reply, user.data.email);
-			else
-				return await GenerateQRCode(reply, user.data.email);
+				return await GenerateEmailCode(reply, userdata.data.email);
+			else if (method === 'qrcode' && !user.code2FaQrcode)
+				return await GenerateQRCode(reply, userdata.data.email);
+
+			return (reply.status(200).send({
+				statusCode: 200,
+				message: 'Code 2FA envoyé avec succès.'
+			}));
 
         } catch (err) {
             console.log(err);
@@ -71,8 +78,14 @@ async function doubleAuth(app: FastifyInstance) {
 		{
 			if (!checkUser.code2FaQrcode)
 				return (reply.status(400).send({ message: "2FA option wrong" }));
-			const check = speakeasy.totp(checkUser.code2FaQrcode);
-			if (result.data.password != check)
+			// const check = speakeasy.totp.verify(checkUser.code2FaQrcode);
+			const verified = speakeasy.totp.verify({
+				secret: checkUser.code2FaQrcode,         // clé enregistrée en base
+				encoding: 'base32',
+				token: result.data.password,         // code entré par l'utilisateur
+				window: 1                    // tolérance de décalage (en 30s)
+			});
+			if (verified === false)
 				return (reply.status(400).send({ message: "Wrong code" }));
 		}
 		const user: UserModel | null = await getUser(null, result.data.email);
