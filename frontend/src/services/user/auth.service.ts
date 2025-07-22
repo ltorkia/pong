@@ -98,11 +98,12 @@ export class AuthService {
 	 * Si la vérification réussit, renvoie un objet avec un message de confirmation.
 	 * 
 	 * @param {Record<string, string>} userData Informations de l'utilisateur à connecter.
+	 * @param {string} method Méthode de verification 2FA (email ou QrCode).
 	 * @returns {Promise<AuthResponse>} Promesse qui se résout avec un objet contenant
 	 * un message d'erreur ou un message de confirmation.
 	 */
-	public async send2FA(userData: Record<string, string>): Promise<AuthResponse> {
-		const res2FA: AuthResponse = await authApi.send2FA(userData);
+	public async send2FA(userData: Record<string, string>, method: string): Promise<AuthResponse> {
+		const res2FA: AuthResponse = await authApi.send2FA(userData, method);
 		if (res2FA.errorMessage) {
 			return { errorMessage: res2FA.errorMessage || res2FA.message || 'Erreur inconnue' } as AuthResponse;
 		}

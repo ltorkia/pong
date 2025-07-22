@@ -13,6 +13,7 @@ BACK
 COMMUN
 
 - Ajuster conf nginx prod pour websockets
+- Si on a le time faire le switch compte Google -> compte local dans settings ?
 
 FRONT
 

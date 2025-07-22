@@ -107,9 +107,6 @@ export class DataService {
 		if (!user.avatar) {
 			return defaultUrl;
 		}
-		// if (user.registerFrom === DB_CONST.USER.REGISTER_FROM.GOOGLE) {
-		// 	return user.avatar;
-		// }
 		const avatarUrl = `${IMAGE_CONST.ROUTE_API}${user.avatar}`;
 		const exists = await checkImageExists(avatarUrl);
 		return exists ? avatarUrl : defaultUrl;
