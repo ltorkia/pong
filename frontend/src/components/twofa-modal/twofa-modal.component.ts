@@ -17,6 +17,7 @@ export class TwofaModalComponent extends BaseComponent {
 	private codeInput!: HTMLInputElement;
 	private errorMsg!: HTMLElement;
 	private twofaMethodSelect!: HTMLSelectElement;
+	private method!: string;
 	private emailContainer!: HTMLElement;
 	private qrcodeContainer!: HTMLElement;
 	private resendEmailCodeBtn!: HTMLButtonElement;
@@ -192,21 +193,21 @@ export class TwofaModalComponent extends BaseComponent {
 	 *                          appliquée.
 	 */
 	private handleMethodChange = async (event: Event): Promise<void> => {
-		const method = (event.target as HTMLSelectElement).value;
-		if (method === 'email') {
+		this.method = (event.target as HTMLSelectElement).value;
+		if (this.method === 'email') {
 			this.qrcodeContainer.classList.add('hidden');
 			this.errorMsg.classList.add('hidden');
 			this.handleSendEmailCode();
 		}
-		if (method === 'qrcode') {
+		if (this.method === 'qrcode') {
 			this.emailContainer.classList.add('hidden');
 			this.errorMsg.classList.add('hidden');
-			this.qrcodeContainer.classList.remove('hidden');
+			this.handleSendQrCode();
 		}
 	};
 
 /**
- * Envoie un code de vérification par email pour l'authentification à deux facteurs (2FA).
+ * Le back envoie un code de vérification par email pour l'authentification à deux facteurs (2FA).
  * 
  * Affiche un spinner pendant que le code est envoyé. Si l'envoi échoue, affiche un message
  * d'erreur et cache le container QR code. Si l'envoi réussit, affiche un message de succès
@@ -217,7 +218,7 @@ export class TwofaModalComponent extends BaseComponent {
 
 	private async handleSendEmailCode(): Promise<void> {
 		showSpinner('twofa-spinner');
-		const res = await authService.send2FA(this.userData);
+		const res = await authService.send2FA(this.userData, this.method);
 		if (res.errorMessage) {
 			showAlert(res.errorMessage, 'twofa-error');
 			this.qrcodeContainer.classList.add('hidden');
@@ -226,6 +227,29 @@ export class TwofaModalComponent extends BaseComponent {
 		hideSpinner('twofa-spinner');
 		showAlert(`Code sent to ${this.userData.email}`, 'twofa-error', 'success');
 		this.emailContainer.classList.remove('hidden');
+	}
+
+/**
+ * La back envoie le QrCode pour l'authentification à deux facteurs (2FA).
+ * 
+ * Affiche un spinner pendant que le code est generé. Si l'envoi échoue, affiche un message
+ * d'erreur et cache le container Email code. Si l'envoi réussit, affiche un message de succès
+ * et affiche le container pour le QrCode.
+ * 
+ * @returns {Promise<void>} Une promesse qui se résout une fois que le code a été traité.
+ */
+
+	private async handleSendQrCode(): Promise<void> {
+		showSpinner('twofa-spinner');
+		const res = await authService.send2FA(this.userData, this.method);
+		if (res.errorMessage) {
+			showAlert(res.errorMessage, 'twofa-error');
+			this.emailContainer.classList.add('hidden');
+			return;
+		}
+		hideSpinner('twofa-spinner');
+		showAlert(`QR code a afficher dans div id=twofa-qrcode `, 'twofa-error', 'success');
+		this.qrcodeContainer.classList.remove('hidden');
 	}
 
 	/**

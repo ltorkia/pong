@@ -133,10 +133,11 @@ export class AuthApi {
 	 * Si la vérification réussit, renvoie un objet avec un message de confirmation.
 	 * 
 	 * @param {Record<string, string>} userData Informations de l'utilisateur à connecter.
+	 * @param {string} method Méthode de l'authentification à deux facteurs (email ou QrCode).
 	 * @returns {Promise<AuthResponse>} Promesse résolue avec une fois que le code est envoyé.
 	 */
-	public async send2FA(userData: Record<string, string>): Promise<AuthResponse> {
-		const res: Response = await fetch('/api/auth/2FAsend', {
+	public async send2FA(userData: Record<string, string>, method: string): Promise<AuthResponse> {
+		const res: Response = await fetch(`/api/auth/2FAsend/${method}`, {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify(userData),
