@@ -130,7 +130,8 @@ export class AuthApi {
 	 * Envoie un code de vérification pour l'authentification à deux facteurs (2FA).
 	 * 
 	 * Si la vérification 2FA échoue, renvoie un objet contenant un message d'erreur.
-	 * Si la vérification réussit, renvoie un objet avec un message de confirmation.
+	 * Si la vérification réussit, renvoie un objet avec un message de confirmation,
+	 * et l'url du QrCode a générer si c'est l'option choisie par l'utilisateur.
 	 * 
 	 * @param {Record<string, string>} userData Informations de l'utilisateur à connecter.
 	 * @param {string} method Méthode de l'authentification à deux facteurs (email ou QrCode).
@@ -164,11 +165,12 @@ export class AuthApi {
 	 * contenant le message d'erreur.
 	 * 
 	 * @param {Record<string, string>} userData Informations de l'utilisateur à connecter.
+	 * @param {string} method Méthode de l'authentification à deux facteurs (email ou QrCode).
 	 * @returns {Promise<AuthResponse>} Promesse résolue avec les informations de l'utilisateur
 	 * authentifié ou un message d'erreur.
 	 */
-	public async twofaConnectUser(userData: Record<string, string>): Promise<AuthResponse> {
-		const res: Response = await fetch('/api/auth/2FAreceive', {
+	public async twofaConnectUser(userData: Record<string, string>, method: string): Promise<AuthResponse> {
+		const res: Response = await fetch(`/api/auth/2FAreceive/${method}`, {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify(userData),
