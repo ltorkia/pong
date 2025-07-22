@@ -202,13 +202,6 @@ export async function usersRoutes(app: FastifyInstance) {
 				dataUserToUpdate.password = await bcrypt.hash(dataUserReceived.newPassword, 10);
 			}
 
-			// check si changement pour answer
-			if (dataUserReceived.answer != '') 
-			{
-				dataUserToUpdate.secretQuestionAnswer = dataUserReceived.answer;
-				dataUserToUpdate.secretQuestionNumber = dataUserReceived.question;
-			}
-
 			//active ou desactive l option 2FA
 			dataUserToUpdate.activeTwoFA = isEnableTwoFa;
 

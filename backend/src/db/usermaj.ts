@@ -13,7 +13,7 @@ export async function insertAvatar(avatar: string, username: string)
        [avatar, username]);
 }
 
-// export async function changeUserData(id: number, username: string, password: string, email:string, secret_question_number: number, secret_question_answer: string)
+// export async function changeUserData(id: number, username: string, password: string, email:string)
 export async function changeUserData(id: number, user: UserForChangeData)
 
 {
@@ -21,10 +21,10 @@ export async function changeUserData(id: number, user: UserForChangeData)
         // const user =
        await db.run(`
                 UPDATE User
-                SET username = ?, password = ?, email = ?, secret_question_number = ?, secret_question_answer = ?, active_2FA = ?
+                SET username = ?, password = ?, email = ?, active_2FA = ?
                 WHERE (id = ?)
                `,
-       [user.username, user.password, user.email, user.secretQuestionNumber, user.secretQuestionAnswer, user.activeTwoFA, user.id]);
+       [user.username, user.password, user.email, user.activeTwoFA, user.id]);
 }
 
 export async function changePassword(username: string, password: string)

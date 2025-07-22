@@ -57,7 +57,6 @@ export class SettingsPage extends BasePage {
 		this.avatarInput = getHTMLElementById('avatar-input', this.container) as HTMLInputElement;
 		this.emailInput = getHTMLElementById('email', this.container) as HTMLInputElement;
 		this.usernameInput = getHTMLElementById('username', this.container) as HTMLInputElement;
-		this.questionInput = getHTMLElementById('question', this.container) as HTMLInputElement;
 		this.twoFaInput = getHTMLElementById('enable-2fa', this.container) as HTMLInputElement;
 		this.dropdownTitles = this.container.querySelectorAll('.dropdown-title') as NodeListOf<HTMLHeadingElement>;
 		this.form = getHTMLElementById('settings-form', this.container) as HTMLFormElement;
@@ -133,13 +132,11 @@ export class SettingsPage extends BasePage {
 	 * Remplit les champs suivants:
 	 * - email: l'adresse e-mail actuelle de l'utilisateur.
 	 * - username: le nom d'utilisateur actuel de l'utilisateur.
-	 * - secretQuestionNumber: le numéro de la question secrète actuelle de l'utilisateur.
 	 * - active2Fa: si l'utilisateur a activé ou non l'authentification à 2 facteurs.
 	 */
 	private preFillForm(): void {
 		this.emailInput.value = this.currentUser!.email;
 		this.usernameInput.value = this.currentUser!.username;
-		this.questionInput.value = this.currentUser!.secretQuestionNumber.toString();
 		this.twoFaInput.checked = this.currentUser!.active2Fa === 1;
 	}
 
