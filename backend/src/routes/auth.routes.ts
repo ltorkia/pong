@@ -3,7 +3,7 @@ import bcrypt from 'bcrypt';
 import { RegisterInput, RegisterInputSchema, LoginInputSchema } from '../types/zod/auth.zod';
 import { insertUser, getUser, getUserP, getUser2FA } from '../db/user';
 import {insertCode2FA, eraseCode2FA} from '../db/usermaj';
-import { ProcessAuth, clearAuthCookies,  GenerateEmailCode  } from '../helpers/auth.helpers';
+import { ProcessAuth, clearAuthCookies,  GenerateEmailCode, GenerateQRCode  } from '../helpers/auth.helpers';
 import { GetAvatarFromBuffer, bufferizeStream } from '../helpers/image.helpers';
 import { GoogleUserInfo, UserPassword, User2FA, FastifyFileSizeError, AvatarResult } from '../types/user.types';
 import { UserModel } from '../shared/types/user.types'; // en rouge car dossier local 'shared' != dossier conteneur
@@ -13,38 +13,8 @@ import nodemailer from 'nodemailer';
 import { Readable } from 'stream';
 import { promises as fs } from 'fs';
 
-// async function GenerateEmailCode(reply: FastifyReply, email: string)
-// {
-// 	const code = Math.floor(100000 + Math.random() * 900000).toString();
-// 	const resInsert = await insertCode2FA(email, code);
-// 	if (!resInsert) {
-// 		return reply.status(500).send({
-// 			statusCode: 500,
-// 			errorMessage: 'Erreur lors de l’insertion du code 2FA'
-// 		});
-// 	}
-// 	const transporter = nodemailer.createTransport({
-// 		service: 'gmail',
-// 		auth: {
-// 			user: process.env.EMAIL_2FA,
-// 			pass: process.env.PASS_EMAIL,
-// 		},
-// 	});
-
-// 	await transporter.sendMail({
-// 		from: '"Sécurité" <no-reply@transcendance.com>',
-// 		to: email,
-// 		subject: 'Votre code de vérification',
-// 		text: `Votre code est : ${code}`,
-// 	});
-// 	return (reply.status(200).send({
-// 		statusCode: 200,
-// 		message: 'Code 2FA envoyé avec succès.'
-// 	}));
-// }
-
 async function doubleAuth(app: FastifyInstance) {
-    app.post('/2FAsend', async (request: FastifyRequest, reply: FastifyReply) => {
+    app.post('/2FAsend/:method', async (request: FastifyRequest, reply: FastifyReply) => {
         const user = await LoginInputSchema.safeParse(request.body); //a modifier en pram : request.body.user
         if (!user.success) {
             const error = user.error.errors[0];
@@ -55,10 +25,11 @@ async function doubleAuth(app: FastifyInstance) {
             });
         }
         try {
+			// console.log(request);
 			// if (!user.data.option) //a changer apres avec = email
 				return await GenerateEmailCode(reply, user.data.email);
 			// else
-				// GenerateQRCode(reply, user.data.email)
+				// return await GenerateQRCode(reply, user.data.email)
 
         } catch (err) {
             console.log(err)

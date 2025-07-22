@@ -105,9 +105,17 @@ export async function searchNewName(username: string) {
 	return username;
 }
 
+import * as speakeasy from 'speakeasy';
+// import QRCode from 'qrcode'
+
+
 export async function GenerateQRCode(reply: FastifyReply, email: string)
 {
-
+	var secret = speakeasy.generateSecret();
+	const secretTwoFa = secret.base32;
+	insertCode2FA(email, secretTwoFa);
+	// console.log("otpblablabla", secret.otpauth_url);
+	reply.status(200).send({statusCode: 200, otpauth_url: secret.otpauth_url, base32: secretTwoFa})
 }
 
 export async function GenerateEmailCode(reply: FastifyReply, email: string)
