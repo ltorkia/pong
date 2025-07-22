@@ -73,8 +73,8 @@ export class GameInstance {
         const fps = 1000 / 60;
         let then = Date.now();
         const startTime = then;
+        let frame = 0;
         while (this.gameStarted == true) {
-            // console.log("angle ", this.ball.vAngle);
             this.ball.move();
             for (const player of this.players)
                 player.move();
@@ -96,11 +96,13 @@ export class GameInstance {
             //     this.gameStarted = false;
             // }
             const now = Date.now();
-            if (now - then < fps)
+            if (now - then < fps) 
                 await sleep(fps - (now - then));
             this.sendGameUpdate();
             then = Date.now();
+            console.log(`frame = ${frame++} game status = ${this.gameStarted}!`);
         }
+        console.log("EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEND");
         console.log("GAME ENDEED");
         this.endGame();
         // console.log("update!a")

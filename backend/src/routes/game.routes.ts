@@ -12,11 +12,13 @@ function startGame(p1: Player, p2: Player, lobby: Lobby) {
     let players: Player[] = [];
     players.push(p1);
     players.push(p2);
-    const game = new GameInstance(2, players);
-    lobby.games.push(new Game(lobby.games.length, 0, game, players));
+    const gameInstance = new GameInstance(2, players);
+    const game = new Game(lobby.games.length, 0, gameInstance, players);
+    lobby.games.push(game);
     const gameID = lobby.games.length;
     sendMsg(p1.webSocket, `player id = ${p1.playerID} and game id = ${gameID}`);
     sendMsg(p2.webSocket, `player id = ${p2.playerID} and game id = ${gameID}`);
+    console.log(`GAME PLAYER LENGTH = ${game.players.length}`)
     p1.webSocket.send(JSON.stringify({
         type: "start",
         playerID: p1.playerID,
@@ -29,7 +31,7 @@ function startGame(p1: Player, p2: Player, lobby: Lobby) {
     }));
     // p1.webSocket.send(`player id = ${p1.playerID} and game id = ${gameID}`);
     // p2.webSocket.send(`player id = ${p2.playerID} and game id = ${gameID}`);
-    game.initGame();
+    gameInstance.initGame();
 }
 
 function matchMaking(allPlayers: Player[], newPlayer: Player, app: FastifyInstance) {
@@ -50,14 +52,18 @@ const markPlayersOff = (players: Player[]) => {
 
 const setPlayersOffGame = (playerLeft: Player, allGames: Game[]) => {
     for (const game of allGames) {
-        for (let i = 0; game.players.length; i++) {
-            if (game.players[i] != undefined && game.players[i].webSocket == playerLeft.webSocket) {
+        // console.log(game);
+        for (let i = 0; i < game.players.length; i++) {
+            if (game.players[i] && game.players[i].webSocket == playerLeft.webSocket) {
                 console.log("players set off game");
                 game.instance.setGameStarted(false);
-                // markPlayersOff(game.players);
-                // allGames.slice(i, 1);
+                markPlayersOff(game.players);
+                allGames.slice(i, 1);
             }
+            console.log(game.players.length);
+            console.log("ocucou toi")
         }
+        console.log("kikoo");
     }
 }
 
@@ -87,6 +93,7 @@ export async function gameRoutes(app: FastifyInstance) {
                     setPlayersOffGame(allPlayers[i], app.lobby.games);
                     // allPlayers.splice(i, 1);
                 }
+                console.log("searching for player");
             }
             console.log("after close nb players = ", allPlayers.length);
         });
