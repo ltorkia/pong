@@ -1,6 +1,7 @@
 // Pour hot reload Vite
 import template from './twofa-modal.component.html?raw'
 
+import QRCode from 'qrcode';
 import { authService } from '../../services/index.service';
 import { BaseComponent } from '../base/base.component';
 import { RouteConfig } from '../../types/routes.types';
@@ -14,12 +15,15 @@ import { showAlert, showSpinner, hideSpinner, getHTMLElementById } from '../../u
 export class TwofaModalComponent extends BaseComponent {
 	private userData!: Record<string, string>;
 	private form!: HTMLFormElement;
-	private codeInput!: HTMLInputElement;
+	private codeInputEmail!: HTMLInputElement;
+	private codeInputQrCode!: HTMLInputElement;
 	private errorMsg!: HTMLElement;
 	private twofaMethodSelect!: HTMLSelectElement;
 	private method!: string;
 	private emailContainer!: HTMLElement;
 	private qrcodeContainer!: HTMLElement;
+	private qrcodeImgDiv!: HTMLImageElement;
+	private qrCodeSubmitBtn!: HTMLButtonElement;
 	private resendEmailCodeBtn!: HTMLButtonElement;
 	private twofaBackBtn!: HTMLButtonElement;
 
@@ -64,11 +68,14 @@ export class TwofaModalComponent extends BaseComponent {
 	 */
 	protected async beforeMount(): Promise<void> {
 		this.form = getHTMLElementById('twofa-form', this.container) as HTMLFormElement;
-		this.codeInput = getHTMLElementById('twofa-code', this.form) as HTMLInputElement;
+		this.codeInputEmail = getHTMLElementById('twofa-code-email', this.form) as HTMLInputElement;
+		this.codeInputQrCode = getHTMLElementById('twofa-code-qrcode', this.form) as HTMLInputElement;
 		this.errorMsg = getHTMLElementById('twofa-error', this.form) as HTMLElement;
 		this.twofaMethodSelect = getHTMLElementById('twofa-method', this.form) as HTMLSelectElement;
 		this.emailContainer = getHTMLElementById('twofa-email-container', this.form) as HTMLElement;
 		this.qrcodeContainer = getHTMLElementById('twofa-qrcode-container', this.form) as HTMLElement;
+		this.qrcodeImgDiv = getHTMLElementById('twofa-qrcode', this.qrcodeContainer) as HTMLImageElement;
+		this.qrCodeSubmitBtn = getHTMLElementById('twofa-qrcode-submit-btn', this.qrcodeContainer) as HTMLButtonElement;
 		this.resendEmailCodeBtn = getHTMLElementById('twofa-email-resend-btn', this.emailContainer) as HTMLButtonElement;
 		this.twofaBackBtn = getHTMLElementById('twofa-back-btn', this.form) as HTMLButtonElement;
 	}
@@ -79,13 +86,15 @@ export class TwofaModalComponent extends BaseComponent {
 	 * - Attribue un gestionnaire d'événement pour le changement de méthode 2FA.
 	 * - Attribue un gestionnaire d'événement pour le bouton de renvoi du code par email.
 	 * - Attribue un gestionnaire d'événement pour le bouton de validation du code par email.
+	 * - Attribue un gestionnaire d'événement pour la bouton de validation du code par QR Code.
 	 * - Attribue un gestionnaire d'événement pour le clic dans le container du composant (utile pour fermer le composant).
 	 * - Attribue un gestionnaire d'événement pour le bouton de retour en arrière.
 	 */
 	protected attachListeners(): void {
 		this.twofaMethodSelect.addEventListener('change', this.handleMethodChange);
 		this.resendEmailCodeBtn.addEventListener('click', this.handleResendEmailCode);
-		this.form.addEventListener('submit', this.handleSubmit);
+		this.form.addEventListener('submit', this.handleCodeSubmit);
+		this.qrCodeSubmitBtn.addEventListener('click', this.handleCodeSubmit);
 		this.container.addEventListener('click', this.handleBackgroundClick);
 		this.twofaBackBtn.addEventListener('click', this.leaveOnBtnClick);
 	}
@@ -96,7 +105,8 @@ export class TwofaModalComponent extends BaseComponent {
 	protected removeListeners(): void {
 		this.twofaMethodSelect.removeEventListener('change', this.handleMethodChange);
 		this.resendEmailCodeBtn.removeEventListener('click', this.handleResendEmailCode);
-		this.form.addEventListener('submit', this.handleSubmit);
+		this.form.addEventListener('submit', this.handleCodeSubmit);
+		this.qrCodeSubmitBtn.removeEventListener('click', this.handleCodeSubmit);
 		this.container.removeEventListener('click', this.handleBackgroundClick);
 		this.twofaBackBtn.removeEventListener('click', this.leaveOnBtnClick);
 	}
@@ -111,7 +121,7 @@ export class TwofaModalComponent extends BaseComponent {
 
 	public async show(): Promise<void> {
 		this.container.classList.remove('hidden');
-		this.codeInput.value = '';
+		this.codeInputEmail.value = '';
 		this.errorMsg.classList.add('hidden');
 		await this.modalTransitionIn();
 	}
@@ -168,12 +178,13 @@ export class TwofaModalComponent extends BaseComponent {
 	 * et cache les champs de saisie d'email et de QR code si ils sont visibles.
 	 */
 	private reset(): void {
-		this.codeInput.value = '';
+		this.codeInputEmail.value = '';
 		this.errorMsg.classList.add('hidden');
 		this.errorMsg.textContent = '';
 		this.twofaMethodSelect.value = '-';
 		this.emailContainer.classList.add('hidden');
 		this.qrcodeContainer.classList.add('hidden');
+		this.qrcodeImgDiv.replaceChildren();
 	}
 
 	// ===========================================
@@ -195,6 +206,7 @@ export class TwofaModalComponent extends BaseComponent {
 	private handleMethodChange = async (event: Event): Promise<void> => {
 		this.method = (event.target as HTMLSelectElement).value;
 		if (this.method === 'email') {
+			this.qrcodeImgDiv.replaceChildren();
 			this.qrcodeContainer.classList.add('hidden');
 			this.errorMsg.classList.add('hidden');
 			this.handleSendEmailCode();
@@ -248,12 +260,41 @@ export class TwofaModalComponent extends BaseComponent {
 			return;
 		}
 		hideSpinner('twofa-spinner');
-		showAlert(`QR code a afficher dans div id=twofa-qrcode `, 'twofa-error', 'success');
+		if (res.otpauth_url) {
+			this.renderQrCode(res.otpauth_url!);
+		} else {
+			showAlert(`Code sent to 2FA app`, 'twofa-error', 'success');
+		}
 		this.qrcodeContainer.classList.remove('hidden');
 	}
 
 	/**
-	 * Gère la soumission du formulaire de code 2FA.
+	 * Affiche le QrCode correspondant à l'URL d'authentification à deux facteurs (2FA) fournie.
+	 * 
+	 * Crée un élément `<img>` et utilise la bibliothèque `qrcode` pour générer le QR code
+	 * correspondant à l'URL fournie. Si l'opération réussit, met l'attribut `src` de l'élément
+	 * `<img>` à la valeur du QR code en base64. En cas d'erreur, affiche un message d'erreur
+	 * dans la console.
+	 * 
+	 * @param {string} otpauthUrl URL d'authentification à deux facteurs (2FA) à afficher dans le QrCode.
+	 * @returns {Promise<void>} Une promesse qui se résout une fois que le QrCode a été affiché.
+	 */
+	public async renderQrCode(otpauthUrl: string): Promise<void> {
+		const img = document.createElement('img');
+		try {
+			const dataUrl = await QRCode.toDataURL(otpauthUrl);
+			img.classList.add('m-auto');
+			img.src = dataUrl;
+			this.qrcodeImgDiv.appendChild(img);
+		} catch (err) {
+			console.error('Erreur lors de la génération du QR code :', err);
+		}
+	}
+
+
+
+	/**
+	 * Gère la soumission du formulaire de code 2FA par code envoyé par email ou QR Code.
 	 * 
 	 * Vérifie si le code saisi est valide. Si le code est valide, se connecte en tant
 	 * qu'utilisateur et ferme le modal. Si le code est invalide, affiche un message
@@ -263,9 +304,14 @@ export class TwofaModalComponent extends BaseComponent {
 	 * @returns {Promise<void>} Une promesse qui se résout une fois que la connexion
 	 *                          est terminée.
 	 */
-	private handleSubmit = async (event: SubmitEvent): Promise<void> => {
+	private handleCodeSubmit = async (event: Event | SubmitEvent): Promise<void> => {
 		event.preventDefault();
-		const code = this.codeInput.value.trim();
+		let code: string | null = null;
+		if (this.method === 'email') {
+			code = this.codeInputEmail.value.trim();
+		} else if (this.method === 'qrcode') {
+			code = this.codeInputQrCode.value.trim();
+		}
 		if (!code) {
 			showAlert('Code required', 'twofa-error');
 			this.errorMsg.classList.remove('hidden');
@@ -274,7 +320,7 @@ export class TwofaModalComponent extends BaseComponent {
 		const res = await authService.twofaConnect({
 			email: this.userData.email,
 			password: code,
-		});
+		}, this.method);
 		if (res.errorMessage) {
 			showAlert(res.errorMessage, 'twofa-error');
 			this.errorMsg.classList.remove('hidden');

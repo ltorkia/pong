@@ -119,13 +119,14 @@ export class AuthService {
 	 * et redirige vers la page d'accueil.
 	 * 
 	 * @param {Record<string, string>} userData Informations de l'utilisateur à connecter.
+	 * @param {string} method Methode de verification 2FA (email ou QrCode).
 	 * @returns {Promise<AuthResponse>} Promesse qui se résout avec l'utilisateur
 	 *   authentifié ou un objet d'erreur.
 	 * @throws {Error} Si la requête échoue ou en cas d'erreur réseau.
 	 */
-	public async twofaConnect(userData: Record<string, string>): Promise<AuthResponse> {
+	public async twofaConnect(userData: Record<string, string>, method: string): Promise<AuthResponse> {
 		try {
-			const result: AuthResponse = await authApi.twofaConnectUser(userData);
+			const result: AuthResponse = await authApi.twofaConnectUser(userData, method);
 			if (result.errorMessage) {
 				console.error(`[${this.constructor.name}] Erreur d'authentification.`);
 				return { errorMessage: result.errorMessage };

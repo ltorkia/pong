@@ -21,16 +21,14 @@
 				<div id="twofa-email-container" class="hidden">
 
 					<hr class="form-separator">
-
 					<div class="field-box">
 						<div>
 							<label for="twofa-code">Code received :</label>
-							<input type="text" id="twofa-code" autocomplete="one-time-code" placeholder="Insert your secret code here" />
+							<input type="text" id="twofa-code-email" autocomplete="one-time-code" placeholder="Insert your secret code here" />
 						</div>
 					</div>
 
 					<hr class="form-separator">
-
 					<div class="btn-container">
 						<button id="twofa-email-resend-btn" type="button" class="btn form-btn bg-black/10">
 							Resend
@@ -45,15 +43,21 @@
 				<div id="twofa-qrcode-container" class="hidden">
 
 					<hr class="form-separator">
+					<div id="twofa-qrcode"></div>
 
-					<div id="twofa-qrcode">TODO: Affichage du QR Code</div>
+					<div class="field-box mt-2">
+						<div>
+							<label for="twofa-code">Code received :</label>
+							<input type="text" id="twofa-code-qrcode" autocomplete="one-time-code" placeholder="Insert your secret code here" />
+						</div>
+					</div>
 
-					<!-- <hr class="form-separator"> -->
-					<!-- <div class="btn-container">
+					<hr class="form-separator">
+					<div class="btn-container">
 						<button id="twofa-qrcode-submit-btn" type="button" class="btn form-btn">
-							Confirm
+							Send
 						</button>
-					</div> -->
+					</div>
 				</div>
 
 				<div id="twofa-spinner" class="spinner hidden" aria-hidden="true"></div>
