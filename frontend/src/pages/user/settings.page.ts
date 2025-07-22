@@ -3,6 +3,7 @@ import { RouteConfig } from '../../types/routes.types';
 import { dataService } from '../../services/index.service';
 import { authApi } from '../../api/index.api';
 import { toggleClass, getHTMLElementById, getHTMLElementByClass, showAlert } from '../../utils/dom.utils';
+import { DB_CONST } from '../../shared/config/constants.config';
 
 // ===========================================
 // SETTINGS PAGE
@@ -15,8 +16,9 @@ export class SettingsPage extends BasePage {
 	private avatarInput!: HTMLInputElement;
 	private emailInput!: HTMLInputElement;
 	private usernameInput!: HTMLInputElement;
-	private questionInput!: HTMLInputElement;
-	private twoFaInput!: HTMLInputElement;
+	private twoFaEmailInput!: HTMLInputElement;
+	private twoFaQrInput!: HTMLInputElement;
+	private twoFaDisableInput!: HTMLInputElement;
 	private dropdownTitles!: NodeListOf<HTMLHeadingElement>;
 	private form!: HTMLFormElement;
 	private alertMsgForm!: HTMLElement;
@@ -57,7 +59,9 @@ export class SettingsPage extends BasePage {
 		this.avatarInput = getHTMLElementById('avatar-input', this.container) as HTMLInputElement;
 		this.emailInput = getHTMLElementById('email', this.container) as HTMLInputElement;
 		this.usernameInput = getHTMLElementById('username', this.container) as HTMLInputElement;
-		this.twoFaInput = getHTMLElementById('enable-2fa', this.container) as HTMLInputElement;
+		this.twoFaEmailInput = getHTMLElementById('enable-2fa-email', this.container) as HTMLInputElement;
+		this.twoFaQrInput = getHTMLElementById('enable-2fa-qrcode', this.container) as HTMLInputElement;
+		this.twoFaDisableInput = getHTMLElementById('disable-2fa', this.container) as HTMLInputElement;
 		this.dropdownTitles = this.container.querySelectorAll('.dropdown-title') as NodeListOf<HTMLHeadingElement>;
 		this.form = getHTMLElementById('settings-form', this.container) as HTMLFormElement;
 		this.alertMsgForm = getHTMLElementById('alert', this.container) as HTMLElement;
@@ -137,7 +141,13 @@ export class SettingsPage extends BasePage {
 	private preFillForm(): void {
 		this.emailInput.value = this.currentUser!.email;
 		this.usernameInput.value = this.currentUser!.username;
-		this.twoFaInput.checked = this.currentUser!.active2Fa === 1;
+		if (this.currentUser!.active2Fa === DB_CONST.USER.ACTIVE_2FA.EMAIL_CODE) {
+			this.twoFaEmailInput.checked = true;
+		} else if (this.currentUser!.active2Fa === DB_CONST.USER.ACTIVE_2FA.QR_CODE) {
+			this.twoFaQrInput.checked = true;
+		} else {
+			this.twoFaDisableInput.checked = true;
+		}
 	}
 
 	// ===========================================

@@ -134,11 +134,10 @@ export class AuthApi {
 	 * et l'url du QrCode a générer si c'est l'option choisie par l'utilisateur.
 	 * 
 	 * @param {Record<string, string>} userData Informations de l'utilisateur à connecter.
-	 * @param {string} method Méthode de l'authentification à deux facteurs (email ou QrCode).
 	 * @returns {Promise<AuthResponse>} Promesse résolue avec une fois que le code est envoyé.
 	 */
-	public async send2FA(userData: Record<string, string>, method: string): Promise<AuthResponse> {
-		const res: Response = await fetch(`/api/auth/2FAsend/${method}`, {
+	public async send2FA(userData: Record<string, string>): Promise<AuthResponse> {
+		const res: Response = await fetch(`/api/auth/2FAsend`, {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify(userData),
@@ -165,12 +164,11 @@ export class AuthApi {
 	 * contenant le message d'erreur.
 	 * 
 	 * @param {Record<string, string>} userData Informations de l'utilisateur à connecter.
-	 * @param {string} method Méthode de l'authentification à deux facteurs (email ou QrCode).
 	 * @returns {Promise<AuthResponse>} Promesse résolue avec les informations de l'utilisateur
 	 * authentifié ou un message d'erreur.
 	 */
-	public async twofaConnectUser(userData: Record<string, string>, method: string): Promise<AuthResponse> {
-		const res: Response = await fetch(`/api/auth/2FAreceive/${method}`, {
+	public async twofaConnectUser(userData: Record<string, string>): Promise<AuthResponse> {
+		const res: Response = await fetch(`/api/auth/2FAreceive`, {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify(userData),

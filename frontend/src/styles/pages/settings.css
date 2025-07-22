@@ -46,6 +46,14 @@
 		@apply mobile:w-full mobile:text-left mobile:w-80 tablet:w-96;
 	}
 
+	#settings-form .field-box.radio {
+		@apply flex flex-row items-center justify-between;
+	}
+
+	#settings-form .field-box.radio input {
+		@apply w-auto;
+	}
+
 	/* DROPDOWN MENUS */
 	.dropdown-container {
 		@apply overflow-hidden;
