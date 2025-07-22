@@ -22,8 +22,6 @@ export interface UserForChangeData {
 	email: string;
 	password: string;
 	registerFrom: RegisterMethod;
-	secretQuestionNumber: number;
-	secretQuestionAnswer: string;
 	activeTwoFA: boolean;
 }
 

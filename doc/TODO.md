@@ -14,6 +14,9 @@ COMMUN
 
 - Ajuster conf nginx prod pour websockets
 - Si on a le time faire le switch compte Google -> compte local dans settings ?
+- Reutiliser systeme code 2FA pour "Mot de passe oublie"
+- Regenerer QrCode si pb ???
+- Complexifier mot de passe
 
 FRONT
 

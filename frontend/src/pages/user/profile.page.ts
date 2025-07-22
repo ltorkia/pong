@@ -1,6 +1,6 @@
 import { BasePage } from '../base/base.page';
 import { RouteConfig, RouteParams } from '../../types/routes.types';
-import { User } from '../../models/user.model';
+import { User } from '../../shared/models/user.model';
 import { dataApi } from '../../api/index.api';
 import { dataService } from '../../services/index.service';
 

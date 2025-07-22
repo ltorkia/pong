@@ -1,5 +1,5 @@
-import { FriendsModel, FriendStatus } from '../shared/types/friends.types';	// en rouge car dossier local 'shared' != dossier conteneur
-import { DB_CONST } from '../shared/config/constants.config'; // en rouge car dossier local 'shared' != dossier conteneur
+import { FriendsModel, FriendStatus } from '../types/friends.types';	// en rouge car dossier local 'shared' != dossier conteneur
+import { DB_CONST } from '../config/constants.config'; // en rouge car dossier local 'shared' != dossier conteneur
 
 // ===========================================
 // FRIENDS MODEL

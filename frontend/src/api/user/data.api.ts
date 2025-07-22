@@ -1,5 +1,5 @@
-import { User } from '../../models/user.model';
-import { Game } from '../../models/game.model';
+import { User } from '../../shared/models/user.model';
+import { Game } from '../../shared/models/game.model';
 import { dataService, currentService } from '../../services/index.service';
 import { SafeUserModel, PublicUser, PaginatedUsers } from '../../shared/types/user.types';	// en rouge car dossier local 'shared' != dossier conteneur
 import { secureFetch } from '../../utils/app.utils';

@@ -1,4 +1,4 @@
-import { User } from '../../models/user.model';
+import { User } from '../../shared/models/user.model';
 import { dataApi } from '../../api/index.api';
 import { AuthResponse } from '../../types/api.types';
 import { currentService } from '../../services/index.service';

@@ -1,4 +1,4 @@
-import { User } from '../../models/user.model';
+import { User } from '../../shared/models/user.model';
 import { storageService } from '../index.service';
 import { UserModel, SafeUserModel } from '../../shared/types/user.types';
 
