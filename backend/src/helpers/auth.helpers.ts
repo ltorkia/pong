@@ -114,7 +114,7 @@ export async function GenerateQRCode(reply: FastifyReply, email: string)
 	var secret = speakeasy.generateSecret();
 	const secretTwoFa = secret.base32;
 	insertCode2FAQrcode(email, secretTwoFa);
-	console.log("otpblablabla", secret.otpauth_url);
+	// console.log("otpblablabla", secret.otpauth_url);
 	reply.status(200).send({statusCode: 200, otpauth_url: secret.otpauth_url})
 }
 
