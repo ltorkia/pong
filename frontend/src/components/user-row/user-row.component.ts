@@ -5,7 +5,7 @@ import { BaseComponent } from '../base/base.component';
 import { RouteConfig } from '../../types/routes.types';
 import { router } from '../../router/router';
 import { ComponentConfig } from '../../types/components.types';
-import { User } from '../../models/user.model';
+import { User } from '../../shared/models/user.model';
 import { dataApi } from '../../api/index.api';
 import { dataService } from '../../services/index.service';
 import { getHTMLElementById, getHTMLElementByClass } from '../../utils/dom.utils';

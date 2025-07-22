@@ -1,5 +1,5 @@
-import { SafeUserModel, UserModel, PublicUser, UserStatus, RegisterMethod } from '../shared/types/user.types';	// en rouge car dossier local 'shared' != dossier conteneur
-import { DB_CONST } from '../shared/config/constants.config';
+import { SafeUserModel, UserModel, PublicUser, UserStatus, RegisterMethod } from '../types/user.types';	// en rouge car dossier local 'shared' != dossier conteneur
+import { DB_CONST } from '../config/constants.config';
 
 // ===========================================
 // USER MODEL

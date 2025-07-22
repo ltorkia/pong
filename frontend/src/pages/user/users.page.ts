@@ -1,15 +1,14 @@
 import { BasePage } from '../base/base.page';
-import { User } from '../../models/user.model';
+import { User } from '../../shared/models/user.model';
 import { dataApi } from '../../api/index.api';
 import { SearchBarComponent } from '../../components/search-bar/search-bar.component';
 import { UserRowComponent } from '../../components/user-row/user-row.component';
 import { PaginationComponent } from '../../components/pagination/pagination.component';
 import { getHTMLElementById } from '../../utils/dom.utils';
 import { RouteConfig } from '../../types/routes.types';
-import { ComponentConfig } from '../../types/components.types';
 import { COMPONENT_NAMES, HTML_COMPONENT_CONTAINERS } from '../../config/components.config';
-import { ComponentName } from '../../types/components.types';
-import { PaginatedUsers, PaginationInfos, PaginationParams } from '../../shared/types/user.types';
+import { ComponentConfig, ComponentName, PaginationParams } from '../../types/components.types';
+import { PaginatedUsers, PaginationInfos } from '../../shared/types/user.types';
 
 // ===========================================
 // USERS PAGE

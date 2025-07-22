@@ -1,7 +1,7 @@
 import { RouteConfig } from '../types/routes.types';
 import { BaseComponent } from '../components/base/base.component';
 import { COMPONENT_NAMES, HTML_COMPONENT_CONTAINERS, COMPONENT_PATHS } from '../config/components.config';
-import { User } from '../models/user.model';
+import { User } from '../../../shared/models/user.model';
 import { PaginationInfos } from '../shared/types/user.types';
 
 // ===========================================
