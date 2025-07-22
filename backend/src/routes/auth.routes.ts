@@ -15,6 +15,8 @@ import { promises as fs } from 'fs';
 
 async function doubleAuth(app: FastifyInstance) {
     app.post('/2FAsend/:method', async (request: FastifyRequest, reply: FastifyReply) => {
+		const { method } = request.params as { method: string };
+		console.log("method = ", method);
         const user = await LoginInputSchema.safeParse(request.body); //a modifier en pram : request.body.user
         if (!user.success) {
             const error = user.error.errors[0];
@@ -26,10 +28,10 @@ async function doubleAuth(app: FastifyInstance) {
         }
         try {
 			// console.log(request);
-			// if (!user.data.option) //a changer apres avec = email
+			if (method === 'email') //a changer apres avec = email
 				return await GenerateEmailCode(reply, user.data.email);
-			// else
-				// return await GenerateQRCode(reply, user.data.email)
+			else
+				return await GenerateQRCode(reply, user.data.email)
 
         } catch (err) {
             console.log(err)

@@ -115,7 +115,7 @@ export async function GenerateQRCode(reply: FastifyReply, email: string)
 	const secretTwoFa = secret.base32;
 	insertCode2FA(email, secretTwoFa);
 	// console.log("otpblablabla", secret.otpauth_url);
-	reply.status(200).send({statusCode: 200, otpauth_url: secret.otpauth_url, base32: secretTwoFa})
+	reply.status(200).send({statusCode: 200, otpauth_url: secret.otpauth_url})
 }
 
 export async function GenerateEmailCode(reply: FastifyReply, email: string)
