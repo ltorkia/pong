@@ -60,17 +60,28 @@ export async function changeEmail(username:string, email:string)
        [email, username]);
 }
 
-export async function insertCode2FA(email: string, code: string): Promise<{statusCode: number, message: string}>
+export async function insertCode2FAEmail(email: string, code: string): Promise<{statusCode: number, message: string}>
 {
 	const db = await getDb();
 	const end_time = Date.now() + 5 * 60 * 1000;
-	console.log(code, end_time);
 	await db.run(`
 		UPDATE User
-		SET code_2FA = ?, code_2FA_expire_at = ?
+		SET code_2FA_email = ?, code_2FA_expire_at = ?
 		WHERE (email = ?)
 		`,
 	[code, end_time , email]);
+	return {statusCode : 201, message : 'code 2FA inserted'};
+}
+
+export async function insertCode2FAQrcode(email: string, code: string): Promise<{statusCode: number, message: string}>
+{
+	const db = await getDb();
+	await db.run(`
+		UPDATE User
+		SET code_2FA_qrcode = ?
+		WHERE (email = ?)
+		`,
+	[code, email]);
 	return {statusCode : 201, message : 'code 2FA inserted'};
 }
 
@@ -79,7 +90,7 @@ export async function eraseCode2FA(email: string)
 	const db = await getDb();
 	await db.run(`
 		UPDATE User
-		SET code_2FA = NULL, code_2FA_expire_at = NULL
+		SET code_2FA_email = NULL, code_2FA_expire_at = NULL
 		WHERE (email = ?)
 		`,
 	[email]);	

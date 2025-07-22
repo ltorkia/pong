@@ -3,8 +3,9 @@ import { JwtPayload } from '../types/jwt.types';
 import { getUser } from '../db/user';
 import { UserPassword } from '../types/user.types';
 import { COOKIES_CONST } from '../shared/config/constants.config'; // en rouge car dossier local 'shared' != dossier conteneur
-import { majLastlog, insertCode2FA } from '../db/usermaj';
+import { insertCode2FAEmail, insertCode2FAQrcode, majLastlog } from '../db/usermaj';
 import nodemailer from 'nodemailer';
+import * as speakeasy from 'speakeasy';
 
 /**
  * Génère un token JWT pour un utilisateur donné
@@ -105,7 +106,6 @@ export async function searchNewName(username: string) {
 	return username;
 }
 
-import * as speakeasy from 'speakeasy';
 // import QRCode from 'qrcode'
 
 
@@ -113,15 +113,15 @@ export async function GenerateQRCode(reply: FastifyReply, email: string)
 {
 	var secret = speakeasy.generateSecret();
 	const secretTwoFa = secret.base32;
-	insertCode2FA(email, secretTwoFa);
-	// console.log("otpblablabla", secret.otpauth_url);
+	insertCode2FAQrcode(email, secretTwoFa);
+	console.log("otpblablabla", secret.otpauth_url);
 	reply.status(200).send({statusCode: 200, otpauth_url: secret.otpauth_url})
 }
 
 export async function GenerateEmailCode(reply: FastifyReply, email: string)
 {
 	const code = Math.floor(100000 + Math.random() * 900000).toString();
-	const resInsert = await insertCode2FA(email, code);
+	const resInsert = await insertCode2FAEmail(email, code);
 	if (!resInsert) {
 		return reply.status(500).send({
 			statusCode: 500,

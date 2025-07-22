@@ -31,8 +31,9 @@ export interface User2FA {
 	id: number;
 	username: string;
 	email: string;
-	code2Fa: string;
-	code2FaExpireAt: number;
+	code2FaEmail?: string;
+	code2FaQrcode?: string;
+	code2FaExpireAt?: number;
 	registerFrom: RegisterMethod;
 }
 

@@ -2,7 +2,7 @@ import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import bcrypt from 'bcrypt';
 import { RegisterInput, RegisterInputSchema, LoginInputSchema } from '../types/zod/auth.zod';
 import { insertUser, getUser, getUserP, getUser2FA } from '../db/user';
-import {insertCode2FA, eraseCode2FA} from '../db/usermaj';
+import {eraseCode2FA} from '../db/usermaj';
 import { ProcessAuth, clearAuthCookies,  GenerateEmailCode, GenerateQRCode  } from '../helpers/auth.helpers';
 import { GetAvatarFromBuffer, bufferizeStream } from '../helpers/image.helpers';
 import { GoogleUserInfo, UserPassword, User2FA, FastifyFileSizeError, AvatarResult } from '../types/user.types';
@@ -12,6 +12,7 @@ import { Buffer } from 'buffer';
 import nodemailer from 'nodemailer';
 import { Readable } from 'stream';
 import { promises as fs } from 'fs';
+import * as speakeasy from 'speakeasy';
 
 async function doubleAuth(app: FastifyInstance) {
     app.post('/2FAsend/:method', async (request: FastifyRequest, reply: FastifyReply) => {
@@ -31,10 +32,10 @@ async function doubleAuth(app: FastifyInstance) {
 			if (method === 'email') //a changer apres avec = email
 				return await GenerateEmailCode(reply, user.data.email);
 			else
-				return await GenerateQRCode(reply, user.data.email)
+				return await GenerateQRCode(reply, user.data.email);
 
         } catch (err) {
-            console.log(err)
+            console.log(err);
             request.log.error(err);
             return reply.status(500).send({
                 statusCode: 500,
@@ -43,8 +44,9 @@ async function doubleAuth(app: FastifyInstance) {
         }
     });
 
-    app.post('/2FAreceive', async (request: FastifyRequest, reply: FastifyReply) => {
+    app.post('/2FAreceive/:method', async (request: FastifyRequest, reply: FastifyReply) => {
         const result = LoginInputSchema.safeParse(request.body); //c est le meme format que pour login input avec les memes checks
+		const { method } = request.params as { method: string };
         if (!result.success) {
             const error = result.error.errors[0];
             return reply.status(400).send({
@@ -55,19 +57,31 @@ async function doubleAuth(app: FastifyInstance) {
         const checkUser: User2FA = await getUser2FA(result.data.email);
         if (!checkUser)
             return (reply.status(400).send({ message: "email doesn't exist" }));
-        eraseCode2FA(checkUser.email);
-        if (checkUser.code2FaExpireAt < Date.now())
-            return (reply.status(400).send({ message: "Timeout" }));
-        if (result.data.password != checkUser.code2Fa)
-            return (reply.status(400).send({ message: "Wrong code" }));
-
-        const user: UserModel | null = await getUser(null, result.data.email);
-        if (!user) {
-            return reply.status(500).send({
-                statusCode: 500,
-                errorMessage: 'Impossible de récupérer l’utilisateur après insertion'
-            });
-        }
+		if (method === 'email')
+		{
+			if (!checkUser.code2FaEmail)
+				return (reply.status(400).send({ message: "2FA option wrong" }));
+			eraseCode2FA(checkUser.email);
+			if (checkUser.code2FaExpireAt && checkUser.code2FaExpireAt < Date.now())
+				return (reply.status(400).send({ message: "Timeout" }));
+			if (result.data.password != checkUser.code2FaEmail)
+				return (reply.status(400).send({ message: "Wrong code" }));
+		}
+		else //choix du qrcode
+		{
+			if (!checkUser.code2FaQrcode)
+				return (reply.status(400).send({ message: "2FA option wrong" }));
+			const check = speakeasy.totp(checkUser.code2FaQrcode);
+			if (result.data.password != check)
+				return (reply.status(400).send({ message: "Wrong code" }));
+		}
+		const user: UserModel | null = await getUser(null, result.data.email);
+		if (!user) {
+			return reply.status(500).send({
+				statusCode: 500,
+				errorMessage: 'Impossible de récupérer l’utilisateur après authentification'
+			});
+		}
         await ProcessAuth(app, checkUser, reply);
         return reply.status(200).send({
             statusCode: 200,
