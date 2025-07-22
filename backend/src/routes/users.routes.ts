@@ -135,7 +135,6 @@ export async function usersRoutes(app: FastifyInstance) {
 		try {
 		
 			const { id } = request.params as { id: number };
-			// console.log("reauest = ", request.body);
 			const body = request.body as Record<string, any>; //c est bon any ?
 
 			// Renommage explicite pour etre ok avec ts et js
@@ -152,7 +151,10 @@ export async function usersRoutes(app: FastifyInstance) {
 			if(body["currPassword"] == '')
 				body["currPassword"] = null;
 			if(body["newPassword"] == '')
-				body["newPassword"] = null;			
+				body["newPassword"] = null;
+
+
+			// a change ici si on veut integrer l option 2fa et laquelle
 
 			let isEnableTwoFa = false;
 			if ("enable-2fa" in body) {

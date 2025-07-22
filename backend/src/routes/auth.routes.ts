@@ -317,9 +317,6 @@ export async function authRoutes(app: FastifyInstance) {
 				}
 			}
 			
-			
-			// const avatarFile = payloadDecoded.picture;
-			console.log("url picture = ", payloadDecoded.picture);
 			const avatarUrl = payloadDecoded.picture ?? DB_CONST.USER.DEFAULT_AVATAR;
 			if (avatarUrl != DB_CONST.USER.DEFAULT_AVATAR){
 				const response = await fetch(avatarUrl);
@@ -342,20 +339,6 @@ export async function authRoutes(app: FastifyInstance) {
 					});
 				}
 			}
-			// if (result.success === false) {
-			// 	return reply.status(result.statusCode!).send({
-				// 		statusCode: result.statusCode,
-				// 		errorMessage: result.errorMessage || 'Erreur lors de l’insertion de l’avatar',
-				// 	});
-				// }
-				
-
-		// if (!response.ok) {
-		// 	throw new Error(`Erreur lors du téléchargement de l'image : ${response.status}`);
-		// }
-
-			// On update l'avatar Google en bdd à chaque reconnexion
-			// await insertAvatar(avatar, username);
 
 			await ProcessAuth(app, user, reply);
 			const userData: UserModel = await getUser(null, email);
