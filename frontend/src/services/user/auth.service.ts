@@ -98,12 +98,11 @@ export class AuthService {
 	 * Si la vérification réussit, renvoie un objet avec un message de confirmation.
 	 * 
 	 * @param {Record<string, string>} userData Informations de l'utilisateur à connecter.
-	 * @param {string} method Méthode de verification 2FA (email ou QrCode).
 	 * @returns {Promise<AuthResponse>} Promesse qui se résout avec un objet contenant
 	 * un message d'erreur ou un message de confirmation.
 	 */
-	public async send2FA(userData: Record<string, string>, method: string): Promise<AuthResponse> {
-		const res2FA: AuthResponse = await authApi.send2FA(userData, method);
+	public async send2FA(userData: Record<string, string>): Promise<AuthResponse> {
+		const res2FA: AuthResponse = await authApi.send2FA(userData);
 		if (res2FA.errorMessage) {
 			return { errorMessage: res2FA.errorMessage || res2FA.message || 'Erreur inconnue' } as AuthResponse;
 		}
@@ -119,14 +118,13 @@ export class AuthService {
 	 * et redirige vers la page d'accueil.
 	 * 
 	 * @param {Record<string, string>} userData Informations de l'utilisateur à connecter.
-	 * @param {string} method Methode de verification 2FA (email ou QrCode).
 	 * @returns {Promise<AuthResponse>} Promesse qui se résout avec l'utilisateur
 	 *   authentifié ou un objet d'erreur.
 	 * @throws {Error} Si la requête échoue ou en cas d'erreur réseau.
 	 */
-	public async twofaConnect(userData: Record<string, string>, method: string): Promise<AuthResponse> {
+	public async twofaConnect(userData: Record<string, string>): Promise<AuthResponse> {
 		try {
-			const result: AuthResponse = await authApi.twofaConnectUser(userData, method);
+			const result: AuthResponse = await authApi.twofaConnectUser(userData);
 			if (result.errorMessage) {
 				console.error(`[${this.constructor.name}] Erreur d'authentification.`);
 				return { errorMessage: result.errorMessage };

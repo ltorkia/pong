@@ -32,6 +32,11 @@ export const DB_CONST = {
 			LOCAL: 'local',
 			GOOGLE: 'google',
 		},
+		ACTIVE_2FA: {
+			EMAIL_CODE: 'email',
+			QR_CODE: 'qrcode',
+			DISABLED: 'disabled',
+		}
 	},
 	GAME: {
 		STATUS: {

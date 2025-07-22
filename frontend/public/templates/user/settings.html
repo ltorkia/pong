@@ -54,13 +54,36 @@
 							</div>
 						</div>
 
-					<!-- Checkbox 2FA -->
-					<div class="dropdown-title">
-						<label for="enable-2fa" class="cursor-pointer select-none">
-						<input type="checkbox" id="enable-2fa" name="enable-2fa" class="mr-2 align-middle" />
-						Enable two-factor authentication (2FA)
-						</label>
-					</div>
+						<!-- Checkbox 2FA -->
+						<div class="dropdown-container">
+							<div class="dropdown-title">
+								<span>Enable two-factor authentication (2FA)</span>
+								<i class="fa-solid fa-angle-down"></i>
+							</div>
+							<div class="dropdown-content max-h-0">
+								<!-- send code by email -->
+								<div class="field-box radio">
+									<input type="radio" id="enable-2fa-email" name="twofa-method" value="email" class="mr-2 align-middle" />
+									<label for="2fa-email" class="cursor-pointer select-none">
+										Send code by email
+									</label>
+								</div>
+								<!-- send code by QR code -->
+								<div class="field-box radio">
+									<input type="radio" id="enable-2fa-qrcode" name="twofa-method" value="qrcode" class="mr-2 align-middle" />
+									<label for="2fa-qrcode" class="cursor-pointer select-none">
+										Send code by QR code scan
+									</label>
+								</div>
+								<!-- disable 2FA -->
+								<div class="field-box radio">
+									<input type="radio" id="disable-2fa" name="twofa-method" value="disable" class="mr-2 align-middle" />
+									<label for="disable-2fa" class="cursor-pointer select-none">
+										Disable two-factor authentication
+									</label>
+								</div>
+							</div>
+						</div>
 
 					</div> 
 
