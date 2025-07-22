@@ -8,7 +8,7 @@ import { getHTMLElementById } from '../../utils/dom.utils';
 import { RouteConfig } from '../../types/routes.types';
 import { COMPONENT_NAMES, HTML_COMPONENT_CONTAINERS } from '../../config/components.config';
 import { ComponentConfig, ComponentName, PaginationParams } from '../../types/components.types';
-import { PaginatedUsers, PaginationInfos } from '../../shared/types/user.types';
+import { SafeUserModel, PaginatedUsers, PaginationInfos } from '../../shared/types/user.types';
 
 // ===========================================
 // USERS PAGE
@@ -19,7 +19,7 @@ import { PaginatedUsers, PaginationInfos } from '../../shared/types/user.types';
  * Permet d'afficher la liste des utilisateurs enregistrés sur le site.
  */
 export class UsersPage extends BasePage {
-	private users: User[] | null = null;
+	private users: SafeUserModel[] | User[] | null = null;
 	private paginationInfos: PaginationInfos | null = null;
 	private paginationParams: PaginationParams | null = null;
 	private currentPage: number = 1;
@@ -148,7 +148,7 @@ export class UsersPage extends BasePage {
 		const renderPromises: Promise<void>[] = [];
 
 		let i = 1;
-		for (const user of this.users!) {
+		for (const user of this.users! as User[]) {
 			let tempContainer = document.createElement('div');
 			const rowComponent = new UserRowComponent(this.config, this.userRowConfig!, tempContainer, user);
 			const instanceKey = `${this.userRowConfig!.name}-${user.id}`;
