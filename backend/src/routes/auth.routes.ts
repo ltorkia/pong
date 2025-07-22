@@ -150,22 +150,21 @@ export async function authRoutes(app: FastifyInstance) {
 			
 
 			// SALUT !
-			// Ai rajouté le retour de l'avatar en cas d'erreur ( const result: AvatarResult = await GetAvatarFromBuffer ),
-			// parce que sans ça je récupère jamais les errorMessages de getAvatarFromBuffer, mais d'un autre
-			// côté j'ai aussi vu que t'as rajouté des cas d'erreur dans ton catch donc je sais pas
+			// Ai rajouté le retour de l'avatar en cas d'erreur ( const result: AvatarResult = await GetAvatarFromBuffer ), VV
+			// parce que sans ça je récupère jamais les errorMessages de getAvatarFromBuffer, mais d'un autre VV
+			// côté j'ai aussi vu que t'as rajouté des cas d'erreur dans ton catch donc je sais pas VV 
 
 			// Pour le 2FA (option sans 2FA quoi) j'ai rajouté vite fait les requêtes utilisateur pour pouvoir le stocker direct côté front
-			// apres registration, mais comme tu peux le voir ça fait trois requêtes d'un coup :
-			// faut récupérer le user apres l'insertion de l'avatar pour pouvoir check if (!user.active2Fa),
-			// et une autre fois après ProcessAuth pour avoir le majLastLog à jour etc...
-			// Y'a surement plus intuitif et plus propre, j'ai pas vraiment cherché plus loin je te laisse voir ça comme tu veux hihihiii
+			// apres registration, mais comme tu peux le voir ça fait trois requêtes d'un coup : 
+			// faut récupérer le user apres l'insertion de l'avatar pour pouvoir check if (!user.active2Fa), --> pas necessaire car dans registeur donc balek
+			// et une autre fois après ProcessAuth pour avoir le majLastLog à jour etc... VV
+			// Y'a surement plus intuitif et plus propre, j'ai pas vraiment cherché plus loin je te laisse voir ça comme tu veux hihihiii VV
 
-			// Ai aussi rajouté le await devant les ProcessAuth et GetAvatarFromBuffer parce que ça merdait dans mes tests
-			// depuis ces dernières modifs. Valaaa c'est tout pour register O_O
+			// Ai aussi rajouté le await devant les ProcessAuth et GetAvatarFromBuffer parce que ça merdait dans mes tests VV
+			// depuis ces dernières modifs. VV Valaaa c'est tout pour register O_O
 
 			const userInfos: UserPassword = await getUserP(userToInsert.email);
 			if (avatarFile && avatarBuffer) {
-				// const result: AvatarResult = await GetAvatarFromBuffer(reply, userInfos, avatarFile, avatarBuffer);
 				const result: AvatarResult = await GetAvatarFromBuffer(reply, userInfos, avatarFile.mimetype, avatarBuffer);
 				if (result.success === false) {
 					return reply.status(result.statusCode!).send({
@@ -175,11 +174,8 @@ export async function authRoutes(app: FastifyInstance) {
 				}
 			}
 
-			let user: UserModel = await getUser(null, userToInsert.email);
-			// if (!user.active2Fa) {
-				await ProcessAuth(app, userInfos, reply);
-			// }
-			user = await getUser(null, userToInsert.email);
+			let user = await getUser(null, userToInsert.email);
+			await ProcessAuth(app, userInfos, reply);
 
 			return reply.status(200).send({
 				statusCode: 200,
@@ -258,7 +254,7 @@ export async function authRoutes(app: FastifyInstance) {
 			});
 		}
 	});
-	doubleAuth(app); //si deja fait voir si on genere pas un cookie type pour pas avoir a le refaire une seconde fois quand on se log sur le mm ordi
+	// doubleAuth(app); //si deja fait voir si on genere pas un cookie type pour pas avoir a le refaire une seconde fois quand on se log sur le mm ordi
 
 
 	// LOGOUT
