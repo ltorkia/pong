@@ -3,8 +3,11 @@ import { RouteConfig } from '../../types/routes.types';
 import { authService, googleService } from '../../services/index.service';
 import { TwofaModalComponent } from '../../components/twofa-modal/twofa-modal.component';
 import { ComponentConfig } from '../../types/components.types';
+import { PAGE_NAMES } from '../../config/routes.config';
 import { COMPONENT_NAMES, HTML_COMPONENT_CONTAINERS } from '../../config/components.config';
 import { getHTMLElementById } from '../../utils/dom.utils';
+import { DB_CONST } from '../../shared/config/constants.config';
+import { TwoFaMethod } from '../../shared/types/user.types';
 
 // ===========================================
 // LOGIN PAGE
@@ -150,7 +153,7 @@ export class LoginPage extends BasePage {
 		const loginResult = await authService.login(data);
 
 		// Affiche le modal 2FA seulement si login OK et 2FA activé
-		if (!loginResult || loginResult.errorMessage || !loginResult.user!.active2Fa) {
+		if (!loginResult || loginResult.errorMessage || loginResult.user!.active2Fa === DB_CONST.USER.ACTIVE_2FA.DISABLED) {
 			return;
 		}
 
@@ -165,6 +168,8 @@ export class LoginPage extends BasePage {
 		}
 
 		// Injecte les infos de l'utilisateur qui tente de se connecter au modal
+		modal.setUserTwofaMethod(loginResult.user!.active2Fa);
+		modal.setPageOrigin(PAGE_NAMES.LOGIN);
 		modal.setUserData(data);
 
 		// Affiche le modal

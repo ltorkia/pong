@@ -1,6 +1,6 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import bcrypt from 'bcrypt';
-import { RegisterInput, RegisterInputSchema, LoginInputSchema } from '../types/zod/auth.zod';
+import { RegisterInput, RegisterInputSchema, LoginInputSchema, TwoFAInputSchema, TwoFAInput } from '../types/zod/auth.zod';
 import { insertUser, getUser, getUserP, getUser2FA } from '../db/user';
 import {eraseCode2FA} from '../db/usermaj';
 import { ProcessAuth, clearAuthCookies,  GenerateEmailCode, GenerateQRCode  } from '../helpers/auth.helpers';
@@ -14,11 +14,12 @@ import { Readable } from 'stream';
 import { promises as fs } from 'fs';
 import * as speakeasy from 'speakeasy';
 
-async function doubleAuth(app: FastifyInstance) {
+export async function doubleAuth(app: FastifyInstance) {
     app.post('/2FAsend/:method', async (request: FastifyRequest, reply: FastifyReply) => {
 		const { method } = request.params as { method: string };
 		console.log("method = ", method);
-        const userdata = await LoginInputSchema.safeParse(request.body); //a modifier en pram : request.body.user
+		console.log(request.body);
+        const userdata = await TwoFAInputSchema.safeParse(request.body); //a modifier en pram : request.body.user
         if (!userdata.success) {
             const error = userdata.error.errors[0];
             console.log(error);
@@ -30,11 +31,11 @@ async function doubleAuth(app: FastifyInstance) {
 		const user = await getUser2FA(userdata.data.email);
 
         try {
-			// console.log(request);
-			if (method === 'email') //a changer apres avec = email
-				return await GenerateEmailCode(reply, userdata.data.email);
+			// console.log(request.body);
+			if (method === 'email' && (userdata.data.pageName === 'Settings' || user.active_2FA === 'email')) //a changer apres avec = email
+				await GenerateEmailCode(reply, userdata.data.email);
 			else if (method === 'qrcode' && !user.code2FaQrcode)
-				return await GenerateQRCode(reply, userdata.data.email);
+				await GenerateQRCode(reply, userdata.data.email);
 
 			return (reply.status(200).send({
 				statusCode: 200,
@@ -54,6 +55,7 @@ async function doubleAuth(app: FastifyInstance) {
     app.post('/2FAreceive/:method', async (request: FastifyRequest, reply: FastifyReply) => {
         const result = LoginInputSchema.safeParse(request.body); //c est le meme format que pour login input avec les memes checks
 		const { method } = request.params as { method: string };
+		console.log(request.body);
         if (!result.success) {
             const error = result.error.errors[0];
             return reply.status(400).send({
@@ -234,9 +236,7 @@ export async function authRoutes(app: FastifyInstance) {
 			}
 
 			const user: UserModel = await getUser(validUser.id);
-			if (user.active2Fa === 'disabled') {
-				console.log(user, user.active2Fa);
-				console.log("on process authhhhhhhhhhhhhhhhhhhhhhhhhhhhh");
+			if (user.active2Fa === DB_CONST.USER.ACTIVE_2FA.DISABLED) {
 				await ProcessAuth(app, validUser, reply);
 			}
 
@@ -254,7 +254,7 @@ export async function authRoutes(app: FastifyInstance) {
 			});
 		}
 	});
-	// doubleAuth(app); //si deja fait voir si on genere pas un cookie type pour pas avoir a le refaire une seconde fois quand on se log sur le mm ordi
+	doubleAuth(app); //si deja fait voir si on genere pas un cookie type pour pas avoir a le refaire une seconde fois quand on se log sur le mm ordi
 
 
 	// LOGOUT

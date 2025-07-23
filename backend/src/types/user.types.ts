@@ -22,7 +22,7 @@ export interface UserForChangeData {
 	email: string;
 	password: string;
 	registerFrom: RegisterMethod;
-	activeTwoFA: boolean;
+	activeTwoFA: string;
 }
 
 export interface User2FA {
@@ -32,6 +32,7 @@ export interface User2FA {
 	code2FaEmail?: string;
 	code2FaQrcode?: string;
 	code2FaExpireAt?: number;
+	active_2FA: string;
 	registerFrom: RegisterMethod;
 }
 

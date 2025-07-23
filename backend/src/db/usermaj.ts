@@ -66,7 +66,7 @@ export async function insertCode2FAEmail(email: string, code: string): Promise<{
 	const end_time = Date.now() + 5 * 60 * 1000;
 	await db.run(`
 		UPDATE User
-		SET code_2FA_email = ?, code_2FA_expire_at = ?
+		SET code_2FA_email = ?, code_2FA_expire_at = ?, active_2FA = 'email'
 		WHERE (email = ?)
 		`,
 	[code, end_time , email]);
