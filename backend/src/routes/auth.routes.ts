@@ -234,7 +234,7 @@ export async function authRoutes(app: FastifyInstance) {
 			}
 
 			const user: UserModel = await getUser(validUser.id);
-			if (!user.active2Fa) {
+			if (user.active2Fa === 'disabled') {
 				console.log(user, user.active2Fa);
 				console.log("on process authhhhhhhhhhhhhhhhhhhhhhhhhhhhh");
 				await ProcessAuth(app, validUser, reply);
