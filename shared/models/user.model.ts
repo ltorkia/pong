@@ -1,4 +1,4 @@
-import { SafeUserModel, UserModel, PublicUser, UserStatus, RegisterMethod } from '../types/user.types';	// en rouge car dossier local 'shared' != dossier conteneur
+import { SafeUserModel, UserModel, PublicUser, UserStatus, RegisterMethod, TwoFaMethod } from '../types/user.types';	// en rouge car dossier local 'shared' != dossier conteneur
 import { DB_CONST } from '../config/constants.config';
 
 // ===========================================
@@ -36,7 +36,7 @@ export class User {
 		public status: UserStatus,
 		public isDeleted: number,
 		public registerFrom: RegisterMethod,
-		public active2Fa: number
+		public active2Fa: TwoFaMethod
 	) {}
 
 	// ============================================================================
@@ -183,7 +183,7 @@ export class User {
 			data.status ?? DB_CONST.USER.STATUS.OFFLINE,
 			data.isDeleted ?? 0,
 			data.registerFrom ?? DB_CONST.USER.REGISTER_FROM.LOCAL,
-			data.active2Fa ?? 0
+			data.active2Fa ?? DB_CONST.USER.ACTIVE_2FA.DISABLED
 		);
 	}
 
@@ -227,7 +227,7 @@ export class User {
 			data.status ?? DB_CONST.USER.STATUS.OFFLINE,
 			0, // isDeleted à 0 par défaut
 			DB_CONST.USER.REGISTER_FROM.LOCAL, // registerFrom par défaut
-			0, // active2Fa à 0 par défaut
+			DB_CONST.USER.ACTIVE_2FA.DISABLED, // active2Fa à disabled par défaut
 		);
 	}
 
