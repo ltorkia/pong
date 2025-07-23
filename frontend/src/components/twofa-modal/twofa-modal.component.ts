@@ -342,13 +342,13 @@ export class TwofaModalComponent extends BaseComponent {
 	 */
 	private handleCodeSubmit = async (event: Event): Promise<void> => {
 		event.preventDefault();
-		const method = (event.target as HTMLInputElement).value;
 		let code: string | null = null;
-		if (method === DB_CONST.USER.ACTIVE_2FA.EMAIL_CODE) {
+		if (this.userTwofaMethod === DB_CONST.USER.ACTIVE_2FA.EMAIL_CODE) {
 			code = this.codeInputEmail.value.trim();
-		} else if (method === DB_CONST.USER.ACTIVE_2FA.QR_CODE) {
+		} else if (this.userTwofaMethod === DB_CONST.USER.ACTIVE_2FA.QR_CODE) {
 			code = this.codeInputQrCode.value.trim();
 		}
+		console.log(code);
 		if (!code) {
 			showAlert('Code required', 'twofa-error');
 			this.errorMsg.classList.remove('hidden');
