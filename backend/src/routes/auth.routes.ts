@@ -1,6 +1,6 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import bcrypt from 'bcrypt';
-import { RegisterInput, RegisterInputSchema, LoginInputSchema } from '../types/zod/auth.zod';
+import { RegisterInput, RegisterInputSchema, LoginInputSchema, TwoFAInputSchema, TwoFAInput } from '../types/zod/auth.zod';
 import { insertUser, getUser, getUserP, getUser2FA } from '../db/user';
 import {eraseCode2FA} from '../db/usermaj';
 import { ProcessAuth, clearAuthCookies,  GenerateEmailCode, GenerateQRCode  } from '../helpers/auth.helpers';
@@ -14,11 +14,12 @@ import { Readable } from 'stream';
 import { promises as fs } from 'fs';
 import * as speakeasy from 'speakeasy';
 
-async function doubleAuth(app: FastifyInstance) {
+export async function doubleAuth(app: FastifyInstance) {
     app.post('/2FAsend/:method', async (request: FastifyRequest, reply: FastifyReply) => {
 		const { method } = request.params as { method: string };
 		console.log("method = ", method);
-        const userdata = await LoginInputSchema.safeParse(request.body); //a modifier en pram : request.body.user
+		console.log(request.body);
+        const userdata = await TwoFAInputSchema.safeParse(request.body); //a modifier en pram : request.body.user
         if (!userdata.success) {
             const error = userdata.error.errors[0];
             console.log(error);
@@ -30,11 +31,11 @@ async function doubleAuth(app: FastifyInstance) {
 		const user = await getUser2FA(userdata.data.email);
 
         try {
-			// console.log(request);
-			if (method === 'email') //a changer apres avec = email
-				return await GenerateEmailCode(reply, userdata.data.email);
+			// console.log(request.body);
+			if (method === 'email' && (userdata.data.pageName === 'Settings' || user.active_2FA === 'email')) //a changer apres avec = email
+				await GenerateEmailCode(reply, userdata.data.email);
 			else if (method === 'qrcode' && !user.code2FaQrcode)
-				return await GenerateQRCode(reply, userdata.data.email);
+				await GenerateQRCode(reply, userdata.data.email);
 
 			return (reply.status(200).send({
 				statusCode: 200,
@@ -54,6 +55,7 @@ async function doubleAuth(app: FastifyInstance) {
     app.post('/2FAreceive/:method', async (request: FastifyRequest, reply: FastifyReply) => {
         const result = LoginInputSchema.safeParse(request.body); //c est le meme format que pour login input avec les memes checks
 		const { method } = request.params as { method: string };
+		console.log(request.body);
         if (!result.success) {
             const error = result.error.errors[0];
             return reply.status(400).send({
@@ -150,22 +152,21 @@ export async function authRoutes(app: FastifyInstance) {
 			
 
 			// SALUT !
-			// Ai rajouté le retour de l'avatar en cas d'erreur ( const result: AvatarResult = await GetAvatarFromBuffer ),
-			// parce que sans ça je récupère jamais les errorMessages de getAvatarFromBuffer, mais d'un autre
-			// côté j'ai aussi vu que t'as rajouté des cas d'erreur dans ton catch donc je sais pas
+			// Ai rajouté le retour de l'avatar en cas d'erreur ( const result: AvatarResult = await GetAvatarFromBuffer ), VV
+			// parce que sans ça je récupère jamais les errorMessages de getAvatarFromBuffer, mais d'un autre VV
+			// côté j'ai aussi vu que t'as rajouté des cas d'erreur dans ton catch donc je sais pas VV 
 
 			// Pour le 2FA (option sans 2FA quoi) j'ai rajouté vite fait les requêtes utilisateur pour pouvoir le stocker direct côté front
-			// apres registration, mais comme tu peux le voir ça fait trois requêtes d'un coup :
-			// faut récupérer le user apres l'insertion de l'avatar pour pouvoir check if (!user.active2Fa),
-			// et une autre fois après ProcessAuth pour avoir le majLastLog à jour etc...
-			// Y'a surement plus intuitif et plus propre, j'ai pas vraiment cherché plus loin je te laisse voir ça comme tu veux hihihiii
+			// apres registration, mais comme tu peux le voir ça fait trois requêtes d'un coup : 
+			// faut récupérer le user apres l'insertion de l'avatar pour pouvoir check if (!user.active2Fa), --> pas necessaire car dans registeur donc balek
+			// et une autre fois après ProcessAuth pour avoir le majLastLog à jour etc... VV
+			// Y'a surement plus intuitif et plus propre, j'ai pas vraiment cherché plus loin je te laisse voir ça comme tu veux hihihiii VV
 
-			// Ai aussi rajouté le await devant les ProcessAuth et GetAvatarFromBuffer parce que ça merdait dans mes tests
-			// depuis ces dernières modifs. Valaaa c'est tout pour register O_O
+			// Ai aussi rajouté le await devant les ProcessAuth et GetAvatarFromBuffer parce que ça merdait dans mes tests VV
+			// depuis ces dernières modifs. VV Valaaa c'est tout pour register O_O
 
 			const userInfos: UserPassword = await getUserP(userToInsert.email);
 			if (avatarFile && avatarBuffer) {
-				// const result: AvatarResult = await GetAvatarFromBuffer(reply, userInfos, avatarFile, avatarBuffer);
 				const result: AvatarResult = await GetAvatarFromBuffer(reply, userInfos, avatarFile.mimetype, avatarBuffer);
 				if (result.success === false) {
 					return reply.status(result.statusCode!).send({
@@ -175,9 +176,8 @@ export async function authRoutes(app: FastifyInstance) {
 				}
 			}
 
-			let user: UserModel = await getUser(null, userToInsert.email);
+			let user = await getUser(null, userToInsert.email);
 			await ProcessAuth(app, userInfos, reply);
-			user = await getUser(null, userToInsert.email);
 
 			return reply.status(200).send({
 				statusCode: 200,
@@ -313,9 +313,6 @@ export async function authRoutes(app: FastifyInstance) {
 				}
 			}
 			
-			
-			// const avatarFile = payloadDecoded.picture;
-			console.log("url picture = ", payloadDecoded.picture);
 			const avatarUrl = payloadDecoded.picture ?? DB_CONST.USER.DEFAULT_AVATAR;
 			if (avatarUrl != DB_CONST.USER.DEFAULT_AVATAR){
 				const response = await fetch(avatarUrl);
@@ -338,20 +335,6 @@ export async function authRoutes(app: FastifyInstance) {
 					});
 				}
 			}
-			// if (result.success === false) {
-			// 	return reply.status(result.statusCode!).send({
-				// 		statusCode: result.statusCode,
-				// 		errorMessage: result.errorMessage || 'Erreur lors de l’insertion de l’avatar',
-				// 	});
-				// }
-				
-
-		// if (!response.ok) {
-		// 	throw new Error(`Erreur lors du téléchargement de l'image : ${response.status}`);
-		// }
-
-			// On update l'avatar Google en bdd à chaque reconnexion
-			// await insertAvatar(avatar, username);
 
 			await ProcessAuth(app, user, reply);
 			const userData: UserModel = await getUser(null, email);

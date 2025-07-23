@@ -16,6 +16,7 @@ import { TwoFaMethod } from '../../shared/types/user.types';
 // ===========================================
 
 export class TwofaModalComponent extends BaseComponent {
+	private resolveShowPromise: (() => void) | null = null;
 	private originalPageName!: string;
 	private userTwofaMethod!: TwoFaMethod;
 	private userData!: Record<string, string>;
@@ -80,7 +81,7 @@ export class TwofaModalComponent extends BaseComponent {
 		this.emailContainer = getHTMLElementById('twofa-email-container', this.form) as HTMLElement;
 		this.qrcodeContainer = getHTMLElementById('twofa-qrcode-container', this.form) as HTMLElement;
 		this.qrcodeImgDiv = getHTMLElementById('twofa-qrcode', this.qrcodeContainer) as HTMLImageElement;
-		this.emailCodeSubmitBtn = getHTMLElementById('twofa-form', this.container) as HTMLFormElement;
+		this.emailCodeSubmitBtn = getHTMLElementById('twofa-email-code-submit-btn', this.container) as HTMLFormElement;
 		this.qrCodeSubmitBtn = getHTMLElementById('twofa-qrcode-submit-btn', this.qrcodeContainer) as HTMLButtonElement;
 		this.resendEmailCodeBtn = getHTMLElementById('twofa-email-resend-btn', this.emailContainer) as HTMLButtonElement;
 		this.twofaBackBtn = getHTMLElementById('twofa-back-btn', this.form) as HTMLButtonElement;
@@ -159,25 +160,29 @@ export class TwofaModalComponent extends BaseComponent {
 	 * d'entrée du modal est terminée.
 	 */
 	public async show(): Promise<void> {
-		this.container.classList.remove('hidden');
-		this.codeInputEmail.value = '';
-		this.codeInputQrCode.value = '';
-		this.errorMsg.classList.add('hidden');
+		return new Promise<void>(async (resolve) => {
+			this.resolveShowPromise = resolve;
+			this.container.classList.remove('hidden');
+			this.codeInputEmail.value = '';
+			this.codeInputQrCode.value = '';
+			this.errorMsg.classList.add('hidden');
 
-		if (this.userTwofaMethod === DB_CONST.USER.ACTIVE_2FA.DISABLED) {
-			return;
-		}
-		if (this.userTwofaMethod === DB_CONST.USER.ACTIVE_2FA.EMAIL_CODE) {
-			this.pageTitle.textContent = 'Code by email';
-			await this.handleSendEmailCode();
-			this.emailContainer.classList.remove('hidden');
-		}
-		if (this.userTwofaMethod === DB_CONST.USER.ACTIVE_2FA.QR_CODE) {
-			this.pageTitle.textContent = 'QR code';
-			await this.handleSendQrCode();
-			this.qrcodeContainer.classList.remove('hidden');
-		}
-		await this.modalTransitionIn();
+			if (this.userTwofaMethod === DB_CONST.USER.ACTIVE_2FA.DISABLED) {
+				resolve();
+				return;
+			}
+			if (this.userTwofaMethod === DB_CONST.USER.ACTIVE_2FA.EMAIL_CODE) {
+				this.pageTitle.textContent = 'Code by email';
+				await this.handleSendEmailCode();
+				this.emailContainer.classList.remove('hidden');
+			}
+			if (this.userTwofaMethod === DB_CONST.USER.ACTIVE_2FA.QR_CODE) {
+				this.pageTitle.textContent = 'QR code';
+				await this.handleSendQrCode();
+				this.qrcodeContainer.classList.remove('hidden');
+			}
+			await this.modalTransitionIn();
+		});
 	}
 
 	/**
@@ -236,6 +241,34 @@ export class TwofaModalComponent extends BaseComponent {
 	}
 
 	/**
+	 * Prépare les données utilisateur à envoyer selon la page d'origine.
+	 * 
+	 * Si la page d'origine est 'login' et que le mot de passe utilisateur est présent,
+	 * retourne un objet contenant l'email, le mot de passe, et le nom de la page.
+	 * Si la page d'origine n'est pas 'login' et que le mot de passe utilisateur est
+	 * absent, retourne un objet contenant uniquement l'email et le nom de la page.
+	 * 
+	 * @returns {Record<string, string>} Un objet contenant les données utilisateur
+	 * à envoyer.
+	 */
+	private getUserDataToSend(): Record<string, string> {
+		let dataToSend = {};
+		if (this.originalPageName === PAGE_NAMES.LOGIN && this.userData.password) {
+			dataToSend = {
+				email: this.userData.email,
+				password: this.userData.password,
+				pageName: this.originalPageName
+			}
+		} else if (this.originalPageName === PAGE_NAMES.SETTINGS && !this.userData.password) {
+			dataToSend = {
+				email: this.userData.email,
+				pageName: this.originalPageName
+			}
+		}
+		return dataToSend;
+	}
+
+	/**
 	 * Réinitialise les éléments du composant.
 	 * 
 	 * Réinitialise les champs, cache les messages d'erreur, réinitialise la sélection,
@@ -254,19 +287,19 @@ export class TwofaModalComponent extends BaseComponent {
 	// LISTENER HANDLERS
 	// ===========================================
 
-/**
- * Le back envoie un code de vérification par email pour l'authentification à deux facteurs (2FA).
- * 
- * Affiche un spinner pendant que le code est envoyé. Si l'envoi échoue, affiche un message
- * d'erreur et cache le container QR code. Si l'envoi réussit, affiche un message de succès
- * et affiche le container pour le code email.
- * 
- * @returns {Promise<void>} Une promesse qui se résout une fois que le code a été traité.
- */
-
+	/**
+	 * Le back envoie un code de vérification par email pour l'authentification à deux facteurs (2FA).
+	 * 
+	 * Affiche un spinner pendant que le code est envoyé. Si l'envoi échoue, affiche un message
+	 * d'erreur et cache le container QR code. Si l'envoi réussit, affiche un message de succès
+	 * et affiche le container pour le code email.
+	 * 
+	 * @returns {Promise<void>} Une promesse qui se résout une fois que le code a été traité.
+	 */
 	private async handleSendEmailCode(): Promise<void> {
 		showSpinner('twofa-spinner');
-		const res = await authService.send2FA(this.userData, this.userTwofaMethod);
+		const dataToSend = this.getUserDataToSend();
+		const res = await authService.send2FA(dataToSend, this.userTwofaMethod);
 		if (res.errorMessage) {
 			showAlert(res.errorMessage, 'twofa-error');
 			return;
@@ -275,19 +308,19 @@ export class TwofaModalComponent extends BaseComponent {
 		showAlert(`Code sent to ${this.userData.email}`, 'twofa-error', 'success');
 	}
 
-/**
- * La back envoie le QrCode pour l'authentification à deux facteurs (2FA).
- * 
- * Affiche un spinner pendant que le code est generé. Si l'envoi échoue, affiche un message
- * d'erreur et cache le container Email code. Si l'envoi réussit, affiche un message de succès
- * et affiche le container pour le QrCode.
- * 
- * @returns {Promise<void>} Une promesse qui se résout une fois que le code a été traité.
- */
-
+	/**
+	 * La back envoie le QrCode pour l'authentification à deux facteurs (2FA).
+	 * 
+	 * Affiche un spinner pendant que le code est generé. Si l'envoi échoue, affiche un message
+	 * d'erreur et cache le container Email code. Si l'envoi réussit, affiche un message de succès
+	 * et affiche le container pour le QrCode.
+	 * 
+	 * @returns {Promise<void>} Une promesse qui se résout une fois que le code a été traité.
+	 */
 	private async handleSendQrCode(): Promise<void> {
 		showSpinner('twofa-spinner');
-		const res = await authService.send2FA(this.userData, this.userTwofaMethod);
+		const dataToSend = this.getUserDataToSend();
+		const res = await authService.send2FA(dataToSend, this.userTwofaMethod);
 		if (res.errorMessage) {
 			showAlert(res.errorMessage, 'twofa-error');
 			return;
@@ -327,8 +360,6 @@ export class TwofaModalComponent extends BaseComponent {
 		}
 	}
 
-
-
 	/**
 	 * Gère la soumission du formulaire de code 2FA par code envoyé par email ou QR Code.
 	 * 
@@ -357,6 +388,7 @@ export class TwofaModalComponent extends BaseComponent {
 		const res = await authService.twofaConnect({
 			email: this.userData.email,
 			password: code,
+			pageName: this.originalPageName
 		}, this.userTwofaMethod);
 		if (res.errorMessage) {
 			showAlert(res.errorMessage, 'twofa-error');
@@ -364,6 +396,10 @@ export class TwofaModalComponent extends BaseComponent {
 			return;
 		}
 		await this.hide();
+		if (this.resolveShowPromise) {
+			this.resolveShowPromise();
+			this.resolveShowPromise = null;
+		}
 	};
 
 	/**

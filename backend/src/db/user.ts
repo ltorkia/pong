@@ -116,7 +116,7 @@ export async function getUserAllInfo(id: number) {
 export async function getUser2FA(email: string) {
 	const db = await getDb();
 	const user = await db.get(`
-		SELECT id, username, email, code_2FA_email, code_2FA_qrcode, code_2FA_expire_at, register_from
+		SELECT id, username, email, code_2FA_email, code_2FA_qrcode, code_2FA_expire_at, active_2FA, register_from
 		FROM User 
 		WHERE email = ?
 		`,

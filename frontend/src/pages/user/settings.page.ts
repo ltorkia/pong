@@ -402,7 +402,7 @@ export class SettingsPage extends BasePage {
 			}
 			modal.setUserTwofaMethod(method);
 			modal.setPageOrigin(PAGE_NAMES.SETTINGS);
-			modal.setUserData({email: this.currentUser!.email, pageName: PAGE_NAMES.SETTINGS});
+			modal.setUserData({email: this.currentUser!.email});
 
 			// Affiche le modal
 			await modal.show();
