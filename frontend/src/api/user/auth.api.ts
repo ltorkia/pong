@@ -1,5 +1,6 @@
 import { User } from '../../shared/models/user.model';
-import { UserModel } from '../../shared/types/user.types';	// en rouge car dossier local 'shared' != dossier conteneur
+import { UserModel, TwoFaMethod } from '../../shared/types/user.types';	// en rouge car dossier local 'shared' != dossier conteneur
+import { DB_CONST } from '../../shared/config/constants.config';
 import { currentService } from '../../services/index.service';
 import { BasicResponse, AuthResponse } from '../../types/api.types';
 import { secureFetch } from '../../utils/app.utils';
@@ -120,7 +121,7 @@ export class AuthApi {
 		if (!res.ok || data.errorMessage || !data.user) {
 			return { errorMessage: data.errorMessage || data.message || 'Erreur inconnue' } as AuthResponse;
 		}
-		if (!data.user.active2Fa) {
+		if (data.user.active2Fa === DB_CONST.USER.ACTIVE_2FA.DISABLED) {
 			await currentService.setCurrentUserFromServer(data.user);
 		}
 		return data as AuthResponse;
@@ -134,10 +135,11 @@ export class AuthApi {
 	 * et l'url du QrCode a générer si c'est l'option choisie par l'utilisateur.
 	 * 
 	 * @param {Record<string, string>} userData Informations de l'utilisateur à connecter.
+	 * @param {TwoFaMethod} method Méthode de 2FA choisie.
 	 * @returns {Promise<AuthResponse>} Promesse résolue avec une fois que le code est envoyé.
 	 */
-	public async send2FA(userData: Record<string, string>): Promise<AuthResponse> {
-		const res: Response = await fetch(`/api/auth/2FAsend`, {
+	public async send2FA(userData: Record<string, string>, method: TwoFaMethod): Promise<AuthResponse> {
+		const res: Response = await fetch(`/api/auth/2FAsend/${method}`, {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify(userData),
@@ -164,11 +166,12 @@ export class AuthApi {
 	 * contenant le message d'erreur.
 	 * 
 	 * @param {Record<string, string>} userData Informations de l'utilisateur à connecter.
+	 * @param {TwoFaMethod} method Méthode de 2FA choisie.
 	 * @returns {Promise<AuthResponse>} Promesse résolue avec les informations de l'utilisateur
 	 * authentifié ou un message d'erreur.
 	 */
-	public async twofaConnectUser(userData: Record<string, string>): Promise<AuthResponse> {
-		const res: Response = await fetch(`/api/auth/2FAreceive`, {
+	public async twofaConnectUser(userData: Record<string, string>, method: TwoFaMethod): Promise<AuthResponse> {
+		const res: Response = await fetch(`/api/auth/2FAreceive/${method}`, {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify(userData),

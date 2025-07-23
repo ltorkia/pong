@@ -22,17 +22,18 @@ export class DataService {
 	 * 
 	 * @param {number} id - Identifiant de l'utilisateur à mettre à jour
 	 * @param {Record<string, string>} userData - Objet contenant les propriétés à mettre à jour
+	 * @param {string} [alertDivId] - Identifiant de de la div où afficher l'alerte
 	 * @returns {Promise<boolean>} - Promesse qui se resout lorsque l'utilisateur est mis à jour
 	 */
-	public async updateUser(id: number, userData: Record<string, string>): Promise<boolean> {
+	public async updateUser(id: number, userData: Record<string, string>, alertDivId?: string): Promise<boolean> {
 		const result: AuthResponse = await dataApi.updateUser(id, userData);
 		if (result.errorMessage) {
 			console.error(`[${this.constructor.name}] Erreur de mise à jour utilisateur.`);
-			showAlert(result.errorMessage);
+			showAlert(result.errorMessage, alertDivId);
 			return false;
 		}
 		console.log(`[${this.constructor.name}] Utilisateur mis à jour.`);
-		showAlert('Infos successfully updated.', 'alert', 'success');
+		showAlert('Infos successfully updated.', alertDivId, 'success');
 		return true;
 	}
 

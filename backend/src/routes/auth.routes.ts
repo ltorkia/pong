@@ -176,9 +176,7 @@ export async function authRoutes(app: FastifyInstance) {
 			}
 
 			let user: UserModel = await getUser(null, userToInsert.email);
-			// if (!user.active2Fa) {
-				await ProcessAuth(app, userInfos, reply);
-			// }
+			await ProcessAuth(app, userInfos, reply);
 			user = await getUser(null, userToInsert.email);
 
 			return reply.status(200).send({
@@ -238,9 +236,7 @@ export async function authRoutes(app: FastifyInstance) {
 			}
 
 			const user: UserModel = await getUser(validUser.id);
-			if (!user.active2Fa) {
-				console.log(user, user.active2Fa);
-				console.log("on process authhhhhhhhhhhhhhhhhhhhhhhhhhhhh");
+			if (user.active2Fa === DB_CONST.USER.ACTIVE_2FA.DISABLED) {
 				await ProcessAuth(app, validUser, reply);
 			}
 
