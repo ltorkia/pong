@@ -20,13 +20,14 @@ export class TwofaModalComponent extends BaseComponent {
 	private userTwofaMethod!: TwoFaMethod;
 	private userData!: Record<string, string>;
 	private pageTitle!: HTMLElement;
-	private form!: HTMLFormElement;
+	private form!: HTMLDivElement;
 	private codeInputEmail!: HTMLInputElement;
 	private codeInputQrCode!: HTMLInputElement;
 	private errorMsg!: HTMLElement;
 	private emailContainer!: HTMLElement;
 	private qrcodeContainer!: HTMLElement;
 	private qrcodeImgDiv!: HTMLImageElement;
+	private emailCodeSubmitBtn!: HTMLFormElement;
 	private qrCodeSubmitBtn!: HTMLButtonElement;
 	private resendEmailCodeBtn!: HTMLButtonElement;
 	private twofaBackBtn!: HTMLButtonElement;
@@ -72,13 +73,14 @@ export class TwofaModalComponent extends BaseComponent {
 	 */
 	protected async beforeMount(): Promise<void> {
 		this.pageTitle = getHTMLElementByClass('under-title', this.container) as HTMLElement;
-		this.form = getHTMLElementById('twofa-form', this.container) as HTMLFormElement;
+		this.form = getHTMLElementById('twofa-form', this.container) as HTMLDivElement;
 		this.codeInputEmail = getHTMLElementById('twofa-code-email', this.form) as HTMLInputElement;
 		this.codeInputQrCode = getHTMLElementById('twofa-code-qrcode', this.form) as HTMLInputElement;
 		this.errorMsg = getHTMLElementById('twofa-error', this.form) as HTMLElement;
 		this.emailContainer = getHTMLElementById('twofa-email-container', this.form) as HTMLElement;
 		this.qrcodeContainer = getHTMLElementById('twofa-qrcode-container', this.form) as HTMLElement;
 		this.qrcodeImgDiv = getHTMLElementById('twofa-qrcode', this.qrcodeContainer) as HTMLImageElement;
+		this.emailCodeSubmitBtn = getHTMLElementById('twofa-form', this.container) as HTMLFormElement;
 		this.qrCodeSubmitBtn = getHTMLElementById('twofa-qrcode-submit-btn', this.qrcodeContainer) as HTMLButtonElement;
 		this.resendEmailCodeBtn = getHTMLElementById('twofa-email-resend-btn', this.emailContainer) as HTMLButtonElement;
 		this.twofaBackBtn = getHTMLElementById('twofa-back-btn', this.form) as HTMLButtonElement;
@@ -95,7 +97,7 @@ export class TwofaModalComponent extends BaseComponent {
 	 */
 	protected attachListeners(): void {
 		this.resendEmailCodeBtn.addEventListener('click', this.handleResendEmailCode);
-		this.form.addEventListener('submit', this.handleCodeSubmit);
+		this.emailCodeSubmitBtn.addEventListener('click', this.handleCodeSubmit);
 		this.qrCodeSubmitBtn.addEventListener('click', this.handleCodeSubmit);
 		this.container.addEventListener('click', this.handleBackgroundClick);
 		this.twofaBackBtn.addEventListener('click', this.leaveOnBtnClick);
@@ -106,7 +108,7 @@ export class TwofaModalComponent extends BaseComponent {
 	 */
 	protected removeListeners(): void {
 		this.resendEmailCodeBtn.removeEventListener('click', this.handleResendEmailCode);
-		this.form.addEventListener('submit', this.handleCodeSubmit);
+		this.emailCodeSubmitBtn.addEventListener('click', this.handleCodeSubmit);
 		this.qrCodeSubmitBtn.removeEventListener('click', this.handleCodeSubmit);
 		this.container.removeEventListener('click', this.handleBackgroundClick);
 		this.twofaBackBtn.removeEventListener('click', this.leaveOnBtnClick);
@@ -334,13 +336,13 @@ export class TwofaModalComponent extends BaseComponent {
 	 * qu'utilisateur et ferme le modal. Si le code est invalide, affiche un message
 	 * d'erreur.
 	 * 
-	 * @param {SubmitEvent} event L'événement de soumission du formulaire.
+	 * @param {Event} event L'événement de soumission des données.
 	 * @returns {Promise<void>} Une promesse qui se résout une fois que la connexion
 	 *                          est terminée.
 	 */
-	private handleCodeSubmit = async (event: Event | SubmitEvent): Promise<void> => {
+	private handleCodeSubmit = async (event: Event): Promise<void> => {
 		event.preventDefault();
-		const method = (event.target as HTMLSelectElement).value;
+		const method = (event.target as HTMLInputElement).value;
 		let code: string | null = null;
 		if (method === DB_CONST.USER.ACTIVE_2FA.EMAIL_CODE) {
 			code = this.codeInputEmail.value.trim();
