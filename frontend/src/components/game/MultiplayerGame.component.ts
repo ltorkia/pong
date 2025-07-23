@@ -110,6 +110,7 @@ export class MultiPlayerGame {
             if ((event.key == "w" && this.inputUp == true) || (event.key == "s" && this.inputDown == true))
                 return;
             this.playerWebSocket.send(JSON.stringify({
+                type: "movement",
                 playerID: this.playerID,
                 gameID: this.gameID,
                 key: event.key,
@@ -120,6 +121,7 @@ export class MultiPlayerGame {
             if ((event.key == "w" && this.inputUp == true) || (event.key == "s" && this.inputDown == true))
                 return;
             this.playerWebSocket.send(JSON.stringify({
+                type: "movement",
                 playerID: this.playerID,
                 gameID: this.gameID,
                 key: event.key,
@@ -182,7 +184,12 @@ export class MultiPlayerGame {
     };
 
     public async initGame(): Promise<void> {
-        const canvasContainer: HTMLElement = document.getElementById("pong-section")!;
+        const parentContainer: HTMLElement = document.getElementById("pong-section")!;
+        const canvasContainer = document.createElement("div");
+        // canvasContainer.style.height = parentContainer.getBoundingClientRect().height.toString();
+        // canvasContainer.style.width = parentContainer.getBoundingClientRect().width.toString();
+        canvasContainer.className = "canvas-container";
+        parentContainer.append(canvasContainer);
         this.gameCanvas.height = canvasContainer.getBoundingClientRect().height;    // will need to update that every frame later (responsiveness)
         this.gameCanvas.width = canvasContainer.getBoundingClientRect().width;
         this.gameCanvas.style.border = "1px solid black";

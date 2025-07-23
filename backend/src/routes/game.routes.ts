@@ -1,21 +1,22 @@
 import { FastifyInstance } from 'fastify';
-// import websocket from '@fastify/websocket';
 import { PositionObj, GameData, Player } from '../shared/types/game.types'
 import { Game, GameInstance, Lobby } from '../types/game.types';
-// import { Player } from '../types/game.types'
+
+const MAX_GAMES = 100;
+const MAX_PLAYERS = MAX_GAMES * 2;
 
 function sendMsg(socket: WebSocket, content: string) {
-    socket.send(JSON.stringify({type: "msg", msg: content}));
+    socket.send(JSON.stringify({ type: "msg", msg: content }));
 }
 
-function startGame(p1: Player, p2: Player, lobby: Lobby) {
+function startGame(p1: Player, p2: Player, allGames: Game[]) {
     let players: Player[] = [];
     players.push(p1);
     players.push(p2);
     const gameInstance = new GameInstance(2, players);
-    const game = new Game(lobby.games.length, 0, gameInstance, players);
-    lobby.games.push(game);
-    const gameID = lobby.games.length;
+    const gameID = Math.floor(Math.random() * MAX_GAMES);
+    const game = new Game(gameID, 0, gameInstance, players);
+    allGames.push(game);
     sendMsg(p1.webSocket, `player id = ${p1.playerID} and game id = ${gameID}`);
     sendMsg(p2.webSocket, `player id = ${p2.playerID} and game id = ${gameID}`);
     console.log(`GAME PLAYER LENGTH = ${game.players.length}`)
@@ -34,79 +35,71 @@ function startGame(p1: Player, p2: Player, lobby: Lobby) {
     gameInstance.initGame();
 }
 
-function matchMaking(allPlayers: Player[], newPlayer: Player, app: FastifyInstance) {
+function matchMaking(newPlayer: Player | null, allPlayers: Player[], allGames: Game[]) {
+    console.log("coucou matchmaking")
+    if (!newPlayer || allPlayers.length <= 1)
+        return; 
     for (const player of allPlayers) {
-        if (player.playerID != newPlayer.playerID && player.inGame == false) {
-            console.log(player.playerID, newPlayer.playerID);
+        // console.log(`playerid = ${player.playerID} newplayer id = ${newPlayer.playerID}`)
+        if (player != newPlayer && player.ready && !player.inGame) {
+            console.log("MATCHED TWO PLAYERS !")
             player.inGame = newPlayer.inGame = true;
-            startGame(player, newPlayer, app.lobby);
+            startGame(player, newPlayer, allGames);
         }
     }
 }
 
-const markPlayersOff = (players: Player[]) => {
-    for (const player of players) {
-        player.inGame = false;
+const findPlayerByWebSocket = (newPlayerWebSocket: WebSocket | null, allPlayers: Player[]) => {
+    for (const player of allPlayers) {
+        if (player.webSocket == newPlayerWebSocket)
+            return (player);
     }
-}
-
-const setPlayersOffGame = (playerLeft: Player, allGames: Game[]) => {
-    for (const game of allGames) {
-        // console.log(game);
-        for (let i = 0; i < game.players.length; i++) {
-            if (game.players[i] && game.players[i].webSocket == playerLeft.webSocket) {
-                console.log("players set off game");
-                game.instance.setGameStarted(false);
-                markPlayersOff(game.players);
-                allGames.slice(i, 1);
-            }
-            console.log(game.players.length);
-            console.log("ocucou toi")
-        }
-        console.log("kikoo");
-    }
+    return (null);
 }
 
 export async function gameRoutes(app: FastifyInstance) {
     app.get('/ws/multiplayer', { websocket: true }, (connection: any, req: any) => {
         const allPlayers: Player[] = app.lobby.allPlayers;
-        // connection.send("CONNECTED!");
-        // connection.on('open', () => {
-        //     console.log("OPEEEN");
-        // })
+        const allGames: Game[] = app.lobby.games;
+
         connection.on('message', (message: string) => {
-            const playerMvt: any = JSON.parse(message);
-            for (const game of app.lobby.games) {
-                if (game.id == playerMvt.gameID) game.instance.registerInput(
-                    playerMvt.playerID,
-                    playerMvt.key,
-                    playerMvt.status,
-                )
+            const msg: any = JSON.parse(message);
+            const player: Player | null = findPlayerByWebSocket(connection, allPlayers);
+            // console.log(msg);
+            if (msg.type == "ready" && player) {
+                player.ready = true;
+                matchMaking(player, allPlayers, allGames);
+            } else if (msg.type == "movement") {
+                if (allGames.find(game => game.id == msg.gameID))
+                    console.log("FOUND CORRESPONDING GAME")
+                allGames.find(game => game.id == msg.gameID)?.instance.registerInput(
+                    msg.playerID,
+                    msg.key,
+                    msg.status,
+                );
             }
-            console.log(playerMvt);
+            console.log(msg);
         });
- 
+
         connection.on('close', () => {
             console.log('Connection CLOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOSED');
-            for (let i = 0; i < allPlayers.length; i++) {
-                if (allPlayers[i].webSocket == connection) {
-                    setPlayersOffGame(allPlayers[i], app.lobby.games);
-                    // allPlayers.splice(i, 1);
-                }
-                console.log("searching for player");
+            // const playerLeft = findPlayerByWebSocket(connection, allPlayers);
+            const gameIdx = allGames.findIndex(game => game.players.find(player => player.webSocket == connection));
+            if (gameIdx !== -1) {
+                allGames[gameIdx].instance.setGameStarted(false);
+                allGames[gameIdx].players.map(player => player.inGame = player.ready = false);
+                allGames.splice(gameIdx, 1);
             }
-            console.log("after close nb players = ", allPlayers.length);
+            const playerLeftIdx = allPlayers.findIndex(player => player.webSocket == connection);
+            if (playerLeftIdx !== -1)
+                allPlayers.splice(playerLeftIdx, 1);
         });
-        const newPlayer = new Player(allPlayers.length, connection);
-        for (const player of allPlayers) {
-            if (player.webSocket == connection) {
-                console.log("player already in");
-                return ;
-            }
-        }
-        allPlayers.push(new Player(allPlayers.length, connection));
-        if (allPlayers.length > 1)
-            matchMaking(allPlayers, newPlayer, app);
+
+        const newPlayer = new Player(Math.floor(Math.random() * MAX_PLAYERS), connection);
+
+        if (allPlayers.findIndex(player => player.webSocket == connection) != -1)
+            return;
+        allPlayers.push(newPlayer);
         console.log(allPlayers.length);
     });
 }

@@ -22,6 +22,7 @@ export class Player {
 	public playerID: number;
 	public webSocket: WebSocket;
 	public inGame: boolean;
+	public ready: boolean;
 	public pos = { x: 0, y: 0 };
 	public height: number;
 	public width: number;
@@ -39,6 +40,7 @@ export class Player {
 		this.playerID = playerID;
 		this.webSocket = webSocket;
 		this.inGame = false;
+		this.ready = false;
 		this.width = 0.02;
 		this.height = 0.30;
 	} 

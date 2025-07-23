@@ -100,7 +100,7 @@ export class GameInstance {
                 await sleep(fps - (now - then));
             this.sendGameUpdate();
             then = Date.now();
-            console.log(`frame = ${frame++} game status = ${this.gameStarted}!`);
+            console.log(`frame = ${frame++} p1 id ${this.players[0].playerID} = ${this.players[0].pos.x} ${this.players[0].pos.y} !`);
         }
         console.log("EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEND");
         console.log("GAME ENDEED");
@@ -113,7 +113,7 @@ export class GameInstance {
             this.players[0].pos.x = -1 + this.players[0].width / 2;
             this.players[0].pos.y = this.players[1].pos.y = 0;
             this.players[1].pos.x = 1 - this.players[0].width / 2;
-            console.log("player width = ", this.players[0].width / 2);
+            // console.log("player width = ", this.players[0].width / 2);
         }
     };
 
@@ -150,7 +150,7 @@ export class GameInstance {
                 else if (key == "s" && player.inputDown != status) player.inputDown = status;
             }
         }
-    }
+    };
 
     public setGameStarted(started: boolean) {this.gameStarted = started};
 };

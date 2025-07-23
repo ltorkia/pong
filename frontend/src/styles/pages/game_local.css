@@ -15,4 +15,9 @@
 	#counter {
 		@apply font-title text-8xl
 	}
+
+	.canvas-container {
+		@apply h-full w-full
+	}
+
 }

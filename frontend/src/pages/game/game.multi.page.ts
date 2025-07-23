@@ -17,13 +17,45 @@ export class GameMenuMulti extends BasePage {
         errorDiv.textContent = "Network error. Please try again later";
         document.getElementById("pong-section")!.append(errorDiv);
     }
-    
+
+    private appendWaitText(): void {
+        const waitDiv: HTMLElement | null = document.getElementById("wait-div");
+        if (!waitDiv) {
+            const lobby: HTMLElement = document.createElement("div");
+            lobby.textContent = "Waiting for other players to connect...";
+            lobby.id = "wait-div";
+            document.getElementById("pong-section")?.append(lobby);
+        }
+    }
+
     protected initLobby(): void {
-        const lobby = document.createElement("div").textContent = "Waiting for other players to connect...";
-        document.getElementById("pong-section")?.append(lobby);
+        document.addEventListener("keydown", (event) => {
+            if (event.key == " ") {
+                this.webSocket.send(JSON.stringify({
+                    type: "ready",
+                }))
+                this.appendWaitText();
+            }
+            const nodes: NodeListOf<HTMLElement> = document.querySelectorAll(".control");
+            for (const node of nodes) {
+                if (node.dataset.key == event.key)
+                    node.classList.add("button-press");
+            }
+        }
+        );
+        document.addEventListener("keyup", (event) => {
+            const nodes: NodeListOf<HTMLElement> = document.querySelectorAll(".control");
+            for (const node of nodes) {
+                if (node.dataset.key == event.key)
+                    node.classList.remove("button-press");
+            }
+        });
     }
 
     private initGame(playerID: number, gameID: number): void {
+        const allChildren = document.getElementById("pong-section");
+        while (allChildren?.firstChild)
+            allChildren.firstChild.remove();
         this.game = new MultiPlayerGame(2, this.webSocket, playerID, gameID);
         this.game.initGame();
     }
