@@ -40,7 +40,7 @@ export async function doubleAuth(app: FastifyInstance) {
 
 			return (reply.status(200).send({
 				statusCode: 200,
-				message: 'Code 2FA envoyé avec succès.'
+				message: 'Rentrez le code de votre app mobile'
 			}));
 
         } catch (err) {

@@ -3,10 +3,11 @@ import { getUser, getUserFriends, getUserGames, getUserChat, getAvatar, getUserA
 import { getAllUsers, getAllUsersInfos, getUsersWithPagination } from '../db/user';
 import { UserModel, SafeUserModel, PublicUser, Friends, PaginatedUsers, SortOrder, UserSortField, UserSearchField } from '../shared/types/user.types';
 import { insertAvatar } from '../db/usermaj';
+import { addUserFriend, updateRelationshipBlocked, updateRelationshipConfirmed } from '../db/friendmaj';
 import { Buffer } from 'buffer';
 import bcrypt from 'bcrypt';
 import { GetAvatarFromBuffer, bufferizeStream } from '../helpers/image.helpers';
-import { RegisterInputSchema, RegisterInput, ModUserInput, ModUserInputSchema } from '../types/zod/auth.zod';
+import { RegisterInputSchema, RegisterInput, ModUserInput, ModUserInputSchema, FriendsInputSchema, FriendInput } from '../types/zod/auth.zod';
 import { searchNewName } from '../helpers/auth.helpers';
 import { changeUserData } from '../db/usermaj';
 import { promises as fs } from 'fs';
@@ -62,6 +63,44 @@ export async function usersRoutes(app: FastifyInstance) {
 		if (!friends)
 			return reply.code(404).send({ Error : 'User not found'});
 		return friends;
+	})
+
+
+	app.get('/:id/friends/:action', async(request: FastifyRequest, reply: FastifyReply): Promise<PublicUser | void> => {
+		const { id } = request.params as { id: number };
+		const { action } = request.params as { action: string };
+		const result = FriendsInputSchema.safeParse(request.body); //a voir, peut etre selection d un friend deja existant
+		if (!result.success) {
+			const error = result.error.errors[0];
+			return reply.status(400).send({ statusCode: 400, errorMessage: error.message + " in " + error.path });
+		}
+		
+		const friends = getUserFriends(id);
+		const friend: PublicUser = await getUser(null, result.data.friend);
+		if (!friend)
+			return reply.code(404).send({ Error : 'User not found'});
+		if (action === 'add'){	
+			if (friend.id in friends)
+				return reply.code(404).send({ Error : 'Already friend'});
+			await addUserFriend(friend.id, id);
+			return reply.code(200).send({ Message : 'Ask to be friend confirmed'});
+		}
+		if (action === 'block')
+		{
+			if (friend.id in friends)
+				await updateRelationshipBlocked(friend.id, id);
+			else
+				return reply.code(404).send({ Error : 'not your friend'});
+			return reply.code(200).send({ Message : 'friend blocked'});			
+		}
+		if (action === 'confirm')
+		{
+			if (friend.id in friends)
+				await updateRelationshipConfirmed(friend.id, id);
+			else
+				return reply.code(404).send({ Error : 'not asked to be friend'});
+			return reply.code(200).send({ Message : 'friend successfully added'});			
+		}
 	})
 
 	app.get('/:id/games', async(request: FastifyRequest, reply: FastifyReply) => {

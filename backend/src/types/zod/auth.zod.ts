@@ -18,15 +18,6 @@ export const TwoFAInputSchema = z.object({
 	pageName: z.string(),
 });
 
-// export const ModUserInputSchema = z.object({
-// 	username: z.string().optional() ,
-// 	email: z.string().email().optional(),
-// 	currPassword: z.string().min(3).nullable().optional(),
-// 	newPassword: z.string().min(3).nullable().optional(),
-// 	activeTwoFa: z.TwoFaMethod.optional(),
-// });
-
-// import { z } from 'zod';
 
 export const ModUserInputSchema = z.object({
   username: z.string().optional(),
@@ -40,7 +31,12 @@ export const ModUserInputSchema = z.object({
   ]).optional(),
 });
 
+export const FriendsInputSchema = z.object({
+  friend: z.string(),
+});
+
 export type ModUserInput = z.infer<typeof ModUserInputSchema>;
 export type RegisterInput = z.infer<typeof RegisterInputSchema>;
 export type LoginInput = z.infer<typeof LoginInputSchema>;
 export type TwoFAInput = z.infer<typeof TwoFAInputSchema>;
+export type FriendInput = z.infer<typeof FriendsInputSchema>;
