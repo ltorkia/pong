@@ -29,14 +29,14 @@ export async function doubleAuth(app: FastifyInstance) {
             });
         }
 		const user = await getUser2FA(userdata.data.email);
-		console.log("i m heeeeeeeerrrrre");
+		// console.log("i m heeeeeeeerrrrre");
 
         try {
-			// console.log(request.body);
+			console.log(request.body);
 			if (method === 'email' && (userdata.data.pageName === 'Settings' || user.active2Fa === 'email')) //a changer apres avec = email
 				await GenerateEmailCode(reply, userdata.data.email);
-			else if (method === 'qrcode' && !user.code2FaQrcode)
-				await GenerateQRCode(reply, userdata.data.email);
+			else if (method === 'qrcode' && (userdata.data.pageName === 'Settings'))
+				return await GenerateQRCode(reply, userdata.data.email);
 
 			return (reply.status(200).send({
 				statusCode: 200,

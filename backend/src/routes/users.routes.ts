@@ -171,8 +171,8 @@ export async function usersRoutes(app: FastifyInstance) {
 			const dataUser = await getUserAllInfo(id);
 			let dataUserToUpdate = dataUser; //prend par defaut toutes les infos de base de l user
 			
-			if (dataUserReceived.active2Fa)
-				dataUserToUpdate.active2Fa = dataUserReceived.active2Fa;
+			if (dataUserReceived.twoFaMethod)
+				dataUserToUpdate.active2Fa = dataUserReceived.twoFaMethod;
 
 			// check modification pour username
 			if (dataUserReceived.username && dataUser.username != dataUserReceived.username)
