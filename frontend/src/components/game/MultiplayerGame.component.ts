@@ -185,19 +185,16 @@ export class MultiPlayerGame {
 
     public async initGame(): Promise<void> {
         const parentContainer: HTMLElement = document.getElementById("pong-section")!;
-        const canvasContainer = document.createElement("div");
-        // canvasContainer.style.height = parentContainer.getBoundingClientRect().height.toString();
-        // canvasContainer.style.width = parentContainer.getBoundingClientRect().width.toString();
-        canvasContainer.className = "canvas-container";
-        parentContainer.append(canvasContainer);
-        this.gameCanvas.height = canvasContainer.getBoundingClientRect().height;    // will need to update that every frame later (responsiveness)
-        this.gameCanvas.width = canvasContainer.getBoundingClientRect().width;
+        this.gameCanvas.height = parentContainer.getBoundingClientRect().height * 0.9;    // will need to update that every frame later (responsiveness)
+        this.gameCanvas.width = parentContainer.getBoundingClientRect().width * 0.9;
         this.gameCanvas.style.border = "1px solid black";
-        canvasContainer.append(this.gameCanvas);
+        parentContainer.append(this.gameCanvas);
         this.initSizePos();
         this.clearFillStyle = 0.3;
         this.attachListeners();
         this.gameStarted = true;
         this.frameReq = requestAnimationFrame(this.gameLoop.bind(this));
     };
+
+    public getGameStarted(): boolean {return (this.gameStarted)};
 }

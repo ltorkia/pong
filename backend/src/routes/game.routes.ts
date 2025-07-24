@@ -30,8 +30,6 @@ function startGame(p1: Player, p2: Player, allGames: Game[]) {
         playerID: p2.playerID,
         gameID: gameID,
     }));
-    // p1.webSocket.send(`player id = ${p1.playerID} and game id = ${gameID}`);
-    // p2.webSocket.send(`player id = ${p2.playerID} and game id = ${gameID}`);
     gameInstance.initGame();
 }
 
@@ -40,7 +38,6 @@ function matchMaking(newPlayer: Player | null, allPlayers: Player[], allGames: G
     if (!newPlayer || allPlayers.length <= 1)
         return; 
     for (const player of allPlayers) {
-        // console.log(`playerid = ${player.playerID} newplayer id = ${newPlayer.playerID}`)
         if (player != newPlayer && player.ready && !player.inGame) {
             console.log("MATCHED TWO PLAYERS !")
             player.inGame = newPlayer.inGame = true;
@@ -72,10 +69,10 @@ export async function gameRoutes(app: FastifyInstance) {
             } else if (msg.type == "movement") {
                 if (allGames.find(game => game.id == msg.gameID))
                     console.log("FOUND CORRESPONDING GAME")
-                allGames.find(game => game.id == msg.gameID)?.instance.registerInput(
-                    msg.playerID,
-                    msg.key,
-                    msg.status,
+                    allGames.find(game => game.id == msg.gameID)?.instance.registerInput(
+                        msg.playerID,
+                        msg.key,
+                        msg.status,
                 );
             }
             console.log(msg);
@@ -83,7 +80,6 @@ export async function gameRoutes(app: FastifyInstance) {
 
         connection.on('close', () => {
             console.log('Connection CLOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOSED');
-            // const playerLeft = findPlayerByWebSocket(connection, allPlayers);
             const gameIdx = allGames.findIndex(game => game.players.find(player => player.webSocket == connection));
             if (gameIdx !== -1) {
                 allGames[gameIdx].instance.setGameStarted(false);

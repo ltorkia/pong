@@ -30,7 +30,7 @@ export class GameMenuMulti extends BasePage {
 
     protected initLobby(): void {
         document.addEventListener("keydown", (event) => {
-            if (event.key == " ") {
+            if (event.key == " " && !this.game?.getGameStarted()) {
                 this.webSocket.send(JSON.stringify({
                     type: "ready",
                 }))
