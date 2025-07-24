@@ -1,5 +1,5 @@
 import { particlesService } from '../index.service';
-import { animationService } from '../index.service'
+import { animationService } from '../index.service';
 import { getHTMLElementById } from '../../utils/dom.utils';
 import { APP_ID } from '../../config/routes.config';
 import { RouteConfig, PageInstance } from '../../types/routes.types';

@@ -77,4 +77,30 @@ export class AnimationService {
 		setTimeout(() => container.classList.remove('scale-90'), 300);
 		await new Promise(resolve => setTimeout(resolve, 120));
 	}
+
+	/**
+	 * Transition du modal à l'entrée.
+	 * 
+	 * @returns {Promise<void>} Une promesse qui se résout lorsque la transition est terminée.
+	 */
+	public async modalTransitionIn(container: HTMLElement): Promise<void> {
+		container.classList.remove('hidden');
+		container.classList.remove('scale-100');
+		container.classList.add('scale-90');
+		container.getBoundingClientRect();
+		container.classList.replace('scale-90', 'scale-100');
+		await new Promise(resolve => setTimeout(resolve, 200));
+	}
+
+	/**
+	 * Transition du modal en sortie.
+	 * 
+	 * @returns {Promise<void>} Une promesse qui se résout lorsque la transition est terminée.
+	 */
+	public async modalTransitionOut(container: HTMLElement): Promise<void> {
+		container.classList.remove('scale-100');
+		container.classList.add('scale-90');
+		await new Promise(resolve => setTimeout(resolve, 200)); // attend la fin du scale
+		container.classList.add('hidden');
+	}
 }

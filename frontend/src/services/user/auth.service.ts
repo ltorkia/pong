@@ -4,7 +4,7 @@ import { authApi } from '../../api/index.api';
 import { animationService } from '../index.service';
 import { AuthResponse, BasicResponse } from '../../types/api.types';
 import { isValidImage } from '../../utils/image.utils';
-import { DEFAULT_ROUTE, AUTH_FALLBACK_ROUTE } from '../../config/routes.config';
+import { DEFAULT_ROUTE, AUTH_FALLBACK_ROUTE, PAGE_NAMES } from '../../config/routes.config';
 import { REGISTERED_MSG } from '../../config/messages.config';
 import { DB_CONST } from '../../shared/config/constants.config';
 import { TwoFaMethod } from '../../shared/types/user.types';
@@ -116,8 +116,8 @@ export class AuthService {
 	 * Connecte un utilisateur après avoir vérifié son code 2FA.
 	 * 
 	 * Effectue une requête API pour connecter un utilisateur avec son code 2FA.
-	 * Si la connexion réussit, stocke l'utilisateur dans le store et le localStorage,
-	 * active l'animation d'entrée de la barre de navigation
+	 * Si la connexion réussit, stocke l'utilisateur dans le store et le localStorage.
+	 * Si l'utilisateur vient de la page 'login', active l'animation d'entrée de la barre de navigation
 	 * et redirige vers la page d'accueil.
 	 * 
 	 * @param {Record<string, string>} userData Informations de l'utilisateur à connecter.
@@ -135,10 +135,15 @@ export class AuthService {
 			}
 			console.log(`[${this.constructor.name}] Utilisateur connecté.`);
 
-			// Redirection home
-			animationService.animateNavbarOut = true;
-			await router.redirect(DEFAULT_ROUTE);
-
+			let isFromSettings = false;
+			if (userData.pageName && userData.pageName === PAGE_NAMES.SETTINGS) {
+				isFromSettings = true;
+			}
+			// Redirection home si l'utilisateur vient de la page login
+			if (!isFromSettings) {
+				animationService.animateNavbarOut = true;
+				await router.redirect(DEFAULT_ROUTE);
+			}
 			return result;
 		} catch (err) {
 			console.error(`[${this.constructor.name}] Erreur réseau ou serveur`, err);
