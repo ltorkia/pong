@@ -1,4 +1,4 @@
-import { RegisterMethod, UserSortField, SortOrder } from '../shared/types/user.types';	// en rouge car dossier local 'shared' != dossier conteneur
+import { RegisterMethod, TwoFaMethod ,UserSortField, SortOrder } from '../shared/types/user.types';	// en rouge car dossier local 'shared' != dossier conteneur
 
 export interface GoogleUserInfo {
 	email: string;
@@ -22,7 +22,7 @@ export interface UserForChangeData {
 	email: string;
 	password: string;
 	registerFrom: RegisterMethod;
-	activeTwoFA: string;
+	active2Fa: TwoFaMethod;
 }
 
 export interface User2FA {
@@ -32,7 +32,7 @@ export interface User2FA {
 	code2FaEmail?: string;
 	code2FaQrcode?: string;
 	code2FaExpireAt?: number;
-	active_2FA: string;
+	active2Fa: TwoFaMethod;
 	registerFrom: RegisterMethod;
 }
 

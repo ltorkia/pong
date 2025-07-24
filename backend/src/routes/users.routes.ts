@@ -10,6 +10,7 @@ import { RegisterInputSchema, RegisterInput, ModUserInput, ModUserInputSchema } 
 import { searchNewName } from '../helpers/auth.helpers';
 import { changeUserData } from '../db/usermaj';
 import { promises as fs } from 'fs';
+import { DB_CONST } from '../shared/config/constants.config';
 
 export async function usersRoutes(app: FastifyInstance) {
 	// pour afficher tous les users
@@ -136,7 +137,6 @@ export async function usersRoutes(app: FastifyInstance) {
 		
 			const { id } = request.params as { id: number };
 			const body = request.body as Record<string, any>; //c est bon any ?
-			console.log(request.body);
 			// Renommage explicite pour etre ok avec ts et js
 			if ("curr-password" in body) {
 				body["currPassword"] = body["curr-password"];
@@ -147,15 +147,11 @@ export async function usersRoutes(app: FastifyInstance) {
 				body["newPassword"] = body["new-password"];
 				delete body["new-password"];
 			}
-			
-			let twoFaMethod = 'ok';
 
 			if(body["currPassword"] == '')
 				body["currPassword"] = null;
 			if(body["newPassword"] == '')
 				body["newPassword"] = null;
-			if(body["twoFaMethod"] == 'disabled')
-				twoFaMethod = 'disabled';
 			
 			const result = ModUserInputSchema.safeParse(body);
 			if (!result.success) {
@@ -167,10 +163,9 @@ export async function usersRoutes(app: FastifyInstance) {
 			const dataUserReceived = result.data as ModUserInput; //datatext - a mod pour current et new pass
 			const dataUser = await getUserAllInfo(id);
 			let dataUserToUpdate = dataUser; //prend par defaut toutes les infos de base de l user
-			if (twoFaMethod != 'ok')
-				dataUserToUpdate.activeTwoFA = 'disabled';
-			else
-				dataUserToUpdate.activeTwoFA = dataUser.activeTwoFA;
+			
+			if (dataUserReceived.twoFaMethod)
+				dataUserToUpdate.active2Fa = dataUserReceived.twoFaMethod;
 
 			// check modification pour username
 			if (dataUserReceived.username && dataUser.username != dataUserReceived.username)
@@ -180,7 +175,7 @@ export async function usersRoutes(app: FastifyInstance) {
 					return {statusCode : 409, message : "Username already used.<br><b>" + await (searchNewName(dataUserToUpdate.username)) + "</b> is available."};
 				dataUserToUpdate.username = dataUserReceived.username;
 			}
-
+				
 			// check modification pour email
 			if (dataUserReceived.email && dataUser.email != dataUserReceived.email)
 			{
@@ -189,23 +184,24 @@ export async function usersRoutes(app: FastifyInstance) {
 					return {statusCode: 409, message : "Email already used"};
 				dataUserToUpdate.email = dataUserReceived.email;// console.log("user dans email diff", UserEmailCheck);
 			}
-
+				
 			// check modification pour password 
 			if (dataUserReceived.currPassword || dataUserReceived.newPassword)
 			{
 				if ((dataUserReceived.currPassword && !dataUserReceived.newPassword)
 					|| (!dataUserReceived.currPassword && dataUserReceived.newPassword))
-				return {statusCode: 400, message : "Please fill all the case of password to valid changement"};
+					return {statusCode: 400, message : "Please fill all the case of password to valid changement"};
 				if (dataUserReceived.currPassword && dataUserReceived.newPassword)
-					{
-						const isPassValid = await bcrypt.compare(dataUserReceived.currPassword, dataUser.password);
-						if (!isPassValid)
-							return {statusCode: 401, message : 'Password does not match.'};
-						dataUserToUpdate.password = await bcrypt.hash(dataUserReceived.newPassword, 10);
-					}
+				{
+					const isPassValid = await bcrypt.compare(dataUserReceived.currPassword, dataUser.password);
+					if (!isPassValid)
+						return {statusCode: 401, message : 'Password does not match.'};
+					dataUserToUpdate.password = await bcrypt.hash(dataUserReceived.newPassword, 10);
+				}
 			}
-
+							
 			// une fois infos verifiees, changement des datas puis recup du nouvel user
+			// console.log("-----------------------", dataUserToUpdate);
 			await changeUserData(id, dataUserToUpdate);
 			const user = await getUser(id);
 			return reply.status(200).send({

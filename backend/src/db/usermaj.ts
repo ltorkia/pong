@@ -24,7 +24,7 @@ export async function changeUserData(id: number, user: UserForChangeData)
                 SET username = ?, password = ?, email = ?, active_2FA = ?
                 WHERE (id = ?)
                `,
-       [user.username, user.password, user.email, user.activeTwoFA, user.id]);
+       [user.username, user.password, user.email, user.active2Fa, user.id]);
 }
 
 export async function changePassword(username: string, password: string)
