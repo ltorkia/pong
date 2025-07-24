@@ -106,15 +106,17 @@ export async function searchNewName(username: string) {
 	return username;
 }
 
-// import QRCode from 'qrcode'
-
-
 export async function GenerateQRCode(reply: FastifyReply, email: string)
 {
 	var secret = speakeasy.generateSecret();
 	const secretTwoFa = secret.base32;
-	insertCode2FAQrcode(email, secretTwoFa);
-	console.log("je suisi ici : ", secret.otpauth_url);
+	const resInsert = insertCode2FAQrcode(email, secretTwoFa);
+	if (!resInsert) {
+		return reply.status(500).send({
+			statusCode: 500,
+			errorMessage: 'Erreur lors de l’insertion du code 2FA'
+		});
+	}
 	return reply.status(200).send({statusCode: 200, otpauth_url: secret.otpauth_url})
 }
 

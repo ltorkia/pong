@@ -34,7 +34,7 @@ export async function doubleAuth(app: FastifyInstance) {
         try {
 			console.log(request.body);
 			if (method === 'email' && (userdata.data.pageName === 'Settings' || user.active2Fa === 'email')) //a changer apres avec = email
-				await GenerateEmailCode(reply, userdata.data.email);
+				return await GenerateEmailCode(reply, userdata.data.email);
 			else if (method === 'qrcode' && (userdata.data.pageName === 'Settings'))
 				return await GenerateQRCode(reply, userdata.data.email);
 

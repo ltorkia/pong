@@ -137,7 +137,6 @@ export async function usersRoutes(app: FastifyInstance) {
 		
 			const { id } = request.params as { id: number };
 			const body = request.body as Record<string, any>; //c est bon any ?
-			console.log(request.body);
 			// Renommage explicite pour etre ok avec ts et js
 			if ("curr-password" in body) {
 				body["currPassword"] = body["curr-password"];
@@ -148,12 +147,6 @@ export async function usersRoutes(app: FastifyInstance) {
 				body["newPassword"] = body["new-password"];
 				delete body["new-password"];
 			}
-
-			// if ("twoFaMethod" in body) {
-
-			// }
-			
-			// let twoFaMethod = 'ok';
 
 			if(body["currPassword"] == '')
 				body["currPassword"] = null;
@@ -176,40 +169,40 @@ export async function usersRoutes(app: FastifyInstance) {
 
 			// check modification pour username
 			if (dataUserReceived.username && dataUser.username != dataUserReceived.username)
-				{
-					const UserNameCheck = await getUser(null, dataUserReceived.username);
-					if (UserNameCheck && UserNameCheck.id != dataUser.id)
-						return {statusCode : 409, message : "Username already used.<br><b>" + await (searchNewName(dataUserToUpdate.username)) + "</b> is available."};
-					dataUserToUpdate.username = dataUserReceived.username;
-				}
+			{
+				const UserNameCheck = await getUser(null, dataUserReceived.username);
+				if (UserNameCheck && UserNameCheck.id != dataUser.id)
+					return {statusCode : 409, message : "Username already used.<br><b>" + await (searchNewName(dataUserToUpdate.username)) + "</b> is available."};
+				dataUserToUpdate.username = dataUserReceived.username;
+			}
 				
-				// check modification pour email
-				if (dataUserReceived.email && dataUser.email != dataUserReceived.email)
-					{
-						const UserEmailCheck = await getUser(null, dataUserReceived.email);
-						if (UserEmailCheck && UserEmailCheck.id != dataUser.id)
-							return {statusCode: 409, message : "Email already used"};
-						dataUserToUpdate.email = dataUserReceived.email;// console.log("user dans email diff", UserEmailCheck);
-					}
-					
-					// check modification pour password 
-					if (dataUserReceived.currPassword || dataUserReceived.newPassword)
-					{
-						if ((dataUserReceived.currPassword && !dataUserReceived.newPassword)
-							|| (!dataUserReceived.currPassword && dataUserReceived.newPassword))
-						return {statusCode: 400, message : "Please fill all the case of password to valid changement"};
-						if (dataUserReceived.currPassword && dataUserReceived.newPassword)
-						{
-							const isPassValid = await bcrypt.compare(dataUserReceived.currPassword, dataUser.password);
-							if (!isPassValid)
-								return {statusCode: 401, message : 'Password does not match.'};
-							dataUserToUpdate.password = await bcrypt.hash(dataUserReceived.newPassword, 10);
-						}
-					}
+			// check modification pour email
+			if (dataUserReceived.email && dataUser.email != dataUserReceived.email)
+			{
+				const UserEmailCheck = await getUser(null, dataUserReceived.email);
+				if (UserEmailCheck && UserEmailCheck.id != dataUser.id)
+					return {statusCode: 409, message : "Email already used"};
+				dataUserToUpdate.email = dataUserReceived.email;// console.log("user dans email diff", UserEmailCheck);
+			}
+				
+			// check modification pour password 
+			if (dataUserReceived.currPassword || dataUserReceived.newPassword)
+			{
+				if ((dataUserReceived.currPassword && !dataUserReceived.newPassword)
+					|| (!dataUserReceived.currPassword && dataUserReceived.newPassword))
+					return {statusCode: 400, message : "Please fill all the case of password to valid changement"};
+				if (dataUserReceived.currPassword && dataUserReceived.newPassword)
+				{
+					const isPassValid = await bcrypt.compare(dataUserReceived.currPassword, dataUser.password);
+					if (!isPassValid)
+						return {statusCode: 401, message : 'Password does not match.'};
+					dataUserToUpdate.password = await bcrypt.hash(dataUserReceived.newPassword, 10);
+				}
+			}
 							
-							// une fois infos verifiees, changement des datas puis recup du nouvel user
-							console.log("-----------------------", dataUserToUpdate);
-					await changeUserData(id, dataUserToUpdate);
+			// une fois infos verifiees, changement des datas puis recup du nouvel user
+			// console.log("-----------------------", dataUserToUpdate);
+			await changeUserData(id, dataUserToUpdate);
 			const user = await getUser(id);
 			return reply.status(200).send({
 				statusCode: 200,
