@@ -6,6 +6,7 @@ import { authService } from '../../services/index.service';
 import { BaseComponent } from '../base/base.component';
 import { RouteConfig } from '../../types/routes.types';
 import { ComponentConfig } from '../../types/components.types';
+import { animationService } from '../../services/index.service';
 import { showAlert, showSpinner, hideSpinner, getHTMLElementById, getHTMLElementByClass } from '../../utils/dom.utils';
 import { PAGE_NAMES } from '../../config/routes.config';
 import { DB_CONST } from '../../shared/config/constants.config';
@@ -16,7 +17,7 @@ import { TwoFaMethod } from '../../shared/types/user.types';
 // ===========================================
 
 export class TwofaModalComponent extends BaseComponent {
-	private resolveShowPromise: (() => void) | null = null;
+	private resolveShowPromise: ((result: { success: boolean; errorMessage?: string | null }) => void) | null = null;
 	private originalPageName!: string;
 	private userTwofaMethod!: TwoFaMethod;
 	private userData!: Record<string, string>;
@@ -156,19 +157,17 @@ export class TwofaModalComponent extends BaseComponent {
 	 * de saisie de code email et cache le message d'erreur. Effectue une transition
 	 * d'entrée pour le modal.
 	 * 
-	 * @returns {Promise<void>} Une promesse qui se résout lorsque la transition
+	 * @returns {Promise<boolean>} Une promesse qui se résout lorsque la transition
 	 * d'entrée du modal est terminée.
 	 */
-	public async show(): Promise<void> {
-		return new Promise<void>(async (resolve) => {
+	public async show(): Promise<{ success: boolean; errorMessage?: string | null }> {
+		return new Promise<{ success: boolean; errorMessage?: string | null }>(async (resolve) => {
 			this.resolveShowPromise = resolve;
-			this.container.classList.remove('hidden');
 			this.codeInputEmail.value = '';
 			this.codeInputQrCode.value = '';
-			this.errorMsg.classList.add('hidden');
 
 			if (this.userTwofaMethod === DB_CONST.USER.ACTIVE_2FA.DISABLED) {
-				resolve();
+				resolve({success: true});
 				return;
 			}
 			if (this.userTwofaMethod === DB_CONST.USER.ACTIVE_2FA.EMAIL_CODE) {
@@ -181,7 +180,7 @@ export class TwofaModalComponent extends BaseComponent {
 				await this.handleSendQrCode();
 				this.qrcodeContainer.classList.remove('hidden');
 			}
-			await this.modalTransitionIn();
+			await animationService.modalTransitionIn(this.container);
 		});
 	}
 
@@ -196,8 +195,7 @@ export class TwofaModalComponent extends BaseComponent {
 	 * transition de sortie du modal est terminée.
 	 */
 	public async hide(): Promise<void> {
-		await this.modalTransitionOut();
-		this.container.classList.add('hidden');
+		await animationService.modalTransitionOut(this.container);
 		this.reset();
 	}
 
@@ -220,25 +218,28 @@ export class TwofaModalComponent extends BaseComponent {
 		this.loadTemplate(template);
 	}
 
-	/**
-	 * Transition du modal à l'entrée.
-	 * 
-	 * @returns {Promise<void>} Une promesse qui se résout lorsque la transition est terminée.
-	 */
-	private async modalTransitionIn(): Promise<void> {
-		this.container.classList.add('modal-active');
-		await new Promise(resolve => setTimeout(resolve, 200));
-	}
+	// /**
+	//  * Transition du modal à l'entrée.
+	//  * 
+	//  * @returns {Promise<void>} Une promesse qui se résout lorsque la transition est terminée.
+	//  */
+	// private async modalTransitionIn(): Promise<void> {
+	// 	this.container.classList.remove('hidden');
+	// 	await new Promise(requestAnimationFrame);
+	// 	this.container.classList.add('modal-active');
+	// 	await new Promise(resolve => setTimeout(resolve, 100));
+	// }
 
-	/**
-	 * Transition du modal en sortie.
-	 * 
-	 * @returns {Promise<void>} Une promesse qui se résout lorsque la transition est terminée.
-	 */
-	private async modalTransitionOut(): Promise<void> {
-		this.container.classList.remove('modal-active');
-		await new Promise(resolve => setTimeout(resolve, 200));
-	}
+	// /**
+	//  * Transition du modal en sortie.
+	//  * 
+	//  * @returns {Promise<void>} Une promesse qui se résout lorsque la transition est terminée.
+	//  */
+	// private async modalTransitionOut(): Promise<void> {
+	// 	this.container.classList.remove('modal-active');
+	// 	await new Promise(resolve => setTimeout(resolve, 100));
+	// 	this.container.classList.add('hidden');
+	// }
 
 	/**
 	 * Prépare les données utilisateur à envoyer selon la page d'origine.
@@ -379,7 +380,6 @@ export class TwofaModalComponent extends BaseComponent {
 		} else if (this.userTwofaMethod === DB_CONST.USER.ACTIVE_2FA.QR_CODE) {
 			code = this.codeInputQrCode.value.trim();
 		}
-		console.log(code);
 		if (!code) {
 			showAlert('Code required', 'twofa-error');
 			this.errorMsg.classList.remove('hidden');
@@ -397,7 +397,7 @@ export class TwofaModalComponent extends BaseComponent {
 		}
 		await this.hide();
 		if (this.resolveShowPromise) {
-			this.resolveShowPromise();
+			this.resolveShowPromise?.({success: true});
 			this.resolveShowPromise = null;
 		}
 	};
@@ -427,6 +427,8 @@ export class TwofaModalComponent extends BaseComponent {
 	private handleBackgroundClick = async (event: MouseEvent): Promise<void> => {
 		if (event.target === this.container) {
 			await this.hide();
+			this.resolveShowPromise?.({success: false, errorMessage: 'Proccess interrupted.'});
+			this.resolveShowPromise = null;
 		}
 	};
 
@@ -441,6 +443,8 @@ export class TwofaModalComponent extends BaseComponent {
 	private leaveOnBtnClick = async (event: MouseEvent): Promise<void> => {
 		event.preventDefault();
 		await this.hide();
+		this.resolveShowPromise?.({success: false, errorMessage: 'Proccess interrupted.'});
+		this.resolveShowPromise = null;
 	};
 
 }

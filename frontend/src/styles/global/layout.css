@@ -4,6 +4,7 @@
 	#app {
 		@apply flex flex-col min-h-full items-center justify-center
 		transition-transform duration-300;
+		transform-origin: center center;
 	}
 
 	/* PAGE TITLE */

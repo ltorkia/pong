@@ -1,8 +1,8 @@
 import { BasePage } from '../base/base.page';
 import { RouteConfig } from '../../types/routes.types';
-import { dataService } from '../../services/index.service';
+import { currentService, dataService } from '../../services/index.service';
 import { authApi } from '../../api/index.api';
-import { toggleClass, getHTMLElementById, getHTMLElementByClass } from '../../utils/dom.utils';
+import { toggleClass, getHTMLElementById, getHTMLElementByClass, showAlert } from '../../utils/dom.utils';
 import { DB_CONST } from '../../shared/config/constants.config';
 import { TwoFaMethod } from '../../shared/types/user.types';
 import { TwofaModalComponent } from '../../components/twofa-modal/twofa-modal.component';
@@ -179,7 +179,6 @@ export class SettingsPage extends BasePage {
 
 		this.usernameContent.textContent = this.currentUser!.username;
 		this.usernameInput.value = this.currentUser!.username;
-
 		if (this.currentUser!.active2Fa === DB_CONST.USER.ACTIVE_2FA.EMAIL_CODE) {
 			this.twoFaEmailInput.checked = true;
 		} else if (this.currentUser!.active2Fa === DB_CONST.USER.ACTIVE_2FA.QR_CODE) {
@@ -368,6 +367,7 @@ export class SettingsPage extends BasePage {
 		this.hideAlerts();
 		const result = await dataService.updateUser(this.currentUser!.id, data, alertDivId);
 		if (result === true) {
+			this.currentUser = currentService.getCurrentUser();
 			this.preFillForm();
 		}
 	}
@@ -387,6 +387,7 @@ export class SettingsPage extends BasePage {
 	 * @returns {Promise<void>} - Une promesse qui se résout lorsque l'opération est terminée.
 	 */
 	private onTwoFaMethodChange = async (event: Event): Promise<void> => {
+		let result: { success: boolean; errorMessage?: string | null } = {success: true, errorMessage: null};
 		this.hideAlerts();
 		const target = event.target as HTMLInputElement;
 		const method = target.value as TwoFaMethod;
@@ -404,10 +405,14 @@ export class SettingsPage extends BasePage {
 			modal.setPageOrigin(PAGE_NAMES.SETTINGS);
 			modal.setUserData({email: this.currentUser!.email});
 
-			// Affiche le modal
-			await modal.show();
+			result = await modal.show();
 		}
-		await this.updateField({ twoFaMethod: method }, "twofa-alert");
+		if (result.success === true) {
+			await this.updateField({ twoFaMethod: method }, 'twofa-alert');
+		} else {
+			this.preFillForm();
+			showAlert(result.errorMessage!, 'twofa-alert');
+		}
 	};
 
 	/**

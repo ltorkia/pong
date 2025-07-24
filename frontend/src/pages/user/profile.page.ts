@@ -25,8 +25,6 @@ export class ProfilePage extends BasePage {
 		super(config);
 		this.userId = userId;
 	}
-	
-	// TODO: Tout virer et créer des components
 
 	// ===========================================
 	// METHODES OVERRIDES DE BASEPAGE
