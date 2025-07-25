@@ -1,6 +1,7 @@
 import { BasePage } from '../../base/base.page';
 import { RouteConfig } from '../../../types/routes.types';
 import { router } from '../../../router/router';
+import { RouteParams } from '../../../types/routes.types';
 
 export class GameMenuTournament extends BasePage {
     private playersNb: number = 3; // Minimum players required
