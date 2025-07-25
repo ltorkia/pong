@@ -10,6 +10,7 @@ export class GameMenuTournament extends BasePage {
     }
     
     protected async mount(): Promise<void> {
+        console.log(window.location);
     }
 
     protected attachListeners(): void {
@@ -26,7 +27,7 @@ export class GameMenuTournament extends BasePage {
         });
         document.getElementById("tournament-start-btn")!.addEventListener("click", () => {
             sessionStorage.setItem("fromRedirect", "true");
-            router.navigate("/game/tournament/register");
+            router.navigate(`/game/tournament/register/:${this.playersNb}`);
         })
     }
 }

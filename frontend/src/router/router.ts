@@ -164,8 +164,8 @@ export class Router {
 				if (redirected) {
 					return;
 				}
-				if (matchedRoute.route == "/game/tournament/register" && sessionStorage.getItem("fromRedirect") !== "true")
-					this.navigate(DEFAULT_ROUTE);
+				// if (matchedRoute.route == "/game/tournament/register" && sessionStorage.getItem("fromRedirect") !== "true")
+				// 	this.navigate(DEFAULT_ROUTE);
 
 				console.log(`[${this.constructor.name}] Route trouvée pour ${path} (correspond à ${matchedRoute.route}), exécution...`);
 				try {

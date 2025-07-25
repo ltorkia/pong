@@ -100,7 +100,7 @@ export class GameInstance {
                 await sleep(fps - (now - then));
             this.sendGameUpdate();
             then = Date.now();
-            console.log(`frame = ${frame++} p1 id ${this.players[0].playerID} = ${this.players[0].pos.x} ${this.players[0].pos.y} !`);
+            console.log(`frame = ${frame++} p1 id ${this.players[0].ID} = ${this.players[0].pos.x} ${this.players[0].pos.y} !`);
         }
         console.log("EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEND");
         console.log("GAME ENDEED");
@@ -145,7 +145,7 @@ export class GameInstance {
     public registerInput(playerID: number, key: string, status: boolean): void {
         // console.log("coucou")
         for (const player of this.players) {
-            if (player.playerID == playerID) {
+            if (player.ID == playerID) {
                 if (key == "w" && player.inputUp != status) player.inputUp = status;
                 else if (key == "s" && player.inputDown != status) player.inputDown = status;
             }
@@ -166,14 +166,14 @@ export class Lobby {
 }
 
 export class Game {
-	id: number;
+	ID: number;
 	// status_win: boolean;
     players: Player[];
 	duration: number;
     instance: GameInstance;
 
-    constructor(id: number, duration: number, gameInstance: GameInstance, players: Player[]) {
-        this.id = id;
+    constructor(ID: number, duration: number, gameInstance: GameInstance, players: Player[]) {
+        this.ID = ID;
         this.duration = duration;
         this.instance = gameInstance;
         this.players = players;

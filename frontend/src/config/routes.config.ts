@@ -12,7 +12,7 @@ import { getComponentConfig } from '../utils/config.utils';
 import { COMPONENT_NAMES } from './components.config';
 import { GameMenuLocal } from '../pages/game/game.local.page';
 import { GameMenuMulti } from '../pages/game/game.multi.page';
-import { GameMenuTournament } from '../pages/game/tournament/game.tournament.page';
+import { GameMenuTournament } from '../pages/game/tournament/game.tournament.menu.page';
 import { GameMenuTournamentRegister } from '../pages/game/tournament/game.tournament.register.page';
 
 // ===========================================
