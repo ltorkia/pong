@@ -311,6 +311,6 @@ export abstract class BasePage {
 	 * @returns {string} Le message d'erreur sous forme de code HTML.
 	 */
 	protected getErrorMessage(): string {
-		return `<div id="alert" class="alert-error">${LOADING_PAGE_ERR}</div>`;
+		return `<div id="alert" class="alert alert-error">${LOADING_PAGE_ERR}</div>`;
 	}
 }
