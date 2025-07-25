@@ -13,30 +13,28 @@ import nodemailer from 'nodemailer';
 import { Readable } from 'stream';
 import { promises as fs } from 'fs';
 import * as speakeasy from 'speakeasy';
+// import { ZodSchema, ZodError } from 'zod';
+import { checkParsing, isParsingError } from '../helpers/types.helpers';
+
+
+
 
 export async function doubleAuth(app: FastifyInstance) {
     app.post('/2FAsend/:method', async (request: FastifyRequest, reply: FastifyReply) => {
 		const { method } = request.params as { method: string };
-		console.log("method = ", method);
-		console.log(request.body);
-        const userdata = await TwoFAInputSchema.safeParse(request.body); //a modifier en pram : request.body.user
-        if (!userdata.success) {
-            const error = userdata.error.errors[0];
-            console.log(error);
-            return reply.status(400).send({
-                statusCode: 400,
-                errorMessage: error.message + " in " + error.path
-            });
-        }
-		const user = await getUser2FA(userdata.data.email);
-		// console.log("i m heeeeeeeerrrrre");
+		const userdataCheck = await checkParsing(TwoFAInputSchema, request.body);
+		if (isParsingError(userdataCheck))
+			return reply.status(400).send(userdataCheck);
+		const userdata = userdataCheck as TwoFAInput;
+
+		const user = await getUser2FA(userdata.email);
 
         try {
 			console.log(request.body);
-			if (method === 'email' && (userdata.data.pageName === 'Settings' || user.active2Fa === 'email')) //a changer apres avec = email
-				return await GenerateEmailCode(reply, userdata.data.email);
-			else if (method === 'qrcode' && (userdata.data.pageName === 'Settings'))
-				return await GenerateQRCode(reply, userdata.data.email);
+			if (method === 'email' && (userdata.pageName === 'Settings' || user.active2Fa === 'email')) //a changer apres avec = email
+				return await GenerateEmailCode(reply, userdata.email);
+			else if (method === 'qrcode' && (userdata.pageName === 'Settings'))
+				return await GenerateQRCode(reply, userdata.email);
 
 			return (reply.status(200).send({
 				statusCode: 200,
@@ -56,6 +54,10 @@ export async function doubleAuth(app: FastifyInstance) {
     app.post('/2FAreceive/:method', async (request: FastifyRequest, reply: FastifyReply) => {
         const result = LoginInputSchema.safeParse(request.body); //c est le meme format que pour login input avec les memes checks
 		const { method } = request.params as { method: string };
+		// const userdataCheck = await checkParsing(TwoFAInputSchema, request.body);
+		// if (isParsingError(userdataCheck))
+		// 	return reply.status(400).send(userdataCheck);
+		// const userdata = userdataCheck as TwoFAInput;
 		console.log(request.body);
         if (!result.success) {
             const error = result.error.errors[0];

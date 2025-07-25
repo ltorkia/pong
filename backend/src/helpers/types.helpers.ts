@@ -1,4 +1,6 @@
 import { camelCase, mapKeys } from 'lodash';
+import { ZodSchema } from 'zod';
+import { ParsingError} from '../types/utils.types';
 
 /**
  * Transforme un objet dont les clefs sont en snake_case en un objet
@@ -30,4 +32,26 @@ export function snakeArrayToCamel<T extends object>(arr: (T | null)[] | null | u
 		return null;
 	}
 	return arr.map(item => snakeToCamel(item));
+}
+
+export function isParsingError(obj: unknown): obj is ParsingError {
+	return (
+		typeof obj === 'object' &&
+		obj !== null &&
+		'statusCode' in obj &&
+		'errorMessage' in obj
+	);
+}
+
+export async function checkParsing<T>(schema: ZodSchema<T>, body: unknown): Promise<T | ParsingError> {
+  const result = await schema.safeParseAsync(body); // safeParseAsync recommandé si schema asynchrone
+  if (!result.success) {
+	const error = result.error.errors[0];
+	console.log(error);
+	return {
+	  statusCode: 400,
+	  errorMessage: `${error.message} in ${error.path.join('.')}`,
+	};
+  }
+  return result.data;
 }
