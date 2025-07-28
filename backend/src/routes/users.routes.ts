@@ -12,7 +12,7 @@ import { searchNewName } from '../helpers/auth.helpers';
 import { changeUserData } from '../db/usermaj';
 import { promises as fs } from 'fs';
 import { DB_CONST } from '../shared/config/constants.config';
-import { checkParsing, isParsingError } from '../helpers/types.helpers';
+import { checkParsing, isParsingError, adaptBodyForPassword } from '../helpers/types.helpers';
 
 /* ======================== USERS ROUTES ======================== */
 
@@ -58,20 +58,26 @@ export async function usersRoutes(app: FastifyInstance) {
 		}
 	})
 
-	//affiche un utilisateur choisi pour recupere les infos
-	app.get('/:id/user', async(request: FastifyRequest, reply: FastifyReply): Promise<PublicUser | void> => {
-		const { id } = request.params as { id: number };
-		const { action } = request.params as { action: string };
 
+/* -------------------------------------------------------------------------- */
+/*            🔎 - Affiche des infos detaillees sur un user specifique ami    */
+/* -------------------------------------------------------------------------- */
+	//:friend : username  
+	app.get('/search/:friend', async(request: FastifyRequest, reply: FastifyReply): Promise<PublicUser | void> => {
+		const { id } = request.params as { id: number };
+		const { friend } = request.params as { friend: string };
+		console.log(friend);
 		// peut etre pas necessaire en fonction de comment renvoie le front
-		const userdataCheck = await checkParsing(FriendsInputSchema, request.body);
+		const userdataCheck = await checkParsing(FriendsInputSchema, {friend: friend});
 		if (isParsingError(userdataCheck))
 			return reply.status(400).send(userdataCheck);
 		let data = userdataCheck as FriendInput;
-		const user: PublicUser = await getUser(null, data.friend);
+		console.log(data);
+		// TODO : rechercher pour check si user demande est un friend ou pas 
+		const user: PublicUser = await getUser(null, friend);
 		if (!user)
 			return reply.code(404).send({ Error : 'User not found'});
-		return (user);
+		return reply.status(200).send(user);
 	})
 
 /* -------------------------------------------------------------------------- */
@@ -92,7 +98,6 @@ export async function usersRoutes(app: FastifyInstance) {
 /*           🔎💛 - Affiche des infos sir les friends de l utilisateur        */
 /* -------------------------------------------------------------------------- */
 	// :id = id de l utilisateur dans la db dont on cherche les amis
-
 
 	app.get('/:id/friends', async(request: FastifyRequest, reply: FastifyReply): Promise<PublicUser[] | void> => {
 		const { id } = request.params as { id: number };
@@ -235,40 +240,17 @@ export async function usersRoutes(app: FastifyInstance) {
 /* -------------------------------------------------------------------------- */
 	// :id = id de l utilisateur dans la db dont on cherche les amis
 
-	// async function adaptBodyForPassword(request:FastifyRequest): Record<string, any>
-	// {
-
-	// }
-
 	app.put('/:id/moduser', async(request: FastifyRequest, reply: FastifyReply) => {
 		try {
 		
 			const { id } = request.params as { id: number };
-			const body = request.body as Record<string, any>; //c est bon any ?
-			// Renommage explicite pour etre ok avec ts et js
-			if ("curr-password" in body) {
-				body["currPassword"] = body["curr-password"];
-				delete body["curr-password"];
-			}
+			const body = adaptBodyForPassword(request); //renomme les elements lies au password en CamelCase
 
-			if ("new-password" in body) {
-				body["newPassword"] = body["new-password"];
-				delete body["new-password"];
-			}
-
-			if(body["currPassword"] == '')
-				body["currPassword"] = null;
-			if(body["newPassword"] == '')
-				body["newPassword"] = null;
+			const userdataCheck = await checkParsing(ModUserInputSchema, request.body);
+			if (isParsingError(userdataCheck))
+				return reply.status(400).send(userdataCheck);
+			let dataUserReceived = userdataCheck as ModUserInput;
 			
-			const result = ModUserInputSchema.safeParse(body);
-			if (!result.success) {
-				const error = result.error.errors[0];
-				return reply.status(400).send({ statusCode: 400, errorMessage: error.message + " in " + error.path });
-			}
-
-			//on cree l user avec les donnees a inserer une fois le safeparse effectue
-			const dataUserReceived = result.data as ModUserInput; //datatext - a mod pour current et new pass
 			const dataUser = await getUserAllInfo(id);
 			let dataUserToUpdate = dataUser; //prend par defaut toutes les infos de base de l user
 			
