@@ -1,71 +1,84 @@
 import { BasePage } from '../../base/base.page';
 import { RouteConfig, RouteParams } from '../../../types/routes.types';
+import { DataService } from '../../../services/user/data.service';
 
 export class GameMenuTournamentRegister extends BasePage {
-    private playersNb?: number | RouteParams;
-    private players: {alias: string, username?: string}[];
-    private pastilleHTML: HTMLElement;
+    private playersNb: number;
+    private players: { alias: string, username?: string }[];
+    private pastilleHTML: Node;
+    private dataApi: DataService = new DataService();
 
-    constructor(config: RouteConfig, nb?: number | RouteParams) {
+    constructor(config: RouteConfig, nb: RouteParams) {
         super(config);
-        this.playersNb = nb;
+        this.playersNb = Number(nb.nb.slice(1));
         this.players = [];
         this.pastilleHTML = document.createElement("div");
     }
 
     protected async mount(): Promise<void> {
+        const gridRowClass = {
+            1: 'grid-rows-1',
+            2: 'grid-rows-2',
+            3: 'grid-rows-3',
+            4: 'grid-rows-4',
+            5: 'grid-rows-5',
+            6: 'grid-rows-6'
+        };
         sessionStorage.removeItem("fromRedirect");
         this.fetchPastille();
-        console.log(this.pastilleHTML);
+        const rowCount = this.playersNb / 4; // make sure this is an integer!
+        const gridClassName = gridRowClass[rowCount as keyof typeof gridRowClass];
+        const pastilleHolder = document.getElementById("pastilles-holder");
+        pastilleHolder!.classList.add(gridClassName);
     }
 
     private async fetchPastille(): Promise<void> {
-        try {
-            const response = await fetch("../../../../public/templates/game/pastille.html");
-
-            if (!response.ok) {
-                throw new Error(`Failed to fetch pastille.html: ${response.status} ${response.statusText}`);
-            }
-
-            const html = await response.text();
-            console.log("Fetched HTML:", html);
-
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(html, "text/html");
-
-            const pastilleDiv = doc.querySelector("#pastille");
-            console.log("Parsed #pastille div:", pastilleDiv?.outerHTML);
-
-            if (pastilleDiv && this.pastilleHTML) {
-                this.pastilleHTML.innerHTML = pastilleDiv.outerHTML;
-            } else {
-                console.warn("Either #pastille was not found, or pastilleHTML is not initialized.");
-            }
-        } catch (error) {
-            console.log("COUCOUUUU");
-            console.error(error);
-        }
+        const response = await fetch("../../../../public/templates/game/pastille.html");
+        const html = await response.text();
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, "text/html");
+        const pastilleDiv = doc.querySelector("#pastille");
+        if (pastilleDiv && this.pastilleHTML)
+            this.pastilleHTML = pastilleDiv.cloneNode(true);
     }
 
-    private appendPlayerPastille(player: {alias: string, username?: string}): void {
-        const pastille = document.createElement("div");
-        pastille.innerHTML = this.pastilleHTML.innerHTML;
-        pastille.querySelector("h2")!.textContent = `${player.alias}`;
+    private appendListenerPastille(pastille: HTMLElement, player: {alias: string, username?: string}): void {
+        pastille.querySelector("#tournament-cross")?.addEventListener("click", () => {
+            const toRemoveIdx = this.players.findIndex(p => p.alias == player.alias);
+            this.players.splice(toRemoveIdx, 1);
+            pastille.remove();
+        })
+    }
+
+    private async appendPlayerPastille(player: { alias: string, username?: string }): Promise<void> {
+        const pastille = this.pastilleHTML.cloneNode(true) as HTMLElement;
+        const h2 = pastille.querySelector("h2");
+        h2!.textContent = `${player.alias}`;
         if (player.username)
-            pastille.querySelector("h2")!.textContent += ` \(${player.username}\)`;
-        const pastilleHolder = document.getElementById("pastilles-holder");
-        pastilleHolder?.append(pastille);
-        // const pastille = document.createElement("div");
-        // const name = document.createElement("h2");
-        // name.textContent = `${player.alias}`;
-        // pastille.append(name);
+            h2!.textContent += ` \(${player.username}\)`;
+        const pastilleHolder = document.getElementById("pastilles-holder") as HTMLElement;
+        if (this.playersNb <= 4) {
+            pastilleHolder.classList.add("flex", "justify-center", "items-center", "flex-wrap");
+            pastille.classList.add("w-1/3", "h-1/3");
+        } else
+            pastilleHolder.classList.add("grid", "grid-cols-4");
+        pastilleHolder!.append(pastille);
+        this.appendListenerPastille(pastille, player);
+        requestAnimationFrame(() => {
+            pastille.classList.add("opacity-100");
+        });
+        if (!player.username) {
+            const img = pastille.querySelector("img") as HTMLImageElement;
+            // img.src = this.dataApi.getUserAvatarURL("default");
+            img.src = await this.dataApi.returnDefaultAvatarURL();
+        } 
     }
 
     private handleUserInput(alias: string, username?: string): void {
         if (username) {
             // request database
         }
-        const player = {alias: alias, username: username};
+        const player = { alias: alias, username: username };
         this.players.push(player);
         this.appendPlayerPastille(player);
     }
