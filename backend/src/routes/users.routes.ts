@@ -12,18 +12,29 @@ import { searchNewName } from '../helpers/auth.helpers';
 import { changeUserData } from '../db/usermaj';
 import { promises as fs } from 'fs';
 import { DB_CONST } from '../shared/config/constants.config';
+import { checkParsing, isParsingError } from '../helpers/types.helpers';
+
+/* ======================== USERS ROUTES ======================== */
 
 export async function usersRoutes(app: FastifyInstance) {
-	// pour afficher tous les users
+
+
+/* -------------------------------------------------------------------------- */
+/*            🔎 - Affiche tous les users avec infos non sensible             */
+/* -------------------------------------------------------------------------- */
+
 	app.get('/', async (request: FastifyRequest, reply: FastifyReply): Promise<SafeUserModel[] | void> => {
 		// const users: UserBasic[] = await getAllUsers();
 		const users: SafeUserModel[] = await getAllUsersInfos();
 		return users;
 	})
 
-	// Pour afficher tous les users avec pagination et paramètres de tri
+/* -------------------------------------------------------------------------- */
+/*      🔎 - Affiche tous les users avec pagination et paramètres de tri      */
+/* -------------------------------------------------------------------------- */
 	// Query params (optionnels) : sortBy, sortOrder
 	// Exemple : /api/users/page/1/20?sortBy=registration&sortOrder=DESC
+
 	app.get('/page/:page/:limit', async (request: FastifyRequest<{ 
 		Params: { page: string; limit: string }; 
 		Querystring: { sortBy?: UserSortField; sortOrder?: SortOrder }}>, 
@@ -47,7 +58,28 @@ export async function usersRoutes(app: FastifyInstance) {
 		}
 	})
 
-	// pour afficher des infos detaillees sur un user specifique sans le password
+	//affiche un utilisateur choisi pour recupere les infos
+	app.get('/:id/user', async(request: FastifyRequest, reply: FastifyReply): Promise<PublicUser | void> => {
+		const { id } = request.params as { id: number };
+		const { action } = request.params as { action: string };
+
+		// peut etre pas necessaire en fonction de comment renvoie le front
+		const userdataCheck = await checkParsing(FriendsInputSchema, request.body);
+		if (isParsingError(userdataCheck))
+			return reply.status(400).send(userdataCheck);
+		let data = userdataCheck as FriendInput;
+		const user: PublicUser = await getUser(null, data.friend);
+		if (!user)
+			return reply.code(404).send({ Error : 'User not found'});
+		return (user);
+	})
+
+/* -------------------------------------------------------------------------- */
+/*            🔎 - Affiche des infos detaillees sur un user specifique        */
+/* -------------------------------------------------------------------------- */
+	// (sans password)
+	// :id = id de l utilisateur dans la db 
+
 	app.get('/:id', async (request: FastifyRequest, reply: FastifyReply): Promise<SafeUserModel | void> => {
 		const { id } = request.params as { id: number };
 		const user: SafeUserModel = await getUser(id);
@@ -56,7 +88,12 @@ export async function usersRoutes(app: FastifyInstance) {
 		return user;
 	})
 
-	// pour afficher les potos de klk1 -> id = la personne concernee
+/* -------------------------------------------------------------------------- */
+/*           🔎💛 - Affiche des infos sir les friends de l utilisateur        */
+/* -------------------------------------------------------------------------- */
+	// :id = id de l utilisateur dans la db dont on cherche les amis
+
+
 	app.get('/:id/friends', async(request: FastifyRequest, reply: FastifyReply): Promise<PublicUser[] | void> => {
 		const { id } = request.params as { id: number };
 		const friends: PublicUser[] = await getUserFriends(id);
@@ -65,36 +102,42 @@ export async function usersRoutes(app: FastifyInstance) {
 		return friends;
 	})
 
+/* -------------------------------------------------------------------------- */
+/*                     ⚙️💛 - Gere les actions entre amis                     */
+/* -------------------------------------------------------------------------- */
+	// :id = id de l utilisateur dans la db dont on cherche les amis
+	// :action = pending (demande d ajout), blocked(pour bloauer klk1), accepted (pour valider une demande) 
+	// attend dans la requete le nom de l ami recherche -> a adapter en fonction des besoins	 
+	// TODO : a readapter en fonction du front
 
 	app.get('/:id/friends/:action', async(request: FastifyRequest, reply: FastifyReply): Promise<PublicUser | void> => {
 		const { id } = request.params as { id: number };
 		const { action } = request.params as { action: string };
-		const result = FriendsInputSchema.safeParse(request.body); //a voir, peut etre selection d un friend deja existant
-		if (!result.success) {
-			const error = result.error.errors[0];
-			return reply.status(400).send({ statusCode: 400, errorMessage: error.message + " in " + error.path });
-		}
+
+		// peut etre pas necessaire en fonction de comment renvoie le front
+		const userdataCheck = await checkParsing(FriendsInputSchema, request.body);
+		if (isParsingError(userdataCheck))
+			return reply.status(400).send(userdataCheck);
+		let data = userdataCheck as FriendInput;
 		
 		const friends = getUserFriends(id);
-		const friend: PublicUser = await getUser(null, result.data.friend);
+		const friend: PublicUser = await getUser(null, data.friend);
 		if (!friend)
 			return reply.code(404).send({ Error : 'User not found'});
-		if (action === 'add'){	
+		if (action === DB_CONST.FRIENDS.STATUS.PENDING) {	
 			if (friend.id in friends)
 				return reply.code(404).send({ Error : 'Already friend'});
 			await addUserFriend(friend.id, id);
 			return reply.code(200).send({ Message : 'Ask to be friend confirmed'});
 		}
-		if (action === 'block')
-		{
+		if (action === DB_CONST.FRIENDS.STATUS.BLOCKED) {
 			if (friend.id in friends)
 				await updateRelationshipBlocked(friend.id, id);
 			else
 				return reply.code(404).send({ Error : 'not your friend'});
 			return reply.code(200).send({ Message : 'friend blocked'});			
 		}
-		if (action === 'confirm')
-		{
+		if (action === DB_CONST.FRIENDS.STATUS.ACCEPTED) {
 			if (friend.id in friends)
 				await updateRelationshipConfirmed(friend.id, id);
 			else
@@ -102,6 +145,11 @@ export async function usersRoutes(app: FastifyInstance) {
 			return reply.code(200).send({ Message : 'friend successfully added'});			
 		}
 	})
+
+/* -------------------------------------------------------------------------- */
+/*                   🕹️ - Recupere les donnees de jeu d un user               */
+/* -------------------------------------------------------------------------- */
+	// :id = id de l utilisateur dans la db dont on cherche les amis
 
 	app.get('/:id/games', async(request: FastifyRequest, reply: FastifyReply) => {
 		const { id } = request.params as { id: number };
@@ -111,6 +159,12 @@ export async function usersRoutes(app: FastifyInstance) {
 			return reply.code(404).send({ Error : 'User not found'});
 		return games;
 	})
+
+/* -------------------------------------------------------------------------- */
+/*             💬 - Recupere l'historique de tchat de 2 utilisateurs          */
+/* -------------------------------------------------------------------------- */
+	// :id1 et :id2 = id des utilisateurs dans la db dont on cherche les messages envoyes
+	// renvoyes par la db ranges chronologiquement
 
 	app.get('/:id1/:id2/chat', async(request: FastifyRequest, reply: FastifyReply) => {
 		const { id1 } = request.params as { id1: number };
@@ -123,6 +177,11 @@ export async function usersRoutes(app: FastifyInstance) {
 		return chat;
 	})
 
+
+/* -------------------------------------------------------------------------- */
+/*                    ⚙️📸 - modifie l avatar de l utilisateur                */
+/* -------------------------------------------------------------------------- */
+	// :id = id de l utilisateur dans la db dont on cherche les amis
 
 	app.put('/:id/moduser/avatar', async(request: FastifyRequest, reply: FastifyReply) => {
 		try {
@@ -150,7 +209,7 @@ export async function usersRoutes(app: FastifyInstance) {
 			if (avatarFile && avatarBuffer)
 			{
 				user = await getUser(id);
-				if (user.avatar != "default.png")
+				if (user.avatar != DB_CONST.USER.DEFAULT_AVATAR)
 				{
 					try {await fs.unlink(`./uploads/avatars/${user.avatar}`);}
 					catch (err) { console.error(`Erreur lors de la suppression du fichier :`, err);} //ptet caca de faire comme ca jsp
@@ -170,6 +229,16 @@ export async function usersRoutes(app: FastifyInstance) {
 			});
 		}
 	})
+
+/* -------------------------------------------------------------------------- */
+/*          ⚙️ SETTING - modifie les infos persos de l utilisateur            */
+/* -------------------------------------------------------------------------- */
+	// :id = id de l utilisateur dans la db dont on cherche les amis
+
+	// async function adaptBodyForPassword(request:FastifyRequest): Record<string, any>
+	// {
+
+	// }
 
 	app.put('/:id/moduser', async(request: FastifyRequest, reply: FastifyReply) => {
 		try {

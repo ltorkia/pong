@@ -1,6 +1,6 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import bcrypt from 'bcrypt';
-import { RegisterInput, RegisterInputSchema, LoginInputSchema, TwoFAInputSchema, TwoFAInput } from '../types/zod/auth.zod';
+import { RegisterInput, RegisterInputSchema, LoginInputSchema, TwoFAInputSchema, TwoFAInput, LoginInput } from '../types/zod/auth.zod';
 import { insertUser, getUser, getUserP, getUser2FA } from '../db/user';
 import {eraseCode2FA} from '../db/usermaj';
 import { ProcessAuth, clearAuthCookies,  GenerateEmailCode, GenerateQRCode  } from '../helpers/auth.helpers';
@@ -9,108 +9,20 @@ import { GoogleUserInfo, UserPassword, User2FA, FastifyFileSizeError, AvatarResu
 import { UserModel } from '../shared/types/user.types'; // en rouge car dossier local 'shared' != dossier conteneur
 import { DB_CONST } from '../shared/config/constants.config'; // en rouge car dossier local 'shared' != dossier conteneur
 import { Buffer } from 'buffer';
-import nodemailer from 'nodemailer';
 import { Readable } from 'stream';
 import { promises as fs } from 'fs';
 import * as speakeasy from 'speakeasy';
-// import { ZodSchema, ZodError } from 'zod';
 import { checkParsing, isParsingError } from '../helpers/types.helpers';
 
 
-
-
-export async function doubleAuth(app: FastifyInstance) {
-    app.post('/2FAsend/:method', async (request: FastifyRequest, reply: FastifyReply) => {
-		const { method } = request.params as { method: string };
-		const userdataCheck = await checkParsing(TwoFAInputSchema, request.body);
-		if (isParsingError(userdataCheck))
-			return reply.status(400).send(userdataCheck);
-		const userdata = userdataCheck as TwoFAInput;
-
-		const user = await getUser2FA(userdata.email);
-
-        try {
-			console.log(request.body);
-			if (method === 'email' && (userdata.pageName === 'Settings' || user.active2Fa === 'email')) //a changer apres avec = email
-				return await GenerateEmailCode(reply, userdata.email);
-			else if (method === 'qrcode' && (userdata.pageName === 'Settings'))
-				return await GenerateQRCode(reply, userdata.email);
-
-			return (reply.status(200).send({
-				statusCode: 200,
-				message: 'Rentrez le code de votre app mobile'
-			}));
-
-        } catch (err) {
-            console.log(err);
-            request.log.error(err);
-            return reply.status(500).send({
-                statusCode: 500,
-                errorMessage: 'Erreur serveur lors de l\'envoi 2FA'
-            });
-        }
-    });
-
-    app.post('/2FAreceive/:method', async (request: FastifyRequest, reply: FastifyReply) => {
-        const result = LoginInputSchema.safeParse(request.body); //c est le meme format que pour login input avec les memes checks
-		const { method } = request.params as { method: string };
-		// const userdataCheck = await checkParsing(TwoFAInputSchema, request.body);
-		// if (isParsingError(userdataCheck))
-		// 	return reply.status(400).send(userdataCheck);
-		// const userdata = userdataCheck as TwoFAInput;
-		console.log(request.body);
-        if (!result.success) {
-            const error = result.error.errors[0];
-            return reply.status(400).send({
-                statusCode: 400,
-                errorMessage: error.message + " in " + error.path
-            });
-        }
-        const checkUser: User2FA = await getUser2FA(result.data.email);
-        if (!checkUser)
-            return (reply.status(400).send({ message: "email doesn't exist" }));
-		if (method === 'email')
-		{
-			if (!checkUser.code2FaEmail)
-				return (reply.status(400).send({ message: "2FA option wrong" }));
-			eraseCode2FA(checkUser.email);
-			if (checkUser.code2FaExpireAt && checkUser.code2FaExpireAt < Date.now())
-				return (reply.status(400).send({ message: "Timeout" }));
-			if (result.data.password != checkUser.code2FaEmail)
-				return (reply.status(400).send({ message: "Wrong code" }));
-		}
-		else //choix du qrcode
-		{
-			if (!checkUser.code2FaQrcode)
-				return (reply.status(400).send({ message: "2FA option wrong" }));
-			// const check = speakeasy.totp.verify(checkUser.code2FaQrcode);
-			const verified = speakeasy.totp.verify({
-				secret: checkUser.code2FaQrcode,         // clé enregistrée en base
-				encoding: 'base32',
-				token: result.data.password,         // code entré par l'utilisateur
-				window: 1                    // tolérance de décalage (en 30s)
-			});
-			if (verified === false)
-				return (reply.status(400).send({ message: "Wrong code" }));
-		}
-		const user: UserModel | null = await getUser(null, result.data.email);
-		if (!user) {
-			return reply.status(500).send({
-				statusCode: 500,
-				errorMessage: 'Impossible de récupérer l’utilisateur après authentification'
-			});
-		}
-        await ProcessAuth(app, checkUser, reply);
-        return reply.status(200).send({
-            statusCode: 200,
-            message: 'Successfully logged in.',
-            user: user
-        });
-    });
-}
+/* ======================== AUTHENTICATION ROUTES ======================== */
 
 export async function authRoutes(app: FastifyInstance) {
-	// REGISTER
+
+/* -------------------------------------------------------------------------- */
+/*                 🔐 REGISTER - Enregistre l'utilisateur                     */
+/* -------------------------------------------------------------------------- */
+
 	app.post('/register', async (request: FastifyRequest, reply: FastifyReply) => {
 		try {
 			const elements = await request.parts({
@@ -125,7 +37,6 @@ export async function authRoutes(app: FastifyInstance) {
 
 			//preparsing qui dispatch datatext d un cote et l avatar de l autre
 			for await (const element of elements) {
-				// console.log(element);
 				if (element.type === 'file' && element.fieldname === 'avatar' && element.filename != '') {
 					avatarFile = element;
 					avatarBuffer = await bufferizeStream(element.file);
@@ -134,14 +45,12 @@ export async function authRoutes(app: FastifyInstance) {
 				}
 			}
 
-			//check les datas texts pour voir si elles correspondent a ce qu on attend
-			const result = RegisterInputSchema.safeParse(dataText);
-			if (!result.success) {
-				const error = result.error.errors[0];
-				return reply.status(400).send({ statusCode: 400, errorMessage: error.message + " in " + error.path });
-			}
-			//on cree l user avec les donnees a inserer une fois le safeparse effectue
-			let userToInsert = result.data as RegisterInput; //datatext
+
+			const userdataCheck = await checkParsing(RegisterInputSchema, dataText);
+			if (isParsingError(userdataCheck))
+				return reply.status(400).send(userdataCheck);
+			let userToInsert = userdataCheck as RegisterInput;
+
 			//on hash le password dans un souci de confidentialite
 			userToInsert.password = await bcrypt.hash(userToInsert.password, 10);
 
@@ -153,21 +62,6 @@ export async function authRoutes(app: FastifyInstance) {
 				});
 			}
 			
-
-			// SALUT !
-			// Ai rajouté le retour de l'avatar en cas d'erreur ( const result: AvatarResult = await GetAvatarFromBuffer ), VV
-			// parce que sans ça je récupère jamais les errorMessages de getAvatarFromBuffer, mais d'un autre VV
-			// côté j'ai aussi vu que t'as rajouté des cas d'erreur dans ton catch donc je sais pas VV 
-
-			// Pour le 2FA (option sans 2FA quoi) j'ai rajouté vite fait les requêtes utilisateur pour pouvoir le stocker direct côté front
-			// apres registration, mais comme tu peux le voir ça fait trois requêtes d'un coup : 
-			// faut récupérer le user apres l'insertion de l'avatar pour pouvoir check if (!user.active2Fa), --> pas necessaire car dans registeur donc balek
-			// et une autre fois après ProcessAuth pour avoir le majLastLog à jour etc... VV
-			// Y'a surement plus intuitif et plus propre, j'ai pas vraiment cherché plus loin je te laisse voir ça comme tu veux hihihiii VV
-
-			// Ai aussi rajouté le await devant les ProcessAuth et GetAvatarFromBuffer parce que ça merdait dans mes tests VV
-			// depuis ces dernières modifs. VV Valaaa c'est tout pour register O_O
-
 			const userInfos: UserPassword = await getUserP(userToInsert.email);
 			if (avatarFile && avatarBuffer) {
 				const result: AvatarResult = await GetAvatarFromBuffer(reply, userInfos, avatarFile.mimetype, avatarBuffer);
@@ -202,20 +96,19 @@ export async function authRoutes(app: FastifyInstance) {
 		}
 	});
 
-	// LOGIN
-	app.post('/login', async (request: FastifyRequest, reply: FastifyReply) => {
+/* -------------------------------------------------------------------------- */
+/*                    🔐 LOGIN - Connecte l'utilisateur                       */
+/* -------------------------------------------------------------------------- */
+
+app.post('/login', async (request: FastifyRequest, reply: FastifyReply) => {
 		try {
-			const result = LoginInputSchema.safeParse(request.body);
 
-			if (!result.success) {
-				const error = result.error.errors[0];
-				return reply.status(400).send({
-					statusCode: 400,
-					errorMessage: error.message + " in " + error.path
-				});
-			}
+			const userdataCheck = await checkParsing(LoginInputSchema, request.body);
+			if (isParsingError(userdataCheck))
+				return reply.status(400).send(userdataCheck);
+			let data = userdataCheck as LoginInput;
 
-			const validUser: UserPassword | null = await getUserP(result.data.email);
+			const validUser: UserPassword | null = await getUserP(data.email);
 			if (!validUser) {
 				return reply.status(401).send({
 					statusCode: 401,
@@ -230,7 +123,7 @@ export async function authRoutes(app: FastifyInstance) {
 				});
 			}
 
-			const isPassValid = await bcrypt.compare(result.data.password, validUser.password);
+			const isPassValid = await bcrypt.compare(data.password, validUser.password);
 			if (!isPassValid) {
 				return reply.status(401).send({
 					statusCode: 401,
@@ -257,10 +150,107 @@ export async function authRoutes(app: FastifyInstance) {
 			});
 		}
 	});
-	doubleAuth(app); //si deja fait voir si on genere pas un cookie type pour pas avoir a le refaire une seconde fois quand on se log sur le mm ordi
 
 
-	// LOGOUT
+/* -------------------------------------------------------------------------- */
+/*                   🔐 2FA - Double Authentification - send                  */
+/* -------------------------------------------------------------------------- */
+	// :method -> methode souhaitee pour double authentification : email ou qrcode
+	// send -> envoie la requete au service de connection lie : 
+	// - email -> envoie un email a l utilisateur
+	// -qrcode -> requete aupres de la db si deja fait / si vient de Setting au service concerne pour parametrer
+
+    app.post('/2FAsend/:method', async (request: FastifyRequest, reply: FastifyReply) => {
+		const { method } = request.params as { method: string };
+		const userdataCheck = await checkParsing(TwoFAInputSchema, request.body);
+		if (isParsingError(userdataCheck))
+			return reply.status(400).send(userdataCheck);
+		const userdata = userdataCheck as TwoFAInput;
+
+		const user = await getUser2FA(userdata.email);
+
+        try {
+			if (method === DB_CONST.USER.ACTIVE_2FA.EMAIL_CODE && (userdata.pageName === 'Settings' || user.active2Fa === DB_CONST.USER.ACTIVE_2FA.EMAIL_CODE)) //a changer apres avec = email
+				return await GenerateEmailCode(reply, userdata.email);
+			else if (method === DB_CONST.USER.ACTIVE_2FA.QR_CODE && (userdata.pageName === 'Settings'))
+				return await GenerateQRCode(reply, userdata.email);
+
+			return (reply.status(200).send({
+				statusCode: 200,
+				message: 'Rentrez le code de votre app mobile'
+			}));
+
+        } catch (err) {
+            console.log(err);
+            request.log.error(err);
+            return reply.status(500).send({
+                statusCode: 500,
+                errorMessage: 'Erreur serveur lors de l\'envoi 2FA'
+            });
+        }
+    });
+
+/* -------------------------------------------------------------------------- */
+/*                   🔐 2FA - Double Authentification - receive               */
+/* -------------------------------------------------------------------------- */
+	// :method -> methode souhaitee pour double authentification : email ou qrcode
+	// receive -> check si le code entre est correct por valider l authentification
+
+    app.post('/2FAreceive/:method', async (request: FastifyRequest, reply: FastifyReply) => {
+		const { method } = request.params as { method: string };
+		const userdataCheck = await checkParsing(LoginInputSchema, request.body);
+		if (isParsingError(userdataCheck))
+			return reply.status(400).send(userdataCheck);
+		const data = userdataCheck as LoginInput;
+
+        const checkUser: User2FA = await getUser2FA(data.email);
+	
+        if (!checkUser)
+            return (reply.status(400).send({ message: "email doesn't exist" }));
+		if (method === DB_CONST.USER.ACTIVE_2FA.EMAIL_CODE)
+		{
+			if (!checkUser.code2FaEmail)
+				return (reply.status(400).send({ message: "2FA option wrong" }));
+			eraseCode2FA(checkUser.email);
+			if (checkUser.code2FaExpireAt && checkUser.code2FaExpireAt < Date.now())
+				return (reply.status(400).send({ message: "Timeout" }));
+			if (data.password != checkUser.code2FaEmail)
+				return (reply.status(400).send({ message: "Wrong code" }));
+		}
+		else //choix du qrcode
+		{
+			if (!checkUser.code2FaQrcode)
+				return (reply.status(400).send({ message: "2FA option wrong" }));
+			// const check = speakeasy.totp.verify(checkUser.code2FaQrcode);
+			const verified = speakeasy.totp.verify({
+				secret: checkUser.code2FaQrcode,         // clé enregistrée en base
+				encoding: 'base32',
+				token: data.password,         // code entré par l'utilisateur
+				window: 1                    // tolérance de décalage (en 30s)
+			});
+			if (verified === false)
+				return (reply.status(400).send({ message: "Wrong code" }));
+		}
+		const user: UserModel | null = await getUser(null, data.email);
+		if (!user) {
+			return reply.status(500).send({
+				statusCode: 500,
+				errorMessage: 'Impossible de récupérer l’utilisateur après authentification'
+			});
+		}
+        await ProcessAuth(app, checkUser, reply);
+        return reply.status(200).send({
+            statusCode: 200,
+            message: 'Successfully logged in.',
+            user: user
+        });
+    });
+
+
+/* -------------------------------------------------------------------------- */
+/*                                 🔒 LOGOUT                                  */
+/* -------------------------------------------------------------------------- */
+
 	app.post('/logout', async (request: FastifyRequest, reply: FastifyReply) => {
 		clearAuthCookies(reply);
 		return reply.status(200).send({
@@ -269,7 +259,11 @@ export async function authRoutes(app: FastifyInstance) {
 		});
 	});
 
-	// GOOGLE
+
+/* -------------------------------------------------------------------------- */
+/*                                 🅶 GOOGLE                                  */
+/* -------------------------------------------------------------------------- */
+
 	app.post('/google', async (request: FastifyRequest, reply: FastifyReply) => {
 		const { id_token } = request.body as { id_token: string };
 		if (!id_token) {
@@ -316,20 +310,22 @@ export async function authRoutes(app: FastifyInstance) {
 				}
 			}
 			
+			// recuperation de l avatar google
 			const avatarUrl = payloadDecoded.picture ?? DB_CONST.USER.DEFAULT_AVATAR;
 			if (avatarUrl != DB_CONST.USER.DEFAULT_AVATAR){
 				const response = await fetch(avatarUrl);
 				console.log(response);
 
-				if (user.avatar != "default.png")
+				if (user.avatar != DB_CONST.USER.DEFAULT_AVATAR) //pour supprimer l ancien avatar s'il n est pas celui par defaut
 				{
 					try {await fs.unlink(`./uploads/avatars/${user.avatar}`);}
-					catch (err) { console.error(`Erreur lors de la suppression du fichier :`, err);} //ptet caca de faire comme ca jsp
+					catch (err) { console.error(`Erreur lors de la suppression du fichier :`, err);}
 				}
+
+				// processus pour telecharger l avatar de google et le stocker dans la db
 				const nodeStream = Readable.fromWeb(response.body as any); 
 				const avatarBuffer = await bufferizeStream(nodeStream);
 				const ext = response.headers.get('content-type') || 'image/jpg';
-	
 				const result: AvatarResult = await GetAvatarFromBuffer(reply, user, ext, avatarBuffer);
 				if (result.success === false) {
 					return reply.status(result.statusCode!).send({
@@ -339,6 +335,7 @@ export async function authRoutes(app: FastifyInstance) {
 				}
 			}
 
+			// on valide l authentification + redonne les donnees user avec tout a jour
 			await ProcessAuth(app, user, reply);
 			const userData: UserModel = await getUser(null, email);
 			return reply.status(200).send({
