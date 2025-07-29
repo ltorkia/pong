@@ -75,7 +75,7 @@ export function clearAuthCookies(reply: FastifyReply) {
 	reply.clearCookie(COOKIES_CONST.AUTH.TOKEN_KEY, {
 		path: '/',
 		httpOnly: true,
-		sameSite: 'none', 
+		sameSite: 'lax', 
 		secure: true,
 	});
 	// sameSite : 'lax',
@@ -84,7 +84,7 @@ export function clearAuthCookies(reply: FastifyReply) {
 	reply.clearCookie(COOKIES_CONST.AUTH.STATUS_KEY, {
 		path: '/',
 		httpOnly: false,
-		sameSite: 'none',
+		sameSite: 'lax',
 		secure: true,
 	});
 }
