@@ -3,10 +3,10 @@ import template from './pagination.component.html?raw'
 
 import { BaseComponent } from '../base/base.component';
 import { RouteConfig } from '../../types/routes.types';
-import { ComponentConfig } from '../../types/components.types';
-import { User } from '../../models/user.model';
+import { ComponentConfig, PaginationParams } from '../../types/components.types';
+import { User } from '../../shared/models/user.model';
 import { getHTMLElementById } from '../../utils/dom.utils';
-import { PaginationInfos, PaginationParams } from '../../shared/types/user.types';
+import { PaginationInfos } from '../../shared/types/user.types';
 
 // ===========================================
 // PAGINATION COMPONENT
@@ -15,7 +15,7 @@ import { PaginationInfos, PaginationParams } from '../../shared/types/user.types
 
 export class PaginationComponent extends BaseComponent {
 	protected user?: User | null = null;
-	private paginationParams!: PaginationParams;
+	private paginationParams?: PaginationParams;
 	private paginationInfos!: PaginationInfos;
 	private onPageChange!: (page: number) => void;
 
@@ -38,8 +38,10 @@ export class PaginationComponent extends BaseComponent {
 		super(routeConfig, componentConfig, container);
 		this.user = user;
 		this.paginationParams = paginationParams;
-		this.paginationInfos = this.paginationParams.infos;
-		this.onPageChange = this.paginationParams.onPageChange;
+		if (this.paginationParams) {
+			this.paginationInfos = this.paginationParams.infos;
+			this.onPageChange = this.paginationParams.onPageChange;
+		}
 	}
 
 	// ===========================================

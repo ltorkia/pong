@@ -3,100 +3,116 @@
 					<i class="fas fa-camera camera-icon"></i>
 					<input type="file" id="avatar-input" class="avatar-input" accept="image/*">
 				</div>
-				<div id="alert-avatar" aria-live="assertive" class="mb-6 hidden"></div>
-				<form class="form-box" id="settings-form">
+				<div id="alert-avatar" aria-live="assertive" class="alert mb-6 hidden"></div>
+				<div class="form-box" id="settings-form">
 
 					<div class="fields-container">
 
-						<div class="dropdown-container">
-							<div class="dropdown-title">
-								<span>Change your email</span>
-								<i class="fa-solid fa-angle-down"></i>
-							</div>
-							<div class="dropdown-content max-h-0">
-								<!-- Email -->
-								<div class="field-box">
-									<input type="email" id="email" name="email" placeholder="your@email.com" autocomplete="email">
+						<!-- Email -->
+						<div class="field-content-container">
+							<div class="input-content">
+								<div class="input-label">email : </div>
+								<div class="content-update">
+									<div class="content" id="email-content"></div>
+									<i class="fa-solid fa-pen"></i>
+								</div>
+								<div class="input-container hidden" id="email-container-input">
+									<div class="field-box">
+										<input type="email" id="email" name="email" placeholder="your@email.com" autocomplete="email">
+										<button id="update-email-button">
+											<i class="fa-solid fa-check"></i>
+										</button>
+									</div>
 								</div>
 							</div>
 						</div>
+						<div id="email-alert" aria-live="assertive" class="alert hidden"></div>
 
-						<div class="dropdown-container">
-							<div class="dropdown-title">
-								<span>Change your username</span>
-								<i class="fa-solid fa-angle-down"></i>
-							</div>
-							<div class="dropdown-content max-h-0">
-								<!-- Username -->
-								<div class="field-box">
-									<input type="text" id="username" name="username" placeholder="Unique username">
+						<!-- Username -->
+						<div class="field-content-container">
+							<div class="input-content">
+								<div class="input-label">username : </div>
+								<div class="content-update">
+									<div class="content" id="username-content"></div>
+									<i class="fa-solid fa-pen"></i>
+								</div>
+								<div class="input-container hidden" id="username-container-input">
+									<div class="field-box">
+										<input type="text" id="username" name="username" placeholder="Unique username">
+										<button id="update-username-button">
+											<i class="fa-solid fa-check"></i>
+										</button>
+									</div>
 								</div>
 							</div>
 						</div>
+						<div id="username-alert" aria-live="assertive" class="alert hidden"></div>
 
+						<!-- Password -->
+						<form id="password-form">
+							<div class="dropdown-container">
+								<div class="dropdown-title">
+									<span>Change your password</span>
+									<i class="fa-solid fa-angle-down"></i>
+								</div>
+								<div class="dropdown-content max-h-0">
+									<!-- Current password -->
+									<div class="field-box pt-2">
+										<label for="curr-password">Current password :</label>
+										<input type="password" id="curr-password" name="curr-password" placeholder="*********" autocomplete="curr-password">
+									</div>
+
+									<!-- New password -->
+									<div class="field-box">
+										<label for="new-password">New password :</label>
+										<input type="password" id="new-password" name="new-password" placeholder="*********" autocomplete="new-password">
+									</div>
+
+									<!-- Submit -->
+									<div class="btn-container">
+										<button type="submit" class="btn form-btn smaller-btn mt-0 min-w-28">
+											Send
+										</button>
+									</div>
+								</div>
+							</div>
+						</form>
+						<div id="password-alert" aria-live="assertive" class="alert hidden"></div>
+
+						<!-- Checkbox 2FA -->
 						<div class="dropdown-container">
 							<div class="dropdown-title">
-								<span>Change your password</span>
+								<span>Enable two-factor authentication (2FA)</span>
 								<i class="fa-solid fa-angle-down"></i>
 							</div>
 							<div class="dropdown-content max-h-0">
-								<!-- Current password -->
-								<div class="field-box">
-									<label for="curr-password">Current password :</label>
-									<input type="password" id="curr-password" name="curr-password" placeholder="*********" autocomplete="curr-password">
+								<!-- send code by email -->
+								<div class="field-box radio pt-2">
+									<input type="radio" id="enable-2fa-email" name="twofa-method" value="email" class="mr-2 align-middle" />
+									<label for="enable-2fa-email" class="cursor-pointer select-none">
+										Send code by email
+									</label>
 								</div>
-
-								<!-- New password -->
-								<div class="field-box">
-									<label for="new-password">New password :</label>
-									<input type="password" id="new-password" name="new-password" placeholder="*********" autocomplete="new-password">
+								<!-- send code by QR code -->
+								<div class="field-box radio">
+									<input type="radio" id="enable-2fa-qrcode" name="twofa-method" value="qrcode" class="mr-2 align-middle" />
+									<label for="enable-2fa-qrcode" class="cursor-pointer select-none">
+										Send code by QR code scan
+									</label>
 								</div>
-							</div>
-						</div>
-
-
-						<div class="dropdown-container">
-							<div class="dropdown-title">
-								<span>Change your secret question</span>
-								<i class="fa-solid fa-angle-down"></i>
-							</div>
-							<div class="dropdown-content max-h-0">
-								<!-- Secret question -->
-								<div class="field-box">
-									<label for="question">Secret question :</label>
-									<select name="question" id="question">
-										<option value="-" disabled selected>-- Select a secret question --</option>
-										<option value="1">Your mother's name</option>
-										<option value="2">Your pet's name</option>
-										<option value="3">Your favourite color</option>
-									</select>
-								</div>
-
-								<!-- Secret answer -->
-								<div class="field-box">
-									<label for="answer">Your secret answer :</label>
-									<input type="text" id="answer" name="answer" placeholder="**********" autocomplete="one-time-code">
+								<!-- disable 2FA -->
+								<div class="field-box radio">
+									<input type="radio" id="disable-2fa" name="twofa-method" value="disabled" class="mr-2 align-middle" />
+									<label for="disable-2fa" class="cursor-pointer select-none">
+										Disable two-factor authentication
+									</label>
 								</div>
 							</div>
 						</div>
+						<div id="twofa-alert" aria-live="assertive" class="alert hidden"></div>
 
-					<!-- Checkbox 2FA -->
-					<div class="dropdown-title">
-						<label for="enable-2fa" class="cursor-pointer select-none">
-						<input type="checkbox" id="enable-2fa" name="enable-2fa" class="mr-2 align-middle" />
-						Enable two-factor authentication (2FA)
-						</label>
 					</div>
-
-					</div> 
-
-					<!-- Submit -->
-					<div class="btn-container">
-						<button type="submit" class="btn form-btn">
-							Send
-						</button>
-					</div>
-
-					<div id="alert" aria-live="assertive" class="hidden"></div>
-				</form>
+				</div>
 			</div>
+
+			<div id="twofa-modal" class="modal hidden"></div>

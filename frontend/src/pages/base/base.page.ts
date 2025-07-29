@@ -1,5 +1,5 @@
 import { RouteConfig } from '../../types/routes.types';
-import { User } from '../../models/user.model';
+import { User } from '../../shared/models/user.model';
 import { currentService, dataService } from '../../services/index.service';
 import { checkUserLogged } from '../../utils/app.utils'; 
 import { BaseComponent } from '../../components/base/base.component';
@@ -311,6 +311,6 @@ export abstract class BasePage {
 	 * @returns {string} Le message d'erreur sous forme de code HTML.
 	 */
 	protected getErrorMessage(): string {
-		return `<div id="alert" class="alert-error">${LOADING_PAGE_ERR}</div>`;
+		return `<div id="alert" class="alert alert-error">${LOADING_PAGE_ERR}</div>`;
 	}
 }

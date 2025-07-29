@@ -1,5 +1,5 @@
-import { SafeUserModel, UserModel, PublicUser, UserStatus, RegisterMethod } from '../shared/types/user.types';	// en rouge car dossier local 'shared' != dossier conteneur
-import { DB_CONST } from '../shared/config/constants.config';
+import { SafeUserModel, UserModel, PublicUser, UserStatus, RegisterMethod, TwoFaMethod } from '../types/user.types';	// en rouge car dossier local 'shared' != dossier conteneur
+import { DB_CONST } from '../config/constants.config';
 
 // ===========================================
 // USER MODEL
@@ -24,7 +24,6 @@ export class User {
 		public username: string,
 		public avatar: string,
 		public email: string,
-		public secretQuestionNumber: number,
 		public registration: string,
 		public beginLog: string,
 		public endLog: string,
@@ -37,7 +36,7 @@ export class User {
 		public status: UserStatus,
 		public isDeleted: number,
 		public registerFrom: RegisterMethod,
-		public active2Fa: number
+		public active2Fa: TwoFaMethod
 	) {}
 
 	// ============================================================================
@@ -133,7 +132,6 @@ export class User {
 			username: this.username,
 			avatar: this.avatar,
 			email: this.email,
-			secretQuestionNumber: this.secretQuestionNumber,
 			registration: this.registration,
 			beginLog: this.beginLog,
 			endLog: this.endLog,
@@ -173,7 +171,6 @@ export class User {
 			data.username,
 			data.avatar ?? DB_CONST.USER.DEFAULT_AVATAR,
 			data.email ?? '',
-			data.secretQuestionNumber ?? 4,
 			data.registration ?? '',
 			data.beginLog ?? '',
 			data.endLog ?? '',
@@ -186,7 +183,7 @@ export class User {
 			data.status ?? DB_CONST.USER.STATUS.OFFLINE,
 			data.isDeleted ?? 0,
 			data.registerFrom ?? DB_CONST.USER.REGISTER_FROM.LOCAL,
-			data.active2Fa ?? 0
+			data.active2Fa ?? DB_CONST.USER.ACTIVE_2FA.DISABLED
 		);
 	}
 
@@ -218,7 +215,6 @@ export class User {
 			data.username,
 			data.avatar ?? DB_CONST.USER.DEFAULT_AVATAR,
 			'', // Email vide pour les données publiques
-			4,  // SecretQuestionNumberNumber à 4
 			'', // Registration vide
 			data.beginLog ?? '',
 			data.endLog ?? '',
@@ -231,7 +227,7 @@ export class User {
 			data.status ?? DB_CONST.USER.STATUS.OFFLINE,
 			0, // isDeleted à 0 par défaut
 			DB_CONST.USER.REGISTER_FROM.LOCAL, // registerFrom par défaut
-			0, // active2Fa à 0 par défaut
+			DB_CONST.USER.ACTIVE_2FA.DISABLED, // active2Fa à disabled par défaut
 		);
 	}
 

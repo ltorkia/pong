@@ -37,8 +37,10 @@ export type BasicResponse = {
  * Contient un booléen `success` qui indique si la requête a réussi,
  * un message `errorMessage` qui contient l'erreur si la requête a échoué,
  * un message `message` qui contient le message de confirmation si la requête a réussi,
- * et un objet `user` qui contient l'utilisateur connecté (avec email) si la requête a réussi.
+ * un objet `user` qui contient l'utilisateur connecté (avec email) si la requête a réussi,
+ * un objet `otpauth_url` qui contient l'URL du Qr Code si la requête a réussi,
  */
 export type AuthResponse = BasicResponse & {
 	user?: UserModel;
+	otpauth_url?: string;
 };

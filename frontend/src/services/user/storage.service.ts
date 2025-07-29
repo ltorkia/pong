@@ -1,4 +1,4 @@
-import { User } from '../../models/user.model';
+import { User } from '../../shared/models/user.model';
 import { SafeUserModel } from '../../shared/types/user.types';	// en rouge car dossier local 'shared' != dossier conteneur
 
 // ===========================================

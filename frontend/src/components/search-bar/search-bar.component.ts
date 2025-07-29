@@ -4,7 +4,7 @@ import template from './search-bar.component.html?raw'
 import { BaseComponent } from '../base/base.component';
 import { RouteConfig } from '../../types/routes.types';
 import { ComponentConfig } from '../../types/components.types';
-import { getHTMLElementById } from '../../utils/dom.utils';
+import { getHTMLElementById, getHTMLElementByTagName, toggleClass } from '../../utils/dom.utils';
 
 // ===========================================
 // SEARCH BAR COMPONENT
@@ -13,14 +13,12 @@ import { getHTMLElementById } from '../../utils/dom.utils';
 export class SearchBarComponent extends BaseComponent {
 	private filtersToggle!: HTMLButtonElement;
 	private filtersContainer!: HTMLDivElement;
-	private filtersIcon!: SVGElement;
+	private filtersIcon!: HTMLElement;
 	private searchButton!: HTMLButtonElement;
 	private searchInput!: HTMLInputElement;
 	private statusFilter!: HTMLSelectElement;
 	private levelFilter!: HTMLSelectElement;
-	private regionFilter!: HTMLSelectElement;
 	private friendsOnly!: HTMLInputElement;
-	private verifiedOnly!: HTMLInputElement;
 	private resetFilters!: HTMLButtonElement;
 
 	/**
@@ -67,17 +65,14 @@ export class SearchBarComponent extends BaseComponent {
 		// Gestion de l'affichage des filtres
 		this.filtersToggle = getHTMLElementById('filters-toggle', this.container) as HTMLButtonElement;
 		this.filtersContainer = getHTMLElementById('filters-container', this.container) as HTMLDivElement;
-		// this.filtersIcon = getHTMLElementById('filters-icon', this.container) as unknown as SVGElement;
-		this.filtersIcon = this.container.querySelector('.filters-icon') as SVGElement;
+		this.filtersIcon = getHTMLElementByTagName('i', this.filtersToggle) as HTMLElement;
 
 		// Gestion de la recherche et des filtres
 		this.searchButton = getHTMLElementById('search-button', this.container) as HTMLButtonElement;
 		this.searchInput = getHTMLElementById('search-input', this.container) as HTMLInputElement;
 		this.statusFilter = getHTMLElementById('status-filter', this.container) as HTMLSelectElement;
 		this.levelFilter = getHTMLElementById('level-filter', this.container) as HTMLSelectElement;
-		this.regionFilter = getHTMLElementById('region-filter', this.container) as HTMLSelectElement;
 		this.friendsOnly = getHTMLElementById('friends-only', this.container) as HTMLInputElement;
-		this.verifiedOnly = getHTMLElementById('verified-only', this.container) as HTMLInputElement;
 		this.resetFilters = getHTMLElementById('reset-filters', this.container) as HTMLButtonElement;
 	}
 
@@ -92,10 +87,7 @@ export class SearchBarComponent extends BaseComponent {
 	 */
 	protected attachListeners(): void {
 		this.filtersToggle.addEventListener('click', this.handleFilterClick);
-		[this.statusFilter, this.levelFilter, this.regionFilter].forEach(filter => {
-			filter.addEventListener('change', this.performSearch);
-		});
-		[this.friendsOnly, this.verifiedOnly].forEach(checkbox => {
+		[this.friendsOnly].forEach(checkbox => {
 			checkbox.addEventListener('change', this.performSearch);
 		});
 		this.resetFilters.addEventListener('click', this.handleResetOnClick);
@@ -108,10 +100,7 @@ export class SearchBarComponent extends BaseComponent {
 	 */
 	protected removeListeners(): void {
 		this.filtersToggle.removeEventListener('click', this.handleFilterClick);
-		[this.statusFilter, this.levelFilter, this.regionFilter].forEach(filter => {
-			filter.removeEventListener('change', this.performSearch);
-		});
-		[this.friendsOnly, this.verifiedOnly].forEach(checkbox => {
+		[this.friendsOnly].forEach(checkbox => {
 			checkbox.removeEventListener('change', this.performSearch);	
 		})
 		this.resetFilters.removeEventListener('click', this.handleResetOnClick);
@@ -144,16 +133,8 @@ export class SearchBarComponent extends BaseComponent {
 
 	private handleFilterClick = async (event: MouseEvent): Promise<void> => {
 		event.preventDefault();
-		const isHidden = this.filtersContainer.classList.contains('hidden');
-		if (isHidden) {
-			this.filtersContainer.classList.remove('hidden');
-			this.filtersContainer.classList.add('show');
-			this.filtersIcon.style.transform = 'rotate(180deg)';
-		} else {
-			this.filtersContainer.classList.add('hidden');
-			this.filtersContainer.classList.remove('show');
-			this.filtersIcon.style.transform = 'rotate(0deg)';
-		}
+		toggleClass(this.filtersContainer, 'hidden', 'show');
+		toggleClass(this.filtersIcon, 'fa-angle-down', 'fa-angle-up');
 	};
 
 	private performSearch = async (event: Event): Promise<void> => {
@@ -161,17 +142,13 @@ export class SearchBarComponent extends BaseComponent {
 		const searchTerm = this.searchInput.value;
 		const status = this.statusFilter.value;
 		const level = this.levelFilter.value;
-		const region = this.regionFilter.value;
 		const friendsChecked = this.friendsOnly.checked;
-		const verifiedChecked = this.verifiedOnly.checked;
 
 		console.log('Recherche avec les paramètres:', {
 			searchTerm,
 			status,
 			level,
-			region,
-			friendsOnly: friendsChecked,
-			verifiedOnly: verifiedChecked
+			friendsOnly: friendsChecked
 		});
 	}
 
@@ -186,9 +163,7 @@ export class SearchBarComponent extends BaseComponent {
 		this.searchInput.value = '';
 		this.statusFilter.value = '';
 		this.levelFilter.value = '';
-		this.regionFilter.value = '';
 		this.friendsOnly.checked = false;
-		this.verifiedOnly.checked = false;
 		this.performSearch(event);
 	}
 }

@@ -2,35 +2,24 @@
 
 		<div class="bloc-title">
 			<div class="page-title">Two-Step Authentication</div>
-			<div class="under-title">
-				<span>Please, pick a verification method</span>
-			</div>
+			<div class="under-title"></div>
 		</div>
 	
-		<form class="form-box" id="twofa-form">		
+		<div class="form-box" id="twofa-form">		
 			<div class="fields-container">
-				<div class="field-box">
-					<select id="twofa-method">
-						<option value="-"disabled selected>-- Select --</option>
-						<option value="email">Send an email</option>
-						<option value="qrcode">Scan a QR Code</option>
-					</select>
-				</div>
 
 				<!-- Email / numeric code container -->
 				<div id="twofa-email-container" class="hidden">
 
 					<hr class="form-separator">
-
 					<div class="field-box">
 						<div>
 							<label for="twofa-code">Code received :</label>
-							<input type="text" id="twofa-code" autocomplete="one-time-code" placeholder="Insert your secret code here" />
+							<input type="text" id="twofa-code-email" autocomplete="one-time-code" placeholder="Insert your secret code here" />
 						</div>
 					</div>
 
 					<hr class="form-separator">
-
 					<div class="btn-container">
 						<button id="twofa-email-resend-btn" type="button" class="btn form-btn bg-black/10">
 							Resend
@@ -45,19 +34,25 @@
 				<div id="twofa-qrcode-container" class="hidden">
 
 					<hr class="form-separator">
+					<div id="twofa-qrcode"></div>
 
-					<span>TODO: Affichage du QR Code</span>
+					<div class="field-box mt-2">
+						<div>
+							<label for="twofa-code">Code received :</label>
+							<input type="text" id="twofa-code-qrcode" autocomplete="one-time-code" placeholder="Insert your secret code here" />
+						</div>
+					</div>
 
-					<!-- <hr class="form-separator"> -->
-					<!-- <div class="btn-container">
+					<hr class="form-separator">
+					<div class="btn-container">
 						<button id="twofa-qrcode-submit-btn" type="button" class="btn form-btn">
-							Confirm
+							Send
 						</button>
-					</div> -->
+					</div>
 				</div>
 
 				<div id="twofa-spinner" class="spinner hidden" aria-hidden="true"></div>
-				<div id="twofa-error" aria-live="assertive" class="error-message hidden"></div>
+				<div id="twofa-error" aria-live="assertive" class="alert error-message hidden"></div>
 
 				<hr class="form-separator">
 
@@ -67,6 +62,6 @@
 					</button>
 				</div>
 			</div>
-		</form>
+		</div>
 
 	</div>

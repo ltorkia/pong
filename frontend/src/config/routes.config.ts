@@ -256,7 +256,8 @@ export const routesConfig: RouteConfig[] = [
 		pageConstructor: SettingsPage,
 		templatePath: TEMPLATE_PATHS.SETTINGS,
 		components: {
-			[COMPONENT_NAMES.NAVBAR]: getComponentConfig(COMPONENT_NAMES.NAVBAR)
+			[COMPONENT_NAMES.NAVBAR]: getComponentConfig(COMPONENT_NAMES.NAVBAR),
+			[COMPONENT_NAMES.TWOFA_MODAL]: getComponentConfig(COMPONENT_NAMES.TWOFA_MODAL)
 		},
 		isPublic: false,
 		enableParticles: true

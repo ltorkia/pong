@@ -3,25 +3,38 @@ import { getUser, getUserFriends, getUserGames, getUserChat, getAvatar, getUserA
 import { getAllUsers, getAllUsersInfos, getUsersWithPagination } from '../db/user';
 import { UserModel, SafeUserModel, PublicUser, Friends, PaginatedUsers, SortOrder, UserSortField, UserSearchField } from '../shared/types/user.types';
 import { insertAvatar } from '../db/usermaj';
+import { addUserFriend, updateRelationshipBlocked, updateRelationshipConfirmed } from '../db/friendmaj';
 import { Buffer } from 'buffer';
 import bcrypt from 'bcrypt';
 import { GetAvatarFromBuffer, bufferizeStream } from '../helpers/image.helpers';
-import { RegisterInputSchema, RegisterInput, ModUserInput, ModUserInputSchema } from '../types/zod/auth.zod';
+import { RegisterInputSchema, RegisterInput, ModUserInput, ModUserInputSchema, FriendsInputSchema, FriendInput } from '../types/zod/auth.zod';
 import { searchNewName } from '../helpers/auth.helpers';
 import { changeUserData } from '../db/usermaj';
 import { promises as fs } from 'fs';
+import { DB_CONST } from '../shared/config/constants.config';
+import { checkParsing, isParsingError, adaptBodyForPassword } from '../helpers/types.helpers';
+
+/* ======================== USERS ROUTES ======================== */
 
 export async function usersRoutes(app: FastifyInstance) {
-	// pour afficher tous les users
+
+
+/* -------------------------------------------------------------------------- */
+/*            🔎 - Affiche tous les users avec infos non sensible             */
+/* -------------------------------------------------------------------------- */
+
 	app.get('/', async (request: FastifyRequest, reply: FastifyReply): Promise<SafeUserModel[] | void> => {
 		// const users: UserBasic[] = await getAllUsers();
 		const users: SafeUserModel[] = await getAllUsersInfos();
 		return users;
 	})
 
-	// Pour afficher tous les users avec pagination et paramètres de tri
+/* -------------------------------------------------------------------------- */
+/*      🔎 - Affiche tous les users avec pagination et paramètres de tri      */
+/* -------------------------------------------------------------------------- */
 	// Query params (optionnels) : sortBy, sortOrder
 	// Exemple : /api/users/page/1/20?sortBy=registration&sortOrder=DESC
+
 	app.get('/page/:page/:limit', async (request: FastifyRequest<{ 
 		Params: { page: string; limit: string }; 
 		Querystring: { sortBy?: UserSortField; sortOrder?: SortOrder }}>, 
@@ -45,7 +58,34 @@ export async function usersRoutes(app: FastifyInstance) {
 		}
 	})
 
-	// pour afficher des infos detaillees sur un user specifique sans le password
+
+/* -------------------------------------------------------------------------- */
+/*            🔎 - Affiche des infos detaillees sur un user specifique ami    */
+/* -------------------------------------------------------------------------- */
+	//:friend : username  
+	app.get('/search/:friend', async(request: FastifyRequest, reply: FastifyReply): Promise<PublicUser | void> => {
+		const { id } = request.params as { id: number };
+		const { friend } = request.params as { friend: string };
+		console.log(friend);
+		// peut etre pas necessaire en fonction de comment renvoie le front
+		const userdataCheck = await checkParsing(FriendsInputSchema, {friend: friend});
+		if (isParsingError(userdataCheck))
+			return reply.status(400).send(userdataCheck);
+		let data = userdataCheck as FriendInput;
+		console.log(data);
+		// TODO : rechercher pour check si user demande est un friend ou pas 
+		const user: PublicUser = await getUser(null, friend);
+		if (!user)
+			return reply.code(404).send({ Error : 'User not found'});
+		return reply.status(200).send(user);
+	})
+
+/* -------------------------------------------------------------------------- */
+/*            🔎 - Affiche des infos detaillees sur un user specifique        */
+/* -------------------------------------------------------------------------- */
+	// (sans password)
+	// :id = id de l utilisateur dans la db 
+
 	app.get('/:id', async (request: FastifyRequest, reply: FastifyReply): Promise<SafeUserModel | void> => {
 		const { id } = request.params as { id: number };
 		const user: SafeUserModel = await getUser(id);
@@ -54,7 +94,11 @@ export async function usersRoutes(app: FastifyInstance) {
 		return user;
 	})
 
-	// pour afficher les potos de klk1 -> id = la personne concernee
+/* -------------------------------------------------------------------------- */
+/*           🔎💛 - Affiche des infos sir les friends de l utilisateur        */
+/* -------------------------------------------------------------------------- */
+	// :id = id de l utilisateur dans la db dont on cherche les amis
+
 	app.get('/:id/friends', async(request: FastifyRequest, reply: FastifyReply): Promise<PublicUser[] | void> => {
 		const { id } = request.params as { id: number };
 		const friends: PublicUser[] = await getUserFriends(id);
@@ -62,6 +106,55 @@ export async function usersRoutes(app: FastifyInstance) {
 			return reply.code(404).send({ Error : 'User not found'});
 		return friends;
 	})
+
+/* -------------------------------------------------------------------------- */
+/*                     ⚙️💛 - Gere les actions entre amis                     */
+/* -------------------------------------------------------------------------- */
+	// :id = id de l utilisateur dans la db dont on cherche les amis
+	// :action = pending (demande d ajout), blocked(pour bloauer klk1), accepted (pour valider une demande) 
+	// attend dans la requete le nom de l ami recherche -> a adapter en fonction des besoins	 
+	// TODO : a readapter en fonction du front
+
+	app.get('/:id/friends/:action', async(request: FastifyRequest, reply: FastifyReply): Promise<PublicUser | void> => {
+		const { id } = request.params as { id: number };
+		const { action } = request.params as { action: string };
+
+		// peut etre pas necessaire en fonction de comment renvoie le front
+		const userdataCheck = await checkParsing(FriendsInputSchema, request.body);
+		if (isParsingError(userdataCheck))
+			return reply.status(400).send(userdataCheck);
+		let data = userdataCheck as FriendInput;
+		
+		const friends = getUserFriends(id);
+		const friend: PublicUser = await getUser(null, data.friend);
+		if (!friend)
+			return reply.code(404).send({ Error : 'User not found'});
+		if (action === DB_CONST.FRIENDS.STATUS.PENDING) {	
+			if (friend.id in friends)
+				return reply.code(404).send({ Error : 'Already friend'});
+			await addUserFriend(friend.id, id);
+			return reply.code(200).send({ Message : 'Ask to be friend confirmed'});
+		}
+		if (action === DB_CONST.FRIENDS.STATUS.BLOCKED) {
+			if (friend.id in friends)
+				await updateRelationshipBlocked(friend.id, id);
+			else
+				return reply.code(404).send({ Error : 'not your friend'});
+			return reply.code(200).send({ Message : 'friend blocked'});			
+		}
+		if (action === DB_CONST.FRIENDS.STATUS.ACCEPTED) {
+			if (friend.id in friends)
+				await updateRelationshipConfirmed(friend.id, id);
+			else
+				return reply.code(404).send({ Error : 'not asked to be friend'});
+			return reply.code(200).send({ Message : 'friend successfully added'});			
+		}
+	})
+
+/* -------------------------------------------------------------------------- */
+/*                   🕹️ - Recupere les donnees de jeu d un user               */
+/* -------------------------------------------------------------------------- */
+	// :id = id de l utilisateur dans la db dont on cherche les amis
 
 	app.get('/:id/games', async(request: FastifyRequest, reply: FastifyReply) => {
 		const { id } = request.params as { id: number };
@@ -71,6 +164,12 @@ export async function usersRoutes(app: FastifyInstance) {
 			return reply.code(404).send({ Error : 'User not found'});
 		return games;
 	})
+
+/* -------------------------------------------------------------------------- */
+/*             💬 - Recupere l'historique de tchat de 2 utilisateurs          */
+/* -------------------------------------------------------------------------- */
+	// :id1 et :id2 = id des utilisateurs dans la db dont on cherche les messages envoyes
+	// renvoyes par la db ranges chronologiquement
 
 	app.get('/:id1/:id2/chat', async(request: FastifyRequest, reply: FastifyReply) => {
 		const { id1 } = request.params as { id1: number };
@@ -83,6 +182,11 @@ export async function usersRoutes(app: FastifyInstance) {
 		return chat;
 	})
 
+
+/* -------------------------------------------------------------------------- */
+/*                    ⚙️📸 - modifie l avatar de l utilisateur                */
+/* -------------------------------------------------------------------------- */
+	// :id = id de l utilisateur dans la db dont on cherche les amis
 
 	app.put('/:id/moduser/avatar', async(request: FastifyRequest, reply: FastifyReply) => {
 		try {
@@ -110,12 +214,12 @@ export async function usersRoutes(app: FastifyInstance) {
 			if (avatarFile && avatarBuffer)
 			{
 				user = await getUser(id);
-				if (user.avatar != "default.png")
+				if (user.avatar != DB_CONST.USER.DEFAULT_AVATAR)
 				{
 					try {await fs.unlink(`./uploads/avatars/${user.avatar}`);}
 					catch (err) { console.error(`Erreur lors de la suppression du fichier :`, err);} //ptet caca de faire comme ca jsp
 				}
-				await GetAvatarFromBuffer(reply, user, avatarFile, avatarBuffer);
+				await GetAvatarFromBuffer(reply, user, avatarFile.mimetype, avatarBuffer);
 			}
 			user = await getUser(id);
 			console.log(user!.avatar);
@@ -131,97 +235,76 @@ export async function usersRoutes(app: FastifyInstance) {
 		}
 	})
 
+/* -------------------------------------------------------------------------- */
+/*          ⚙️ SETTING - modifie les infos persos de l utilisateur            */
+/* -------------------------------------------------------------------------- */
+	// :id = id de l utilisateur dans la db dont on cherche les amis
+
 	app.put('/:id/moduser', async(request: FastifyRequest, reply: FastifyReply) => {
+		try {
+		
 			const { id } = request.params as { id: number };
-			console.log("reauest = ", request.body);
-			// let dataTest = request.body;
-			const body = request.body as Record<string, any>;
+			const body = adaptBodyForPassword(request); //renomme les elements lies au password en CamelCase
 
-			// Renommage explicite
-			if ("curr-password" in body) {
-				body["currPassword"] = body["curr-password"];
-				delete body["curr-password"];
-			}
-
-			if ("new-password" in body) {
-				body["newPassword"] = body["new-password"];
-				delete body["new-password"];
-			}
-			if(body["currPassword"] == '')
-				body["currPassword"] = null;
-			if(body["newPassword"] == '')
-				body["newPassword"] = null;			
+			const userdataCheck = await checkParsing(ModUserInputSchema, request.body);
+			if (isParsingError(userdataCheck))
+				return reply.status(400).send(userdataCheck);
+			let dataUserReceived = userdataCheck as ModUserInput;
 			
-			// console.log("reauest avec changement de nom = ", body);
+			const dataUser = await getUserAllInfo(id);
+			let dataUserToUpdate = dataUser; //prend par defaut toutes les infos de base de l user
+			
+			if (dataUserReceived.twoFaMethod)
+				dataUserToUpdate.active2Fa = dataUserReceived.twoFaMethod;
 
-			// console.log("--------------------------request is : " + request.username);
-		const result = ModUserInputSchema.safeParse(body);
-		if (!result.success) {
-			const error = result.error.errors[0];
-			return reply.status(400).send({ statusCode: 400, errorMessage: error.message + " in " + error.path });
-		}
-		//on cree l user avec les donnees a inserer une fois le safeparse effectue
-		const dataUserReceived = result.data as ModUserInput; //datatext - a mod pour current et new pass
-		const dataUser = await getUserAllInfo(id);
-		let dataUserToUpdate = dataUser;
-		if (dataUser.username != dataUserReceived.username)
-		{
-			const UserNameCheck = await getUser(null, dataUserReceived.username);
-			if (UserNameCheck && UserNameCheck.id != dataUser.id)
-				return {statusCode : 409, message : "Username already used.<br><b>" + await (searchNewName(dataUserToUpdate.username)) + "</b> is available."};
-			dataUserToUpdate.username = dataUserReceived.username;
-		}
-		if (dataUser.email != dataUserReceived.email)
-		{
-			const UserEmailCheck = await getUser(null, dataUserReceived.email);
-			if (UserEmailCheck && UserEmailCheck.id != dataUser.id)
-				return {statusCode: 409, message : "Email already used"};
-			dataUserToUpdate.email = dataUserReceived.email;// console.log("user dans email diff", UserEmailCheck);
-		}
-		if (dataUserReceived.currPassword && dataUserReceived.newPassword)
-		{
-			// dataUserToUpdate.curr_password = await bcrypt.hash(dataUserToUpdate.curr_password, 10);
-			// if (dataUserReceived.newPassword.length() <= 3)
-			// {
-			// 	return reply.status(401).send({
-			// 		statusCode: 401,
-			// 		errorMessage: 'min 3 letters in password'
-			// 	});				
-			// }
-			const isPassValid = await bcrypt.compare(dataUserReceived.currPassword, dataUser.password);
-			if (!isPassValid) {
-				return reply.status(401).send({
-					statusCode: 401,
-					errorMessage: 'Password does not match.'
-				});
+			// check modification pour username
+			if (dataUserReceived.username && dataUser.username != dataUserReceived.username)
+			{
+				const UserNameCheck = await getUser(null, dataUserReceived.username);
+				if (UserNameCheck && UserNameCheck.id != dataUser.id)
+					return {statusCode : 409, message : "Username already used.<br><b>" + await (searchNewName(dataUserToUpdate.username)) + "</b> is available."};
+				dataUserToUpdate.username = dataUserReceived.username;
 			}
-			dataUserToUpdate.password = await bcrypt.hash(dataUserReceived.newPassword, 10);
+				
+			// check modification pour email
+			if (dataUserReceived.email && dataUser.email != dataUserReceived.email)
+			{
+				const UserEmailCheck = await getUser(null, dataUserReceived.email);
+				if (UserEmailCheck && UserEmailCheck.id != dataUser.id)
+					return {statusCode: 409, message : "Email already used"};
+				dataUserToUpdate.email = dataUserReceived.email;// console.log("user dans email diff", UserEmailCheck);
+			}
+				
+			// check modification pour password 
+			if (dataUserReceived.currPassword || dataUserReceived.newPassword)
+			{
+				if ((dataUserReceived.currPassword && !dataUserReceived.newPassword)
+					|| (!dataUserReceived.currPassword && dataUserReceived.newPassword))
+					return {statusCode: 400, message : "Please fill all the case of password to valid changement"};
+				if (dataUserReceived.currPassword && dataUserReceived.newPassword)
+				{
+					const isPassValid = await bcrypt.compare(dataUserReceived.currPassword, dataUser.password);
+					if (!isPassValid)
+						return {statusCode: 401, message : 'Password does not match.'};
+					dataUserToUpdate.password = await bcrypt.hash(dataUserReceived.newPassword, 10);
+				}
+			}
+							
+			// une fois infos verifiees, changement des datas puis recup du nouvel user
+			// console.log("-----------------------", dataUserToUpdate);
+			await changeUserData(id, dataUserToUpdate);
+			const user = await getUser(id);
+			return reply.status(200).send({
+				statusCode: 200,
+				user: user
+			});
+		} catch (err) {
+			request.log.error(err);
+			return reply.status(500).send({
+				errorMessage: 'Erreur serveur lors de la modif de settings',
+			});
 		}
-		// else
-			// dataUserToUpdate.password = dataUser.password;	
-			dataUserToUpdate.secretQuestionAnswer = dataUserReceived.answer;
-			dataUserToUpdate.secretQuestionNumber = dataUserReceived.question;
-		await changeUserData(id, dataUserToUpdate);
-		const user = await getUser(id);
-		return reply.status(200).send({
-			statusCode: 200,
-			user: user
-		});
-
-
-		
-		// //on hash le password dans un souci de confidentialite
-		// userToInsert.password = await bcrypt.hash(userToInsert.password, 10);
-	
-
-		// 1. parsing des infos donnees
-		
-		// 2. en fonction des elements retrouves ->
-		// 3. if password -> check si password donne ok + hasshing du nouveau + update
-		// 4. if username -> check si nouveau exist deja sinon block
-		// 5. if email -> check si nouveau exist deja sinon block
-		// 7. retourne un objet user si ok et sinon une erreur
-
 	})
-};
+
+}
 

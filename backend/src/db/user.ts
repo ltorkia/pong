@@ -14,7 +14,7 @@ import { sanitizeSearchTerm } from '../helpers/query.helpers';
 export async function getUser(userId : number | null = null, search : string | null = null){
 	const db = await getDb(); 
 	const user = await db.get(`
-		SELECT id, username, email, secret_question_number, 
+		SELECT id, username, email, 
 		registration, begin_log, end_log, tournament, avatar, game_played, game_win, 
 		game_loose, time_played, n_friends, status, is_deleted, register_from, active_2FA
 		FROM User 
@@ -92,7 +92,7 @@ export async function getUsersWithPagination(
 export async function getUserP(email: string) {
 	const db = await getDb();
 	const user = await db.get(`
-		SELECT id, username, email, password, register_from
+		SELECT id, username, email, password, register_from, avatar
 		FROM User 
 		WHERE email = ?
 		`,
@@ -116,7 +116,7 @@ export async function getUserAllInfo(id: number) {
 export async function getUser2FA(email: string) {
 	const db = await getDb();
 	const user = await db.get(`
-		SELECT id, username, email, code_2FA, code_2FA_expire_at, register_from
+		SELECT id, username, email, code_2FA_email, code_2FA_qrcode, code_2FA_expire_at, active_2FA, register_from
 		FROM User 
 		WHERE email = ?
 		`,
@@ -209,10 +209,10 @@ export async function insertUser(user: (RegisterInput | {username: string, email
 				return {statusCode: 409, message : "Email already used"};
 			const u = user as RegisterInput;
 			await db.run(`
-				INSERT INTO User (username, email, password, secret_question_number, secret_question_answer)
-				VALUES (?, ?, ?, ?, ?)
+				INSERT INTO User (username, email, password)
+				VALUES (?, ?, ?)
 				`,
-				[u.username, u.email, u.password, u.question, u.answer]
+				[u.username, u.email, u.password]
 			);
 		}
 		else 

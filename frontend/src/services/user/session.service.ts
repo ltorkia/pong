@@ -1,4 +1,4 @@
-import { User } from '../../models/user.model';
+import { User } from '../../shared/models/user.model';
 import { currentService } from '../index.service';
 import { authApi } from '../../api/index.api';
 import { animationService } from '../index.service';

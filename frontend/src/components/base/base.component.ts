@@ -1,4 +1,4 @@
-import { User } from '../../models/user.model';
+import { User } from '../../shared/models/user.model';
 import { currentService } from '../../services/index.service';
 import { checkUserLogged } from '../../utils/app.utils'; 
 import { RouteConfig } from '../../types/routes.types';

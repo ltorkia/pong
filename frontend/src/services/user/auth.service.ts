@@ -4,8 +4,10 @@ import { authApi } from '../../api/index.api';
 import { animationService } from '../index.service';
 import { AuthResponse, BasicResponse } from '../../types/api.types';
 import { isValidImage } from '../../utils/image.utils';
-import { DEFAULT_ROUTE, AUTH_FALLBACK_ROUTE } from '../../config/routes.config';
+import { DEFAULT_ROUTE, AUTH_FALLBACK_ROUTE, PAGE_NAMES } from '../../config/routes.config';
 import { REGISTERED_MSG } from '../../config/messages.config';
+import { DB_CONST } from '../../shared/config/constants.config';
+import { TwoFaMethod } from '../../shared/types/user.types';
 
 // ===========================================
 // AUTHENTICATION SERVICE
@@ -72,7 +74,7 @@ export class AuthService {
 				return { errorMessage: data.errorMessage };
 			}
 
-			if (data.user!.active2Fa) {
+			if (data.user!.active2Fa !== DB_CONST.USER.ACTIVE_2FA.DISABLED) {
 				// Mode 2FA activé: pas de redirection, c’est LoginPage qui gère le popup
 				console.log(`[${this.constructor.name}] Authentification réussie (étape 1), 2FA requis`);
 				return data as AuthResponse;
@@ -98,11 +100,12 @@ export class AuthService {
 	 * Si la vérification réussit, renvoie un objet avec un message de confirmation.
 	 * 
 	 * @param {Record<string, string>} userData Informations de l'utilisateur à connecter.
+	 * @param {TwoFaMethod} method Méthode de 2FA choisie.
 	 * @returns {Promise<AuthResponse>} Promesse qui se résout avec un objet contenant
 	 * un message d'erreur ou un message de confirmation.
 	 */
-	public async send2FA(userData: Record<string, string>): Promise<AuthResponse> {
-		const res2FA: AuthResponse = await authApi.send2FA(userData);
+	public async send2FA(userData: Record<string, string>, method: TwoFaMethod): Promise<AuthResponse> {
+		const res2FA: AuthResponse = await authApi.send2FA(userData, method);
 		if (res2FA.errorMessage) {
 			return { errorMessage: res2FA.errorMessage || res2FA.message || 'Erreur inconnue' } as AuthResponse;
 		}
@@ -113,28 +116,34 @@ export class AuthService {
 	 * Connecte un utilisateur après avoir vérifié son code 2FA.
 	 * 
 	 * Effectue une requête API pour connecter un utilisateur avec son code 2FA.
-	 * Si la connexion réussit, stocke l'utilisateur dans le store et le localStorage,
-	 * active l'animation d'entrée de la barre de navigation
+	 * Si la connexion réussit, stocke l'utilisateur dans le store et le localStorage.
+	 * Si l'utilisateur vient de la page 'login', active l'animation d'entrée de la barre de navigation
 	 * et redirige vers la page d'accueil.
 	 * 
 	 * @param {Record<string, string>} userData Informations de l'utilisateur à connecter.
+	 * @param {TwoFaMethod} method Méthode de 2FA choisie.
 	 * @returns {Promise<AuthResponse>} Promesse qui se résout avec l'utilisateur
 	 *   authentifié ou un objet d'erreur.
 	 * @throws {Error} Si la requête échoue ou en cas d'erreur réseau.
 	 */
-	public async twofaConnect(userData: Record<string, string>): Promise<AuthResponse> {
+	public async twofaConnect(userData: Record<string, string>, method: TwoFaMethod): Promise<AuthResponse> {
 		try {
-			const result: AuthResponse = await authApi.twofaConnectUser(userData);
+			const result: AuthResponse = await authApi.twofaConnectUser(userData, method);
 			if (result.errorMessage) {
 				console.error(`[${this.constructor.name}] Erreur d'authentification.`);
 				return { errorMessage: result.errorMessage };
 			}
 			console.log(`[${this.constructor.name}] Utilisateur connecté.`);
 
-			// Redirection home
-			animationService.animateNavbarOut = true;
-			await router.redirect(DEFAULT_ROUTE);
-
+			let isFromSettings = false;
+			if (userData.pageName && userData.pageName === PAGE_NAMES.SETTINGS) {
+				isFromSettings = true;
+			}
+			// Redirection home si l'utilisateur vient de la page login
+			if (!isFromSettings) {
+				animationService.animateNavbarOut = true;
+				await router.redirect(DEFAULT_ROUTE);
+			}
 			return result;
 		} catch (err) {
 			console.error(`[${this.constructor.name}] Erreur réseau ou serveur`, err);

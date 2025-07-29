@@ -1,11 +1,11 @@
 import { z } from 'zod';
+import { TwoFaMethod} from '../../shared/types/user.types';
+import { DB_CONST } from '../../shared/config/constants.config'; // ajuste le chemin si besoin
 
 export const RegisterInputSchema = z.object({
 	username : z.string(),
 	email: z.string().email(),
 	password: z.string().min(3),
-	question: z.coerce.number().int().min(1).max(3),
-	answer: z.string(),
 });
 
 export const LoginInputSchema = z.object({
@@ -13,16 +13,30 @@ export const LoginInputSchema = z.object({
 	password: z.string(),
 });
 
-export const ModUserInputSchema = z.object({
-	username : z.string(),
+export const TwoFAInputSchema = z.object({
 	email: z.string().email(),
-	currPassword: z.string().min(3).nullable(),
-	newPassword: z.string().min(3).nullable(),
-	question: z.coerce.number().int().min(1).max(3),
-	answer: z.string(),
+	pageName: z.string(),
 });
 
+
+export const ModUserInputSchema = z.object({
+  username: z.string().optional(),
+  email: z.string().email().optional(),
+  currPassword: z.string().min(3).nullable().optional(),
+  newPassword: z.string().min(3).nullable().optional(),
+  twoFaMethod: z.enum([
+    DB_CONST.USER.ACTIVE_2FA.EMAIL_CODE,
+    DB_CONST.USER.ACTIVE_2FA.QR_CODE,
+    DB_CONST.USER.ACTIVE_2FA.DISABLED,
+  ]).optional(),
+});
+
+export const FriendsInputSchema = z.object({
+  friend: z.string(),
+});
 
 export type ModUserInput = z.infer<typeof ModUserInputSchema>;
 export type RegisterInput = z.infer<typeof RegisterInputSchema>;
 export type LoginInput = z.infer<typeof LoginInputSchema>;
+export type TwoFAInput = z.infer<typeof TwoFAInputSchema>;
+export type FriendInput = z.infer<typeof FriendsInputSchema>;

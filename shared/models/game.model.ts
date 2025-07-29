@@ -1,5 +1,5 @@
-import { GameModel, GameStatus } from '../shared/types/game.types';	// en rouge car dossier local 'shared' != dossier conteneur
-import { DB_CONST } from '../shared/config/constants.config'; // en rouge car dossier local 'shared' != dossier conteneur
+import { GameModel, GameStatus } from '../types/game.types';	// en rouge car dossier local 'shared' != dossier conteneur
+import { DB_CONST } from '../config/constants.config'; // en rouge car dossier local 'shared' != dossier conteneur
 
 // ===========================================
 // GAME MODEL

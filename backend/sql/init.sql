@@ -15,14 +15,13 @@ CREATE TABLE IF NOT EXISTS User (
 	game_win INTEGER DEFAULT 0 NOT NULL,														-- total parties gagnees -> pareil
 	game_loose INTEGER DEFAULT 0 NOT NULL,														-- total parties perdues -> pareil
 	time_played INTEGER DEFAULT 0 NOT NULL,														-- total temps joue -> a remettre a jour a chaque fin de jeu
-	secret_question_number INTEGER NOT NULL DEFAULT 4 CHECK (secret_question_number IN (1, 2, 3, 4)), -- pour moi possibilite de null et a proteger dans les inputs pour si auth google, idem pour answer
-	secret_question_answer TEXT DEFAULT 0 NOT NULL,
 	n_friends INTEGER DEFAULT 0 NOT NULL,														-- nbre d'amis total -> a mettre a jour a chaque ajout/suppression d'ami
 	status TEXT DEFAULT 'offline' NOT NULL CHECK (status IN ('online', 'offline', 'in-game')),
 	is_deleted INTEGER DEFAULT 0 NOT NULL CHECK (is_deleted IN (0, 1)),							-- pour savoir si le compte est actif ou non (on garde le user en bdd meme apres desinscription pour garder les stats des jeux pour ses partenaires toujours inscrits), 0 = actif, 1 = pas actif
 	register_from TEXT DEFAULT 'local' NOT NULL CHECK (register_from IN ('local', 'google')),	-- pour savoir si le user s'est inscrit via le site ou via Google, utile pour l'authentification
-	active_2FA INTEGER DEFAULT 0 NOT NULL CHECK (active_2FA IN (0, 1)),
-	code_2FA TEXT,
+	active_2FA TEXT DEFAULT 'disabled' NOT NULL CHECK (active_2FA IN ('disabled', 'email', 'qrcode')),
+	code_2FA_email TEXT,
+	code_2FA_qrcode TEXT,
 	code_2FA_expire_at INTEGER
 );
 

@@ -27,6 +27,11 @@ export type UserStatus =
 export type RegisterMethod =
 	typeof DB_CONST.USER.REGISTER_FROM[keyof typeof DB_CONST.USER.REGISTER_FROM];
 
+/**
+ * Type de méthode de double authentification.
+ */
+export type TwoFaMethod =
+	typeof DB_CONST.USER.ACTIVE_2FA[keyof typeof DB_CONST.USER.ACTIVE_2FA];
 
 /**
  * Type MIME des formats d'image supportés pour les avatars.
@@ -57,7 +62,7 @@ export interface SafeUserModel {
 	status: UserStatus;
 	isDeleted: number;
 	registerFrom: RegisterMethod;
-	active2Fa: number;
+	active2Fa: TwoFaMethod;
 }
 
 /**
@@ -69,7 +74,6 @@ export interface SafeUserModel {
  */
 export interface UserModel extends SafeUserModel {
 	email: string;
-	secretQuestionNumber: number;
 }
 
 /**
