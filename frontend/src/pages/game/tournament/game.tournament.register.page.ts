@@ -1,6 +1,8 @@
 import { BasePage } from '../../base/base.page';
 import { RouteConfig, RouteParams } from '../../../types/routes.types';
 import { DataService } from '../../../services/user/data.service';
+import { dataService } from 'src/services/index.service';
+import { secureFetch } from '../../../utils/app.utils';
 // import "animate.css";
 
 export class GameMenuTournamentRegister extends BasePage {
@@ -27,7 +29,7 @@ export class GameMenuTournamentRegister extends BasePage {
         };
         sessionStorage.removeItem("fromRedirect");
         this.fetchPastille();
-        const rowCount = this.playersNb / 4; // make sure this is an integer!
+        const rowCount = this.playersNb / 4;
         const gridClassName = gridRowClass[rowCount as keyof typeof gridRowClass];
         const pastilleHolder = document.getElementById("pastilles-holder");
         pastilleHolder!.classList.add(gridClassName);
@@ -52,6 +54,7 @@ export class GameMenuTournamentRegister extends BasePage {
     }
 
     private async appendPlayerPastille(player: { alias: string, username?: string }): Promise<void> {
+        console.log(player);
         const pastille = this.pastilleHTML.cloneNode(true) as HTMLElement;
         const h2 = pastille.querySelector("h2");
         h2!.textContent = `${player.alias}`;
@@ -68,9 +71,15 @@ export class GameMenuTournamentRegister extends BasePage {
         requestAnimationFrame(() => {
             pastille.classList.add("opacity-100");
         });
-        if (!player.username) {
-            const img = pastille.querySelector("img") as HTMLImageElement;
-            // img.src = this.dataApi.getUserAvatarURL("default");
+        const img = pastille.querySelector("img") as HTMLImageElement;
+        if (player.username) {
+            console.log("username : ", player.username);
+            const res = await secureFetch(`/api/users/search/${player.username}`);
+            const data = await res.json();
+            console.log(data);
+            // console.log(playerFetched);
+            img.src = `https://localhost:8443/uploads/avatar/${data.avatar}`; 
+        } else {
             img.src = await this.dataApi.returnDefaultAvatarURL();
         }
     }
@@ -100,7 +109,7 @@ export class GameMenuTournamentRegister extends BasePage {
         }, 1500);
     }
 
-    private handleUserInput(alias: string, username?: string): void {
+    private async handleUserInput(alias: string, username?: string): Promise<void> {
         if (!alias) {
             const aliasInput = document.getElementById("alias-input");
             aliasInput?.classList.add("animate__animated", "animate__shakeX", "animate__fast");
@@ -110,9 +119,6 @@ export class GameMenuTournamentRegister extends BasePage {
             return (this.printError("Invalid number of players!"));
         if (this.players.find(player => player.alias == alias))
             return (this.printError("Player already exists in tournament!"));
-        if (username) {
-            // request database
-        }
         const player = { alias: alias, username: username };
         this.players.push(player);
         this.appendPlayerPastille(player);
