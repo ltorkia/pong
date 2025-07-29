@@ -166,7 +166,8 @@ fclean: down # Nettoyage profond: volumes, images et données persistantes local
 	@echo "\n$(YELLOW)• Suppression des fichiers .env...$(NC)"
 	rm -f $(ENV_SHARED_DEST) $(ENV_FRONT_DEST) $(ENV_BACK_DEST)
 	@echo "\n${YELLOW}• Suppression des volumes...${NC}"
-	sudo docker volume prune -f
+	# sudo docker volume prune -f
+	docker volume prune -f
 	@echo "\n${YELLOW}• Suppression des images...${NC}"
 	docker rmi -f $$(docker images -q) 2>/dev/null || true
 	@echo "\n${RED}• Nettoyage des données persistantes locales...${NC}"
@@ -177,7 +178,8 @@ fclean: down # Nettoyage profond: volumes, images et données persistantes local
 
 prune: fclean # Nettoyage complet y compris le système Docker global
 	@echo "\n$(YELLOW)⚠️ Suppression complète de tous les éléments Docker non utilisés...${NC}"
-	sudo docker system prune -a --volumes -f
+	# sudo docker system prune -a --volumes -f
+	docker system prune -a --volumes -f
 	@echo "$(GREEN)Système Docker nettoyé avec succès!${NC}"
 
 re: down up

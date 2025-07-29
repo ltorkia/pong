@@ -1,6 +1,7 @@
 import { BasePage } from '../../base/base.page';
 import { RouteConfig, RouteParams } from '../../../types/routes.types';
 import { DataService } from '../../../services/user/data.service';
+// import "animate.css";
 
 export class GameMenuTournamentRegister extends BasePage {
     private playersNb: number;
@@ -42,7 +43,7 @@ export class GameMenuTournamentRegister extends BasePage {
             this.pastilleHTML = pastilleDiv.cloneNode(true);
     }
 
-    private appendListenerPastille(pastille: HTMLElement, player: {alias: string, username?: string}): void {
+    private appendListenerPastille(pastille: HTMLElement, player: { alias: string, username?: string }): void {
         pastille.querySelector("#tournament-cross")?.addEventListener("click", () => {
             const toRemoveIdx = this.players.findIndex(p => p.alias == player.alias);
             this.players.splice(toRemoveIdx, 1);
@@ -71,10 +72,41 @@ export class GameMenuTournamentRegister extends BasePage {
             const img = pastille.querySelector("img") as HTMLImageElement;
             // img.src = this.dataApi.getUserAvatarURL("default");
             img.src = await this.dataApi.returnDefaultAvatarURL();
-        } 
+        }
+    }
+
+    private printError(error: string): void {
+        const errorDiv = document.createElement("div");
+        const container = document.getElementById("alias-container");
+        const inputsContainer = document.getElementById("inputs-container");
+        errorDiv.textContent = error;
+        errorDiv.classList.add(
+            "absolute", "bottom-10", "left-0", "right-0",
+            "border-2", "border-red-500", "rounded-md",
+            "bg-black", "bg-opacity-30", "m-2", "p-2", "text-center", 
+            "animate__animated", "animate__fadeIn");
+        container?.append(errorDiv);
+        inputsContainer!.classList.add("transition-transform", "duration-500", "-translate-y-10");
+        setTimeout(() => {
+            errorDiv.classList.add("animate__animated", "animate__fadeOut");
+            setTimeout(() => {
+                inputsContainer!.classList.remove("-translate-y-10");
+                inputsContainer!.classList.add("translate-y-0");
+                errorDiv.addEventListener("animationend", () => {
+                    errorDiv.remove();
+                });
+            }, 500);
+        }, 1500);
     }
 
     private handleUserInput(alias: string, username?: string): void {
+        if (this.players.length >= this.playersNb)
+            return (this.printError("Invalid number of players!"))
+        if (!alias) {
+            const aliasInput = document.getElementById("alias-input");
+            aliasInput?.classList.add("animate__animated", "animate__shakeX", "animate__fast", "border-2", "border-red-500");
+            return;
+        }
         if (username) {
             // request database
         }
@@ -94,6 +126,9 @@ export class GameMenuTournamentRegister extends BasePage {
                 usernameInput.value = "";
             }
         });
+        aliasInput.addEventListener("animationend", () => {
+            aliasInput.classList.remove("animate__animated", "animate__shakeX", "animate__fast", "border-2", "border-red-500");
+        })
         usernameInput.addEventListener("keydown", (event) => {
             if (event.key == "Enter") {
                 this.handleUserInput(aliasInput.value, usernameInput.value);
@@ -101,6 +136,5 @@ export class GameMenuTournamentRegister extends BasePage {
                 usernameInput.value = "";
             }
         });
-
     }
 }

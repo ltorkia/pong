@@ -2,14 +2,22 @@
     <!-- <div id="canvas-container" class="h-full w-full"></div> -->
     <h1 class="font-title font-bold text-5xl text-center text-shadow-black w-full">TOURNAMENT</h1>
     <h2 class="font-title">Please register the players :</h2>
-    <div class="size-full h-96 flex justify-evenly items-center">
-        <div class="h-1/2 w-1/4 m-2 flex flex-col justify-center items-center bg-black bg-opacity-30 shadow-lg shadow-black ring-1 ring-black inset-shadow-lg inset-shadow-white-500 border-white rounded-md">
-            <h3 class="font-title text-center">Enter an alias :</h3>
-            <input id="alias-input" type="text" class="w-1/2 m-2 p-1 bg-white bg-opacity-10 rounded-md shadow-white bg-opacity-10 text-white focus:outline-none"></input>
-            <h3 class="font-title text-center text-sm">Player already registered ?<br>Enter its username :</h3>
-            <input id="username-input" type="text" class="w-1/2 m-2 p-1 bg-white bg-opacity-10 rounded-md shadow-white bg-opacity-10 text-white focus:outline-none"></input>
+    <div id="register-container" class="size-full h-96 flex justify-evenly items-center">
+        <div id="alias-container" class="relative h-full flex flex-col justify-center items-center">
+            <div
+                id="inputs-container"
+                class="h-1/2 w-full m-2 flex flex-col justify-center items-center bg-black bg-opacity-30 shadow-lg shadow-black ring-1 ring-black inset-shadow-lg inset-shadow-white-500 border-white rounded-md">
+                <h3 class="font-title text-center">Enter an alias :</h3>
+                <input id="alias-input" type="text"
+                    class="w-1/2 m-2 p-1 bg-white bg-opacity-10 rounded-md shadow-white bg-opacity-10 text-white focus:outline-none"></input>
+                <h3 class="font-title text-center text-sm">Player already registered ?<br>Enter its username :</h3>
+                <input id="username-input" type="text"
+                    class="w-1/2 m-2 p-1 bg-white bg-opacity-10 rounded-md shadow-white bg-opacity-10 text-white focus:outline-none"></input>
+            </div>
         </div>
-        <div id="pastilles-holder" class="gap-1 p-2 bg-black bg-opacity-30 shadow-lg shadow-black ring-1 ring-black <!-- inset-shadow-lg inset-shadow-white-500 --> border-white rounded-md h-full w-2/3 overflow-hidden"></div>
+        <div id="pastilles-holder"
+            class="gap-1 p-2 bg-black bg-opacity-30 shadow-lg shadow-black ring-1 ring-black <!-- inset-shadow-lg inset-shadow-white-500 --> border-white rounded-md h-full w-2/3 overflow-hidden">
+        </div>
     </div>
     <button id="tournament-start-btn">START!</button>
     <!-- </div> -->
