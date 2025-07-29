@@ -1,50 +1,30 @@
 @layer components {
 
 	/* SEARCH BAR */
-	/* #search-bar {
-		@apply w-full flex flex-row justify-center items-center
-		bg-white/20 backdrop-blur-md border border-white/20
-		rounded-full p-2 px-4 mb-4 space-x-5
-		transition duration-300 ease-in-out;
-	}
-
-	#search-bar input {
-		@apply w-auto text-gray-700;
-	}
-
-	#search-bar button {
-		@apply text-pastel-blue;
-	} */
-
-	/* SEARCH BAR */
 	#search-bar {
-		@apply w-full flex flex-col
+		@apply w-full flex flex-col justify-center
 		bg-white/20 backdrop-blur-md border border-white/20
-		rounded-2xl p-4 mb-4
+		rounded-2xl p-2 px-4 mb-4
 		transition duration-300 ease-in-out;
 	}
 
 	/* Ligne principale de recherche */
 	.search-main {
-		@apply flex flex-row justify-center items-center space-x-3 mb-3;
+		@apply flex flex-row justify-center items-center space-x-3;
 	}
 
-	.search-main input {
-		@apply flex-1 bg-transparent text-gray-700 placeholder-gray-500
-		border-none outline-none text-sm;
+	#search-bar input {
+		@apply flex-1 w-full text-gray-700;
 	}
 
 	.search-main button {
-		/* @apply bg-blue-500 hover:bg-blue-600 text-white
-		px-4 py-2 rounded-full text-sm font-medium
-		transition duration-200 ease-in-out; */
 		@apply btn smaller-btn font-classic mt-0 px-4 py-2 text-pastel-blue hover:text-blue-700
 		transition duration-200 ease-in-out;
 	}
 
 	/* Filtres */
 	.filters-container {
-		@apply flex flex-wrap items-center gap-3 pt-3 border-t border-white/10;
+		@apply flex flex-wrap items-center gap-3 mt-5 pt-3 border-t border-white/10;
 	}
 
 	.filter-group {
@@ -67,6 +47,11 @@
 		@apply text-sm text-gray-600 font-medium;
 	}
 
+	.btn-style {
+		@apply btn smaller-btn font-classic mt-0 px-4 py-2 text-pastel-blue hover:text-blue-700
+		transition duration-200 ease-in-out;
+	}
+
 	/* Statut badges */
 	.status-filter {
 		@apply flex items-center space-x-1;
@@ -87,21 +72,7 @@
 		flex items-center space-x-1 transition duration-200;
 	}
 
-	/* Animation pour les filtres */
-	/* .filters-container.hidden {
-		@apply hidden;
-	} */
-
 	.filters-container.show {
-		@apply animate-fade-in;
-	}
-
-	@keyframes fade-in {
-		from { opacity: 0; transform: translateY(-10px); }
-		to { opacity: 1; transform: translateY(0); }
-	}
-
-	.animate-fade-in {
-		animation: fade-in 0.3s ease-out;
+		@apply animate-fade-in-down;
 	}
 }

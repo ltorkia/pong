@@ -19,7 +19,6 @@ export class SearchBarComponent extends BaseComponent {
 	private statusFilter!: HTMLSelectElement;
 	private levelFilter!: HTMLSelectElement;
 	private friendsOnly!: HTMLInputElement;
-	private verifiedOnly!: HTMLInputElement;
 	private resetFilters!: HTMLButtonElement;
 
 	/**
@@ -66,7 +65,6 @@ export class SearchBarComponent extends BaseComponent {
 		// Gestion de l'affichage des filtres
 		this.filtersToggle = getHTMLElementById('filters-toggle', this.container) as HTMLButtonElement;
 		this.filtersContainer = getHTMLElementById('filters-container', this.container) as HTMLDivElement;
-		// this.filtersIcon = getHTMLElementById('filters-icon', this.container) as unknown as SVGElement;
 		this.filtersIcon = getHTMLElementByTagName('i', this.filtersToggle) as HTMLElement;
 
 		// Gestion de la recherche et des filtres
@@ -75,7 +73,6 @@ export class SearchBarComponent extends BaseComponent {
 		this.statusFilter = getHTMLElementById('status-filter', this.container) as HTMLSelectElement;
 		this.levelFilter = getHTMLElementById('level-filter', this.container) as HTMLSelectElement;
 		this.friendsOnly = getHTMLElementById('friends-only', this.container) as HTMLInputElement;
-		this.verifiedOnly = getHTMLElementById('verified-only', this.container) as HTMLInputElement;
 		this.resetFilters = getHTMLElementById('reset-filters', this.container) as HTMLButtonElement;
 	}
 
@@ -90,7 +87,7 @@ export class SearchBarComponent extends BaseComponent {
 	 */
 	protected attachListeners(): void {
 		this.filtersToggle.addEventListener('click', this.handleFilterClick);
-		[this.friendsOnly, this.verifiedOnly].forEach(checkbox => {
+		[this.friendsOnly].forEach(checkbox => {
 			checkbox.addEventListener('change', this.performSearch);
 		});
 		this.resetFilters.addEventListener('click', this.handleResetOnClick);
@@ -103,7 +100,7 @@ export class SearchBarComponent extends BaseComponent {
 	 */
 	protected removeListeners(): void {
 		this.filtersToggle.removeEventListener('click', this.handleFilterClick);
-		[this.friendsOnly, this.verifiedOnly].forEach(checkbox => {
+		[this.friendsOnly].forEach(checkbox => {
 			checkbox.removeEventListener('change', this.performSearch);	
 		})
 		this.resetFilters.removeEventListener('click', this.handleResetOnClick);
@@ -146,14 +143,12 @@ export class SearchBarComponent extends BaseComponent {
 		const status = this.statusFilter.value;
 		const level = this.levelFilter.value;
 		const friendsChecked = this.friendsOnly.checked;
-		const verifiedChecked = this.verifiedOnly.checked;
 
 		console.log('Recherche avec les paramètres:', {
 			searchTerm,
 			status,
 			level,
-			friendsOnly: friendsChecked,
-			verifiedOnly: verifiedChecked
+			friendsOnly: friendsChecked
 		});
 	}
 
@@ -169,7 +164,6 @@ export class SearchBarComponent extends BaseComponent {
 		this.statusFilter.value = '';
 		this.levelFilter.value = '';
 		this.friendsOnly.checked = false;
-		this.verifiedOnly.checked = false;
 		this.performSearch(event);
 	}
 }

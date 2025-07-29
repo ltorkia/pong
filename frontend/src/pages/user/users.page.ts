@@ -162,7 +162,7 @@ export class UsersPage extends BasePage {
 						if (user.id === this.currentUser!.id) {
 							(userLine as HTMLElement).style.backgroundColor = '#5e8ca5';
 						}
-						userLine.classList.add('animate-fadeInUp');
+						userLine.classList.add('animate-fade-in-up');
 						this.userList.appendChild(userLine);
 					}
 				})

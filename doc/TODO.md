@@ -15,20 +15,14 @@ COMMUN
 - Ajuster conf nginx prod pour websockets
 - Si on a le time faire le switch compte Google -> compte local dans settings ?
 - Reutiliser systeme code 2FA pour "Mot de passe oublie"
-- Regenerer QrCode si pb ???
 - Complexifier mot de passe
+- Faire sockets pour statut online / demandes d'amis
 
 FRONT
 
-- Faire un middleware à wrapper dans chaque fonction qui implique de checker si le user est connecté
 - Rajouter le nom du user connecté sur la navbar ?
 - Faire page profil (stats globales user) / dashboard (match history, 1vs1, tournois etc)
-- Ajouter "Mot de passe oublie ?" avec gestion question secrete dans modal
 - Faire un petit hover sur le bouton/icon previous de register et du modal
-- Ajouter filtres dans barre de recherche de user list
-- Gerer affichage userlist bouton add to friend / friend / self
-- Ajuster logique pour getAvatarUrl Google quand le back a fini l'affaire de proxy
-- Faire requete api tournois / modele ?
 
 - check MAJ package.json :
  @tsparticles/engine         ^3.0.2  →   ^3.8.1
