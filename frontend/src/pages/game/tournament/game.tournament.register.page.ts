@@ -84,7 +84,8 @@ export class GameMenuTournamentRegister extends BasePage {
             "absolute", "bottom-10", "left-0", "right-0",
             "border-2", "border-red-500", "rounded-md",
             "bg-black", "bg-opacity-30", "m-2", "p-2", "text-center", 
-            "animate__animated", "animate__fadeIn");
+            "animate__animated", "animate__fadeIn"
+        );
         container?.append(errorDiv);
         inputsContainer!.classList.add("transition-transform", "duration-500", "-translate-y-10");
         setTimeout(() => {
@@ -100,13 +101,15 @@ export class GameMenuTournamentRegister extends BasePage {
     }
 
     private handleUserInput(alias: string, username?: string): void {
-        if (this.players.length >= this.playersNb)
-            return (this.printError("Invalid number of players!"))
         if (!alias) {
             const aliasInput = document.getElementById("alias-input");
-            aliasInput?.classList.add("animate__animated", "animate__shakeX", "animate__fast", "border-2", "border-red-500");
+            aliasInput?.classList.add("animate__animated", "animate__shakeX", "animate__fast");
             return;
         }
+        if (this.players.length >= this.playersNb)
+            return (this.printError("Invalid number of players!"));
+        if (this.players.find(player => player.alias == alias))
+            return (this.printError("Player already exists in tournament!"));
         if (username) {
             // request database
         }
