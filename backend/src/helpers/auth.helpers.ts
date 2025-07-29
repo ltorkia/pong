@@ -60,12 +60,12 @@ export function setStatusCookie(reply: FastifyReply) {
 	reply.setCookie(COOKIES_CONST.AUTH.STATUS_KEY, COOKIES_CONST.AUTH.STATUS_VALUE, {
 		path: '/',
 		httpOnly: false,
-		sameSite: 'lax',
+		sameSite: 'none',
 		secure: true,
 		maxAge: 60 * 60 * 24 * 7, // 7 jours même durée que le cookie principal
 	});
 }
-
+	// sameSite : 'lax',
 /**
  * Supprime les cookies d'authentification lors de la déconnexion
  * Nettoie à la fois le cookie principal et le cookie compagnon
@@ -75,18 +75,20 @@ export function clearAuthCookies(reply: FastifyReply) {
 	reply.clearCookie(COOKIES_CONST.AUTH.TOKEN_KEY, {
 		path: '/',
 		httpOnly: true,
-		sameSite: 'lax',
+		sameSite: 'none', 
 		secure: true,
 	});
+	// sameSite : 'lax',
 	
 	// le cookie compagnon (statut)
 	reply.clearCookie(COOKIES_CONST.AUTH.STATUS_KEY, {
 		path: '/',
 		httpOnly: false,
-		sameSite: 'lax',
+		sameSite: 'none',
 		secure: true,
 	});
 }
+// sameSite : 'lax',
 
 /*propose un nouveau nom pour register*/
 export async function searchNewName(username: string) {
