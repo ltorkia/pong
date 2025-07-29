@@ -38,14 +38,14 @@ export class Ball {
     public checkPlayerCollision(players: Player[]): boolean {
         for (const player of players) {
             const playerBounds = {
-                xRange: { x0: player.pos.x - 0.30 / 2, x1: player.pos.x + 0.30 / 2 },
-                yRange: { y0: player.pos.y - 0.10 / 2, y1: player.pos.y + 0.10 / 2 }
+                xRange: { x0: player.pos.x - player.width / 2, x1: player.pos.x + player.width / 2 },
+                yRange: { y0: player.pos.y - player.height / 2, y1: player.pos.y + player.height / 2 }
             }
             const xClamp = clamp(this.x, playerBounds.xRange.x0, playerBounds.xRange.x1);
             const yClamp = clamp(this.y, playerBounds.yRange.y0, playerBounds.yRange.y1);
-            if (Math.sqrt(Math.pow(this.x - xClamp, 2) + (Math.pow(this.y - yClamp, 2))) <= this.radius)
+            if (Math.sqrt(Math.pow(this.x - xClamp, 2) + (Math.pow(this.y - yClamp, 2))) <= this.radius / 2)
                 return (true);
-        }
+        } 
         return (false);
     };
     constructor() {
@@ -54,7 +54,7 @@ export class Ball {
         this.vAngle = 60;
         this.vSpeed = 0.01;
         this.radius = 0.03;
-    } 
+    }
 };
 
 export class GameInstance {
@@ -73,8 +73,8 @@ export class GameInstance {
         const fps = 1000 / 60;
         let then = Date.now();
         const startTime = then;
+        let frame = 0;
         while (this.gameStarted == true) {
-            // console.log("angle ", this.ball.vAngle);
             this.ball.move();
             for (const player of this.players)
                 player.move();
@@ -96,21 +96,24 @@ export class GameInstance {
             //     this.gameStarted = false;
             // }
             const now = Date.now();
-            if (now - then < fps)
+            if (now - then < fps) 
                 await sleep(fps - (now - then));
             this.sendGameUpdate();
             then = Date.now();
+            console.log(`frame = ${frame++} p1 id ${this.players[0].ID} = ${this.players[0].pos.x} ${this.players[0].pos.y} !`);
         }
-
+        console.log("EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEND");
+        console.log("GAME ENDEED");
+        this.endGame();
         // console.log("update!a")
-
     };
 
     private initSizePos(): void {
         if (this.playersCount == 2) {
-            this.players[0].pos.x = -1;
+            this.players[0].pos.x = -1 + this.players[0].width / 2;
             this.players[0].pos.y = this.players[1].pos.y = 0;
-            this.players[1].pos.x = 1;
+            this.players[1].pos.x = 1 - this.players[0].width / 2;
+            // console.log("player width = ", this.players[0].width / 2);
         }
     };
 
@@ -124,6 +127,14 @@ export class GameInstance {
         // this.frameReq = requestAnimationFrame(this.gameLoop.bind(this));
     };
 
+    public endGame(): void {
+        for (const player of this.players) {
+            player.webSocket.send(JSON.stringify({
+            type: "end",
+        }));
+        }
+    }
+
     private sendGameUpdate() {
         const gameUpdate = new GameData(this.players, this.ball);
         for (const player of this.players) {
@@ -134,12 +145,14 @@ export class GameInstance {
     public registerInput(playerID: number, key: string, status: boolean): void {
         // console.log("coucou")
         for (const player of this.players) {
-            if (player.playerID == playerID) {
+            if (player.ID == playerID) {
                 if (key == "w" && player.inputUp != status) player.inputUp = status;
                 else if (key == "s" && player.inputDown != status) player.inputDown = status;
             }
         }
-    }
+    };
+
+    public setGameStarted(started: boolean) {this.gameStarted = started};
 };
 
 export class Lobby {
@@ -153,14 +166,16 @@ export class Lobby {
 }
 
 export class Game {
-	id: number;
+	ID: number;
 	// status_win: boolean;
+    players: Player[];
 	duration: number;
     instance: GameInstance;
 
-    constructor(id: number, duration: number, gameInstance: GameInstance) {
-        this.id = id;
+    constructor(ID: number, duration: number, gameInstance: GameInstance, players: Player[]) {
+        this.ID = ID;
         this.duration = duration;
         this.instance = gameInstance;
+        this.players = players;
     }
 }

@@ -112,6 +112,10 @@ export class DataService {
 		const exists = await checkImageExists(avatarUrl);
 		return exists ? avatarUrl : defaultUrl;
 	}
+	
+	public async returnDefaultAvatarURL(): Promise<string> {
+		return `${IMAGE_CONST.ROUTE_API}${DB_CONST.USER.DEFAULT_AVATAR}`;
+	}
 
 	/**
 	 * Convertit un statut en libellé lisible.

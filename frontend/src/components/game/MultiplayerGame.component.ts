@@ -12,10 +12,10 @@ export class PlayerBar {
     private ctx: CanvasRenderingContext2D;
 
     public draw(): void {
-        const xPixels = ((this.x + 1) / 2) * this.ctx.canvas.width;
-        const yPixels = (1 - (this.y + 1 / 2)) * this.ctx.canvas.height;
+        const xPixels = ((this.x + 1) / 2) * this.ctx.canvas.clientWidth;
+        const yPixels = (1 - ((this.y + 1) / 2)) * this.ctx.canvas.clientHeight;
         const pixelWidth = this.w * (this.ctx.canvas.width / 2);
-        const pixelHeight = this.h * (this.ctx.canvas.height / 2);
+        const pixelHeight = this.h * (this.ctx.canvas.clientHeight / 2);
         this.ctx.fillStyle = "rgba(255, 0, 0)";
         this.ctx.fillRect(
             xPixels - pixelWidth / 2,
@@ -23,8 +23,8 @@ export class PlayerBar {
             pixelWidth, 
             pixelHeight);
         this.ctx.fillStyle = "rgba(0, 255, 0)";
-        this.ctx.fillRect(this.x, this.y, 1, 1);
-    };
+        this.ctx.fillRect(xPixels, yPixels, 1, 1);
+       };
 
     constructor(ctx: CanvasRenderingContext2D) {
         this.x = 0;
@@ -110,6 +110,7 @@ export class MultiPlayerGame {
             if ((event.key == "w" && this.inputUp == true) || (event.key == "s" && this.inputDown == true))
                 return;
             this.playerWebSocket.send(JSON.stringify({
+                type: "movement",
                 playerID: this.playerID,
                 gameID: this.gameID,
                 key: event.key,
@@ -120,6 +121,7 @@ export class MultiPlayerGame {
             if ((event.key == "w" && this.inputUp == true) || (event.key == "s" && this.inputDown == true))
                 return;
             this.playerWebSocket.send(JSON.stringify({
+                type: "movement",
                 playerID: this.playerID,
                 gameID: this.gameID,
                 key: event.key,
@@ -169,7 +171,7 @@ export class MultiPlayerGame {
     private initSizePos(): void {
         this.gameMoveUnit = 1 / 2;
         for (const player of this.players) {
-            player.w = 0.10;
+            player.w = 0.02;
             player.h = 0.30;
         }
         if (this.playersCount == 2) {
@@ -182,15 +184,17 @@ export class MultiPlayerGame {
     };
 
     public async initGame(): Promise<void> {
-        const canvasContainer: HTMLElement = document.getElementById("pong-section")!;
-        this.gameCanvas.height = canvasContainer.getBoundingClientRect().height;    // will need to update that every frame later (responsiveness)
-        this.gameCanvas.width = canvasContainer.getBoundingClientRect().width;
+        const parentContainer: HTMLElement = document.getElementById("pong-section")!;
+        this.gameCanvas.height = parentContainer.getBoundingClientRect().height * 0.9;    // will need to update that every frame later (responsiveness)
+        this.gameCanvas.width = parentContainer.getBoundingClientRect().width * 0.9;
         this.gameCanvas.style.border = "1px solid black";
-        canvasContainer.append(this.gameCanvas);
+        parentContainer.append(this.gameCanvas);
         this.initSizePos();
         this.clearFillStyle = 0.3;
         this.attachListeners();
         this.gameStarted = true;
         this.frameReq = requestAnimationFrame(this.gameLoop.bind(this));
     };
+
+    public getGameStarted(): boolean {return (this.gameStarted)};
 }

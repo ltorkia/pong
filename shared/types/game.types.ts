@@ -19,9 +19,10 @@ export type PositionObj = {
 };
 
 export class Player {
-	public playerID: number;
+	public ID: number;
 	public webSocket: WebSocket;
 	public inGame: boolean;
+	public ready: boolean;
 	public pos = { x: 0, y: 0 };
 	public height: number;
 	public width: number;
@@ -35,11 +36,12 @@ export class Player {
 			this.pos.y -= 0.02;
 	}
 
-	constructor(playerID: number, webSocket: WebSocket) {
-		this.playerID = playerID;
+	constructor(ID: number, webSocket: WebSocket) {
+		this.ID = ID;
 		this.webSocket = webSocket;
 		this.inGame = false;
-		this.width = 0.10;
+		this.ready = false;
+		this.width = 0.02;
 		this.height = 0.30;
 	} 
 }
@@ -52,7 +54,7 @@ export class GameData {
 	constructor(players: Player[], ball: {x: number, y: number}) {
 		for (const player of players) {
 			this.players.push({
-				id: player.playerID,
+				id: player.ID,
 				pos: {x: player.pos.x, y: player.pos.y}
 			});
 		}

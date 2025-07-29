@@ -2,7 +2,7 @@ import { HomePage } from '../pages/user/home.page';
 import { RegisterPage } from '../pages/auth/register.page';
 import { LoginPage } from '../pages/auth/login.page';
 // import { GamePage } from '../pages/game/game.page';
-import { BoidsPage  } from '../pages/game/boids.page';
+import { BoidsPage } from '../pages/game/boids.page';
 import { UsersPage } from '../pages/user/users.page';
 import { ProfilePage } from '../pages/user/profile.page';
 import { SettingsPage } from '../pages/user/settings.page';
@@ -12,6 +12,8 @@ import { getComponentConfig } from '../utils/config.utils';
 import { COMPONENT_NAMES } from './components.config';
 import { GameMenuLocal } from '../pages/game/game.local.page';
 import { GameMenuMulti } from '../pages/game/game.multi.page';
+import { GameMenuTournament } from '../pages/game/tournament/game.tournament.menu.page';
+import { GameMenuTournamentRegister } from '../pages/game/tournament/game.tournament.register.page';
 
 // ===========================================
 // ROUTES CONFIG
@@ -54,7 +56,9 @@ export const PAGE_NAMES = {
 	REGISTER: 'Register',
 	LOGIN: 'Login',
 	GAME_LOCAL: 'Local Game',
-    GAME_MULTI: 'Multiplayer game',
+	GAME_MULTI: 'Multiplayer game',
+	GAME_TOURNAMENT: 'Tournament',
+	GAME_TOURNAMENT_REGISTER: 'Tournament Register',
 	BOIDS: 'Boids',
 	USERS: 'Users',
 	PROFILE: 'Profile',
@@ -73,7 +77,9 @@ export const ROUTE_PATHS = {
 	REGISTER: '/register',
 	LOGIN: '/login',
 	GAME_LOCAL: '/game/local',
-    GAME_MULTI: '/game/multi',
+	GAME_MULTI: '/game/multi',
+	GAME_TOURNAMENT: '/game/tournament',
+	GAME_TOURNAMENT_REGISTER: '/game/tournament/register/:nb',
 	BOIDS: '/game/boids',
 	USERS: '/users',
 	PROFILE: '/user/:id',
@@ -92,8 +98,10 @@ export const TEMPLATE_PATHS = {
 	HOME: '/templates/user/home.html',
 	REGISTER: '/templates/auth/register.html',
 	LOGIN: '/templates/auth/login.html',
-	GAME_LOCAL: '/templates/game/game_local.html',
-    GAME_MULTI: '/templates/game/game_multi.html',
+	GAME_LOCAL: '/templates/game/local.html',
+	GAME_MULTI: '/templates/game/multiplayer.html',
+	GAME_TOURNAMENT: '/templates/game/tournament.html',
+	GAME_TOURNAMENT_REGISTER: '/templates/game/tournament_register.html',
 	BOIDS: '/templates/game/boids.html',
 	USERS: '/templates/user/users.html',
 	PROFILE: '/templates/user/profile.html',
@@ -173,11 +181,33 @@ export const routesConfig: RouteConfig[] = [
 		isPublic: false,
 		enableParticles: true
 	},
-    {
+	{
 		path: ROUTE_PATHS.GAME_MULTI,
 		name: PAGE_NAMES.GAME_MULTI,
 		pageConstructor: GameMenuMulti,
 		templatePath: TEMPLATE_PATHS.GAME_MULTI,
+		components: {
+			[COMPONENT_NAMES.NAVBAR]: getComponentConfig(COMPONENT_NAMES.NAVBAR)
+		},
+		isPublic: false,
+		enableParticles: true
+	},
+	{
+		path: ROUTE_PATHS.GAME_TOURNAMENT,
+		name: PAGE_NAMES.GAME_TOURNAMENT,
+		pageConstructor: GameMenuTournament,
+		templatePath: TEMPLATE_PATHS.GAME_TOURNAMENT,
+		components: {
+			[COMPONENT_NAMES.NAVBAR]: getComponentConfig(COMPONENT_NAMES.NAVBAR)
+		},
+		isPublic: false,
+		enableParticles: true
+	},
+	{
+		path: ROUTE_PATHS.GAME_TOURNAMENT_REGISTER,
+		name: PAGE_NAMES.GAME_TOURNAMENT_REGISTER,
+		pageConstructor: GameMenuTournamentRegister,
+		templatePath: TEMPLATE_PATHS.GAME_TOURNAMENT_REGISTER,
 		components: {
 			[COMPONENT_NAMES.NAVBAR]: getComponentConfig(COMPONENT_NAMES.NAVBAR)
 		},
