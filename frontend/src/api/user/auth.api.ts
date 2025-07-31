@@ -123,6 +123,12 @@ export class AuthApi {
 		}
 		if (data.user.active2Fa === DB_CONST.USER.ACTIVE_2FA.DISABLED) {
 			await currentService.setCurrentUserFromServer(data.user);
+			// const token = localStorage.getItem("token");
+			// const socket = new WebSocket(`wss://localhost:8443/api/ws`);
+			// socket.onopen = (event) => {
+  			// 	console.log("✅ Connexion WebSocket ouverte ici");
+			// socket.send('online');
+			// }
 		}
 		return data as AuthResponse;
 	}

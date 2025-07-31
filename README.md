@@ -624,7 +624,7 @@ Validation uniquement si toutes les exigences de ce module sont respectées
 ## Résumé des modules sélectionnés
 
 ### Modules actuellement implémentés (7 majeurs + équivalent via mineurs)
-**Modules majeurs (5) :**
+**Modules majeurs (6) :**
 1. Backend avec Framework Fastify
 2. Gestion utilisateur standard et authentification  
 3. Authentification distante Google Sign-in

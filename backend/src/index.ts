@@ -5,7 +5,6 @@ import fastifyJwt from '@fastify/jwt';
 import fastifyMultipart from '@fastify/multipart';
 import fastifyWs from '@fastify/websocket';
 import { IMAGE_CONST, COOKIES_CONST } from './shared/config/constants.config';
-// import { SocketStream } from '@fastify/websocket';
 
 // Database
 import { initDb } from './db/index.db';

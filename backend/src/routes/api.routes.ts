@@ -10,6 +10,7 @@ import { testsRoutes } from './tests.routes';
 import { apiMe } from './api.me';
 import { sessionRoutes } from './session.routes';
 import { gameRoutes } from './game.routes';
+// import { websocketRoutes } from './ws';
 
 // DB
 import { getUser } from '../db/user';
@@ -87,5 +88,6 @@ export async function apiRoutes(app: FastifyInstance) {
 	await app.register(apiMe, { prefix: '/me' });
 	await app.register(sessionRoutes, { prefix: '/validate-session' });
     await app.register(gameRoutes);
+	// await app.register(websocketRoutes);
     console.log(app.printRoutes());
 }
