@@ -1,6 +1,10 @@
-import { GameData, Player } from "../shared/types/game.types"
+import { generateUniqueID } from "../routes/game.routes";
+import { GameData, Player, Tournament } from "../shared/types/game.types"
+import { FastifyInstance } from "fastify";
 
 const DEG_TO_RAD = Math.PI / 180;
+
+const MAX_SCORE = 3;
 
 const clamp = (val: number, min: number, max: number) => { return Math.min(Math.max(val, min), max) };
 
@@ -35,6 +39,13 @@ export class Ball {
     isGoingDown() {
         return (this.vAngle >= 0 && this.vAngle < 180);
     }
+    reset() {
+        this.x = 0;
+        this.y = 0;
+        this.vAngle = 60;
+        this.vSpeed = 0.01;
+        this.radius = 0.03;
+    }
     public checkPlayerCollision(players: Player[]): boolean {
         for (const player of players) {
             const playerBounds = {
@@ -45,7 +56,7 @@ export class Ball {
             const yClamp = clamp(this.y, playerBounds.yRange.y0, playerBounds.yRange.y1);
             if (Math.sqrt(Math.pow(this.x - xClamp, 2) + (Math.pow(this.y - yClamp, 2))) <= this.radius / 2)
                 return (true);
-        } 
+        }
         return (false);
     };
     constructor() {
@@ -62,6 +73,7 @@ export class GameInstance {
     private ball = new Ball();
     private playersCount: number = 0;
     private gameStarted: boolean = false;
+    private score: number[] = [];
 
     constructor(playersCount: number, players: Player[]) {
         // const inputs: string[] = ["w", "s", "ArrowUp", "ArrowDown"];
@@ -92,20 +104,17 @@ export class GameInstance {
                 // console.log("angle ", this.ball.vAngle);
                 this.ball.verticalCollision();
             }
-            // if (this.ball.x + this.ball.radius <= 1|| this.ball.x + this.ball.radius >= 1) {
-            //     this.gameStarted = false;
-            // }
+            if (this.ball.x + this.ball.radius / 2 <= -1 || this.ball.x + this.ball.radius / 2 >= 1)
+                return (this.checkScore());
             const now = Date.now();
-            if (now - then < fps) 
+            if (now - then < fps)
                 await sleep(fps - (now - then));
             this.sendGameUpdate();
             then = Date.now();
-            console.log(`frame = ${frame++} p1 id ${this.players[0].ID} = ${this.players[0].pos.x} ${this.players[0].pos.y} !`);
         }
         console.log("EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEND");
         console.log("GAME ENDEED");
         this.endGame();
-        // console.log("update!a")
     };
 
     private initSizePos(): void {
@@ -113,25 +122,42 @@ export class GameInstance {
             this.players[0].pos.x = -1 + this.players[0].width / 2;
             this.players[0].pos.y = this.players[1].pos.y = 0;
             this.players[1].pos.x = 1 - this.players[0].width / 2;
-            // console.log("player width = ", this.players[0].width / 2);
         }
     };
 
+    private checkScore(): void {
+        if (this.ball.x < 0)
+            this.score[0] += 1;
+        else if (this.ball.x > 0)
+            this.score[1] += 1;
+        this.score.forEach(score => {
+            if (score == 3)
+                return (this.endGame())
+        });
+        console.log(this.ball.vSpeed);
+        this.initRound();
+    }
+
     public initGame(): void {
-        this.initSizePos();
-        // await this.counter();
-        // this.clearFillStyle = 0.3;
-        // this.attachListeners();
+        for (let i = 0; i < this.players.length; i++) 
+            this.score.push(0);
         this.gameStarted = true;
+        this.initSizePos();
         this.gameLoop();
-        // this.frameReq = requestAnimationFrame(this.gameLoop.bind(this));
     };
 
+    public initRound(): void {
+        this.ball.reset();
+        this.initSizePos();
+        this.gameLoop();
+    }
+
     public endGame(): void {
+        this.gameStarted = false;
         for (const player of this.players) {
             player.webSocket.send(JSON.stringify({
-            type: "end",
-        }));
+                type: "end",
+            }));
         }
     }
 
@@ -143,7 +169,6 @@ export class GameInstance {
     };
 
     public registerInput(playerID: number, key: string, status: boolean): void {
-        // console.log("coucou")
         for (const player of this.players) {
             if (player.ID == playerID) {
                 if (key == "w" && player.inputUp != status) player.inputUp = status;
@@ -152,24 +177,19 @@ export class GameInstance {
         }
     };
 
-    public setGameStarted(started: boolean) {this.gameStarted = started};
+    public setGameStarted(started: boolean) { this.gameStarted = started };
 };
 
 export class Lobby {
-    public allPlayers: Player[];
-    public games: Game[];
-
-    constructor() {
-        this.allPlayers = [];
-        this.games = [];
-    }
+    public allPlayers: Player[] = [];
+    public games: Game[] = [];
+    public allTournaments: Tournament[] = [];
 }
 
 export class Game {
-	ID: number;
-	// status_win: boolean;
+    ID: number;
     players: Player[];
-	duration: number;
+    duration: number;
     instance: GameInstance;
 
     constructor(ID: number, duration: number, gameInstance: GameInstance, players: Player[]) {

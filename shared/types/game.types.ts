@@ -43,7 +43,7 @@ export class Player {
 		this.ready = false;
 		this.width = 0.02;
 		this.height = 0.30;
-	} 
+	}
 }
 
 export class GameData {
@@ -60,4 +60,21 @@ export class GameData {
 		}
 		this.ball = {x: ball.x, y: ball.y};
 	}
+}
+
+export class Tournament {
+    name: string;
+    id: number;
+    isStarted: boolean;
+    masterPlayerID: number;
+    players: Player[] = [];
+    maxPlayers: number;
+    
+    constructor(masterPlayerID: number, maxPlayers: number, name: string) {
+        this.isStarted = true;
+        this.masterPlayerID = masterPlayerID;
+        this.name = name;
+        this.maxPlayers = maxPlayers;
+        this.id = 0;
+    }
 }
