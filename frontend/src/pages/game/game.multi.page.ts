@@ -86,12 +86,8 @@ export class GameMenuMulti extends BasePage {
     }
 
     private openWebSocket(): void {
-        this.webSocket = new WebSocket("wss://localhost:8443/api/ws/multiplayer");
-        this.webSocket.onopen = (event) => {
-            console.log("Connected!");
-            // this.webSocket.send("COUCOU LE SERVEUR");
-            this.initLobby();
-        };
+        this.webSocket = new WebSocket(`${location.origin}/api/ws/multiplayer`);
+        this.webSocket.onopen = (event) => this.initLobby();
         this.webSocket.onerror = (event) => {
             this.insertNetworkError();
             if (this.webSocket != null)

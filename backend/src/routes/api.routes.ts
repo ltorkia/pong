@@ -14,6 +14,7 @@ import { gameRoutes } from './game.routes';
 
 // DB
 import { getUser } from '../db/user';
+import { tournamentRoutes } from './tournament.routes';
 
 export async function apiRoutes(app: FastifyInstance) {
 
@@ -88,6 +89,6 @@ export async function apiRoutes(app: FastifyInstance) {
 	await app.register(apiMe, { prefix: '/me' });
 	await app.register(sessionRoutes, { prefix: '/validate-session' });
     await app.register(gameRoutes);
-	// await app.register(websocketRoutes);
+	await app.register(tournamentRoutes);
     console.log(app.printRoutes());
 }

@@ -2,14 +2,13 @@ import { FastifyInstance } from 'fastify';
 import { PositionObj, GameData, Player } from '../shared/types/game.types'
 import { Game, GameInstance, Lobby } from '../types/game.types';
 
-
 function sendMsg(socket: WebSocket, content: string) {
     socket.send(JSON.stringify({ type: "msg", msg: content }));
 }
 
 const randomNumber = () => {return (Math.floor(Math.random() * Number.MAX_SAFE_INTEGER))};
 
-function generateUniqueID(array: any[]) {
+export function generateUniqueID(array: any[]) {
     let ID = randomNumber();
 
     while (array.some(elem => elem.ID == ID))

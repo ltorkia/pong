@@ -14,6 +14,7 @@ import { GameMenuLocal } from '../pages/game/game.local.page';
 import { GameMenuMulti } from '../pages/game/game.multi.page';
 import { GameMenuTournament } from '../pages/game/tournament/game.tournament.menu.page';
 import { GameMenuTournamentRegister } from '../pages/game/tournament/game.tournament.register.page';
+import { GameTournamentList } from '../pages/game/tournament/game.tournament.list.page';
 
 // ===========================================
 // ROUTES CONFIG
@@ -58,6 +59,7 @@ export const PAGE_NAMES = {
 	GAME_LOCAL: 'Local Game',
 	GAME_MULTI: 'Multiplayer game',
 	GAME_TOURNAMENT: 'Tournament',
+	GAME_TOURNAMENT_LIST: "Tournament List",
 	GAME_TOURNAMENT_REGISTER: 'Tournament Register',
 	BOIDS: 'Boids',
 	USERS: 'Users',
@@ -79,6 +81,7 @@ export const ROUTE_PATHS = {
 	GAME_LOCAL: '/game/local',
 	GAME_MULTI: '/game/multi',
 	GAME_TOURNAMENT: '/game/tournament',
+	GAME_TOURNAMENT_LIST: "/game/tournaments",
 	GAME_TOURNAMENT_REGISTER: '/game/tournament/register/:nb',
 	BOIDS: '/game/boids',
 	USERS: '/users',
@@ -101,6 +104,7 @@ export const TEMPLATE_PATHS = {
 	GAME_LOCAL: '/templates/game/local.html',
 	GAME_MULTI: '/templates/game/multiplayer.html',
 	GAME_TOURNAMENT: '/templates/game/tournament.html',
+	GAME_TOURNAMENT_LIST: '/templates/game/tournament_list.html',
 	GAME_TOURNAMENT_REGISTER: '/templates/game/tournament_register.html',
 	BOIDS: '/templates/game/boids.html',
 	USERS: '/templates/user/users.html',
@@ -208,6 +212,17 @@ export const routesConfig: RouteConfig[] = [
 		name: PAGE_NAMES.GAME_TOURNAMENT_REGISTER,
 		pageConstructor: GameMenuTournamentRegister,
 		templatePath: TEMPLATE_PATHS.GAME_TOURNAMENT_REGISTER,
+		components: {
+			[COMPONENT_NAMES.NAVBAR]: getComponentConfig(COMPONENT_NAMES.NAVBAR)
+		},
+		isPublic: false,
+		enableParticles: true
+	},
+		{
+		path: ROUTE_PATHS.GAME_TOURNAMENT_LIST,
+		name: PAGE_NAMES.GAME_TOURNAMENT_LIST,
+		pageConstructor: GameTournamentList,
+		templatePath: TEMPLATE_PATHS.GAME_TOURNAMENT_LIST,
 		components: {
 			[COMPONENT_NAMES.NAVBAR]: getComponentConfig(COMPONENT_NAMES.NAVBAR)
 		},
