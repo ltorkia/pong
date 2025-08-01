@@ -46,3 +46,8 @@ export type FastifyFileSizeError = {
 	name: string;
 	statusCode?: number;
 };
+
+export type UserWS = {
+    id: number;
+    WS: WebSocket;
+}

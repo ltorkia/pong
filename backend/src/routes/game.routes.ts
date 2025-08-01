@@ -1,19 +1,11 @@
 import { FastifyInstance } from 'fastify';
-import { PositionObj, GameData, Player } from '../shared/types/game.types'
+import { Player } from '../shared/types/game.types'
 import { Game, GameInstance, Lobby } from '../types/game.types';
+import { generateUniqueID } from '../shared/functions'
 
-function sendMsg(socket: WebSocket, content: string) {
-    socket.send(JSON.stringify({ type: "msg", msg: content }));
-}
-
-const randomNumber = () => {return (Math.floor(Math.random() * Number.MAX_SAFE_INTEGER))};
-
-export function generateUniqueID(array: any[]) {
-    let ID = randomNumber();
-
-    while (array.some(elem => elem.ID == ID))
-        ID = randomNumber();
-    return (ID);
+function sendMsg(socket: WebSocket | undefined, content: string) {
+    if (socket)
+        socket.send(JSON.stringify({ type: "msg", msg: content }));
 }
 
 function startGame(p1: Player, p2: Player, allGames: Game[]) {
@@ -24,26 +16,30 @@ function startGame(p1: Player, p2: Player, allGames: Game[]) {
     const gameID = generateUniqueID(allGames);
     const game = new Game(gameID, 0, gameInstance, players);
     allGames.push(game);
-    sendMsg(p1.webSocket, `player id = ${p1.ID} and game id = ${gameID}`);
-    sendMsg(p2.webSocket, `player id = ${p2.ID} and game id = ${gameID}`);
+    if (p1.webSocket && p2.webSocket) {
+        sendMsg(p1.webSocket, `player id = ${p1.ID} and game id = ${gameID}`);
+        sendMsg(p2.webSocket, `player id = ${p2.ID} and game id = ${gameID}`);
+        p1.webSocket.send(JSON.stringify({
+            type: "start",
+            playerID: p1.ID,
+            gameID: gameID,
+        }));
+        p2.webSocket.send(JSON.stringify({
+            type: "start",
+            playerID: p2.ID,
+            gameID: gameID,
+
+        }));
+    }
     console.log(`GAME PLAYER LENGTH = ${game.players.length}`)
-    p1.webSocket.send(JSON.stringify({
-        type: "start",
-        playerID: p1.ID,
-        gameID: gameID,
-    }));
-    p2.webSocket.send(JSON.stringify({
-        type: "start",
-        playerID: p2.ID,
-        gameID: gameID,
-    }));
+
     gameInstance.initGame();
 }
 
 function matchMaking(newPlayer: Player | null, allPlayers: Player[], allGames: Game[]) {
     console.log("coucou matchmaking")
     if (!newPlayer || allPlayers.length <= 1)
-        return; 
+        return;
     for (const player of allPlayers) {
         if (player != newPlayer && player.ready && !player.inGame) {
             console.log("MATCHED TWO PLAYERS !")
@@ -76,10 +72,10 @@ export async function gameRoutes(app: FastifyInstance) {
             } else if (msg.type == "movement") {
                 if (allGames.find(game => game.ID == msg.gameID))
                     console.log("FOUND CORRESPONDING GAME")
-                    allGames.find(game => game.ID == msg.gameID)?.instance.registerInput(
-                        msg.playerID,
-                        msg.key,
-                        msg.status,
+                allGames.find(game => game.ID == msg.gameID)?.instance.registerInput(
+                    msg.playerID,
+                    msg.key,
+                    msg.status,
                 );
             }
             console.log(msg);

@@ -2,17 +2,17 @@ import { BasePage } from '../../base/base.page';
 import { RouteConfig, RouteParams } from '../../../types/routes.types';
 import { DataService } from '../../../services/user/data.service';
 import { secureFetch } from '../../../utils/app.utils';
-// import "animate.css";
 
-export class GameMenuTournamentRegister extends BasePage {
-    private playersNb: number;
+export class GameTournamentLobby extends BasePage {
+    // private tournamentID: number;
     private players: { alias: string, username?: string, playerDB?: any }[];
     private pastilleHTML: Node;
     private dataApi: DataService = new DataService();
 
-    constructor(config: RouteConfig, nb: RouteParams) {
+    constructor(config: RouteConfig) {
         super(config);
-        this.playersNb = Number(nb.nb.slice(1));
+        const tournamentID = Number(window.location.href.split('/').reverse()[0].slice(1));
+        console.log(this.tournamentID);
         this.players = [];
         this.pastilleHTML = document.createElement("div");
     }
