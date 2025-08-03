@@ -1,20 +1,23 @@
 import { BasePage } from '../../base/base.page';
-import { RouteConfig, RouteParams } from '../../../types/routes.types';
+import { RouteConfig } from '../../../types/routes.types';
 import { DataService } from '../../../services/user/data.service';
 import { secureFetch } from '../../../utils/app.utils';
+import { Player, Tournament } from '../../../../../shared/types/game.types';
 
 export class GameTournamentLobby extends BasePage {
-    // private tournamentID: number;
-    private players: { alias: string, username?: string, playerDB?: any }[];
+    private tournamentID: number;
+    private tournament: Tournament | undefined;
+    // private players: { alias: string, username?: string, playerDB?: any }[];
     private pastilleHTML: Node;
     private dataApi: DataService = new DataService();
 
     constructor(config: RouteConfig) {
         super(config);
-        const tournamentID = Number(window.location.href.split('/').reverse()[0].slice(1));
-        console.log(this.tournamentID);
-        this.players = [];
+        this.tournamentID = Number(window.location.href.split('/').reverse()[0].slice(1));
+        // this.players = [];
         this.pastilleHTML = document.createElement("div");
+        this.fetchPastille();
+        this.fetchTournament();
     }
 
     protected async mount(): Promise<void> {
@@ -26,12 +29,20 @@ export class GameTournamentLobby extends BasePage {
             5: 'grid-rows-5',
             6: 'grid-rows-6'
         };
-        sessionStorage.removeItem("fromRedirect");
-        this.fetchPastille();
-        const rowCount = this.playersNb / 4;
+        const rowCount = this.tournament?.maxPlayers;
         const gridClassName = gridRowClass[rowCount as keyof typeof gridRowClass];
         const pastilleHolder = document.getElementById("pastilles-holder");
         pastilleHolder!.classList.add(gridClassName);
+        this.tournament?.players.map((player: Player) => this.appendPlayerPastille(player))
+    }
+
+    private async fetchTournament(): Promise<void> {
+        const res = await fetch(`/api/game/tournaments/:${this.tournamentID}`);
+        if (res.ok) {
+            this.tournament = await res.json();
+        } else {
+            console.error("Tournament not found");
+        }
     }
 
     private async fetchPastille(): Promise<void> {
@@ -44,13 +55,13 @@ export class GameTournamentLobby extends BasePage {
             this.pastilleHTML = pastilleDiv.cloneNode(true);
     }
 
-    private appendListenerPastille(pastille: HTMLElement, player: { alias: string, username?: string }): void {
-        pastille.querySelector("#tournament-cross")?.addEventListener("click", () => {
-            const toRemoveIdx = this.players.findIndex(p => p.alias == player.alias);
-            this.players.splice(toRemoveIdx, 1);
-            pastille.remove();
-        })
-    }
+    // private appendListenerPastille(pastille: HTMLElement, player: { alias: string, username?: string }): void {
+    //     pastille.querySelector("#tournament-cross")?.addEventListener("click", () => {
+    //         const toRemoveIdx = this.players.findIndex(p => p.alias == player.alias);
+    //         this.players.splice(toRemoveIdx, 1);
+    //         pastille.remove();
+    //     })
+    // }
 
     private async appendPlayerPastille(player: { alias: string, username?: string }, playerDB: any): Promise<void> {
         console.log(player);
@@ -60,17 +71,17 @@ export class GameTournamentLobby extends BasePage {
         if (player.username)
             h2!.textContent += ` \(${player.username}\)`;
         const pastilleHolder = document.getElementById("pastilles-holder") as HTMLElement;
-        if (this.playersNb == 4) {
+        if (this.tournament?.maxPlayers == 4) {
             pastilleHolder.classList.add("flex", "justify-center", "items-center", "flex-wrap");
             pastille.classList.add("w-1/3", "h-1/3");
         } else
             pastilleHolder.classList.add("grid", "grid-cols-4");
             
             pastilleHolder!.append(pastille);
-            this.appendListenerPastille(pastille, player);
+            // this.appendListenerPastille(pastille, player);
             requestAnimationFrame(() => {pastille.classList.add("opacity-100");});
             const img = pastille.querySelector("#user-avatar") as HTMLImageElement;
-        if (this.playersNb == 16)
+        if (this.tournament?.maxPlayers == 16)
             img.classList.add("w-8", "h-8");
         if (player.username) 
             img.src = await this.dataApi.getUserAvatarURL(playerDB);
@@ -78,74 +89,74 @@ export class GameTournamentLobby extends BasePage {
             img.src = await this.dataApi.returnDefaultAvatarURL();
     }
 
-    private printError(error: string): void {
-        const errorDiv = document.createElement("div");
-        const container = document.getElementById("alias-container");
-        const inputsContainer = document.getElementById("inputs-container");
-        errorDiv.textContent = error;
-        errorDiv.classList.add(
-            "absolute", "bottom-10", "left-0", "right-0",
-            "border-2", "border-red-500", "rounded-md",
-            "bg-black", "bg-opacity-30", "m-2", "p-2", "text-center", 
-            "animate__animated", "animate__fadeIn"
-        );
-        container?.append(errorDiv);
-        inputsContainer!.classList.add("transition-transform", "duration-500", "-translate-y-10");
-        setTimeout(() => {
-            errorDiv.classList.add("animate__animated", "animate__fadeOut");
-            setTimeout(() => {
-                inputsContainer!.classList.remove("-translate-y-10");
-                inputsContainer!.classList.add("translate-y-0");
-                errorDiv.addEventListener("animationend", () => {
-                    errorDiv.remove();
-                });
-            }, 500);
-        }, 1500);
-        inputsContainer?.classList.remove("translate-y-0");
-    }
+    // private printError(error: string): void {
+    //     const errorDiv = document.createElement("div");
+    //     const container = document.getElementById("alias-container");
+    //     const inputsContainer = document.getElementById("inputs-container");
+    //     errorDiv.textContent = error;
+    //     errorDiv.classList.add(
+    //         "absolute", "bottom-10", "left-0", "right-0",
+    //         "border-2", "border-red-500", "rounded-md",
+    //         "bg-black", "bg-opacity-30", "m-2", "p-2", "text-center", 
+    //         "animate__animated", "animate__fadeIn"
+    //     );
+    //     container?.append(errorDiv);
+    //     inputsContainer!.classList.add("transition-transform", "duration-500", "-translate-y-10");
+    //     setTimeout(() => {
+    //         errorDiv.classList.add("animate__animated", "animate__fadeOut");
+    //         setTimeout(() => {
+    //             inputsContainer!.classList.remove("-translate-y-10");
+    //             inputsContainer!.classList.add("translate-y-0");
+    //             errorDiv.addEventListener("animationend", () => {
+    //                 errorDiv.remove();
+    //             });
+    //         }, 500);
+    //     }, 1500);
+    //     inputsContainer?.classList.remove("translate-y-0");
+    // }
 
-    private async handleUserInput(alias: string, username?: string): Promise<void> {
-        let playerDB: any = undefined;
+    // private async handleUserInput(alias: string, username?: string): Promise<void> {
+    //     let playerDB: any = undefined;
 
-        if (!alias) {
-            const aliasInput = document.getElementById("alias-input");
-            aliasInput?.classList.add("animate__animated", "animate__shakeX", "animate__fast");
-            return;
-        }
-        if (this.players.length >= this.playersNb)
-            return (this.printError("Invalid number of players!"));
-        if (this.players.find(player => player.alias === alias || player.username && player.username === username))
-            return (this.printError("Player already exists in tournament!"));
-        if (username) {
-            const res = (await secureFetch(`/api/users/search/${username}`));
-            if (res.ok)
-                playerDB = await res.json();
-            else
-                return (this.printError("Player not found in database!"));
-        }
-        const player = { alias: alias, username: username, playerDB: playerDB };
-        this.players.push(player);
-        this.appendPlayerPastille(player, playerDB);
-    }
+    //     if (!alias) {
+    //         const aliasInput = document.getElementById("alias-input");
+    //         aliasInput?.classList.add("animate__animated", "animate__shakeX", "animate__fast");
+    //         return;
+    //     }
+    //     if (this.players.length >= this.playersNb)
+    //         return (this.printError("Invalid number of players!"));
+    //     if (this.players.find(player => player.alias === alias || player.username && player.username === username))
+    //         return (this.printError("Player already exists in tournament!"));
+    //     if (username) {
+    //         const res = (await secureFetch(`/api/users/search/${username}`));
+    //         if (res.ok)
+    //             playerDB = await res.json();
+    //         else
+    //             return (this.printError("Player not found in database!"));
+    //     }
+    //     const player = { alias: alias, username: username, playerDB: playerDB };
+    //     this.players.push(player);
+    //     this.appendPlayerPastille(player, playerDB);
+    // }
 
     protected async attachListeners(): Promise<void> {
         const aliasInput = document.getElementById("alias-input")! as HTMLInputElement;
         const usernameInput = document.getElementById("username-input")! as HTMLInputElement;
 
-        aliasInput.addEventListener("keydown", (event) => {
-            if (event.key == "Enter") {
-                this.handleUserInput(aliasInput.value, usernameInput.value);
-                aliasInput.value = "";
-                usernameInput.value = "";
-            }
-        });
-        usernameInput.addEventListener("keydown", (event) => {
-            if (event.key == "Enter") {
-                this.handleUserInput(aliasInput.value, usernameInput.value);
-                aliasInput.value = "";
-                usernameInput.value = "";
-            }
-        });
+        // aliasInput.addEventListener("keydown", (event) => {
+        //     if (event.key == "Enter") {
+        //         this.handleUserInput(aliasInput.value, usernameInput.value);
+        //         aliasInput.value = "";
+        //         usernameInput.value = "";
+        //     }
+        // });
+        // usernameInput.addEventListener("keydown", (event) => {
+        //     if (event.key == "Enter") {
+        //         this.handleUserInput(aliasInput.value, usernameInput.value);
+        //         aliasInput.value = "";
+        //         usernameInput.value = "";
+        //     }
+        // });
         aliasInput.addEventListener("animationend", () => {
             aliasInput.classList.remove("animate__animated", "animate__shakeX", "animate__fast", "border-2", "border-red-500");
         })

@@ -28,6 +28,7 @@ export class Player {
     public width: number;
     public inputUp: boolean = false;
     public inputDown: boolean = false;
+    public alias?: string;
 
     move() {
         if (this.inputUp == true && this.pos.y + (this.height / 2) + 0.02 < 1)

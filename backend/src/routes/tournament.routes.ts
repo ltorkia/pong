@@ -9,6 +9,19 @@ export async function tournamentRoutes(app: FastifyInstance) {
         return reply.send(app.lobby.allTournaments);
     })
 
+    app.get("/tournaments/:id", async (request: FastifyRequest, reply: FastifyReply) => {
+		const { id } = request.params as { id: string };
+        const tournamentID = Number(id.slice(1));
+        const allTournaments = app.lobby.allTournaments;
+        const tournament = allTournaments.find((t: Tournament) => t.ID == tournamentID);
+        console.log("LOOKING FOR TOURNAMENT")
+        if (tournament) {
+            return reply.code(200).send(tournament);
+        } else {
+            return reply.code(404).send({error: "Tournament not found"});
+        }
+    })
+
     app.post("/new_tournament", async (request: FastifyRequest, reply: FastifyReply) => {
         const tournamentParse = TournamentSchema.safeParse(request.body);
 

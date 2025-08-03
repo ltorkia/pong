@@ -18,7 +18,8 @@ import { UserWS } from './types/user.types';
 // Ajout du lobby multiplayer a l'interface Fastify
 declare module 'fastify' {
   interface FastifyInstance {
-    lobby: Lobby
+    lobby: Lobby,
+    usersWS: UserWS[],
   }
 }
 
