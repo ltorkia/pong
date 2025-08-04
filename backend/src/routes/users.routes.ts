@@ -3,7 +3,7 @@ import { getUser, getUserFriends, getUserGames, getUserChat, getAvatar, getUserA
 import { getAllUsers, getAllUsersInfos, getUsersWithPagination } from '../db/user';
 import { UserModel, SafeUserModel, PublicUser, Friends, PaginatedUsers, SortOrder, UserSortField, UserSearchField } from '../shared/types/user.types';
 import { insertAvatar } from '../db/usermaj';
-import { addUserFriend, updateRelationshipBlocked, updateRelationshipConfirmed } from '../db/friendmaj';
+import { addUserFriend, updateRelationshipBlocked, updateRelationshipConfirmed, updateRelationshipDelete } from '../db/friendmaj';
 import { Buffer } from 'buffer';
 import bcrypt from 'bcrypt';
 import { GetAvatarFromBuffer, bufferizeStream } from '../helpers/image.helpers';
@@ -118,31 +118,60 @@ export async function usersRoutes(app: FastifyInstance) {
 	app.post('/:id/friends/:action', async(request: FastifyRequest, reply: FastifyReply): Promise<PublicUser | void> => {
 		const { id } = request.params as { id: number };
 		const { action } = request.params as { action: string };
-
+		console.log("request body = ", request.body);
+		// try catch
 		// peut etre pas necessaire en fonction de comment renvoie le front
 		const userdataCheck = await checkParsing(FriendsInputSchema, request.body);
 		if (isParsingError(userdataCheck))
 			return reply.status(400).send(userdataCheck);
 		let data = userdataCheck as FriendInput;
-		
+		const friendId = Number(data.friendId);	
+		if (isNaN(friendId)) {
+  			console.error("Ce n’est pas un nombre valide !"); //throw error
+		}
+
+		//add le verify token
 		const friends = getUserFriends(id);
-		const friend: PublicUser = await getUser(null, data.friend);
+		const friend: PublicUser = await getUser(friendId, null);		
 		if (!friend)
 			return reply.code(404).send({ Error : 'User not found'});
-		if (action === DB_CONST.FRIENDS.STATUS.PENDING) {	
+		if (action === 'pending') {	
 			if (friend.id in friends)
 				return reply.code(404).send({ Error : 'Already friend'});
 			await addUserFriend(friend.id, id);
 			return reply.code(200).send({ Message : 'Ask to be friend confirmed'});
 		}
-		if (action === DB_CONST.FRIENDS.STATUS.BLOCKED) {
+	})
+
+	
+	app.put('/:id/friends/:action', async(request: FastifyRequest, reply: FastifyReply): Promise<PublicUser | void> => {
+		const { id } = request.params as { id: number };
+		const { action } = request.params as { action: string };
+
+		// try catch
+		// peut etre pas necessaire en fonction de comment renvoie le front
+		const userdataCheck = await checkParsing(FriendsInputSchema, request.body);
+		if (isParsingError(userdataCheck))
+			return reply.status(400).send(userdataCheck);
+		let data = userdataCheck as FriendInput;
+		const friendId = Number(data.friendId);	
+		if (isNaN(friendId)) {
+  			console.error("Ce n’est pas un nombre valide !"); //throw error
+		}
+
+		//add le verify token
+		const friends = getUserFriends(id);
+		const friend: PublicUser = await getUser(friendId, null);
+		if (!friend)
+			return reply.code(404).send({ Error : 'User not found'});
+		if (action === 'block') {
 			if (friend.id in friends)
 				await updateRelationshipBlocked(friend.id, id);
 			else
 				return reply.code(404).send({ Error : 'not your friend'});
 			return reply.code(200).send({ Message : 'friend blocked'});			
 		}
-		if (action === DB_CONST.FRIENDS.STATUS.ACCEPTED) {
+		if (action === 'accept') {
 			if (friend.id in friends)
 				await updateRelationshipConfirmed(friend.id, id);
 			else
@@ -151,6 +180,34 @@ export async function usersRoutes(app: FastifyInstance) {
 		}
 	})
 
+	app.delete('/:id/friends/:action', async(request: FastifyRequest, reply: FastifyReply): Promise<PublicUser | void> => {
+		const { id } = request.params as { id: number };
+		const { action } = request.params as { action: string };
+
+		// try catch
+		// peut etre pas necessaire en fonction de comment renvoie le front
+		const userdataCheck = await checkParsing(FriendsInputSchema, request.body);
+		if (isParsingError(userdataCheck))
+			return reply.status(400).send(userdataCheck);
+		let data = userdataCheck as FriendInput;
+		const friendId = Number(data.friendId);	
+		if (isNaN(friendId)) {
+  			console.error("Ce n’est pas un nombre valide !"); //throw error
+		}
+
+		//add le verify token
+		const friends = getUserFriends(id);
+		const friend: PublicUser = await getUser(friendId, null);
+		if (!friend)
+			return reply.code(404).send({ Error : 'User not found'});
+		if (action === 'delete') {
+			if (friend.id in friends)
+				await updateRelationshipDelete(friend.id, id);
+			else
+				return reply.code(404).send({ Error : 'not your friend'});
+			return reply.code(200).send({ Message : 'friend deleted'});			
+		}
+	})
 /* -------------------------------------------------------------------------- */
 /*                   🕹️ - Recupere les donnees de jeu d un user               */
 /* -------------------------------------------------------------------------- */
