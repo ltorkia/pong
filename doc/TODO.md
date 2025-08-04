@@ -18,6 +18,8 @@ COMMUN
 - Complexifier mot de passe
 - Faire sockets pour statut online / demandes d'amis
 - Pour chaque route avec userId (ex: `/api/users/${userId}/friends/remove`), faire une verif userId == id du current user avec le token, sinon faille de secu
+- Formater dates avant de les rentrer en db
+- Google sign en remote Pelouse
 
 FRONT
 
