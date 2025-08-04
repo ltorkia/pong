@@ -8,7 +8,7 @@ import { ComponentConfig } from '../../types/components.types';
 import { User } from '../../shared/models/user.model';
 import { dataApi } from '../../api/index.api';
 import { dataService } from '../../services/index.service';
-import { getHTMLElementById, getHTMLElementByClass } from '../../utils/dom.utils';
+import { getHTMLElementById, getHTMLElementByClass, showAlert } from '../../utils/dom.utils';
 
 // ===========================================
 // USER ROW COMPONENT
@@ -27,6 +27,7 @@ import { getHTMLElementById, getHTMLElementByClass } from '../../utils/dom.utils
  */
 export class UserRowComponent extends BaseComponent {
 	protected user?: User | null = null;
+	private userLine!: HTMLElement;
 	private userFriends?: User[] | null = null;
 	private userCell!: HTMLAnchorElement;
 	private avatarImg!: HTMLImageElement;
@@ -36,6 +37,7 @@ export class UserRowComponent extends BaseComponent {
 	private profilePath!: string;
 	private addFriendButton!: HTMLButtonElement;
 	private challengeButton!: HTMLButtonElement;
+	private alertDiv!: HTMLDivElement;
 
 	/**
 	 * Constructeur du composant de ligne d'utilisateur.
@@ -85,6 +87,7 @@ export class UserRowComponent extends BaseComponent {
 	 */
 	protected async beforeMount(): Promise<void> {
 		this.userFriends = await dataApi.getUserFriends(this.user!.id);
+		this.userLine = getHTMLElementByClass('user-line', this.container) as HTMLElement;
 		this.userCell = getHTMLElementById('user-cell', this.container) as HTMLAnchorElement;
 		this.avatarImg = getHTMLElementByClass('avatar-img', this.container) as HTMLImageElement;
 		this.nameCell = getHTMLElementByClass('name-cell', this.container) as HTMLElement;
@@ -93,6 +96,8 @@ export class UserRowComponent extends BaseComponent {
 		this.profilePath = `/user/${this.user!.id}`;
 		this.addFriendButton = getHTMLElementById('add-friend-button', this.container) as HTMLButtonElement;
 		this.challengeButton = getHTMLElementById('challenge-button', this.container) as HTMLButtonElement;
+		this.alertDiv = this.createAlertSpace();
+		this.userLine.appendChild(this.alertDiv);
 	}
 
 	/**
@@ -131,6 +136,17 @@ export class UserRowComponent extends BaseComponent {
 				this.levelCell.textContent = 'No stats';
 			}
 		}
+	}
+
+	/**
+	 * Crée un élément HTML servant d'espace d'alerte pour les erreurs.
+	 */
+	private createAlertSpace(): HTMLDivElement {
+		const div = document.createElement('div');
+		div.id = `alert-${this.user.id}`;
+		div.setAttribute('aria-live', 'assertive');
+		div.classList.add('alert', 'mr-5', 'error-message', 'hidden');
+		return div;
 	}
 
 	/**
@@ -190,13 +206,14 @@ export class UserRowComponent extends BaseComponent {
 		if (!this.user) {
 			return;
 		}
-		try {
-			await dataApi.addFriend(this.currentUser.id, this.user.id);
-			this.addFriendButton.classList.add('hidden');
-			this.userFriends?.push(this.user);
-			console.log(`Friend request sent to ${this.user.username}`);
-		} catch (error) {
-			console.error('Error sending friend request:', error);
+		const res = await dataApi.addFriend(this.currentUser.id, this.user.id);
+		if (res.errorMessage) {
+			showAlert(res.errorMessage, `alert-${this.user.id}`, 'error');
+			return;
 		}
+		this.addFriendButton.classList.add('hidden');
+		this.userFriends?.push(this.user);
+		console.log(`Friend request sent to ${this.user.username}`);
+
 	}
 }
