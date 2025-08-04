@@ -32,6 +32,19 @@ export async function updateRelationshipConfirmed(userid1: number, userid2: numb
 	`, [user1, user2]);
 }
 
+export async function updateRelationshipDelete(userid1: number, userid2: number){
+	const db = await getDb();
+
+	const [user1, user2] = userid1 < userid2
+		? [userid1, userid2]
+		: [userid2, userid1];
+
+	await db.run(`
+		DELETE FROM Friends
+		WHERE user1_id = ? AND user2_id = ?
+	`, [user1, user2]);	
+}
+
 export async function addUserFriend(userid1: number, userid2: number) {
 	const db = await getDb();
 
@@ -40,7 +53,7 @@ export async function addUserFriend(userid1: number, userid2: number) {
 		: [userid2, userid1];
 
 	await db.run(`
-        INSERT INTO Friends (user1_id, user2_id, status, is_blocked, date)
+        INSERT INTO Friends (user1_id, user2_id)
 		VALUES (?, ?)
         `,
 		[user1, user2]

@@ -32,7 +32,7 @@ export const ModUserInputSchema = z.object({
 });
 
 export const FriendsInputSchema = z.object({
-  friend: z.string(),
+  friendId: z.number(),
 });
 
 export type ModUserInput = z.infer<typeof ModUserInputSchema>;
