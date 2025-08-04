@@ -35,7 +35,7 @@ export class AppService {
 		console.log(`[${this.constructor.name}] Pathname actuel:`, location.pathname);
 		await particlesService.load();
 		await routingService.start();
-
+        
 		console.log('App démarrée');
 	}
 

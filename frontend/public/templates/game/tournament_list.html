@@ -1,32 +1,36 @@
-<div id="pong-section" class="section-box large-box game-local justify-evenly h-full w-full p-0">
-    <!-- <div id="canvas-container" class="h-full w-full"></div> -->
-    <h1 class="font-title font-bold text-5xl text-center text-shadow-black w-full">TOURNAMENT</h1>
-    <!-- <h2 class="font-title">Please register the players :</h2> -->
+<!-- <div id="pong-section" class="h-full w-full section-box large-box game-local justify-evenly p-0"> -->
+    <h1 class="font-title m-10 font-bold text-5xl text-center text-shadow-5xl text-shadow-black text-white w-full">TOURNAMENTS</h1>
     <div id="register-container" class="size-full h-96 flex justify-evenly items-center">
         <div id="alias-container" class="relative h-full flex flex-col justify-center items-center">
-            <div id="inputs-container"
-                class="h-1/2 w-full m-2 flex flex-col justify-center items-center bg-black bg-opacity-30 shadow-lg shadow-black ring-1 ring-black inset-shadow-lg inset-shadow-white-500 border-white rounded-md">
+            <div id="input-box"
+                    class="h-full w-80 m-2 relative flex flex-col justify-center items-center bg-black bg-opacity-70 shadow-lg shadow-black ring-1 ring-black inset-shadow-lg inset-shadow-white-500 border-white rounded-md transition-all delay-50 duration-500 ease-in-out active:duration-75 hover:-translate-y-1 hover:bg-white hover:opacity-90 hover:text-black inline-block will-change-transform">
+                <div id="alias-box" class="flex flex-col items-center">
+                    <h3 id="alias-title "class="font-title text-center m-3">Your Alias ? :</h3>
+                    <input id="alias-name-input" type="text"
+                        class="w-1/2 m-2 p-1 bg-white bg-opacity-20 rounded-md shadow-white bg-opacity-10 text-white focus:outline-none"></input>
+                </div>
+            </div>
+            <div id="input-box" class="relative h-full w-80 m-2 flex flex-col justify-center items-center bg-black bg-opacity-70 shadow-lg shadow-black ring-1 ring-black inset-shadow-lg inset-shadow-white-500 border-white rounded-md transition-all delay-50 duration-500 ease-in-out hover:-translate-y-1 hover:bg-white hover:opacity-90 hover:text-black inline-block will-change-transform">
                 <h3 class="font-title text-center m-3">Create new tournament</h3>
                 <h3 class="font-title text-sm">Name :</h3>
                 <input id="tournament-name-input" type="text"
-                    class="w-1/2 m-2 p-1 bg-white bg-opacity-10 rounded-md shadow-white bg-opacity-10 text-white focus:outline-none"></input>
-                <div class="h-full flex justify-between justify-around items-center">
+                    class="w-1/2 m-2 p-1 bg-white bg-opacity-20 rounded-md shadow-white bg-opacity-10 text-white focus:outline-none"></input>
+                <div id="tournament-btn-holder" class="h-full w-full flex justify-center items-center">
                     <button id="btn-counter"
-                        class="flex justify-center items-center text-center text-5xl border-2 border-white rounded-md h-1/2 aspect-square m-2 shadow-lg pb-2">+</button>
-                    <h3 id="btn-counter-nb" class="text-5xl">4</h3>
+                    class="flex justify-center items-center text-center text-5xl border-2 border-white rounded-md h-1/2 aspect-square m-2 shadow-md shadow-black pb-2 transition-all delay-50 duration-300 ease-in-out active:duration-75 hover:-translate-y-1 hover:bg-white hover:opacity- hover:text-black hover:scale-110 active:scale-105 active:translate-y-0.5 inline-block will-change-transform">-</button>
+                    <h3 id="btn-counter-nb" class="text-5xl text-center w-[5ch]">4</h3>
                     <button id="btn-counter"
-                        class="flex justify-center items-center text-center text-5xl border-2 border-white rounded-md h-1/2 aspect-square m-2 shadow-lg pb-2">-</button>
+                    class="flex justify-center items-center text-center text-5xl border-2 border-white rounded-md h-1/2 aspect-square m-2 shadow-md shadow-black pb-2 transition-all delay-50 duration-300 ease-in-out active:duration-75 hover:-translate-y-1 hover:bg-white hover:opacity- hover:text-black hover:scale-110 active:scale-105 active:translate-y-0.5 inline-block will-change-transform">+</button>
                 </div>
-
             </div>
         </div>
         <div id="all-tournaments"
-            class="gap-1 p-2 bg-black bg-opacity-30 shadow-lg shadow-black ring-1 ring-black <!-- inset-shadow-lg inset-shadow-white-500 --> border-white rounded-md h-full w-2/3 overflow-hidden">
+            class="gap-1 p-2 bg-black bg-opacity-30 shadow-lg shadow-black ring-1 ring-black <!-- inset-shadow-lg inset-shadow-white-500 --> border-white rounded-md h-full w-2/3 overflow-hidden scroll-smooth">
         </div>
     </div>
-    <button id="tournament-start-btn"
-        class="rounded-md border-black border-2 border-transparent p-2 transform transition-all delay-50 duration-300 ease-in-out active:duration-75 hover:-translate-y-1 hover:bg-white hover:opacity-70 hover:text-black hover:scale-110 active:scale-105 active:translate-y-0.5 inline-block will-change-transform">START!</button>
+    <!-- <button id="tournament-start-btn" -->
+        <!-- class="rounded-md border-black border-2 border-transparent p-2 transform transition-all delay-50 duration-300 ease-in-out active:duration-75 hover:-translate-y-1 hover:bg-white hover:opacity-70 hover:text-black hover:scale-110 active:scale-105 active:translate-y-0.5 inline-block will-change-transform">START!</button> -->
     <!-- </div> -->
     <div id="infos-game"></div>
     <!-- </div> -->
-</div>
+<!-- </div> -->

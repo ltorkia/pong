@@ -12,11 +12,13 @@ import { initDb } from './db/index.db';
 // Routes importées
 import { apiRoutes } from './routes/api.routes';
 import { Lobby } from './types/game.types';
+import { UserWS } from './types/user.types';
 
 // Ajout du lobby multiplayer a l'interface Fastify
 declare module 'fastify' {
   interface FastifyInstance {
-    lobby: Lobby
+    lobby: Lobby,
+    usersWS: UserWS[],
   }
 }
 
@@ -78,9 +80,12 @@ async function start() {
 		process.exit(1);
 	}
 
-    // Initiation du lobby multiplayer et ajout a l'app
-    const multiplayerLobby = new Lobby();
-    app.decorate('lobby', multiplayerLobby);
+    // Initialisation du lobby multiplayer et ajout a l'app
+    app.decorate('lobby', new Lobby());
+
+    // Websockets accessible au niveau global
+    const usersWS: UserWS[] = [];
+    app.decorate('usersWS', usersWS);
 
 	// Enregistrement des routes
 	try {
@@ -90,7 +95,6 @@ async function start() {
 		console.error('Register routes error:', err);
 		process.exit(1);
 	}
-
 
 	// Lancement du serveur
 	try {

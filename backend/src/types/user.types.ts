@@ -46,3 +46,13 @@ export type FastifyFileSizeError = {
 	name: string;
 	statusCode?: number;
 };
+
+export class UserWS {
+    id: number;
+    WS: WebSocket;
+
+    constructor(id: number, WS: WebSocket) {
+        this.id = id;
+        this.WS = WS;
+    }
+}

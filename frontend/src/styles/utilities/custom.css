@@ -12,4 +12,8 @@
 	.text-shadow-none {
 		text-shadow: none;
 	}
+
+    .no-hover-translate:hover {
+        transform: none !important;
+    }
 }

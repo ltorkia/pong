@@ -1,4 +1,4 @@
-import { generateUniqueID } from "../routes/game.routes";
+import { generateUniqueID } from "../shared/functions";
 import { GameData, Player, Tournament } from "../shared/types/game.types"
 import { FastifyInstance } from "fastify";
 
@@ -139,7 +139,7 @@ export class GameInstance {
     }
 
     public initGame(): void {
-        for (let i = 0; i < this.players.length; i++) 
+        for (let i = 0; i < this.players.length; i++)
             this.score.push(0);
         this.gameStarted = true;
         this.initSizePos();
@@ -155,16 +155,18 @@ export class GameInstance {
     public endGame(): void {
         this.gameStarted = false;
         for (const player of this.players) {
-            player.webSocket.send(JSON.stringify({
-                type: "end",
-            }));
+            if (player.webSocket)
+                player.webSocket.send(JSON.stringify({
+                    type: "end",
+                }));
         }
     }
 
     private sendGameUpdate() {
         const gameUpdate = new GameData(this.players, this.ball);
         for (const player of this.players) {
-            player.webSocket.send(JSON.stringify(gameUpdate));
+            if (player.webSocket)
+                player.webSocket.send(JSON.stringify(gameUpdate));
         }
     };
 
