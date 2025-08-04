@@ -10,6 +10,7 @@
 @import './components/button.css';
 @import './components/modal.css';
 
+@import '../components/pagination/pagination.component.css';
 @import '../components/twofa-modal/twofa-modal.component.css';
 @import '../components/navbar/navbar.component.css';
 @import '../components/search-bar/search-bar.component.css';

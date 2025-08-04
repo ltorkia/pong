@@ -92,18 +92,6 @@ export class PaginationComponent extends BaseComponent {
 		if (totalPages <= 1) return;
 
 		this.renderPaginationButtons();
-
-		// for (let i = 1; i <= totalPages; i++) {
-		// 	const button = document.createElement('button');
-		// 	button.textContent = i.toString();
-		// 	button.className = 'px-3 py-1 mx-1 border rounded hover:bg-cyan-600 hover:text-white transition';
-		// 	if (i === currentPage) {
-		// 		button.classList.add('bg-cyan-700', 'text-white', 'cursor-default');
-		// 		button.disabled = true;
-		// 	}
-		// 	button.addEventListener('click', () => this.handlePageClick(i));
-		// 	this.paginationButtonsContainer.appendChild(button);
-		// }
 	}
 
 	// ===========================================

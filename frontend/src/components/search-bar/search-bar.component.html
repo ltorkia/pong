@@ -15,9 +15,9 @@
 					<div class="filters-container hidden" id="filters-container">
 						<!-- Filtre par statut -->
 						<div class="filter-group">
-							<label class="btn-style filter-label">Status :</label>
+							<label class="filter-label">Status :</label>
 							<select class="filter-select" id="status-filter">
-								<option value="">Tous</option>
+								<option value="">Any</option>
 								<option value="online">🟢 online</option>
 								<option value="offline">⚪ offline</option>
 								<option value="ingame">🟠 in game</option>
@@ -26,7 +26,7 @@
 
 						<!-- Filtre par niveau -->
 						<div class="filter-group">
-							<label class="btn-style filter-label">Level :</label>
+							<label class="filter-label">Level :</label>
 							<select class="filter-select" id="level-filter">
 								<option value="">Any</option>
 								<option value="1-10">1-10</option>
@@ -39,11 +39,11 @@
 						<!-- Filtres par checkboxes -->
 						<div class="filter-group">
 							<input type="checkbox" id="friends-only" class="filter-checkbox">
-							<label for="friends-only" class="btn-style filter-label">Friends only</label>
+							<label for="friends-only" class="filter-label">Friends only</label>
 						</div>
 
 						<!-- Bouton reset filtres -->
-						<button class="text-xs text-gray-500 hover:text-gray-400 underline transition duration-200" id="reset-filters">
+						<button class="btn smaller-btn mt-0" id="reset-filters">
 							Reset
 						</button>
 					</div>

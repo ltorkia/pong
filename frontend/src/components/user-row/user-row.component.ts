@@ -140,6 +140,7 @@ export class UserRowComponent extends BaseComponent {
 	 */
 	protected attachListeners(): void {
 		this.userCell.addEventListener('click', this.handleUsercellClick);
+		this.addFriendButton.addEventListener('click', this.addFriendClick);
 	}
 
 	/**
@@ -147,6 +148,7 @@ export class UserRowComponent extends BaseComponent {
 	 */
 	protected removeListeners(): void {
 		this.userCell.removeEventListener('click', this.handleUsercellClick);
+		this.addFriendButton.removeEventListener('click', this.addFriendClick);
 	}
 
 	// ===========================================
@@ -182,4 +184,19 @@ export class UserRowComponent extends BaseComponent {
 		event.preventDefault();
 		await router.navigate(this.profilePath);
 	};
+
+	private addFriendClick = async (event: MouseEvent): Promise<void> => {
+		event.preventDefault();
+		if (!this.user) {
+			return;
+		}
+		try {
+			await dataApi.addFriend(this.user.id);
+			this.addFriendButton.classList.add('hidden');
+			this.userFriends?.push(this.user);
+			console.log(`Friend request sent to ${this.user.username}`);
+		} catch (error) {
+			console.error('Error sending friend request:', error);
+		}
+	}
 }

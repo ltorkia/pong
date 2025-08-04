@@ -115,7 +115,7 @@ export async function usersRoutes(app: FastifyInstance) {
 	// attend dans la requete le nom de l ami recherche -> a adapter en fonction des besoins	 
 	// TODO : a readapter en fonction du front
 
-	app.get('/:id/friends/:action', async(request: FastifyRequest, reply: FastifyReply): Promise<PublicUser | void> => {
+	app.post('/:id/friends/:action', async(request: FastifyRequest, reply: FastifyReply): Promise<PublicUser | void> => {
 		const { id } = request.params as { id: number };
 		const { action } = request.params as { action: string };
 

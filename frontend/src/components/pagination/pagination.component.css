@@ -1,0 +1,24 @@
+@layer components {
+	
+	/* PAGINATION */
+	.pagination-info {
+		@apply text-sm text-white font-classic mt-5;
+	}
+
+	/* .pagination {
+		@apply flex items-center justify-center space-x-2 mt-4;
+	}
+
+	.pagination button {
+		@apply btn smaller-btn font-classic px-3 py-1 text-pastel-blue hover:text-blue-700
+		transition duration-200 ease-in-out;
+	}
+
+	.pagination .active {
+		@apply bg-blue-500 text-white;
+	}
+
+	.pagination .disabled {
+		@apply text-gray-400 cursor-not-allowed;
+	} */
+}

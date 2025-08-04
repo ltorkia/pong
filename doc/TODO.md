@@ -17,6 +17,7 @@ COMMUN
 - Reutiliser systeme code 2FA pour "Mot de passe oublie"
 - Complexifier mot de passe
 - Faire sockets pour statut online / demandes d'amis
+- Pour chaque route avec userId (ex: `/api/users/${userId}/friends/remove`), faire une verif userId == id du current user avec le token, sinon faille de secu
 
 FRONT
 
