@@ -126,24 +126,25 @@ export async function usersRoutes(app: FastifyInstance) {
 		if (id != jwtUser.id)
 			return reply.status(403).send({ errorMessage: 'Forbidden' });
 		const { action } = request.params as { action: string };
-		console.log("request body = ", request.body);
+		// console.log("request body = ", request.body);
 		// try catch
 		// peut etre pas necessaire en fonction de comment renvoie le front
 		const userdataCheck = await checkParsing(FriendsInputSchema, request.body);
 		if (isParsingError(userdataCheck))
 			return reply.status(400).send(userdataCheck);
 		let data = userdataCheck as FriendInput;
-		const friendId = Number(data.friendId);	
-		if (isNaN(friendId)) {
-  			console.error("Ce n’est pas un nombre valide !"); //throw error
-		}
-
+		// const friendId = Number(data.friendId);	
+		// if (isNaN(friendId)) {
+  		// 	console.error("Ce n’est pas un nombre valide !"); //throw error
+		// }
+		
 		//add le verify token
-		const friends = getUserFriends(id);
-		const friend: PublicUser = await getUser(friendId, null);		
+		const friends = await getUserFriends(id);
+		const friend: PublicUser = await getUser(data.friendId, null);		
 		if (!friend)
 			return reply.code(404).send({ Error : 'User not found'});
-		if (action === 'pending') {	
+		console.log("ok");
+		if (action === 'add') {	
 			if (friend.id in friends)
 				return reply.code(404).send({ Error : 'Already friend'});
 			await addUserFriend(friend.id, id);
@@ -154,22 +155,19 @@ export async function usersRoutes(app: FastifyInstance) {
 	
 	app.put('/:id/friends/:action', async(request: FastifyRequest, reply: FastifyReply): Promise<PublicUser | void> => {
 		const { id } = request.params as { id: number };
+		const jwtUser = request.user as JwtPayload;
+		if (id != jwtUser.id)
+			return reply.status(403).send({ errorMessage: 'Forbidden' });
 		const { action } = request.params as { action: string };
-
+		// console.log("request body = ", request.body);
 		// try catch
 		// peut etre pas necessaire en fonction de comment renvoie le front
 		const userdataCheck = await checkParsing(FriendsInputSchema, request.body);
 		if (isParsingError(userdataCheck))
 			return reply.status(400).send(userdataCheck);
 		let data = userdataCheck as FriendInput;
-		const friendId = Number(data.friendId);	
-		if (isNaN(friendId)) {
-  			console.error("Ce n’est pas un nombre valide !"); //throw error
-		}
-
-		//add le verify token
 		const friends = getUserFriends(id);
-		const friend: PublicUser = await getUser(friendId, null);
+		const friend: PublicUser = await getUser(data.friendId, null);
 		if (!friend)
 			return reply.code(404).send({ Error : 'User not found'});
 		if (action === 'block') {
@@ -190,22 +188,19 @@ export async function usersRoutes(app: FastifyInstance) {
 
 	app.delete('/:id/friends/:action', async(request: FastifyRequest, reply: FastifyReply): Promise<PublicUser | void> => {
 		const { id } = request.params as { id: number };
+		const jwtUser = request.user as JwtPayload;
+		if (id != jwtUser.id)
+			return reply.status(403).send({ errorMessage: 'Forbidden' });
 		const { action } = request.params as { action: string };
-
+		// console.log("request body = ", request.body);
 		// try catch
 		// peut etre pas necessaire en fonction de comment renvoie le front
 		const userdataCheck = await checkParsing(FriendsInputSchema, request.body);
 		if (isParsingError(userdataCheck))
 			return reply.status(400).send(userdataCheck);
 		let data = userdataCheck as FriendInput;
-		const friendId = Number(data.friendId);	
-		if (isNaN(friendId)) {
-  			console.error("Ce n’est pas un nombre valide !"); //throw error
-		}
-
-		//add le verify token
 		const friends = getUserFriends(id);
-		const friend: PublicUser = await getUser(friendId, null);
+		const friend: PublicUser = await getUser(data.friendId, null);
 		if (!friend)
 			return reply.code(404).send({ Error : 'User not found'});
 		if (action === 'delete') {

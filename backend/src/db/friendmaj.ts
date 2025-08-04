@@ -53,7 +53,7 @@ export async function addUserFriend(userid1: number, userid2: number) {
 		: [userid2, userid1];
 
 	await db.run(`
-        INSERT INTO Friends (user1_id, user2_id, status, is_blocked, date)
+        INSERT INTO Friends (user1_id, user2_id)
 		VALUES (?, ?)
         `,
 		[user1, user2]
