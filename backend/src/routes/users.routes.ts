@@ -12,6 +12,7 @@ import { searchNewName } from '../helpers/auth.helpers';
 import { changeUserData } from '../db/usermaj';
 import { promises as fs } from 'fs';
 import { DB_CONST } from '../shared/config/constants.config';
+import { JwtPayload } from '../types/jwt.types';
 import { checkParsing, isParsingError, adaptBodyForPassword } from '../helpers/types.helpers';
 
 /* ======================== USERS ROUTES ======================== */
@@ -88,6 +89,8 @@ export async function usersRoutes(app: FastifyInstance) {
 
 	app.get('/:id', async (request: FastifyRequest, reply: FastifyReply): Promise<SafeUserModel | void> => {
 		const { id } = request.params as { id: number };
+		if (isNaN(id))
+			return reply.status(403).send({ errorMessage: 'Forbidden' });
 		const user: SafeUserModel = await getUser(id);
 		if (!user)
 			return reply.code(404).send({ Error : 'User not found'});
@@ -101,6 +104,8 @@ export async function usersRoutes(app: FastifyInstance) {
 
 	app.get('/:id/friends', async(request: FastifyRequest, reply: FastifyReply): Promise<PublicUser[] | void> => {
 		const { id } = request.params as { id: number };
+		if (isNaN(id))
+			return reply.status(403).send({ errorMessage: 'Forbidden' });
 		const friends: PublicUser[] = await getUserFriends(id);
 		if (!friends)
 			return reply.code(404).send({ Error : 'User not found'});
@@ -117,6 +122,9 @@ export async function usersRoutes(app: FastifyInstance) {
 
 	app.post('/:id/friends/:action', async(request: FastifyRequest, reply: FastifyReply): Promise<PublicUser | void> => {
 		const { id } = request.params as { id: number };
+		const jwtUser = request.user as JwtPayload;
+		if (id != jwtUser.id)
+			return reply.status(403).send({ errorMessage: 'Forbidden' });
 		const { action } = request.params as { action: string };
 
 		// peut etre pas necessaire en fonction de comment renvoie le front
@@ -158,6 +166,8 @@ export async function usersRoutes(app: FastifyInstance) {
 
 	app.get('/:id/games', async(request: FastifyRequest, reply: FastifyReply) => {
 		const { id } = request.params as { id: number };
+		if (isNaN(id))
+			return reply.status(403).send({ errorMessage: 'Forbidden' });
 		const games = await getUserGames(id);
 		// console.log("id = ", id);
 		if (!games)
@@ -173,6 +183,9 @@ export async function usersRoutes(app: FastifyInstance) {
 
 	app.get('/:id1/:id2/chat', async(request: FastifyRequest, reply: FastifyReply) => {
 		const { id1 } = request.params as { id1: number };
+		const jwtUser = request.user as JwtPayload;
+		if (id1 !== jwtUser.id)
+			return reply.status(403).send({ errorMessage: 'Forbidden' });
 		const { id2 } = request.params as { id2: number };
 		// console.log("id1 = ", id1);
 		// return id1;
@@ -211,6 +224,9 @@ export async function usersRoutes(app: FastifyInstance) {
 			
 			let user: UserModel | null = null;
 			const { id } = request.params as { id: number };
+			const jwtUser = request.user as JwtPayload;
+			if (id != jwtUser.id)
+				return reply.status(403).send({ errorMessage: 'Forbidden' });
 			if (avatarFile && avatarBuffer)
 			{
 				user = await getUser(id);
@@ -244,6 +260,9 @@ export async function usersRoutes(app: FastifyInstance) {
 		try {
 		
 			const { id } = request.params as { id: number };
+			const jwtUser = request.user as JwtPayload;
+			if (id != jwtUser.id)
+				return reply.status(403).send({ errorMessage: 'Forbidden' });
 			const body = adaptBodyForPassword(request); //renomme les elements lies au password en CamelCase
 
 			const userdataCheck = await checkParsing(ModUserInputSchema, request.body);
