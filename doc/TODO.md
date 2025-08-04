@@ -2,11 +2,9 @@ TODO / problèmes rencontrés / questions / pense-bête
 
 BACK
 
-- QR code
-- Faire un autre majLastlog() à mettre dans route logout pour mettre le status à offline et le timestamp de déconnexion
+- Faire un autre majLog() à mettre dans route logout pour mettre le status à offline et le timestamp de déconnexion
 - Formater les dates (le fuseau horaire ne semble pas bon dans beginLog et registration)
 - Proposer de switch entre compte google et local
-- Gerer proxy pour avatars Google
 - Faire route pour get tournois
 
 

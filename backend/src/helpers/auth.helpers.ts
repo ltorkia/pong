@@ -2,8 +2,8 @@ import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { JwtPayload } from '../types/jwt.types';
 import { getUser } from '../db/user';
 import { UserPassword } from '../types/user.types';
-import { COOKIES_CONST } from '../shared/config/constants.config'; // en rouge car dossier local 'shared' != dossier conteneur
-import { insertCode2FAEmail, insertCode2FAQrcode, majLastlog } from '../db/usermaj';
+import { COOKIES_CONST, DB_CONST } from '../shared/config/constants.config'; // en rouge car dossier local 'shared' != dossier conteneur
+import { insertCode2FAEmail, insertCode2FAQrcode, majLog } from '../db/usermaj';
 import nodemailer from 'nodemailer';
 import * as speakeasy from 'speakeasy';
 
@@ -33,7 +33,7 @@ export async function ProcessAuth(app: FastifyInstance, user: Partial<UserPasswo
 	});
 	setAuthCookie(reply, token);
 	setStatusCookie(reply);
-	await majLastlog(username);
+	await majLog(username, DB_CONST.USER.STATUS.ONLINE);
 }
 
 /**

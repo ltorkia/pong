@@ -42,7 +42,9 @@ export async function updateRelationshipDelete(userid1: number, userid2: number)
 	await db.run(`
 		DELETE FROM Friends
 		WHERE user1_id = ? AND user2_id = ?
-	`, [user1, user2]);	
+		`, 
+		[user1, user2]
+	);	
 }
 
 export async function addUserFriend(userid1: number, userid2: number) {

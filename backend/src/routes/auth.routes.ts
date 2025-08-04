@@ -2,7 +2,7 @@ import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import bcrypt from 'bcrypt';
 import { RegisterInput, RegisterInputSchema, LoginInputSchema, TwoFAInputSchema, TwoFAInput, LoginInput } from '../types/zod/auth.zod';
 import { insertUser, getUser, getUserP, getUser2FA } from '../db/user';
-import {eraseCode2FA} from '../db/usermaj';
+import {eraseCode2FA, majLog} from '../db/usermaj';
 import { ProcessAuth, clearAuthCookies,  GenerateEmailCode, GenerateQRCode  } from '../helpers/auth.helpers';
 import { GetAvatarFromBuffer, bufferizeStream } from '../helpers/image.helpers';
 import { GoogleUserInfo, UserPassword, User2FA, FastifyFileSizeError, AvatarResult } from '../types/user.types';
@@ -13,6 +13,7 @@ import { Readable } from 'stream';
 import { promises as fs } from 'fs';
 import * as speakeasy from 'speakeasy';
 import { checkParsing, isParsingError } from '../helpers/types.helpers';
+import { JwtPayload } from '../types/jwt.types';
 
 
 /* ======================== AUTHENTICATION ROUTES ======================== */
@@ -253,6 +254,9 @@ app.post('/login', async (request: FastifyRequest, reply: FastifyReply) => {
 
 	app.post('/logout', async (request: FastifyRequest, reply: FastifyReply) => {
 		clearAuthCookies(reply);
+		const jwtUser = request.user as JwtPayload;
+		const user = await getUser(jwtUser.id, null);
+		await majLog(user.username, DB_CONST.USER.STATUS.OFFLINE);
 		return reply.status(200).send({
 			statusCode: 200,
 			message: 'Déconnecté'

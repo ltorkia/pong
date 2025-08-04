@@ -96,13 +96,27 @@ export async function eraseCode2FA(email: string)
 	[email]);	
 }
 
-export async function majLastlog(username: string)
+export async function majLog(username: string, status: string)
 {
-	const db = await getDb();
-	await db.run(`
-		UPDATE User
-		SET begin_log = datetime('now'), status = ?
-		WHERE (username = ?)
-		`,
-	[DB_CONST.USER.STATUS.ONLINE, username]);
+        const db = await getDb();
+        if (status === DB_CONST.USER.STATUS.ONLINE)
+        {
+                await db.run(`
+                        UPDATE User
+                        SET begin_log = datetime('now'), status = ?
+                        WHERE (username = ?)
+                        `,
+                [DB_CONST.USER.STATUS.ONLINE, username]);
+        }
+        else
+        {
+                await db.run(`
+                        UPDATE User
+                        SET end_log = datetime('now'), status = ?
+                        WHERE (username = ?)
+                        `,
+                [DB_CONST.USER.STATUS.OFFLINE, username]);                
+        }
+
+
 }
