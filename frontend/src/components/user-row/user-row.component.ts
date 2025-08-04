@@ -191,7 +191,7 @@ export class UserRowComponent extends BaseComponent {
 			return;
 		}
 		try {
-			await dataApi.addFriend(this.user.id);
+			await dataApi.addFriend(this.currentUser.id, this.user.id);
 			this.addFriendButton.classList.add('hidden');
 			this.userFriends?.push(this.user);
 			console.log(`Friend request sent to ${this.user.username}`);
