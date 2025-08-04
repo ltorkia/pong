@@ -246,7 +246,7 @@ export class DataApi {
 			return { errorMessage: data.errorMessage || 'Erreur lors de l\'ajout d\'ami' };
 		}
 		// Si succes envoyer notif via socket a l'ami
-		await currentService.updateCurrentUser(data.user);
+		// await currentService.updateCurrentUser(data.user);
 		return data as AuthResponse;
 	}
 
@@ -275,7 +275,7 @@ export class DataApi {
 		if (!res.ok || data.errorMessage) {
 			return { errorMessage: data.errorMessage || 'Erreur lors de l\'acceptation d\'ami' };
 		}
-		await currentService.updateCurrentUser(data.user);
+		// await currentService.updateCurrentUser(data.user);
 		return data as AuthResponse;
 	}
 
@@ -304,7 +304,7 @@ export class DataApi {
 		if (!res.ok || data.errorMessage) {
 			return { errorMessage: data.errorMessage || 'Erreur lors de la suppression d\'ami' };
 		}
-		await currentService.updateCurrentUser(data.user);
+		// await currentService.updateCurrentUser(data.user);
 		return data as AuthResponse;
 	}
 
@@ -333,7 +333,7 @@ export class DataApi {
 		if (!res.ok || data.errorMessage) {
 			return { errorMessage: data.errorMessage || 'Erreur lors de la suppression d\'ami' };
 		}
-		await currentService.updateCurrentUser(data.user);
+		// await currentService.updateCurrentUser(data.user);
 		return data as AuthResponse;
 	}
 }
