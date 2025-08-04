@@ -9,6 +9,7 @@ import { User } from '../../shared/models/user.model';
 import { dataApi } from '../../api/index.api';
 import { dataService } from '../../services/index.service';
 import { getHTMLElementById, getHTMLElementByClass, showAlert } from '../../utils/dom.utils';
+import { DB_CONST } from '../../shared/config/constants.config';
 
 // ===========================================
 // USER ROW COMPONENT
@@ -27,7 +28,6 @@ import { getHTMLElementById, getHTMLElementByClass, showAlert } from '../../util
  */
 export class UserRowComponent extends BaseComponent {
 	protected user?: User | null = null;
-	private userLine!: HTMLElement;
 	private userFriends?: User[] | null = null;
 	private userCell!: HTMLAnchorElement;
 	private avatarImg!: HTMLImageElement;
@@ -36,6 +36,9 @@ export class UserRowComponent extends BaseComponent {
 	private levelCell!: HTMLElement;
 	private profilePath!: string;
 	private addFriendButton!: HTMLButtonElement;
+	private cancelFriendRequestButton!: HTMLButtonElement;
+	private acceptedFriend!: HTMLButtonElement;
+	private unblockedFriendButton!: HTMLButtonElement;
 	private challengeButton!: HTMLButtonElement;
 	private alertDiv!: HTMLDivElement;
 
@@ -87,17 +90,19 @@ export class UserRowComponent extends BaseComponent {
 	 */
 	protected async beforeMount(): Promise<void> {
 		this.userFriends = await dataApi.getUserFriends(this.user!.id);
-		this.userLine = getHTMLElementByClass('user-line', this.container) as HTMLElement;
-		this.userCell = getHTMLElementById('user-cell', this.container) as HTMLAnchorElement;
+		this.userCell = getHTMLElementByClass('user-cell', this.container) as HTMLAnchorElement;
 		this.avatarImg = getHTMLElementByClass('avatar-img', this.container) as HTMLImageElement;
 		this.nameCell = getHTMLElementByClass('name-cell', this.container) as HTMLElement;
 		this.statusCell = getHTMLElementByClass('status-cell', this.container) as HTMLElement;
 		this.levelCell = getHTMLElementByClass('level-cell', this.container) as HTMLElement;
 		this.profilePath = `/user/${this.user!.id}`;
-		this.addFriendButton = getHTMLElementById('add-friend-button', this.container) as HTMLButtonElement;
-		this.challengeButton = getHTMLElementById('challenge-button', this.container) as HTMLButtonElement;
+		this.addFriendButton = getHTMLElementByClass('add-friend-button', this.container) as HTMLButtonElement;
+		this.cancelFriendRequestButton = getHTMLElementByClass('cancel-friend-request-button', this.container) as HTMLButtonElement;
+		this.acceptedFriend = getHTMLElementByClass('accepted-friend', this.container) as HTMLButtonElement;
+		this.unblockedFriendButton = getHTMLElementByClass('unblocked-friend-button', this.container) as HTMLButtonElement;
+		this.challengeButton = getHTMLElementByClass('challenge-button', this.container) as HTMLButtonElement;
 		this.alertDiv = this.createAlertSpace();
-		this.userLine.appendChild(this.alertDiv);
+		this.container.appendChild(this.alertDiv);
 	}
 
 	/**
@@ -119,10 +124,6 @@ export class UserRowComponent extends BaseComponent {
 			this.avatarImg.setAttribute('alt', `${this.user!.username}'s avatar`);
 			this.challengeButton.classList.remove('hidden');
 		}
-		const isFriend = await dataService.isFriendWithCurrentUser(this.user!.id, this.userFriends);
-		if (!isFriend && this.user!.id !== this.currentUser!.id) {
-			this.addFriendButton.classList.remove('hidden');
-		}
 		this.avatarImg.setAttribute('loading', 'lazy');
 		const userAvatar = await dataService.getUserAvatarURL(this.user!);
 		console.log(`Avatar URL: ${userAvatar}`, this.user);
@@ -135,6 +136,33 @@ export class UserRowComponent extends BaseComponent {
 			} else {
 				this.levelCell.textContent = 'No stats';
 			}
+		}
+		await this.checkFriendStatus();
+	}
+
+	/**
+	 * Vérifie le statut d'amitié entre l'utilisateur courant et l'utilisateur affiché
+	 * dans la ligne d'utilisateur.
+	 *
+	 * Si l'utilisateur n'est pas ami, affiche le bouton d'envoi de demande d'amitié.
+	 * Si l'utilisateur est en attente de validation, affiche le bouton d'annulation
+	 * de la demande d'amitié.
+	 * Si l'utilisateur est ami, affiche le bouton de débloquage.
+	 * Si l'utilisateur est bloqué, affiche le bouton de débloquage.
+	 */
+	private async checkFriendStatus(): Promise<void> {
+		const isFriend = await dataService.isFriendWithCurrentUser(this.user!.id, this.userFriends);
+		if (!isFriend && this.user!.id !== this.currentUser!.id) {
+			this.addFriendButton.classList.remove('hidden');
+		}
+		if (isFriend && isFriend === DB_CONST.FRIENDS.STATUS.PENDING) {
+			this.cancelFriendRequestButton.classList.remove('hidden');
+		}
+		if (isFriend && isFriend === DB_CONST.FRIENDS.STATUS.ACCEPTED) {
+			this.acceptedFriend.classList.remove('hidden');
+		}
+		if (isFriend && isFriend === DB_CONST.FRIENDS.STATUS.BLOCKED) {
+			this.unblockedFriendButton.classList.remove('hidden');
 		}
 	}
 
@@ -214,6 +242,39 @@ export class UserRowComponent extends BaseComponent {
 		this.addFriendButton.classList.add('hidden');
 		this.userFriends?.push(this.user);
 		console.log(`Friend request sent to ${this.user.username}`);
+		await this.checkFriendStatus();
+	}
 
+	private unblockedFriendClick = async (event: MouseEvent): Promise<void> => {
+		event.preventDefault();
+		if (!this.user) {
+			return;
+		}
+		const res = await dataApi.unblockFriend(this.currentUser.id, this.user.id);
+		if (res.errorMessage) {		
+			showAlert(res.errorMessage, `alert-${this.user.id}`, 'error');
+			return;
+		}
+		this.unblockedFriendButton.classList.add('hidden');
+		this.userFriends?.push(this.user);
+		console.log(`Friend request sent to ${this.user.username}`);
+		await this.checkFriendStatus();
+	}
+
+	private cancelFriendRequestClick = async (event: MouseEvent): Promise<void> => {
+		event.preventDefault();
+		if (!this.user) {
+			return;
+		}
+		const res = await dataApi.removeFriend(this.currentUser.id, this.user.id);
+		if (res.errorMessage) {
+			showAlert(res.errorMessage, `alert-${this.user.id}`, 'error');
+			return;
+		}
+		this.addFriendButton.classList.remove('hidden');
+		this.cancelFriendRequestButton.classList.add('hidden');
+		this.userFriends?.splice(this.userFriends.indexOf(this.user), 1);
+		console.log(`Friend request canceled for ${this.user.username}`);
+		await this.checkFriendStatus();
 	}
 }

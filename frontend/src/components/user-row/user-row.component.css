@@ -47,11 +47,11 @@
 		@apply bg-gray-100;
 	}
 
-	#user-cell {
+	.user-cell {
 		@apply relative flex flex-row justify-start items-center cursor-pointer;
 	}
 
-	#user-cell:hover .name-cell {
+	.user-cell:hover .name-cell {
 		@apply text-blue-200;
 	}
 
@@ -63,5 +63,13 @@
 		absolute bottom-0 left-1/2 -translate-x-1/2 -translate-y-1 -rotate-3
 		max-w-[100px] leading-normal break-words text-center
 		transition duration-300 ease-in-out;
+	}
+
+	/* FRIEND BUTTONS */
+	.cancel-friend-request-button, .add-friend-button, .challenge-button, .unblocked-friend-button, .accepted-friend {
+		@apply btn smaller-btn mt-0 mr-4;
+	}
+	.cancel-friend-request-button, .unblocked-friend-button {
+		@apply bg-red-500;
 	}
 }

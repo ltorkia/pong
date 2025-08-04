@@ -131,14 +131,13 @@ export async function getUser2FA(email: string) {
 export async function getUserFriends(userId: number) {
 	const db = await getDb();
 	const friends = await db.all(`
-		SELECT u.id, u.username, u.avatar, u.begin_log, u.end_log
+		SELECT u.id, u.username, u.avatar, u.begin_log, u.end_log, f.status
 		FROM Friends f
 		JOIN User u ON (
 			(f.User1_id = ? AND f.User2_id = u.id)
 			OR
 			(f.User2_id = ? AND f.User1_id = u.id)
 		)
-		WHERE f.status = 'accepted'
 		`,
 		[userId, userId]
 	);

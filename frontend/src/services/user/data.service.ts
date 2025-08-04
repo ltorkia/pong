@@ -66,28 +66,31 @@ export class DataService {
 	}
 
 	/**
-	 * Vérifie si l'utilisateur courant est ami avec l'utilisateur d'ID `userId`.
-	 * 
-	 * Fait une requête API pour récupérer la liste des amis de l'utilisateur d'ID `userId`.
-	 * Si la liste est vide ou si la requête échoue, return false.
-	 * 
-	 * Sinon, parcourt la liste des amis pour vérifier si l'utilisateur courant est présent.
-	 * Si l'utilisateur courant est trouvé, return true, sinon return false.
-	 * 
-	 * @param {number} userId - Identifiant de l'utilisateur à vérifier.
-	 * @param {User[]} userFriends - Liste des amis de l'utilisateur.
-	 * @returns {Promise<boolean>} - Promesse qui se résout avec un booléen.
+	 * Renvoie l'état de l'amitié entre l'utilisateur courant et l'utilisateur
+	 * d'identifiant `userId`.
+	 *
+	 * Si `userFriends` est fourni, il est utilisé pour ne pas appeler l'API
+	 * pour récupérer la liste des amis de `userId` s'il est déjà disponible.
+	 *
+	 * Si l'utilisateur courant n'est pas ami avec `userId`, renvoie `null`.
+	 *
+	 * @param {number} userId - Identifiant de l'utilisateur pour lequel
+	 *                         récupérer l'état de l'amitié.
+	 * @param {User[] | null} userFriends - La liste des amis de `userId` si
+	 *                                      elle est déjà disponible.
+	 * @returns {Promise<string | null>} L'état de l'amitié (pending, accepted
+	 *                                   ou blocked) ou `null` si pas d'amitié.
 	 */
-	public async isFriendWithCurrentUser(userId: number, userFriends: User[] | null = null): Promise<boolean> {
+	public async isFriendWithCurrentUser(userId: number, userFriends: User[] | null = null): Promise<string | null> {
 		if (!userFriends) {
 			const friends: User[] = await dataApi.getUserFriends(userId);
 			if (!friends) {
-				return false;
+				return null;
 			}
 			userFriends = friends;
 		}
 		const currentUserId = currentService.getCurrentUser()!.id;
-		return userFriends.some(friend => friend.id === currentUserId);
+		return userFriends.some(friend => friend.id === currentUserId) ? userFriends.find(friend => friend.id === currentUserId)!.status : null;
 	}
 
 	// ============================================================================
