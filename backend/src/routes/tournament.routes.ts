@@ -1,8 +1,8 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
-import { TournamentSchema } from '../types/zod/game.zod';
+import { TournamentSchema, TournamentReqSchema } from '../types/zod/game.zod';
 import { Tournament, Player } from '../shared/types/game.types'
-import { generateUniqueID } from '../shared/functions'
-import { z } from "zod";
+import { TournamentLobbyUpdate } from '../shared/types/websocket.types'
+import { UserWS } from 'src/types/user.types';
 
 export async function tournamentRoutes(app: FastifyInstance) {
     app.get("/tournaments", async (request: FastifyRequest, reply: FastifyReply) => {
@@ -10,7 +10,7 @@ export async function tournamentRoutes(app: FastifyInstance) {
     })
 
     app.get("/tournaments/:id", async (request: FastifyRequest, reply: FastifyReply) => {
-		const { id } = request.params as { id: string };
+        const { id } = request.params as { id: string };
         const tournamentID = Number(id.slice(1));
         const allTournaments = app.lobby.allTournaments;
         const tournament = allTournaments.find((t: Tournament) => t.ID == tournamentID);
@@ -18,7 +18,7 @@ export async function tournamentRoutes(app: FastifyInstance) {
         if (tournament) {
             return reply.code(200).send(tournament);
         } else {
-            return reply.code(404).send({error: "Tournament not found"});
+            return reply.code(404).send({ error: "Tournament not found" });
         }
     })
 
@@ -26,19 +26,96 @@ export async function tournamentRoutes(app: FastifyInstance) {
         const tournamentParse = TournamentSchema.safeParse(request.body);
 
         if (!tournamentParse.success)
-            return reply.code(400).send({error: tournamentParse.error.errors[0].message});
+            return reply.code(400).send({ error: tournamentParse.error.errors[0].message });
 
         if (app.lobby.allTournaments.find((t: any) => t.name == tournamentParse.data.name))
-            return reply.code(409).send({error: "Tournament name already exists!"});
+            return reply.code(409).send({ error: "Tournament name already exists!" });
 
-        const newPlayer = new Player(generateUniqueID(app.lobby.allPlayers), undefined);
+        // const newPlayer = new Player(tournamentParse.data.masterPlayerID);
         const newTournament = new Tournament(
             tournamentParse.data.name,
             tournamentParse.data.maxPlayers,
-            newPlayer.ID,
+            tournamentParse.data.ID,
+            tournamentParse.data.masterPlayerID,
+            false,
         );
-        newTournament.ID = generateUniqueID(app.lobby.allTournaments);
-        newTournament.players.push(newPlayer);
+        // newTournament.players.push(newPlayer);
         app.lobby.allTournaments.push(newTournament);
+        reply.code(200).send();
+    });
+
+    app.post("/join_tournament", async (request: FastifyRequest, reply: FastifyReply) => {
+        console.log("JOINED TOUURNAMENENNTNNTNT");
+        const joinTournamentReq = TournamentReqSchema.safeParse(request.body);
+
+        if (!joinTournamentReq.success)
+            return reply.code(400).send({ error: joinTournamentReq.error.errors[0].message });
+
+        const allTournaments = app.lobby.allTournaments;
+        const allPlayers = app.lobby.allPlayers;
+
+        const tournament = allTournaments.find((t: Tournament) => t.ID == joinTournamentReq.data.tournamentID);
+        if (!tournament) {
+            console.log(`TOURNAMENT ${joinTournamentReq.data.tournamentID} NOT FOUND`);
+            return reply.code(404).send({ error: "Tournament not found" });
+        }
+
+        const player = allPlayers.find((p: Player) => p.ID == joinTournamentReq.data.playerID); // necessary ? req.user.id?
+        if (!player) {
+            console.log(`PLAYER ${joinTournamentReq.data.playerID} NOT FOUND`);
+            return reply.code(404).send({ error: "Player not found" });
+        }
+
+        for (const tournament of allTournaments) {
+            if (tournament.players.find((p: Player) => p.ID == joinTournamentReq.data.playerID))
+                return reply.code(409).send({ error: "Can't join more than one tournament!" });
+        }
+
+        if (tournament.players.length == tournament.maxPlayers)
+            return reply.code(409).send({ error: "Tournament is full!" });
+
+        if (tournament && player) {
+            tournament.players.push(player);
+            reply.code(200).send("Join tournament succesfully");
+            for (const player of tournament.players) {
+                const userWS: UserWS | undefined = app.usersWS.find((user: UserWS) => user.id == player.ID);
+                const playerData: TournamentLobbyUpdate = {
+                    type: "tournament_lobby_update",
+                    players: tournament.players,
+                };
+                if (userWS)
+                    userWS.WS.send(JSON.stringify(playerData));
+            }
+        }
+    })
+
+    app.post("/leave_tournament", async (request: FastifyRequest, reply: FastifyReply) => {
+        const leaveTournamentReq = TournamentReqSchema.safeParse(request.body);
+        if (!leaveTournamentReq.success)
+            return reply.code(400).send({ error: leaveTournamentReq.error.errors[0].message });
+
+        const allTournaments = app.lobby.allTournaments;
+
+        const tournament = allTournaments.find((t: Tournament) => t.ID == leaveTournamentReq.data.tournamentID);
+        if (!tournament) {
+            console.log(`TOURNAMENT ${leaveTournamentReq.data.tournamentID} NOT FOUND`);
+            return reply.code(404).send({ error: "Tournament not found" });
+        }
+        
+        const playerIdx = tournament.players.findIndex((p: Player) => p.ID == leaveTournamentReq.data.playerID);
+        if (playerIdx != -1) {
+            tournament.players.splice(playerIdx, 1);
+            for (const player of tournament.players) {
+                const userWS: UserWS | undefined = app.usersWS.find((user: UserWS) => user.id == player.ID);
+                const playerData: TournamentLobbyUpdate = {
+                    type: "tournament_lobby_update",
+                    players: tournament.players,
+                };
+                if (userWS)
+                    userWS.WS.send(JSON.stringify(playerData));
+            }
+            console.log("PLAYER SUCCESSFULLY DELETED FORM TOURNAmENT ")
+            return reply.code(200).send("Successfully left tournament");
+        }
     })
 }

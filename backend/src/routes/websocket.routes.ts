@@ -1,17 +1,25 @@
 import { FastifyInstance } from 'fastify';
-import { UserWS } from '../types/user.types'
+import { UserWS } from '../types/user.types';
+import { Player } from '../shared/types/game.types';
 
 export async function webSocketRoutes(app: FastifyInstance) {
     app.get('/ws', { websocket: true }, (connection: WebSocket, req: any) => {
         const allUsers = app.usersWS;
+        const allPlayers = app.lobby.allPlayers;
         allUsers.push(new UserWS(req.user.id, connection));
+        allPlayers.push(new Player(req.user.id));
         console.log(`ADDED USER ID = ${req.user.id}`);
         console.log(allUsers);
 
         connection.onclose = () => {
-            const userIdx = app.usersWS.findIndex((user: UserWS) => user.id == req.user.id);
+            const userIdx = allUsers.findIndex((user: UserWS) => user.id == req.user.id);
             if (userIdx != -1) {
                 allUsers.splice(userIdx, 1);
+                console.log(`DELETED USER ID = ${req.user.id}`);
+            }
+            const playerIdx = allPlayers.findIndex((player: Player) => player.ID == req.user.id);
+            if (playerIdx != -1) {
+                allUsers.splice(playerIdx, 1);
                 console.log(`DELETED USER ID = ${req.user.id}`);
             }
         }

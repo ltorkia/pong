@@ -20,7 +20,6 @@ export type PositionObj = {
 
 export class Player {
     public ID: number;
-    public webSocket: WebSocket | undefined;
     public inGame: boolean;
     public ready: boolean;
     public pos = { x: 0, y: 0 };
@@ -37,9 +36,8 @@ export class Player {
             this.pos.y -= 0.02;
     }
 
-    constructor(ID: number, webSocket: WebSocket | undefined) {
+    constructor(ID: number) {
         this.ID = ID;
-        this.webSocket = webSocket;
         this.inGame = false;
         this.ready = false;
         this.width = 0.02;
@@ -65,6 +63,7 @@ export class GameData {
 
 export class Tournament {
     public name: string;
+    public alias?: string;
     public maxPlayers: number;
     public ID?: number;
     public masterPlayerID?: number;

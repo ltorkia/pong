@@ -154,20 +154,20 @@ export class GameInstance {
 
     public endGame(): void {
         this.gameStarted = false;
-        for (const player of this.players) {
-            if (player.webSocket)
-                player.webSocket.send(JSON.stringify({
-                    type: "end",
-                }));
-        }
+    //     for (const player of this.players) {
+    //         if (player.webSocket)
+    //             player.webSocket.send(JSON.stringify({
+    //                 type: "end",
+    //             }));
+    //     }
     }
 
     private sendGameUpdate() {
         const gameUpdate = new GameData(this.players, this.ball);
-        for (const player of this.players) {
-            if (player.webSocket)
-                player.webSocket.send(JSON.stringify(gameUpdate));
-        }
+        // for (const player of this.players) {
+            // if (player.webSocket)
+                // player.webSocket.send(JSON.stringify(gameUpdate));
+        // }
     };
 
     public registerInput(playerID: number, key: string, status: boolean): void {
