@@ -21,7 +21,7 @@ export class WebSocketService {
     }
     
     constructor() {
-        // if (currentService.getCurrentUser())
-        this.openWebSocket();
+        if (currentService.getCurrentUser())
+            this.openWebSocket();
     }
 }

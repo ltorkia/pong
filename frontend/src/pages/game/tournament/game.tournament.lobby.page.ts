@@ -79,12 +79,12 @@ export class GameTournamentLobby extends BasePage {
     }
 
     private leaveTournamentBeacon(): void {
-        if (this.beaconSent) return ;
+        if (this.beaconSent) return;
         this.beaconSent = true;
         this.leavingPage = true;
-         const data = JSON.stringify({
+        const data = JSON.stringify({
             playerID: this.currentUser.id,
-            tournamentID: this.tournamentID,    
+            tournamentID: this.tournamentID,
         });
         console.log("SENDING BEAACON");
         navigator.sendBeacon("/api/game/leave_tournament", data);
@@ -113,6 +113,7 @@ export class GameTournamentLobby extends BasePage {
             tournamentHolder?.lastChild.remove();
         console.log(this.tournament);
         this.tournament?.players.map((player: Player) => this.appendPlayerPastille(player));
+        // this.checkColorStartBtn();
     }
 
     private async fetchTournament(): Promise<void> {
@@ -149,17 +150,15 @@ export class GameTournamentLobby extends BasePage {
         const pastilleHolder = document.getElementById("pastilles-holder") as HTMLElement;
         if (this.tournament?.maxPlayers == 4) {
             pastilleHolder.classList.add("flex", "justify-center", "items-center", "flex-wrap");
-            pastille.classList.add("w-1/3", "h-1/3");
+            pastille.classList.add("w-1/4", "h-1/3");
         } else
             pastilleHolder.classList.add("grid", "grid-cols-4");
         pastilleHolder!.append(pastille);
-        // this.appendListenerPastille(pastille, player);
         requestAnimationFrame(() => pastille.classList.add("opacity-100"));
         const img = pastille.querySelector("#user-avatar") as HTMLImageElement;
         if (this.tournament?.maxPlayers == 16)
             img.classList.add("w-8", "h-8");
         img.src = await this.dataApi.getUserAvatarURL(user);
-
     }
 
     private onClientNavigation(callback: (type: "pushState" | "replaceState" | "popstate" | "refresh", ...args: any[]) => void) {
@@ -185,6 +184,20 @@ export class GameTournamentLobby extends BasePage {
         window.addEventListener("beforeunload", () => {
             this.leaveTournamentBeacon();
         })
+    }
+
+    private checkColorStartBtn(): void {
+        if (this.tournament?.players.length == this.tournament?.maxPlayers) {
+            const btn = document.getElementById("tournament-start-btn") as HTMLElement;
+            btn.classList.remove("hover:bg-red-500");
+            btn.classList.add("hover:bg-green-500");
+        } else {
+            const btn = document.querySelector(".hover:bg-green-500");
+            if (btn) {
+                btn.classList.remove("hover:bg-green-500");
+                btn.classList.add("hover:bg-red-500");
+            }
+        }
     }
 
     protected async attachListeners(): Promise<void> {

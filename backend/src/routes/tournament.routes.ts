@@ -118,7 +118,7 @@ export async function tournamentRoutes(app: FastifyInstance) {
         if (!tournament) {
             console.log(`TOURNAMENT ${leaveTournamentReq.data.tournamentID} NOT FOUND`);
             return reply.code(404).send({ error: "Tournament not found" });
-        } 
+        }
         
         console.log(tournament.players);
 

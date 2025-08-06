@@ -20,7 +20,7 @@ export async function webSocketRoutes(app: FastifyInstance) {
             }
             const playerIdx = allPlayers.findIndex((player: Player) => player.ID == req.user.id);
             if (playerIdx != -1) {
-                allUsers.splice(playerIdx, 1);
+                allPlayers.splice(playerIdx, 1);
                 console.log(`DELETED PLAYER ID = ${req.user.id}`);
             }
         }
