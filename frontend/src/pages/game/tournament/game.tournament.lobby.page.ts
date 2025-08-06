@@ -12,6 +12,8 @@ export class GameTournamentLobby extends BasePage {
     private pastilleHTML: Node;
     private dataApi: DataService = new DataService();
     private gridRowStyle: string = "";
+    private leavingPage: boolean = false;
+    private beaconSent: boolean = false;
 
     constructor(config: RouteConfig) {
         super(config);
@@ -27,26 +29,38 @@ export class GameTournamentLobby extends BasePage {
         };
         const rowCount = this.tournament?.maxPlayers;
         this.gridRowStyle = gridRowClass[rowCount as keyof typeof gridRowClass];
-        this.onClientNavigation(() => this.leaveTournament());
+        this.onClientNavigation(async () => {
+            if (!this.leavingPage)
+                await this.leaveTournament();
+        });
     }
 
     protected async beforeMount(): Promise<void> {
         await this.fetchPastille();
         await this.fetchTournament();
-        if (!this.tournament?.players.find((p: Player) => p.ID))
+        console.log(this.tournament);
+        if (!this.tournament?.players.find((p: Player) => p.ID == this.currentUser.id)) {
             await this.joinTournament();
+            await this.fetchTournament();
+            console.log("WASNT IN THE TOURNAMENT AND JOINED");
+        } else {
+            console.log("WAS IN THE TOURNAMENT HENCE DIDNT JOINED");
+        }
     }
 
     protected async mount(): Promise<void> {
         const pastilleHolder = document.getElementById("pastilles-holder");
         pastilleHolder!.classList.add(this.gridRowStyle);
+        // console.log("I SHOULD HAVE JOINED");
+        // console.log(this.tournament);
         this.displayTournament();
-        for (const player of this.tournament!.players)
-            console.log(player);
+        // for (const player of this.tournament!.players)
+        // console.log(player);
     }
 
     private async leaveTournament(): Promise<void> {
         console.log("LEAVIGN TOURNAMENNTTT");
+        this.leavingPage = true;
         const res = await fetch("/api/game/leave_tournament", {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -56,11 +70,24 @@ export class GameTournamentLobby extends BasePage {
             }),
             credentials: 'include',
         });
+        console.log(res);
         if (!res.ok) {
             const error = await res.json();
             console.error(error.error);
             return;
         }
+    }
+
+    private leaveTournamentBeacon(): void {
+        if (this.beaconSent) return ;
+        this.beaconSent = true;
+        this.leavingPage = true;
+         const data = JSON.stringify({
+            playerID: this.currentUser.id,
+            tournamentID: this.tournamentID,    
+        });
+        console.log("SENDING BEAACON");
+        navigator.sendBeacon("/api/game/leave_tournament", data);
     }
 
     private async joinTournament(): Promise<void> {
@@ -84,6 +111,7 @@ export class GameTournamentLobby extends BasePage {
         const tournamentHolder = document.getElementById("pastilles-holder");
         while (tournamentHolder?.lastChild)
             tournamentHolder?.lastChild.remove();
+        console.log(this.tournament);
         this.tournament?.players.map((player: Player) => this.appendPlayerPastille(player));
     }
 
@@ -91,7 +119,7 @@ export class GameTournamentLobby extends BasePage {
         const res = await fetch(`/api/game/tournaments/:${this.tournamentID}`);
         if (res.ok) {
             this.tournament = await res.json();
-            console.log(this.tournament);
+            // console.log(this.tournament);
         } else {
             console.error("Tournament not found");
         }
@@ -134,7 +162,7 @@ export class GameTournamentLobby extends BasePage {
 
     }
 
-    private onClientNavigation(callback: (type: "pushState" | "replaceState" | "popstate", ...args: any[]) => void) {
+    private onClientNavigation(callback: (type: "pushState" | "replaceState" | "popstate" | "refresh", ...args: any[]) => void) {
         const originalPushState = history.pushState;
         history.pushState = function (...args) {
             const result = originalPushState.apply(this, args);
@@ -151,15 +179,20 @@ export class GameTournamentLobby extends BasePage {
 
         window.addEventListener("popstate", () => {
             callback("popstate");
+            console.log("POSTATE DETECTED");
         });
+
+        window.addEventListener("beforeunload", () => {
+            this.leaveTournamentBeacon();
+        })
     }
 
     protected async attachListeners(): Promise<void> {
         webSocketService.getWebSocket()?.addEventListener("message", (event) => {
-            console.log("MSG RECEIVED")
             const tournamentPlayers: TournamentLobbyUpdate = JSON.parse(event.data);
+            console.log("MSG RECEIVED");
             console.log(tournamentPlayers);
-            if (tournamentPlayers) {
+            if (tournamentPlayers && !this.leavingPage) {
                 this.tournament!.players = tournamentPlayers.players;
                 this.displayTournament();
             }

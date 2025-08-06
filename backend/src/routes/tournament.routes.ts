@@ -31,6 +31,9 @@ export async function tournamentRoutes(app: FastifyInstance) {
         if (app.lobby.allTournaments.find((t: any) => t.name == tournamentParse.data.name))
             return reply.code(409).send({ error: "Tournament name already exists!" });
 
+        console.log("new tournament !");
+        console.log(app.usersWS);
+
         // const newPlayer = new Player(tournamentParse.data.masterPlayerID);
         const newTournament = new Tournament(
             tournamentParse.data.name,
@@ -63,6 +66,7 @@ export async function tournamentRoutes(app: FastifyInstance) {
         const player = allPlayers.find((p: Player) => p.ID == joinTournamentReq.data.playerID); // necessary ? req.user.id?
         if (!player) {
             console.log(`PLAYER ${joinTournamentReq.data.playerID} NOT FOUND`);
+            console.log(allPlayers);
             return reply.code(404).send({ error: "Player not found" });
         }
 
@@ -83,6 +87,8 @@ export async function tournamentRoutes(app: FastifyInstance) {
                     type: "tournament_lobby_update",
                     players: tournament.players,
                 };
+                console.log("SENDING MESSAGE");
+                console.log(playerData);
                 if (userWS)
                     userWS.WS.send(JSON.stringify(playerData));
             }
@@ -90,9 +96,21 @@ export async function tournamentRoutes(app: FastifyInstance) {
     })
 
     app.post("/leave_tournament", async (request: FastifyRequest, reply: FastifyReply) => {
-        const leaveTournamentReq = TournamentReqSchema.safeParse(request.body);
+        console.log("LEAVE TOURNAMENT REQUEST !");
+        console.log(app.usersWS);
+
+        let leaveTournamentReq: any;
+        if (typeof request.body == "string") {
+            leaveTournamentReq = JSON.parse(request.body); // beacon (refresh)
+            console.log("BEACON DETECTED");
+        }
+        else
+            leaveTournamentReq = request.body; // classic leave
+        leaveTournamentReq = TournamentReqSchema.safeParse(leaveTournamentReq);
         if (!leaveTournamentReq.success)
             return reply.code(400).send({ error: leaveTournamentReq.error.errors[0].message });
+
+        console.log(`leaving player id = ${leaveTournamentReq.data.playerID}`);
 
         const allTournaments = app.lobby.allTournaments;
 
@@ -100,22 +118,34 @@ export async function tournamentRoutes(app: FastifyInstance) {
         if (!tournament) {
             console.log(`TOURNAMENT ${leaveTournamentReq.data.tournamentID} NOT FOUND`);
             return reply.code(404).send({ error: "Tournament not found" });
-        }
+        } 
         
+        console.log(tournament.players);
+
         const playerIdx = tournament.players.findIndex((p: Player) => p.ID == leaveTournamentReq.data.playerID);
         if (playerIdx != -1) {
             tournament.players.splice(playerIdx, 1);
+            console.log(tournament.players);
+            console.log(app.usersWS);
             for (const player of tournament.players) {
                 const userWS: UserWS | undefined = app.usersWS.find((user: UserWS) => user.id == player.ID);
+                console.log("USER WS :");
+                console.log(userWS);
                 const playerData: TournamentLobbyUpdate = {
                     type: "tournament_lobby_update",
                     players: tournament.players,
                 };
-                if (userWS)
+                if (userWS) {
                     userWS.WS.send(JSON.stringify(playerData));
+                    console.log("SOMEONE LEFT MESSAGE SENT");
+                } else {
+                    console.log("DIDNT FIND ANY PLAYER TO SEND MESG");
+                }
             }
             console.log("PLAYER SUCCESSFULLY DELETED FORM TOURNAmENT ")
             return reply.code(200).send("Successfully left tournament");
+        } else {
+            console.log("DIDNT FIND PLAYER IN THIS TOURNAMENT");
         }
     })
 }

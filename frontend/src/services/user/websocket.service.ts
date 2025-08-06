@@ -1,3 +1,5 @@
+import { currentService } from "./user.service";
+
 export class WebSocketService {
     private webSocket: WebSocket | undefined;
 
@@ -5,7 +7,7 @@ export class WebSocketService {
         return this.webSocket;
     }
 
-    public openWebSocket() {
+    public async openWebSocket() {
         this.webSocket = new WebSocket(`${location.origin}/api/ws/`);
         if (!this.webSocket)
             console.log("Websocket problem");
@@ -19,6 +21,7 @@ export class WebSocketService {
     }
     
     constructor() {
+        // if (currentService.getCurrentUser())
         this.openWebSocket();
     }
 }
