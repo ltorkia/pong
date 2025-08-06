@@ -1,6 +1,8 @@
 import { User } from '../../shared/models/user.model';
 import { Game } from '../../shared/models/game.model';
+import { Friend } from '../../shared/models/friend.model';
 import { SafeUserModel, PublicUser, PaginatedUsers } from '../../shared/types/user.types';	// en rouge car dossier local 'shared' != dossier conteneur
+import { FriendModel } from '../../shared/types/friend.types';	// en rouge car dossier local 'shared' != dossier conteneur
 import { dataService, currentService } from '../../services/index.service';
 import { secureFetch } from '../../utils/app.utils';
 import { AuthResponse } from 'src/types/api.types';
@@ -135,13 +137,13 @@ export class DataApi {
 	 * @param {number} id Identifiant de l'utilisateur pour lequel récupérer la liste des amis.
 	 * @returns {Promise<User[]>} Promesse qui se résout avec un tableau d'instances `User`.
 	 */
-	public async getUserFriends(id: number): Promise<User[]> {
+	public async getUserFriends(id: number): Promise<Friend[]> {
 		const res: Response = await secureFetch(`/api/users/${id}/friends`, { method: 'GET' });
 		if (!res.ok) {
 			throw new Error('Erreur de l\'API');
 		}
-		const data: PublicUser[] = await res.json();
-		return User.fromPublicJSONArray(data) as User[];
+		const data: FriendModel[] = await res.json();
+		return Friend.fromJSONArray(data) as Friend[];
 	}
 
 	/**

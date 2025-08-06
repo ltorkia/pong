@@ -1,9 +1,14 @@
 import { DB_CONST } from '../config/constants.config';
 
-export interface FriendsModel {
-	user1Id: number;
-	user2Id: number;
-	status: FriendStatus;
+export interface FriendModel {
+	id: number;
+	username: string;
+	avatar: string;
+	beginLog: string;
+	endLog: string;
+	// user1Id: number;
+	// user2Id: number;
+	friendStatus: FriendStatus;
 	isBlocked: number;
 	date: string;
 }

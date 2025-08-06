@@ -187,6 +187,7 @@ export class AuthApi {
 		if (!res.ok || data.errorMessage || !data.user) {
 			return { errorMessage: data.errorMessage || data.message || 'Erreur avec la récupération de l\'utilisateur' };
 		}
+		// SOCKETS
 		await currentService.setCurrentUserFromServer(data.user);
 		return data as AuthResponse;
 	}

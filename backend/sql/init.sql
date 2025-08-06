@@ -62,7 +62,7 @@ CREATE TABLE IF NOT EXISTS Chat (
 CREATE TABLE IF NOT EXISTS Friends (
 	user1_id INTEGER NOT NULL,
 	user2_id INTEGER NOT NULL,
-	status TEXT DEFAULT 'pending' NOT NULL CHECK (status IN ('pending', 'accepted', 'blocked')),	-- pour checker le status, oui, non, en attente
+	friend_status TEXT DEFAULT 'pending' NOT NULL CHECK (friend_status IN ('pending', 'accepted', 'blocked')),	-- pour checker le status, oui, non, en attente
 	is_blocked INTEGER DEFAULT 0 NOT NULL CHECK (is_blocked IN (0, 1)),
 	date DATETIME NOT NULL DEFAULT (datetime('now')),
 	FOREIGN KEY (user1_id) REFERENCES User(id) ON DELETE CASCADE,

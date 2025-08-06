@@ -3,6 +3,7 @@ import { getUser, getUserFriends, getUserGames, getUserChat, getAvatar, getUserA
 import { getAllUsers, getAllUsersInfos, getUsersWithPagination } from '../db/user';
 import { UserModel, SafeUserModel, PublicUser, Friends, PaginatedUsers, SortOrder, UserSortField, UserSearchField } from '../shared/types/user.types';
 import { insertAvatar } from '../db/usermaj';
+import { FriendModel } from '../shared/types/friend.types';	// en rouge car dossier local 'shared' != dossier conteneur
 import { addUserFriend, updateRelationshipBlocked, updateRelationshipConfirmed, updateRelationshipDelete } from '../db/friendmaj';
 import { Buffer } from 'buffer';
 import bcrypt from 'bcrypt';
@@ -102,13 +103,13 @@ export async function usersRoutes(app: FastifyInstance) {
 /* -------------------------------------------------------------------------- */
 	// :id = id de l utilisateur dans la db dont on cherche les amis
 
-	app.get('/:id/friends', async(request: FastifyRequest, reply: FastifyReply): Promise<PublicUser[] | void> => {
+	app.get('/:id/friends', async(request: FastifyRequest, reply: FastifyReply): Promise<FriendModel[] | void> => {
 		const { id } = request.params as { id: number };
 		if (isNaN(id))
 			return reply.status(403).send({ errorMessage: 'Forbidden' });
-		const friends: PublicUser[] = await getUserFriends(id);
-		if (!friends)
-			return reply.code(404).send({ Error : 'User not found'});
+		const friends: FriendModel[] = await getUserFriends(id);
+		// if (!friends)
+		// 	return reply.code(404).send({ Error : 'User not found'});
 		return friends;
 	})
 

@@ -7,6 +7,7 @@ import { UserPassword, User2FA, UserForChangeData } from '../types/user.types';
 import { DB_CONST, ALLOWED_SORT_FIELDS, ALLOWED_SEARCH_FIELDS, ALLOWED_SORT_ORDERS } from '../shared/config/constants.config'; // en rouge car dossier local 'shared' != dossier conteneur
 import { UserModel, SafeUserModel, UserBasic, UserWithAvatar, PublicUser, UserSortField, SortOrder, PaginatedUsers, PaginationInfos, Friends } from '../shared/types/user.types'; // en rouge car dossier local 'shared' != dossier conteneur
 import { snakeToCamel, snakeArrayToCamel } from '../helpers/types.helpers';
+import { FriendModel } from '../shared/types/friend.types';	// en rouge car dossier local 'shared' != dossier conteneur
 import { sanitizeSearchTerm } from '../helpers/query.helpers';
 
 // retourne les infos d un user particulier - userId = le id de l user a afficher
@@ -131,7 +132,8 @@ export async function getUser2FA(email: string) {
 export async function getUserFriends(userId: number) {
 	const db = await getDb();
 	const friends = await db.all(`
-		SELECT u.id, u.username, u.avatar, u.begin_log, u.end_log, f.status
+		SELECT u.id, u.username, u.avatar, u.begin_log, u.end_log, 
+		f.friend_status, f.is_blocked, f.date
 		FROM Friends f
 		JOIN User u ON (
 			(f.User1_id = ? AND f.User2_id = u.id)
@@ -141,7 +143,7 @@ export async function getUserFriends(userId: number) {
 		`,
 		[userId, userId]
 	);
-	return snakeArrayToCamel(friends) as PublicUser[];
+	return snakeArrayToCamel(friends) as FriendModel[];
 }
 // pour insert : const [u1, u2] = [userIdA, userIdB].sort((a, b) => a - b);
 		

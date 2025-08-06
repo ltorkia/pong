@@ -91,7 +91,7 @@ export abstract class BaseComponent {
 	 * Les sous-classes peuvent réutiliser cette méthode et ajouter leurs propres checks.
 	 * Pour garder aussi celui-ci, ajouter super.preRenderCheck();
 	 */
-	protected preRenderCheck(): void {
+	protected async preRenderCheck(): Promise<void> {
 		checkUserLogged(this.componentConfig.isPublic);
 	}
 

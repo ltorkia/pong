@@ -215,7 +215,7 @@ export class TwofaModalComponent extends BaseComponent {
 	 * template est chargé et injecté dans le conteneur.
 	 */
 	private async loadTemplateDev(): Promise<void> {
-		this.loadTemplate(template);
+		await this.loadTemplate(template);
 	}
 
 	// /**

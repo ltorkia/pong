@@ -1,4 +1,5 @@
 import { User } from '../../shared/models/user.model';
+import { Friend } from '../../shared/models/friend.model';
 import { dataApi } from '../../api/index.api';
 import { AuthResponse } from '../../types/api.types';
 import { currentService } from '../../services/index.service';
@@ -66,31 +67,36 @@ export class DataService {
 	}
 
 	/**
-	 * Renvoie l'état de l'amitié entre l'utilisateur courant et l'utilisateur
-	 * d'identifiant `userId`.
+	 * Vérifie si l'utilisateur courant est ami avec un autre utilisateur.
 	 *
-	 * Si `userFriends` est fourni, il est utilisé pour ne pas appeler l'API
-	 * pour récupérer la liste des amis de `userId` s'il est déjà disponible.
+	 * Recherche l'utilisateur courant dans la liste des amis de l'utilisateur
+	 * fourni en paramètre, et renvoie un objet contenant l'ami et son statut
+	 * si l'utilisateur courant est effectivement ami avec l'autre utilisateur.
+	 * Sinon, renvoie null.
 	 *
-	 * Si l'utilisateur courant n'est pas ami avec `userId`, renvoie `null`.
-	 *
-	 * @param {number} userId - Identifiant de l'utilisateur pour lequel
-	 *                         récupérer l'état de l'amitié.
-	 * @param {User[] | null} userFriends - La liste des amis de `userId` si
-	 *                                      elle est déjà disponible.
-	 * @returns {Promise<string | null>} L'état de l'amitié (pending, accepted
-	 *                                   ou blocked) ou `null` si pas d'amitié.
+	 * @param {number} userId - Identifiant de l'utilisateur à vérifier.
+	 * @param {Friend[] | null} userFriends - Liste des amis de l'utilisateur courant.
+	 * @returns {Promise<{ friend: Friend, status: string } | null>}
 	 */
-	public async isFriendWithCurrentUser(userId: number, userFriends: User[] | null = null): Promise<string | null> {
+	public async isFriendWithCurrentUser(userId: number, userFriends: Friend[] | null = null): Promise<{ friend: Friend, status: string } | null> {
+		const currentUserId = currentService.getCurrentUser()!.id;
 		if (!userFriends) {
-			const friends: User[] = await dataApi.getUserFriends(userId);
-			if (!friends) {
-				return null;
-			}
+			const friends: Friend[] = await dataApi.getUserFriends(currentUserId);
 			userFriends = friends;
 		}
-		const currentUserId = currentService.getCurrentUser()!.id;
-		return userFriends.some(friend => friend.id === currentUserId) ? userFriends.find(friend => friend.id === currentUserId)!.status : null;
+		if (!userFriends || userFriends.length === 0) {
+			return null;
+		}
+		console.log("userFriends", userFriends);
+		console.log("friend", userId);
+		console.log("currentUserId", currentUserId);
+		console.log("bool", userFriends.some(friend => friend.id === userId));
+		console.log("friend", userFriends.find(friend => friend.id === userId)!);
+		// console.log("status", userFriends.find(friend => friend.id === userId)!.friendStatus);
+		return userFriends.some(friend => friend.id === userId)
+			? { friend: userFriends.find(friend => friend.id === userId)!,
+				status: userFriends.find(friend => friend.id === userId)!.friendStatus }
+			: null;
 	}
 
 	// ============================================================================
