@@ -67,32 +67,23 @@ export class DataService {
 	}
 
 	/**
-	 * Vérifie si l'utilisateur courant est ami avec un autre utilisateur.
-	 *
-	 * Recherche l'utilisateur courant dans la liste des amis de l'utilisateur
-	 * fourni en paramètre, et renvoie un objet contenant l'ami et son statut
-	 * si l'utilisateur courant est effectivement ami avec l'autre utilisateur.
-	 * Sinon, renvoie null.
-	 *
+	 * Vérifie si un utilisateur est ami avec l'utilisateur courant.
+	 * 
+	 * Récupère la liste des amis de l'utilisateur courant et vérifie si l'utilisateur
+	 * d'identifiant `userId` est présent dans cette liste. Si l'utilisateur est un ami,
+	 * renvoie un objet contenant les informations de l'ami et le statut d'amitié.
+	 * Sinon, renvoie `null`.
+	 * 
 	 * @param {number} userId - Identifiant de l'utilisateur à vérifier.
-	 * @param {Friend[] | null} userFriends - Liste des amis de l'utilisateur courant.
-	 * @returns {Promise<{ friend: Friend, status: string } | null>}
+	 * @returns {Promise<{ friend: Friend, status: string } | null>} - Promesse qui se résout 
+	 * avec un objet contenant l'ami et son statut ou `null` si l'utilisateur n'est pas ami.
 	 */
-	public async isFriendWithCurrentUser(userId: number, userFriends: Friend[] | null = null): Promise<{ friend: Friend, status: string } | null> {
+	public async isFriendWithCurrentUser(userId: number): Promise<{ friend: Friend, status: string } | null> {
 		const currentUserId = currentService.getCurrentUser()!.id;
-		if (!userFriends) {
-			const friends: Friend[] = await dataApi.getUserFriends(currentUserId);
-			userFriends = friends;
-		}
+		const userFriends: Friend[] = await dataApi.getUserFriends(currentUserId);
 		if (!userFriends || userFriends.length === 0) {
 			return null;
 		}
-		console.log("userFriends", userFriends);
-		console.log("friend", userId);
-		console.log("currentUserId", currentUserId);
-		console.log("bool", userFriends.some(friend => friend.id === userId));
-		console.log("friend", userFriends.find(friend => friend.id === userId)!);
-		// console.log("status", userFriends.find(friend => friend.id === userId)!.friendStatus);
 		return userFriends.some(friend => friend.id === userId)
 			? { friend: userFriends.find(friend => friend.id === userId)!,
 				status: userFriends.find(friend => friend.id === userId)!.friendStatus }

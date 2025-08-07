@@ -21,7 +21,6 @@ import { SafeUserModel, PaginatedUsers, PaginationInfos } from '../../shared/typ
  */
 export class UsersPage extends BasePage {
 	private users: SafeUserModel[] | User[] | null = null;
-	private friends: Friend[] | null = null;
 	private paginationInfos: PaginationInfos | null = null;
 	private paginationParams: PaginationParams | null = null;
 	private currentPage: number = 1;
@@ -63,8 +62,6 @@ export class UsersPage extends BasePage {
 		if (!this.components) {
 			return;
 		}
-
-		this.friends = await dataApi.getUserFriends(this.currentUser!.id);
 
 		this.searchBarConfig = this.checkComponentConfig(COMPONENT_NAMES.SEARCH_BAR);
 		this.userRowConfig = this.checkComponentConfig(COMPONENT_NAMES.USER_ROW);
@@ -158,7 +155,6 @@ export class UsersPage extends BasePage {
 			const rowComponent = new UserRowComponent(this.config, this.userRowConfig!, tempContainer, user);
 			const instanceKey = `${this.userRowConfig!.name}-${user.id}`;
 			this.addToComponentInstances(instanceKey, rowComponent);
-			rowComponent.setFriends(this.friends!);
 
 			renderPromises.push(
 				rowComponent.render().then(() => {

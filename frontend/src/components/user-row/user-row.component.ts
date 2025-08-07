@@ -29,8 +29,6 @@ import { DB_CONST } from '../../shared/config/constants.config';
  */
 export class UserRowComponent extends BaseComponent {
 	protected user?: User | null = null;
-	private currentUserFriends: Friend[] | null = null;
-	private currentFriend?: Friend | null = null;
 	private userline!: HTMLDivElement;
 	private userCell!: HTMLAnchorElement;
 	private avatarImg!: HTMLImageElement;
@@ -129,7 +127,6 @@ export class UserRowComponent extends BaseComponent {
 		}
 		this.avatarImg.setAttribute('loading', 'lazy');
 		const userAvatar = await dataService.getUserAvatarURL(this.user!);
-		console.log(`Avatar URL: ${userAvatar}`, this.user);
 		this.avatarImg.setAttribute('src', userAvatar);
 		this.nameCell.textContent = this.user!.username;
 		this.statusCell.innerHTML = dataService.showStatusLabel(this.user!);
@@ -141,7 +138,6 @@ export class UserRowComponent extends BaseComponent {
 			}
 		}
 		await this.toggleFriendButton();
-		console.log("MOUNT", this.currentUserFriends);
 	}
 
 	/**
@@ -202,13 +198,11 @@ export class UserRowComponent extends BaseComponent {
 	private async toggleFriendButton(): Promise<void> {
 		if (this.user!.id !== this.currentUser!.id) {
 			this.hideAllButtons();
-			const friend = await dataService.isFriendWithCurrentUser(this.user!.id, this.currentUserFriends);
+			const friend = await dataService.isFriendWithCurrentUser(this.user!.id);
 			if (!friend) {
-				console.log("ON EST LA");
 				this.addFriendButton.classList.remove('hidden');
 				return;
 			}
-			console.log("Friend status:", friend.status);
 			if (friend.status === DB_CONST.FRIENDS.STATUS.PENDING) {
 				this.cancelFriendRequestButton.classList.remove('hidden');
 			}
@@ -218,8 +212,6 @@ export class UserRowComponent extends BaseComponent {
 			if (friend.status === DB_CONST.FRIENDS.STATUS.BLOCKED) {
 				this.unblockFriendButton.classList.remove('hidden');
 			}
-			this.currentFriend = friend.friend;
-			console.log("Current friend set:", this.currentFriend);
 		}
 	}
 
@@ -243,14 +235,6 @@ export class UserRowComponent extends BaseComponent {
 	}
 
 	// ===========================================
-	// METHODES PUBLICS
-	// ===========================================
-
-	public setFriends(friends: Friend[]): void {
-		this.currentUserFriends = friends;
-	}
-
-	// ===========================================
 	// LISTENER HANDLERS
 	// ===========================================
 
@@ -270,18 +254,12 @@ export class UserRowComponent extends BaseComponent {
 		if (!this.user) {
 			return;
 		}
-		console.log("BEFORE ADD", this.currentUserFriends);
 		const res = await dataApi.addFriend(this.currentUser.id, this.user.id);
 		if (res.errorMessage) {
 			showAlert(res.errorMessage, `alert-${this.user.id}`, 'error');
 			return;
 		}
 		await this.toggleFriendButton();
-		if (this.currentFriend) {
-			this.currentUserFriends?.push(this.currentFriend!);
-			this.currentFriend = null;
-		}
-		console.log("AFTER ADD", this.currentUserFriends);
 		console.log(`Friend request sent to ${this.user.username}`);
 	}
 
@@ -310,8 +288,7 @@ export class UserRowComponent extends BaseComponent {
 			return;
 		}
 		await this.toggleFriendButton();
-		this.currentUserFriends?.splice(this.currentUserFriends.indexOf(this.currentFriend!), 1);
-		console.log(`Friend request canceled for ${this.currentFriend!.username}`);
+		console.log(`Friend request canceled for ${this.user!.username}`);
 	}
 
 	// private challengeClick = async (event: MouseEvent): Promise<void> => {
