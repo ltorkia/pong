@@ -12,6 +12,10 @@ export type StartTournament = {
     tournamentID: number,
 };
 
+export type StartSignal = {
+    type: "start_signal",
+}
+
 export type DismantleTournament = {
     type: "dismantle_tournament",
     playerID: number,

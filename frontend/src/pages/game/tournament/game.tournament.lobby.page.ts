@@ -2,9 +2,28 @@ import { BasePage } from '../../base/base.page';
 import { RouteConfig } from '../../../types/routes.types';
 import { DataService } from '../../../services/user/data.service';
 import { Player, Tournament } from '../../../../../shared/types/game.types';
-import { TournamentLobbyUpdate, PlayerReadyUpdate } from '../../../shared/types/websocket.types';
+import { TournamentLobbyUpdate, PlayerReadyUpdate, StartTournament } from '../../../shared/types/websocket.types';
 import { UserModel } from '../../../../../shared/types/user.types';
 import { webSocketService } from '../../../services/user/user.service'
+
+const animateCSS = (element: HTMLElement, animation: string, prefix = 'animate__') =>
+    // We create a Promise and return it
+    new Promise((resolve, reject) => {
+        const animationName = `${prefix}${animation}`;
+        // const node = document.querySelector(element);
+
+        element.classList.add(`${prefix}animated`, animationName);
+
+        // When the animation ends, we clean the classes and resolve the Promise
+        function handleAnimationEnd(event: any) {
+            event.stopPropagation();
+            element.classList.remove(`${prefix}animated`, animationName);
+            resolve('Animation ended');
+        }
+
+        element.addEventListener('animationend', handleAnimationEnd, { once: true });
+    });
+
 
 export class GameTournamentLobby extends BasePage {
     private tournamentID: number;
@@ -58,7 +77,16 @@ export class GameTournamentLobby extends BasePage {
             const dismantleBtn = startBtn?.cloneNode() as HTMLElement;;
             startBtn!.innerText = "Start tournament!";
             dismantleBtn.innerText = "Dismantle tournament";
+            startBtn.addEventListener("click", () => {
+                this.startTournament();
+            })
+            dismantleBtn.addEventListener("click", () => {
+                this.dismantleTournament();
+            })
             document.getElementById("buttons")?.append(dismantleBtn, startBtn);
+            document.getElementById("tournament-dismantle-btn")?.addEventListener("click", () => {
+                this.dismantleTournament();
+            })
         }
     }
 
@@ -66,6 +94,7 @@ export class GameTournamentLobby extends BasePage {
         console.log("LEAVIGN TOURNAMENNTTT");
         this.leavingPage = true;
         const lobbyUpdate: TournamentLobbyUpdate = {
+            type: "tournament_lobby_update",
             playerID: this.currentUser.id,
             tournamentID: this.tournamentID,
         }
@@ -88,6 +117,7 @@ export class GameTournamentLobby extends BasePage {
         this.beaconSent = true;
         this.leavingPage = true;
         const lobbyUpdate: TournamentLobbyUpdate = {
+            type: "tournament_lobby_update",
             playerID: this.currentUser.id,
             tournamentID: this.tournamentID,
         }
@@ -98,6 +128,7 @@ export class GameTournamentLobby extends BasePage {
 
     private async joinTournament(): Promise<void> {
         const lobbyUpdate: TournamentLobbyUpdate = {
+            type: "tournament_lobby_update",
             playerID: this.currentUser.id,
             tournamentID: this.tournamentID,
         }
@@ -116,6 +147,7 @@ export class GameTournamentLobby extends BasePage {
 
     private async sendReadyRequest(): Promise<void> {
         const readyUpdate: PlayerReadyUpdate = {
+            type: "player_ready_update",
             playerID: this.currentUser.id,
             tournamentID: this.tournamentID,
             ready: this.ready
@@ -129,43 +161,42 @@ export class GameTournamentLobby extends BasePage {
         if (!res.ok) {
             const error = await res.json();
             console.error(error.error);
-            return;
         }
     }
 
     private async startTournament(): Promise<void> {
-        
+        console.log("coucou")
+        const startTournamentReq: StartTournament = {
+            type: "start_tournament",
+            playerID: this.currentUser.id,
+            tournamentID: this.tournamentID,
+        };
+        const res = await fetch("/api/game/start_tournament", {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(startTournamentReq),
+            credentials: 'include',
+        });
+        if (!res.ok) {
+            const error = await res.json();
+            this.printError(error.error);
+        }
     }
 
-    private async dismantleTournament(): Promise<void> {}
+    private async dismantleTournament(): Promise<void> { }
 
     private printError(error: string): void {
         const errorDiv = document.createElement("div");
-        const container = document.getElementById("alias-container");
-        const tournamentBox = document.querySelectorAll("#input-box")[1];
-        console.log(tournamentBox);
         errorDiv.textContent = error;
         errorDiv.classList.add(
-            "absolute", "top-50", "left-0", "right-0", "translate-y-1/2",
+            "absolute", "bot-0", "right-20",
             "border-2", "border-red-500", "rounded-md",
             "bg-white", "bg-opacity-100", "m-2", "p-2", "text-center", "text-black",
-            "animate__animated", "animate__fadeIn"
         );
-        container?.append(errorDiv);
-        tournamentBox!.classList.add("translate-y-10");
-        tournamentBox!.classList.remove("hover:-translate-y-1");
-        setTimeout(() => {
-            errorDiv.classList.add("animate__animated", "animate__fadeOut");
-            setTimeout(() => {
-                tournamentBox!.classList.remove("translate-y-10");
-                tournamentBox!.classList.add("translate-y-0");
-                errorDiv.addEventListener("animationend", () => {
-                    errorDiv.remove();
-                });
-                tournamentBox.classList.add("hover:-translate-y-1");
-            }, 500);
-        }, 1500);
-        tournamentBox?.classList.remove("translate-y-0");
+        document.getElementById("buttons")?.append(errorDiv);
+        animateCSS(errorDiv, "backInRight").then(() =>
+            animateCSS(errorDiv, "wobble").then(() => 
+                animateCSS(errorDiv, "backOutRight")).then(() => errorDiv.remove()));
     }
 
     private displayTournament(): void {
@@ -198,7 +229,6 @@ export class GameTournamentLobby extends BasePage {
         const res = await fetch(`/api/game/tournaments/:${this.tournamentID}`);
         if (res.ok) {
             this.tournament = await res.json();
-            // console.log(this.tournament);
         } else {
             console.error("Tournament not found");
         }
@@ -286,14 +316,5 @@ export class GameTournamentLobby extends BasePage {
             this.ready = !this.ready;
             this.sendReadyRequest();
         })
-
-        if (this.tournament && this.tournament.masterPlayerID == this.currentUser.id) {
-            document.getElementById("tournament-start-btn")?.addEventListener("click", () => {
-                this.startTournament();
-            })
-            document.getElementById("tournament-dismantle-btn")?.addEventListener("click", () => {
-                this.dismantleTournament();
-            })
-        }
     }
 }

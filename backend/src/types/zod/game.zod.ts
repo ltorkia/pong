@@ -23,7 +23,7 @@ export const TournamentSchema = z.object({
 });
 
 export const TournamentReqSchema = z.object({
-    type: z.literal("tournament_lobby_update"),
+    // type: z.literal("tournament_lobby_update"),
     playerID: z.number(),
     tournamentID: z.number(),
 });
