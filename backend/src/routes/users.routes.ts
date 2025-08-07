@@ -143,7 +143,7 @@ export async function usersRoutes(app: FastifyInstance) {
 		const isFriend = friends.some(f => f.id === friend.id);
 		if (isFriend)
 			return reply.code(404).send({ errorMessage : 'Already friend'});
-		await addUserFriend(friend.id, id);
+		await addUserFriend(id, friend.id);
 
 		// Si l'utilisateur est connecté, envoyer une notification via WebSocket
 		const userWS: UserWS | undefined = app.usersWS.find((user: UserWS) => user.id == friend.id);
@@ -178,14 +178,14 @@ export async function usersRoutes(app: FastifyInstance) {
 		const isFriend = friends.some(f => f.id === friend.id);
 		if (action === 'block') {
 			if (isFriend)
-				await updateRelationshipBlocked(friend.id, id);
+				await updateRelationshipBlocked(id, friend.id);
 			else
 				return reply.code(404).send({ errorMessage : 'not your friend'});
 			return reply.code(200).send({ message : 'friend blocked'});			
 		}
 		if (action === 'accept') {
 			if (isFriend)
-				await updateRelationshipConfirmed(friend.id, id);
+				await updateRelationshipConfirmed(id, friend.id);
 			else
 				return reply.code(404).send({ errorMessage : 'not asked to be friend'});
 			return reply.code(200).send({ message : 'friend successfully added'});			
@@ -210,7 +210,7 @@ export async function usersRoutes(app: FastifyInstance) {
 
 		const isFriend = friends.some(f => f.id === friend.id);
 		if (isFriend)
-			await updateRelationshipDelete(friend.id, id);
+			await updateRelationshipDelete(id, friend.id);
 		else
 			return reply.code(404).send({ errorMessage : 'not your friend'});
 		return reply.code(200).send({ message : 'friend deleted'});			

@@ -13,6 +13,17 @@ export class WebSocketService {
             console.log("Websocket problem");
         else
             console.log("WEBSOCKET CONNECTED!");
+
+		this.webSocket.onmessage = (event) => {
+			try {
+				const data = JSON.parse(event.data);
+				if (data.type === "send" && data.from && data.to) {
+					console.log(`SOCKET ADD FRIENDDDDD`, data);
+				}
+			} catch (err) {
+				console.error("Erreur de parsing WebSocket message :", err);
+			}
+		};
     }
 
     public webSocketHandler() {

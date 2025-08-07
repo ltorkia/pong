@@ -12,9 +12,9 @@ export async function updateRelationshipBlocked(userid1: number, userid2: number
 
 	await db.run(`
 		UPDATE Friends
-		SET status = 'blocked'
+		SET friend_status = 'blocked', blocked_by = ?
 		WHERE user1_id = ? AND user2_id = ?
-	`, [user1, user2]);
+	`, [userid2, user1, user2]);
 }
 
 
@@ -27,7 +27,7 @@ export async function updateRelationshipConfirmed(userid1: number, userid2: numb
 
 	await db.run(`
 		UPDATE Friends
-		SET status = 'accepted'
+		SET friend_status = 'accepted'
 		WHERE user1_id = ? AND user2_id = ?
 	`, [user1, user2]);
 }
@@ -53,9 +53,9 @@ export async function addUserFriend(userid1: number, userid2: number) {
 		: [userid2, userid1];
 
 	await db.run(`
-        INSERT INTO Friends (user1_id, user2_id)
-		VALUES (?, ?)
+        INSERT INTO Friends (user1_id, user2_id, requester_id)
+		VALUES (?, ?, ?)
         `,
-		[user1, user2]
+		[user1, user2, userid1]
 	);
 }

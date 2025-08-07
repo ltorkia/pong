@@ -75,18 +75,17 @@ export class DataService {
 	 * Sinon, renvoie `null`.
 	 * 
 	 * @param {number} userId - Identifiant de l'utilisateur à vérifier.
-	 * @returns {Promise<{ friend: Friend, status: string } | null>} - Promesse qui se résout 
-	 * avec un objet contenant l'ami et son statut ou `null` si l'utilisateur n'est pas ami.
+	 * @returns {Promise<Friend | null>} - Promesse qui se résout
+	 * avec un objet contenant l'ami ou `null` si l'utilisateur n'est pas ami.
 	 */
-	public async isFriendWithCurrentUser(userId: number): Promise<{ friend: Friend, status: string } | null> {
+	public async isFriendWithCurrentUser(userId: number): Promise<Friend | null> {
 		const currentUserId = currentService.getCurrentUser()!.id;
 		const userFriends: Friend[] = await dataApi.getUserFriends(currentUserId);
 		if (!userFriends || userFriends.length === 0) {
 			return null;
 		}
 		return userFriends.some(friend => friend.id === userId)
-			? { friend: userFriends.find(friend => friend.id === userId)!,
-				status: userFriends.find(friend => friend.id === userId)!.friendStatus }
+			? userFriends.find(friend => friend.id === userId)!
 			: null;
 	}
 

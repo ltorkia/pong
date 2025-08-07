@@ -9,14 +9,13 @@ export class Friend {
 
 	constructor(
 		public id: number,
+		public requesterId: number,
 		public username: string,
 		public avatar: string,
 		public beginLog: string,
 		public endLog: string,
-		// public user1Id: number,
-		// public user2Id: number,
 		public friendStatus: FriendStatus,
-		public isBlocked: number,
+		public blockedBy: number,
 		public date: string
 	) {}
 
@@ -27,14 +26,13 @@ export class Friend {
 	public toJSON(): FriendModel {
 		return {
 			id: this.id,
+			requesterId: this.requesterId,
 			username: this.username,
 			avatar: this.avatar,
 			beginLog: this.beginLog,
 			endLog: this.endLog,
-			// user1Id: this.user1Id,
-			// user2Id: this.user2Id,
 			friendStatus: this.friendStatus,
-			isBlocked: this.isBlocked,
+			blockedBy: this.blockedBy,
 			date: this.date
 		};
 	}
@@ -51,14 +49,13 @@ export class Friend {
 
 		return new Friend(
 			data.id ?? 0,
+			data.requesterId ?? 0,
 			data.username ?? '',
 			data.avatar ?? DB_CONST.USER.DEFAULT_AVATAR,
 			data.beginLog ?? '',
 			data.endLog ?? '',
-			// data.user1Id,
-			// data.user2Id,
 			data.friendStatus ?? DB_CONST.FRIENDS.STATUS.PENDING,
-			data.isBlocked ?? 0,
+			data.blockedBy ?? 0,
 			data.date ?? new Date().toISOString()
 		);
 	}

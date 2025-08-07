@@ -128,12 +128,6 @@ export class AuthApi {
 			if (!webSocketService.getWebSocket())
 				webSocketService.openWebSocket();
 			await currentService.setCurrentUserFromServer(data.user);
-			// const token = localStorage.getItem("token");
-			// const socket = new WebSocket(`wss://localhost:8443/api/ws`);
-			// socket.onopen = (event) => {
-  			// 	console.log("✅ Connexion WebSocket ouverte ici");
-			// socket.send('online');
-			// }
 		}
 		return data as AuthResponse;
 	}

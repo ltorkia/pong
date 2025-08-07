@@ -37,6 +37,7 @@ export class UserRowComponent extends BaseComponent {
 	private profilePath!: string;
 	private buttonCell!: HTMLElement;
 	private addFriendButton!: HTMLButtonElement;
+	private acceptFriendButton!: HTMLButtonElement;
 	private removeFriendButton!: HTMLButtonElement;
 	private removeFriendButtonContent!: HTMLSpanElement;
 	private blockFriendButton!: HTMLButtonElement;
@@ -99,6 +100,7 @@ export class UserRowComponent extends BaseComponent {
 		this.profilePath = `/user/${this.user!.id}`;
 		this.buttonCell = getHTMLElementByClass('button-cell', this.container) as HTMLElement;
 		this.addFriendButton = getHTMLElementByClass('add-friend-button', this.buttonCell) as HTMLButtonElement;
+		this.acceptFriendButton = getHTMLElementByClass('accept-friend-button', this.buttonCell) as HTMLButtonElement;
 		this.removeFriendButton = getHTMLElementByClass('remove-friend-button', this.buttonCell) as HTMLButtonElement;
 		this.removeFriendButtonContent = getHTMLElementByTagName('span', this.removeFriendButton) as HTMLSpanElement;
 		this.blockFriendButton = getHTMLElementByClass('block-friend-button', this.buttonCell) as HTMLButtonElement;
@@ -148,6 +150,7 @@ export class UserRowComponent extends BaseComponent {
 	protected attachListeners(): void {
 		this.userCell.addEventListener('click', this.handleUsercellClick);
 		this.addFriendButton.addEventListener('click', this.addFriendClick);
+		this.acceptFriendButton.addEventListener('click', this.acceptFriendClick);
 		this.removeFriendButton.addEventListener('click', this.cancelFriendRequestClick);
 		this.blockFriendButton.addEventListener('click', this.blockFriendClick);
 		this.unblockFriendButton.addEventListener('click', this.unblockFriendClick);
@@ -160,6 +163,7 @@ export class UserRowComponent extends BaseComponent {
 	protected removeListeners(): void {
 		this.userCell.removeEventListener('click', this.handleUsercellClick);
 		this.addFriendButton.removeEventListener('click', this.addFriendClick);
+		this.acceptFriendButton.removeEventListener('click', this.acceptFriendClick);
 		this.removeFriendButton.removeEventListener('click', this.cancelFriendRequestClick);
 		this.blockFriendButton.removeEventListener('click', this.blockFriendClick);
 		this.unblockFriendButton.removeEventListener('click', this.unblockFriendClick);
@@ -203,18 +207,25 @@ export class UserRowComponent extends BaseComponent {
 				this.addFriendButton.classList.remove('hidden');
 				return;
 			}
-			if (friend.status === DB_CONST.FRIENDS.STATUS.PENDING) {
-				this.removeFriendButton.classList.remove('hidden');
-				this.removeFriendButtonContent.textContent = 'Cancel friend request';
+			if (friend.friendStatus === DB_CONST.FRIENDS.STATUS.PENDING) {
+				if (friend.requesterId === this.currentUser!.id) {
+					this.removeFriendButton.classList.remove('hidden');
+					this.removeFriendButtonContent.textContent = 'Cancel friend request';
+					return;
+				}
+				this.acceptFriendButton.classList.remove('hidden');
 			}
-			if (friend.status === DB_CONST.FRIENDS.STATUS.ACCEPTED) {
+			if (friend.friendStatus === DB_CONST.FRIENDS.STATUS.ACCEPTED) {
 				this.challengeButton.classList.remove('hidden');
 				this.blockFriendButton.classList.remove('hidden');
 				this.removeFriendButton.classList.remove('hidden');
 				this.removeFriendButtonContent.textContent = 'Unfriend';
 			}
-			if (friend.status === DB_CONST.FRIENDS.STATUS.BLOCKED) {
-				this.unblockFriendButton.classList.remove('hidden');
+			if (friend.friendStatus === DB_CONST.FRIENDS.STATUS.BLOCKED) {
+				if (friend.blockedBy === this.currentUser!.id) {
+					this.unblockFriendButton.classList.remove('hidden');
+					return;
+				}
 			}
 		}
 	}
@@ -222,6 +233,7 @@ export class UserRowComponent extends BaseComponent {
 	private hideAllButtons() {
 		this.challengeButton.classList.add('hidden');
 		this.addFriendButton.classList.add('hidden');
+		this.acceptFriendButton.classList.add('hidden');
 		this.removeFriendButton.classList.add('hidden');
 		this.blockFriendButton.classList.add('hidden');
 		this.unblockFriendButton.classList.add('hidden');
@@ -266,6 +278,20 @@ export class UserRowComponent extends BaseComponent {
 		}
 		await this.toggleFriendButton();
 		console.log(`Friend request sent to ${this.user.username}`);
+	}
+
+	private acceptFriendClick = async (event: MouseEvent): Promise<void> => {
+		event.preventDefault();
+		if (!this.user) {
+			return;
+		}
+		const res = await dataApi.acceptFriend(this.currentUser.id, this.user.id);
+		if (res.errorMessage) {
+			showAlert(res.errorMessage, `alert-${this.user.id}`, 'error');
+			return;
+		}
+		await this.toggleFriendButton();
+		console.log(`Friend request accepted for ${this.user.username}`);
 	}
 
 	private blockFriendClick = async (event: MouseEvent): Promise<void> => {

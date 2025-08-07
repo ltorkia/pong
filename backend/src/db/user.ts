@@ -133,7 +133,7 @@ export async function getUserFriends(userId: number) {
 	const db = await getDb();
 	const friends = await db.all(`
 		SELECT u.id, u.username, u.avatar, u.begin_log, u.end_log, 
-		f.friend_status, f.is_blocked, f.date
+		f.requester_id, f.friend_status, f.blocked_by, f.date
 		FROM Friends f
 		JOIN User u ON (
 			(f.User1_id = ? AND f.User2_id = u.id)
