@@ -66,10 +66,10 @@
 	}
 
 	/* FRIEND BUTTONS */
-	.cancel-friend-request-button, .add-friend-button, .challenge-button, .unblocked-friend-button, .accepted-friend {
+	.remove-friend-button, .add-friend-button, .challenge-button, .unblocked-friend-button, .block-friend-button {
 		@apply btn smaller-btn mt-0 mr-4;
 	}
-	.cancel-friend-request-button, .unblocked-friend-button {
+	.remove-friend-button, .unblocked-friend-button {
 		@apply bg-red-500;
 	}
 }

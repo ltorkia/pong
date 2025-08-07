@@ -15,6 +15,8 @@ import { promises as fs } from 'fs';
 import { DB_CONST } from '../shared/config/constants.config';
 import { JwtPayload } from '../types/jwt.types';
 import { checkParsing, isParsingError, adaptBodyForPassword } from '../helpers/types.helpers';
+import { UserWS } from '../types/user.types';
+import { FriendRequest } from '../shared/types/websocket.types';
 
 /* ======================== USERS ROUTES ======================== */
 
@@ -121,96 +123,97 @@ export async function usersRoutes(app: FastifyInstance) {
 	// attend dans la requete le nom de l ami recherche -> a adapter en fonction des besoins	 
 	// TODO : a readapter en fonction du front
 
-	app.post('/:id/friends/:action', async(request: FastifyRequest, reply: FastifyReply): Promise<PublicUser | void> => {
+	app.post('/:id/friends/add', async(request: FastifyRequest, reply: FastifyReply): Promise<PublicUser | void> => {
 		const { id } = request.params as { id: number };
 		const jwtUser = request.user as JwtPayload;
 		if (id != jwtUser.id)
 			return reply.status(403).send({ errorMessage: 'Forbidden' });
 		const { action } = request.params as { action: string };
-		// console.log("request body = ", request.body);
-		// try catch
-		// peut etre pas necessaire en fonction de comment renvoie le front
+
 		const userdataCheck = await checkParsing(FriendsInputSchema, request.body);
 		if (isParsingError(userdataCheck))
 			return reply.status(400).send(userdataCheck);
 		let data = userdataCheck as FriendInput;
-		// const friendId = Number(data.friendId);	
-		// if (isNaN(friendId)) {
-  		// 	console.error("Ce n’est pas un nombre valide !"); //throw error
-		// }
-		
-		//add le verify token
+
 		const friends = await getUserFriends(id);
 		const friend: PublicUser = await getUser(data.friendId, null);		
 		if (!friend)
-			return reply.code(404).send({ Error : 'User not found'});
-		console.log("ok");
-		if (action === 'add') {	
-			if (friend.id in friends)
-				return reply.code(404).send({ Error : 'Already friend'});
-			await addUserFriend(friend.id, id);
-			return reply.code(200).send({ Message : 'Ask to be friend confirmed'});
-		}
+			return reply.code(404).send({ errorMessage : 'User not found'});
+
+		const isFriend = friends.some(f => f.id === friend.id);
+		if (isFriend)
+			return reply.code(404).send({ errorMessage : 'Already friend'});
+		await addUserFriend(friend.id, id);
+
+		// Si l'utilisateur est connecté, envoyer une notification via WebSocket
+		const userWS: UserWS | undefined = app.usersWS.find((user: UserWS) => user.id == friend.id);
+		const friendRequestData: FriendRequest = {
+			type: "send",
+			from: id,
+			to: friend.id,
+		};
+		if (userWS)
+			userWS.WS.send(JSON.stringify(friendRequestData));
+
+		return reply.code(200).send({ message : 'Ask to be friend confirmed'});
 	})
 
-	
 	app.put('/:id/friends/:action', async(request: FastifyRequest, reply: FastifyReply): Promise<PublicUser | void> => {
 		const { id } = request.params as { id: number };
 		const jwtUser = request.user as JwtPayload;
 		if (id != jwtUser.id)
 			return reply.status(403).send({ errorMessage: 'Forbidden' });
 		const { action } = request.params as { action: string };
-		// console.log("request body = ", request.body);
-		// try catch
-		// peut etre pas necessaire en fonction de comment renvoie le front
+
 		const userdataCheck = await checkParsing(FriendsInputSchema, request.body);
 		if (isParsingError(userdataCheck))
 			return reply.status(400).send(userdataCheck);
+		
 		let data = userdataCheck as FriendInput;
-		const friends = getUserFriends(id);
+		const friends = await getUserFriends(id);
 		const friend: PublicUser = await getUser(data.friendId, null);
 		if (!friend)
-			return reply.code(404).send({ Error : 'User not found'});
+			return reply.code(404).send({ errorMessage : 'User not found'});
+
+		const isFriend = friends.some(f => f.id === friend.id);
 		if (action === 'block') {
-			if (friend.id in friends)
+			if (isFriend)
 				await updateRelationshipBlocked(friend.id, id);
 			else
-				return reply.code(404).send({ Error : 'not your friend'});
-			return reply.code(200).send({ Message : 'friend blocked'});			
+				return reply.code(404).send({ errorMessage : 'not your friend'});
+			return reply.code(200).send({ message : 'friend blocked'});			
 		}
 		if (action === 'accept') {
-			if (friend.id in friends)
+			if (isFriend)
 				await updateRelationshipConfirmed(friend.id, id);
 			else
-				return reply.code(404).send({ Error : 'not asked to be friend'});
-			return reply.code(200).send({ Message : 'friend successfully added'});			
+				return reply.code(404).send({ errorMessage : 'not asked to be friend'});
+			return reply.code(200).send({ message : 'friend successfully added'});			
 		}
 	})
 
-	app.delete('/:id/friends/:action', async(request: FastifyRequest, reply: FastifyReply): Promise<PublicUser | void> => {
+	app.delete('/:id/friends/delete', async(request: FastifyRequest, reply: FastifyReply): Promise<PublicUser | void> => {
 		const { id } = request.params as { id: number };
 		const jwtUser = request.user as JwtPayload;
 		if (id != jwtUser.id)
 			return reply.status(403).send({ errorMessage: 'Forbidden' });
 		const { action } = request.params as { action: string };
-		// console.log("request body = ", request.body);
-		// try catch
-		// peut etre pas necessaire en fonction de comment renvoie le front
+
 		const userdataCheck = await checkParsing(FriendsInputSchema, request.body);
 		if (isParsingError(userdataCheck))
 			return reply.status(400).send(userdataCheck);
 		let data = userdataCheck as FriendInput;
-		const friends = getUserFriends(id);
-		const friend: PublicUser = await getUser(data.friendId, null);
+		const friends = await getUserFriends(id);
+		const friend: PublicUser = await getUser(data.friendId);
 		if (!friend)
-			return reply.code(404).send({ Error : 'User not found'});
-		if (action === 'delete') {
-			if (friend.id in friends)
-				await updateRelationshipDelete(friend.id, id);
-			else
-				return reply.code(404).send({ Error : 'not your friend'});
-			return reply.code(200).send({ Message : 'friend deleted'});			
-		}
+			return reply.code(404).send({ errorMessage : 'User not found'});
+
+		const isFriend = friends.some(f => f.id === friend.id);
+		if (isFriend)
+			await updateRelationshipDelete(friend.id, id);
+		else
+			return reply.code(404).send({ errorMessage : 'not your friend'});
+		return reply.code(200).send({ message : 'friend deleted'});			
 	})
 /* -------------------------------------------------------------------------- */
 /*                   🕹️ - Recupere les donnees de jeu d un user               */
@@ -304,9 +307,9 @@ export async function usersRoutes(app: FastifyInstance) {
 		}
 	})
 
-/* -------------------------------------------------------------------------- */
-/*          ⚙️ SETTING - modifie les infos persos de l utilisateur            */
-/* -------------------------------------------------------------------------- */
+	/* -------------------------------------------------------------------------- */
+	/*          ⚙️ SETTING - modifie les infos persos de l utilisateur            */
+	/* -------------------------------------------------------------------------- */
 	// :id = id de l utilisateur dans la db dont on cherche les amis
 
 	app.put('/:id/moduser', async(request: FastifyRequest, reply: FastifyReply) => {
