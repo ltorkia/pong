@@ -3,6 +3,7 @@ import { currentService } from '../index.service';
 import { authApi } from '../../api/index.api';
 import { animationService } from '../index.service';
 import { COOKIES_CONST } from '../../shared/config/constants.config'; // en rouge car dossier local 'shared' != dossier du conteneur
+import { webSocketService } from './user.service';
 
 // ===========================================
 // SESSION SERVICE
@@ -96,6 +97,8 @@ export class SessionService {
 		if (user) {
 			console.log(`[${this.constructor.name}] Utilisateur localStorage trouvé, validation serveur en cours...`);
 			animationService.animateNavbarOut = true;
+			if (!webSocketService.getWebSocket())
+				webSocketService.openWebSocket();
 			return await this.validateAndReturn(user);
 		}
 

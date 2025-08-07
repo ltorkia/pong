@@ -23,7 +23,27 @@ export const TournamentSchema = z.object({
 });
 
 export const TournamentReqSchema = z.object({
+    type: z.literal("tournament_lobby_update"),
     playerID: z.number(),
     tournamentID: z.number(),
 });
 
+export const TournamentPlayerReadySchema = z.object({
+    type: z.literal("player_ready_update"),
+    playerID: z.number(),
+    ready: z.boolean(),
+    tournamentID: z.number(),
+});
+
+
+export const StartTournamentSchema = z.object({
+    type: z.literal("start_tournament"),
+    playerID: z.number(),
+    tournamentID: z.number(),
+});
+
+export const DismantleTournamentSchema = z.object({
+    type: z.literal("dismantle_tournament"),
+    playerID: z.number(),
+    tournamentID: z.number(),
+});

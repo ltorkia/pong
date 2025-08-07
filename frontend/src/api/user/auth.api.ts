@@ -45,6 +45,9 @@ export class AuthApi {
 		// Stockage sécurisé via le store
 		currentService.setCurrentUserFromServer(data);
 
+		if (!webSocketService.getWebSocket())
+			webSocketService.openWebSocket();
+
 		// Instance avec email en mémoire
 		return currentService.getCurrentUser() as User;
 	}
@@ -64,6 +67,7 @@ export class AuthApi {
 		if (!res.ok) {
 			return { valid: false };
 		}
+		
 		return res.json() as Promise<{ valid: boolean }>;
 	}
 

@@ -1,8 +1,9 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
-import { TournamentSchema, TournamentReqSchema } from '../types/zod/game.zod';
+import { TournamentSchema, TournamentReqSchema, TournamentPlayerReadySchema } from '../types/zod/game.zod';
 import { Tournament, Player } from '../shared/types/game.types'
 import { TournamentLobbyUpdate } from '../shared/types/websocket.types'
 import { UserWS } from 'src/types/user.types';
+import { readFile } from 'node:fs';
 
 export async function tournamentRoutes(app: FastifyInstance) {
     app.get("/tournaments", async (request: FastifyRequest, reply: FastifyReply) => {
@@ -81,23 +82,29 @@ export async function tournamentRoutes(app: FastifyInstance) {
         if (tournament && player) {
             tournament.players.push(player);
             reply.code(200).send("Join tournament succesfully");
+            let id_sent = [];
             for (const player of tournament.players) {
                 const userWS: UserWS | undefined = app.usersWS.find((user: UserWS) => user.id == player.ID);
                 const playerData: TournamentLobbyUpdate = {
                     type: "tournament_lobby_update",
                     players: tournament.players,
                 };
-                console.log("SENDING MESSAGE");
-                console.log(playerData);
-                if (userWS)
+                // console.log("SENDING MESSAGE");
+                // console.log(playerData);
+                if (userWS) {
                     userWS.WS.send(JSON.stringify(playerData));
+                    id_sent.push(userWS.id);
+                }
             }
+            id_sent.map((id) => {
+                console.log(`msg sent to id = ${id}`);
+            })
         }
     })
 
     app.post("/leave_tournament", async (request: FastifyRequest, reply: FastifyReply) => {
         console.log("LEAVE TOURNAMENT REQUEST !");
-        console.log(app.usersWS);
+        // console.log(app.usersWS);
 
         let leaveTournamentReq: any;
         if (typeof request.body == "string") {
@@ -119,7 +126,7 @@ export async function tournamentRoutes(app: FastifyInstance) {
             console.log(`TOURNAMENT ${leaveTournamentReq.data.tournamentID} NOT FOUND`);
             return reply.code(404).send({ error: "Tournament not found" });
         }
-        
+
         console.log(tournament.players);
 
         const playerIdx = tournament.players.findIndex((p: Player) => p.ID == leaveTournamentReq.data.playerID);
@@ -128,13 +135,13 @@ export async function tournamentRoutes(app: FastifyInstance) {
             console.log(tournament.players);
             console.log(app.usersWS);
             for (const player of tournament.players) {
-                const userWS: UserWS | undefined = app.usersWS.find((user: UserWS) => user.id == player.ID);
-                console.log("USER WS :");
-                console.log(userWS);
+                // console.log("USER WS :");
+                // console.log(userWS);
                 const playerData: TournamentLobbyUpdate = {
                     type: "tournament_lobby_update",
                     players: tournament.players,
                 };
+                const userWS: UserWS | undefined = app.usersWS.find((user: UserWS) => user.id == player.ID);
                 if (userWS) {
                     userWS.WS.send(JSON.stringify(playerData));
                     console.log("SOMEONE LEFT MESSAGE SENT");
@@ -147,5 +154,37 @@ export async function tournamentRoutes(app: FastifyInstance) {
         } else {
             console.log("DIDNT FIND PLAYER IN THIS TOURNAMENT");
         }
+    })
+
+    app.post("/player_ready", async (request: FastifyRequest, reply: FastifyReply) => {
+        const readyReq = TournamentPlayerReadySchema.safeParse(request.body);
+        if (!readyReq.success)
+            return reply.code(400).send({ error: readyReq.error.errors[0].message });
+
+        const allTournaments = app.lobby.allTournaments;
+        const tournament = allTournaments.find((t: Tournament) => t.ID == readyReq.data.tournamentID);
+        if (!tournament) {
+            console.log(`TOURNAMENT ${readyReq.data.tournamentID} NOT FOUND`);
+            return reply.code(404).send({ error: "Tournament not found" });
+        }
+
+        const player = tournament.players.find((p: Player) => p.ID == readyReq.data.playerID);
+        if (!player) {
+            return reply.code(404).send({ error: "Player not found in tournament" });
+        }
+        player.ready = readyReq.data.ready;
+        for (const player of tournament.players) {
+            const playerData: TournamentLobbyUpdate = {
+                type: "tournament_lobby_update",
+                players: tournament.players,
+            };
+            const userWS: UserWS | undefined = app.usersWS.find((user: UserWS) => user.id == player.ID);
+            if (userWS) {
+                userWS.WS.send(JSON.stringify(playerData));
+                console.log("SOMEONE LEFT MESSAGE SENT");
+            } else
+                console.log("DIDNT FIND ANY PLAYER TO SEND MESG");
+        }
+        return reply.code(200).send(`Successfully marked player ${player.ID} ready`);
     })
 }
