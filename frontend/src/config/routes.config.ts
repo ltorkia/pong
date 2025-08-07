@@ -13,7 +13,7 @@ import { COMPONENT_NAMES } from './components.config';
 import { GameMenuLocal } from '../pages/game/game.local.page';
 import { GameMenuMulti } from '../pages/game/game.multi.page';
 import { GameMenuTournament } from '../pages/game/tournament/game.tournament.menu.page';
-import { GameMenuTournamentRegister } from '../pages/game/tournament/game.tournament.register.page';
+import { GameTournamentLobby } from '../pages/game/tournament/game.tournament.lobby.page';
 import { GameTournamentList } from '../pages/game/tournament/game.tournament.list.page';
 
 // ===========================================
@@ -61,6 +61,7 @@ export const PAGE_NAMES = {
 	GAME_TOURNAMENT: 'Tournament',
 	GAME_TOURNAMENT_LIST: "Tournament List",
 	GAME_TOURNAMENT_REGISTER: 'Tournament Register',
+    GAME_TOURNAMENT_LOBBY: 'Tournament Lobby',
 	BOIDS: 'Boids',
 	USERS: 'Users',
 	PROFILE: 'Profile',
@@ -82,7 +83,7 @@ export const ROUTE_PATHS = {
 	GAME_MULTI: '/game/multi',
 	GAME_TOURNAMENT: '/game/tournament',
 	GAME_TOURNAMENT_LIST: "/game/tournaments",
-	GAME_TOURNAMENT_REGISTER: '/game/tournament/register/:nb',
+	GAME_TOURNAMENT_LOBBY: '/game/tournaments/:id',
 	BOIDS: '/game/boids',
 	USERS: '/users',
 	PROFILE: '/user/:id',
@@ -105,7 +106,7 @@ export const TEMPLATE_PATHS = {
 	GAME_MULTI: '/templates/game/multiplayer.html',
 	GAME_TOURNAMENT: '/templates/game/tournament.html',
 	GAME_TOURNAMENT_LIST: '/templates/game/tournament_list.html',
-	GAME_TOURNAMENT_REGISTER: '/templates/game/tournament_register.html',
+	GAME_TOURNAMENT_LOBBY: '/templates/game/tournament_lobby.html',
 	BOIDS: '/templates/game/boids.html',
 	USERS: '/templates/user/users.html',
 	PROFILE: '/templates/user/profile.html',
@@ -208,10 +209,10 @@ export const routesConfig: RouteConfig[] = [
 		enableParticles: true
 	},
 	{
-		path: ROUTE_PATHS.GAME_TOURNAMENT_REGISTER,
-		name: PAGE_NAMES.GAME_TOURNAMENT_REGISTER,
-		pageConstructor: GameMenuTournamentRegister,
-		templatePath: TEMPLATE_PATHS.GAME_TOURNAMENT_REGISTER,
+		path: ROUTE_PATHS.GAME_TOURNAMENT_LOBBY,
+		name: PAGE_NAMES.GAME_TOURNAMENT_LOBBY,
+		pageConstructor: GameTournamentLobby,
+		templatePath: TEMPLATE_PATHS.GAME_TOURNAMENT_LOBBY,
 		components: {
 			[COMPONENT_NAMES.NAVBAR]: getComponentConfig(COMPONENT_NAMES.NAVBAR)
 		},

@@ -4,6 +4,7 @@ import { StorageService } from './storage.service';
 import { CurrentService } from './current.service';
 import { SessionService } from './session.service';
 import { DataService } from './data.service';
+import { WebSocketService } from './websocket.service';
 
 // ===========================================
 // USER SERVICE - SINGLETONS
@@ -20,3 +21,4 @@ export const storageService = new StorageService();
 export const currentService = new CurrentService();
 export const sessionService = new SessionService();
 export const dataService = new DataService();
+export const webSocketService = new WebSocketService();

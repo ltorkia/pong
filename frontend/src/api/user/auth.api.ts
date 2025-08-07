@@ -4,6 +4,7 @@ import { DB_CONST } from '../../shared/config/constants.config';
 import { currentService } from '../../services/index.service';
 import { BasicResponse, AuthResponse } from '../../types/api.types';
 import { secureFetch } from '../../utils/app.utils';
+import { webSocketService } from '../../services/user/user.service';
 
 // ===========================================
 // AUTH API
@@ -40,7 +41,7 @@ export class AuthApi {
 
 		// Données complètes avec email
 		const data: UserModel = await res.json();
-		
+
 		// Stockage sécurisé via le store
 		currentService.setCurrentUserFromServer(data);
 
@@ -93,6 +94,8 @@ export class AuthApi {
 		if (!res.ok || data.errorMessage || !data.user) {
 			return { errorMessage: data.errorMessage || data.message || 'Erreur avec la récupération de l\'utilisateur' } as AuthResponse;
 		}
+		if (!webSocketService.getWebSocket())
+			webSocketService.openWebSocket();
 		await currentService.setCurrentUserFromServer(data.user);
 		return data as AuthResponse;
 	}
@@ -122,6 +125,8 @@ export class AuthApi {
 			return { errorMessage: data.errorMessage || data.message || 'Erreur inconnue' } as AuthResponse;
 		}
 		if (data.user.active2Fa === DB_CONST.USER.ACTIVE_2FA.DISABLED) {
+			if (!webSocketService.getWebSocket())
+				webSocketService.openWebSocket();
 			await currentService.setCurrentUserFromServer(data.user);
 			// const token = localStorage.getItem("token");
 			// const socket = new WebSocket(`wss://localhost:8443/api/ws`);
@@ -187,7 +192,8 @@ export class AuthApi {
 		if (!res.ok || data.errorMessage || !data.user) {
 			return { errorMessage: data.errorMessage || data.message || 'Erreur avec la récupération de l\'utilisateur' };
 		}
-		// SOCKETS
+		if (!webSocketService.getWebSocket())
+			webSocketService.openWebSocket();
 		await currentService.setCurrentUserFromServer(data.user);
 		return data as AuthResponse;
 	}
@@ -217,6 +223,8 @@ export class AuthApi {
 			return { errorMessage: data.errorMessage || data.message || 'Erreur lors de la connexion Google' };
 		}
 		currentService.setCurrentUserFromServer(data.user);
+		if (!webSocketService.getWebSocket())
+			webSocketService.openWebSocket();
 		return data as AuthResponse;
 	}
 
