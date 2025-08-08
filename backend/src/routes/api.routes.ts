@@ -89,7 +89,7 @@ export async function apiRoutes(app: FastifyInstance) {
     await app.register(apiMe, { prefix: '/me' });
     await app.register(sessionRoutes, { prefix: '/validate-session' });
     await app.register(webSocketRoutes);
-    await app.register(gameRoutes);
+    await app.register(gameRoutes, { prefix: '/game'});
 	await app.register(tournamentRoutes, { prefix: '/game'});
     console.log(app.printRoutes());
 }

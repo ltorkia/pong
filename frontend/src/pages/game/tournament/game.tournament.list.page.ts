@@ -21,10 +21,6 @@ export class GameTournamentList extends BasePage {
         super(config);
         this.tournamentItemHTML = document.createElement("div");
         this.fetchTournamentItem();
-        // console.log(currentService.getCurrentUser().id);
-        // this.currentPlayer = new Player(
-        //     currentService.getCurrentUser().id, 
-        //     webSocketService.getWebSocket());
     }
 
     protected async mount(): Promise<void> {

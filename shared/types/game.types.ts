@@ -22,6 +22,7 @@ export class Player {
     public ID: number;
     public inGame: boolean;
     public ready: boolean;
+    public matchMaking: boolean;
     public pos = { x: 0, y: 0 };
     public height: number;
     public width: number;
@@ -40,6 +41,7 @@ export class Player {
         this.ID = ID;
         this.inGame = false;
         this.ready = false;
+        this.matchMaking = false;
         this.width = 0.02;
         this.height = 0.30;
     }

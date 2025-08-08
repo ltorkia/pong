@@ -1,3 +1,4 @@
+import { webSocketService } from "../../services/user/user.service";
 import { PositionObj, GameData } from "../../shared/types/game.types"
 
 const clamp = (val: number, min: number, max: number) => { return Math.min(Math.max(val, min), max) };
@@ -84,10 +85,10 @@ export class MultiPlayerGame {
     private playerID: number;
     private gameID: number;
 
-    constructor(playersCount: number, playerWebSocket: WebSocket, playerID: number, gameID: number) {
+    constructor(playersCount: number, playerID: number, gameID: number) {
         // const inputs: string[] = ["w", "s", "ArrowUp", "ArrowDown"];
         this.playersCount = playersCount;
-        this.playerWebSocket = playerWebSocket;
+        this.playerWebSocket = webSocketService.getWebSocket()!;
         this.playerID = playerID;
         this.gameID = gameID;
         this.inputUp = false;

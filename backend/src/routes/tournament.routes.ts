@@ -1,7 +1,7 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
-import { TournamentSchema, TournamentReqSchema, TournamentPlayerReadySchema, StartTournamentSchema } from '../types/zod/game.zod';
+import { TournamentSchema, TournamentReqSchema, TournamentPlayerReadySchema, StartTournamentSchema, DismantleTournamentSchema } from '../types/zod/game.zod';
 import { Tournament, Player } from '../shared/types/game.types'
-import { TournamentLobbyUpdate, StartSignal } from '../shared/types/websocket.types'
+import { TournamentLobbyUpdate, StartTournamentSignal, DismantleSignal } from '../shared/types/websocket.types'
 import { UserWS } from '../types/user.types';
 
 export async function tournamentRoutes(app: FastifyInstance) {
@@ -96,13 +96,22 @@ export async function tournamentRoutes(app: FastifyInstance) {
 
         const playerIdx = tournament.players.findIndex((p: Player) => p.ID == leaveTournamentReq.data.playerID);
         if (playerIdx != -1) {
-            tournament.players.splice(playerIdx, 1);
-            const playerData: TournamentLobbyUpdate = {
-                type: "tournament_lobby_update",
-                players: tournament.players,
-            };
-            sendToTournamentPlayers(playerData, tournament, app);
-            return reply.code(200).send("Successfully left tournament");
+            if (tournament.masterPlayerID == tournament.players[playerIdx].ID) {
+                const stopSignal: DismantleSignal = { type: "dismantle_signal" };
+                const tournamentIdx: number = allTournaments.findIndex((t: Tournament) => t.ID == tournament.ID);
+                sendToTournamentPlayers(stopSignal, tournament, app);
+                allTournaments.splice(tournamentIdx, 1);
+                return reply.code(200).send(`Succesfully deleted tournament ${tournament.ID}`);
+            } else {
+                tournament.players.splice(playerIdx, 1);
+                const playerData: TournamentLobbyUpdate = {
+                    type: "tournament_lobby_update",
+                    players: tournament.players,
+                };
+                sendToTournamentPlayers(playerData, tournament, app);
+                return reply.code(200).send("Successfully left tournament");
+
+            }
         } else
             console.log("DIDNT FIND PLAYER IN THIS TOURNAMENT");
     });
@@ -159,9 +168,37 @@ export async function tournamentRoutes(app: FastifyInstance) {
 
         tournament.isStarted = true;
 
-        const startSignal: StartSignal = { type: "start_signal" };
+        const startSignal: StartTournamentSignal = { type: "start_tournament_signal" };
 
         sendToTournamentPlayers(startSignal, tournament, app);
+    });
+
+    app.post("/dismantle_tournament", async (request: FastifyRequest, reply: FastifyReply) => {
+        const dismantleTournamentReq = DismantleTournamentSchema.safeParse(request.body);
+        if (!dismantleTournamentReq.success)
+            return reply.code(400).send({ error: dismantleTournamentReq.error.errors[0].message });
+
+        const allTournaments = app.lobby.allTournaments;
+        const tournament = allTournaments.find((t: Tournament) => t.ID == dismantleTournamentReq.data.tournamentID);
+        if (!tournament)
+            return reply.code(404).send({ error: "Tournament not found" });
+
+        const player = tournament.players.find((p: Player) => p.ID == dismantleTournamentReq.data.playerID);
+        if (!player)
+            return reply.code(404).send({ error: "Player not found in tournament" });
+
+        if (player.ID != tournament.masterPlayerID)
+            return reply.code(403).send({ error: "Can't dismantle tournament if not owner" });
+
+        const toDeleteIdx = allTournaments.findIndex((t: Tournament) => t.ID == tournament.ID);
+        if (toDeleteIdx != -1) {
+            const stopSignal: DismantleSignal = { type: "dismantle_signal" };
+            sendToTournamentPlayers(stopSignal, tournament, app);
+            allTournaments.splice(toDeleteIdx, 1);
+            return reply.code(200).send(`Succesfully deleted tournament ${tournament.ID}`);
+        } else {
+            console.log("Tournament not found and it is weird");
+        }
     });
 }
 

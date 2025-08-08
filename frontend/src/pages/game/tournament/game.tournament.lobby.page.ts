@@ -2,18 +2,16 @@ import { BasePage } from '../../base/base.page';
 import { RouteConfig } from '../../../types/routes.types';
 import { DataService } from '../../../services/user/data.service';
 import { Player, Tournament } from '../../../../../shared/types/game.types';
-import { TournamentLobbyUpdate, PlayerReadyUpdate, StartTournament } from '../../../shared/types/websocket.types';
+import { TournamentLobbyUpdate, PlayerReadyUpdate, StartTournament, DismantleTournament } from '../../../shared/types/websocket.types';
 import { UserModel } from '../../../../../shared/types/user.types';
 import { webSocketService } from '../../../services/user/user.service'
+import { router } from '../../../router/router';
 
 const animateCSS = (element: HTMLElement, animation: string, prefix = 'animate__') =>
     // We create a Promise and return it
     new Promise((resolve, reject) => {
         const animationName = `${prefix}${animation}`;
-        // const node = document.querySelector(element);
-
         element.classList.add(`${prefix}animated`, animationName);
-
         // When the animation ends, we clean the classes and resolve the Promise
         function handleAnimationEnd(event: any) {
             event.stopPropagation();
@@ -58,7 +56,6 @@ export class GameTournamentLobby extends BasePage {
     protected async beforeMount(): Promise<void> {
         await this.fetchPastille();
         await this.fetchTournament();
-        console.log(this.tournament);
         if (!this.tournament?.players.find((p: Player) => p.ID == this.currentUser.id)) {
             await this.joinTournament();
             await this.fetchTournament();
@@ -73,25 +70,53 @@ export class GameTournamentLobby extends BasePage {
         pastilleHolder!.classList.add(this.gridRowStyle);
         this.displayTournament();
         if (this.currentUser.id == this.tournament?.masterPlayerID) {
-            const startBtn = document.getElementById("tournament-ready-btn")?.cloneNode() as HTMLElement;
-            const dismantleBtn = startBtn?.cloneNode() as HTMLElement;;
-            startBtn!.innerText = "Start tournament!";
-            dismantleBtn.innerText = "Dismantle tournament";
+            const cancelBtn = document.getElementById("tournament-cancel-btn")!;
+            const startBtn = document.getElementById("tournament-start-btn")!;
+            startBtn.classList.remove("hidden");
+            cancelBtn.classList.remove("hidden");
             startBtn.addEventListener("click", () => {
                 this.startTournament();
             })
-            dismantleBtn.addEventListener("click", () => {
-                this.dismantleTournament();
-            })
-            document.getElementById("buttons")?.append(dismantleBtn, startBtn);
-            document.getElementById("tournament-dismantle-btn")?.addEventListener("click", () => {
-                this.dismantleTournament();
-            })
+            cancelBtn.addEventListener("click", () => this.handleCancelModal());
         }
     }
 
+    private handleCancelModal(): void {
+        const cancelDialogOverlay = document.getElementById("cancel-dialog-overlay")!;
+        const dialog = document.getElementById("cancel-dialog")!;
+
+        animateCSS(cancelDialogOverlay, "fadeIn");
+        cancelDialogOverlay.classList.remove("hidden", "opacity-0");
+
+        const clickOutsideHandler = (event: MouseEvent) => {
+            const target = event.target as HTMLElement;
+            if (!dialog.contains(target)) {
+                animateCSS(cancelDialogOverlay, "fadeOut").then(() => {
+                    cancelDialogOverlay.classList.add("hidden");
+                });
+                cancelDialogOverlay.removeEventListener("click", clickOutsideHandler);
+            }
+        };
+
+        cancelDialogOverlay.addEventListener("click", clickOutsideHandler);
+        document.getElementById("no-btn")?.addEventListener("click", () => {
+            animateCSS(cancelDialogOverlay, "fadeOut").then(() => {
+                cancelDialogOverlay.classList.add("hidden");
+            });
+        });
+    }
+
+    private handleRedirectModal(): void {
+        const redirectDialogOverlay = document.getElementById("redirect-dialog-overlay")!;
+
+        animateCSS(redirectDialogOverlay, "fadeIn");
+        redirectDialogOverlay.classList.remove("hidden", "opacity-0");
+        document.getElementById("redirect-btn")?.addEventListener("click", () => {
+            router.navigate("/game/tournaments");
+        })
+    }
+
     private async leaveTournament(): Promise<void> {
-        console.log("LEAVIGN TOURNAMENNTTT");
         this.leavingPage = true;
         const lobbyUpdate: TournamentLobbyUpdate = {
             type: "tournament_lobby_update",
@@ -104,7 +129,6 @@ export class GameTournamentLobby extends BasePage {
             body: JSON.stringify(lobbyUpdate),
             credentials: 'include',
         });
-        console.log(res);
         if (!res.ok) {
             const error = await res.json();
             console.error(error.error);
@@ -122,7 +146,6 @@ export class GameTournamentLobby extends BasePage {
             tournamentID: this.tournamentID,
         }
         const data = JSON.stringify(lobbyUpdate);
-        console.log("SENDING BEAACON");
         navigator.sendBeacon("/api/game/leave_tournament", data);
     }
 
@@ -164,8 +187,26 @@ export class GameTournamentLobby extends BasePage {
         }
     }
 
+    private async sendDismantleRequest(): Promise<void> {
+        const dismantleReq: DismantleTournament = {
+            type: "dismantle_tournament",
+            playerID: this.currentUser.id,
+            tournamentID: this.tournamentID,
+            ready: this.ready,
+        }
+        const res = await fetch("/api/game/dismantle_tournament", {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(dismantleReq),
+            credentials: 'include',
+        });
+        if (!res.ok) {
+            const error = await res.json();
+            console.error(error.error);
+        }
+    }
+
     private async startTournament(): Promise<void> {
-        console.log("coucou")
         const startTournamentReq: StartTournament = {
             type: "start_tournament",
             playerID: this.currentUser.id,
@@ -183,8 +224,6 @@ export class GameTournamentLobby extends BasePage {
         }
     }
 
-    private async dismantleTournament(): Promise<void> { }
-
     private printError(error: string): void {
         const errorDiv = document.createElement("div");
         errorDiv.textContent = error;
@@ -195,7 +234,7 @@ export class GameTournamentLobby extends BasePage {
         );
         document.getElementById("buttons")?.append(errorDiv);
         animateCSS(errorDiv, "backInRight").then(() =>
-            animateCSS(errorDiv, "wobble").then(() => 
+            animateCSS(errorDiv, "wobble").then(() =>
                 animateCSS(errorDiv, "backOutRight")).then(() => errorDiv.remove()));
     }
 
@@ -203,7 +242,6 @@ export class GameTournamentLobby extends BasePage {
         const tournamentHolder = document.getElementById("pastilles-holder");
         while (tournamentHolder?.lastChild)
             tournamentHolder?.lastChild.remove();
-        console.log(this.tournament);
         this.tournament?.players.map((player: Player) => this.appendPlayerPastille(player));
     }
 
@@ -230,6 +268,7 @@ export class GameTournamentLobby extends BasePage {
         if (res.ok) {
             this.tournament = await res.json();
         } else {
+            this.handleRedirectModal();
             console.error("Tournament not found");
         }
     }
@@ -291,7 +330,6 @@ export class GameTournamentLobby extends BasePage {
 
         window.addEventListener("popstate", () => {
             callback("popstate");
-            console.log("POSTATE DETECTED");
         });
 
         window.addEventListener("beforeunload", () => {
@@ -301,20 +339,23 @@ export class GameTournamentLobby extends BasePage {
 
     protected async attachListeners(): Promise<void> {
         webSocketService.getWebSocket()?.addEventListener("message", (event) => {
-            const lobbyUpdate: TournamentLobbyUpdate = JSON.parse(event.data);
+            const lobbyUpdate = JSON.parse(event.data);
             if (!lobbyUpdate)
                 return;
-            console.log("MSG RECEIVED");
-            console.log(lobbyUpdate);
-            if (lobbyUpdate && !this.leavingPage) {
+            if (lobbyUpdate.type == "tournament_lobby_update" && !this.leavingPage) {
                 this.checkPlayersDifference(lobbyUpdate.players);
                 this.tournament!.players = lobbyUpdate.players;
-            }
-        })
+            } else if (lobbyUpdate.type == "dismantle_signal")
+                this.handleRedirectModal();
+        });
 
         document.getElementById("tournament-ready-btn")?.addEventListener("click", () => {
             this.ready = !this.ready;
             this.sendReadyRequest();
+        });
+
+        document.getElementById("yes-btn")?.addEventListener("click", () => {
+            this.sendDismantleRequest();
         })
     }
 }

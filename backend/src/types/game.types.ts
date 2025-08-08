@@ -43,7 +43,7 @@ export class Ball {
         this.x = 0;
         this.y = 0;
         this.vAngle = 60;
-        this.vSpeed = 0.01;
+        this.vSpeed = 0.02;
         this.radius = 0.03;
     }
     public checkPlayerCollision(players: Player[]): boolean {
@@ -63,22 +63,26 @@ export class Ball {
         this.x = 0;
         this.y = 0;
         this.vAngle = 60;
-        this.vSpeed = 0.01;
+        this.vSpeed = 0.02;
         this.radius = 0.03;
     }
 };
 
-export class GameInstance {
+export class Game {
+    private ID: number;
+    private duration: number = 0;
     private players: Player[] = [];
+    private webSockets: WebSocket[] = [];
     private ball = new Ball();
     private playersCount: number = 0;
     private gameStarted: boolean = false;
     private score: number[] = [];
 
-    constructor(playersCount: number, players: Player[]) {
-        // const inputs: string[] = ["w", "s", "ArrowUp", "ArrowDown"];
+    constructor(playersCount: number, players: Player[], webSockets: WebSocket[], ID: number) {
         this.playersCount = playersCount;
         this.players = players;
+        this.webSockets = webSockets,
+            this.ID = ID;
     }
 
     private async gameLoop(): Promise<void> {
@@ -88,8 +92,10 @@ export class GameInstance {
         let frame = 0;
         while (this.gameStarted == true) {
             this.ball.move();
-            for (const player of this.players)
+            for (const player of this.players) {
                 player.move();
+                // console.log(player.pos.x, player.pos.y);
+            }
             const collision: boolean = this.ball.checkPlayerCollision(this.players);
             if (collision && (this.ball.isGoingRight() || this.ball.isGoingLeft())) {
                 // console.log("HORIZONTAL");
@@ -154,20 +160,18 @@ export class GameInstance {
 
     public endGame(): void {
         this.gameStarted = false;
-    //     for (const player of this.players) {
-    //         if (player.webSocket)
-    //             player.webSocket.send(JSON.stringify({
-    //                 type: "end",
-    //             }));
-    //     }
+        for (const ws of this.webSockets) {
+            ws.send(JSON.stringify({
+                type: "end",
+            }));
+        }
     }
 
     private sendGameUpdate() {
         const gameUpdate = new GameData(this.players, this.ball);
-        // for (const player of this.players) {
-            // if (player.webSocket)
-                // player.webSocket.send(JSON.stringify(gameUpdate));
-        // }
+        for (let i = 0; i < this.players.length; i++) {
+            this.webSockets[i].send(JSON.stringify(gameUpdate));
+        }
     };
 
     public registerInput(playerID: number, key: string, status: boolean): void {
@@ -184,20 +188,6 @@ export class GameInstance {
 
 export class Lobby {
     public allPlayers: Player[] = [];
-    public games: Game[] = [];
+    public allGames: Game[] = [];
     public allTournaments: Tournament[] = [];
-}
-
-export class Game {
-    ID: number;
-    players: Player[];
-    duration: number;
-    instance: GameInstance;
-
-    constructor(ID: number, duration: number, gameInstance: GameInstance, players: Player[]) {
-        this.ID = ID;
-        this.duration = duration;
-        this.instance = gameInstance;
-        this.players = players;
-    }
 }

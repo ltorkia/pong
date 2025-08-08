@@ -47,3 +47,8 @@ export const DismantleTournamentSchema = z.object({
     playerID: z.number(),
     tournamentID: z.number(),
 });
+
+export const MatchMakingReqSchema = z.object({
+    type: z.literal("matchmaking_request"),
+    playerID: z.number(),
+});

@@ -1,19 +1,18 @@
 import { Player } from '../../shared/types/game.types'
 
 export type StartGame = {
-    type: "start",
-    playerID: number,
+    type: "start_game",
     gameID: number,
 };
 
-export type StartTournament = {
+export type StartTournament = { // master client request
     type: "start_tournament",
     playerID: number,
     tournamentID: number,
 };
 
-export type StartSignal = {
-    type: "start_signal",
+export type StartTournamentSignal = { // server answers to all other clients
+    type: "start_tournament_signal",
 }
 
 export type DismantleTournament = {
@@ -21,6 +20,10 @@ export type DismantleTournament = {
     playerID: number,
     tournamentID: number,
 };
+
+export type DismantleSignal = {
+    type: "dismantle_signal",
+}
 
 export type TournamentLobbyUpdate = {
     type: "tournament_lobby_update",
@@ -33,3 +36,8 @@ export type PlayerReadyUpdate = {
     tournamentID: number,
     ready: boolean,
 };
+
+export type MatchMakingReq = {
+    type: "matchmaking_request",
+    playerID: number,
+}
