@@ -110,13 +110,30 @@
 	}
 
 	.notifbar-px {
-		@apply flex-row space-x-10 space-y-0 w-auto h-[--navbar-height]
-		wide:flex-row wide:space-x-14 wide:space-y-0 wide:w-auto wide:h-[--navbar-height];
+		@apply flex-row space-x-6 space-y-0 w-auto h-[--navbar-height]
+		mobile:space-x-10
+		wide:flex-row wide:space-y-0 wide:w-auto wide:h-[--navbar-height];
 	}
-	.notifbar-px a {
-		@apply flex justify-center items-center;
+	.notifbar-px button {
+		@apply flex justify-center items-center relative;
 	}
-	.notifbar-px a i {
-		@apply text-2xl transition;
+	.notifbar-px button i {
+		@apply text-xl transition
+		
+		tablet:text-2xl;
+	}
+
+	.notif-count {
+		@apply absolute top-0 -right-3 text-xs text-white bg-red-500 rounded-full
+		w-5 h-5 flex justify-center items-center
+		transition-transform duration-300 ease-in-out;
+	}
+
+	.window {
+		@apply absolute top-[--navbar-height] right-0 w-80 h-[calc(100vh---navbar-height)] bg-slate-900/90
+		flex flex-col justify-start items-start p-4 overflow-y-auto
+		border border-slate-500/40 rounded-lg shadow-lg hidden
+		
+		desktop:w-96 desktop:h-[calc(100vh---navbar-height)] desktop:overflow-y-auto;
 	}
 }

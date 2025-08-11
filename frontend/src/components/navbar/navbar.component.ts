@@ -6,7 +6,7 @@ import { authService } from '../../services/index.service';
 import { animationService } from '../../services/index.service';
 import { RouteConfig } from '../../types/routes.types';
 import { ComponentConfig } from '../../types/components.types';
-import { toggleClass } from '../../utils/dom.utils';
+import { getHTMLElementByClass, toggleClass } from '../../utils/dom.utils';
 import { getHTMLElementById, getHTMLAnchorElement, getHTMLElementByTagName } from '../../utils/dom.utils';
 import { ROUTE_PATHS, PROFILE_HTML_ANCHOR } from '../../config/routes.config';
 import { DB_CONST } from '../../shared/config/constants.config';
@@ -34,6 +34,11 @@ export class NavbarComponent extends BaseComponent {
 	private settingsLink!: HTMLAnchorElement;
 	private icon!: HTMLElement;
 	private logoutLink!: HTMLAnchorElement;
+	private notifsBtn!: HTMLElement;
+	private notifsCounter!: HTMLElement;
+	private notifsWindow!: HTMLElement;
+	private chatBtn!: HTMLElement;
+	private chatWindow!: HTMLElement;
 	private mainSection!: HTMLElement;
 
 	/**
@@ -86,6 +91,11 @@ export class NavbarComponent extends BaseComponent {
 		this.logoutLink = getHTMLAnchorElement(ROUTE_PATHS.LOGOUT, this.container);
 		this.profileLink = this.setNavLink(PROFILE_HTML_ANCHOR, `/user/${this.profilePlaceholder}`);
 		this.settingsLink = getHTMLAnchorElement(ROUTE_PATHS.SETTINGS, this.container);
+		this.notifsBtn = getHTMLElementById('notifs', this.container);
+		this.notifsCounter = getHTMLElementByClass('notif-count', this.container);
+		this.notifsWindow = getHTMLElementById('notifs-window', this.container);
+		this.chatBtn = getHTMLElementById('chat', this.container);
+		this.chatWindow = getHTMLElementById('chat-window', this.container);
 		this.mainSection = getHTMLElementByTagName('main');
 	}
 
@@ -101,6 +111,10 @@ export class NavbarComponent extends BaseComponent {
 	protected async mount(): Promise<void> {
 		this.toggleSettingsLink();
 		this.setActiveLink(this.routeConfig.path);
+		if (this.notifsCounter.textContent != '0'
+			&& this.notifsCounter.classList.contains('hide')) {
+			this.notifsCounter.classList.remove('hide');
+		}
 		this.mainSection.classList.add('mt-main');
 	}
 
@@ -118,6 +132,8 @@ export class NavbarComponent extends BaseComponent {
 		this.navLinks.forEach(link => {
 			link.addEventListener('click', this.handleNavLinkClick);
 		});
+		this.notifsBtn.addEventListener('click', this.toggleNotifsMenu);
+		this.chatBtn.addEventListener('click', this.toggleChatWindow);
 		this.logoutLink.addEventListener('click', this.handleLogoutClick);
 	}
 
@@ -165,6 +181,39 @@ export class NavbarComponent extends BaseComponent {
 				anchor.classList.add('active');
 			}
 		});
+	}
+
+	/**
+	 * Met à jour le compteur de notifications.
+	 * 
+	 * Incrémente le compteur de notifications et l'affiche si il était caché.
+	 */
+	public updateNotifsCounter(): void {
+		const currentCount = parseInt(this.notifsCounter.textContent || '0', 10);
+		this.notifsCounter.textContent = (currentCount + 1).toString();
+		if (this.notifsCounter.classList.contains('hide')) {
+			this.notifsCounter.classList.remove('hide');
+		}
+	}
+
+	/**
+	 * Ajoute une nouvelle notification à la liste des notifications de la navbar.
+	 * 
+	 * Crée un élément HTML div avec les classes 'notif-item' et 'new-notif'.
+	 * Ajoute le texte de la notification à l'élément créé.
+	 * Ajoute l'élément créé à la liste des notifications dans la navbar.
+	 * Met à jour le compteur de notifications.
+	 * 
+	 * Permet d'afficher de nouvelles notifications en temps réel.
+	 * @param {string} notification - Le texte de la notification à ajouter.
+	 */
+	public addNewNotification(notification: string): void {
+		const notifItem = document.createElement('div');
+		notifItem.classList.add('notif-item');
+		notifItem.classList.add('new-notif');
+		notifItem.textContent = notification;
+		this.notifsWindow.appendChild(notifItem);
+		this.updateNotifsCounter();
 	}
 
 	// ===========================================
@@ -272,6 +321,38 @@ export class NavbarComponent extends BaseComponent {
 			this.toggleDropdown();
 		}
 	};
+
+	/**
+	 * Bascule la visibilité de la fenêtre de notifications.
+	 * 
+	 * Alterne entre les classes "show" et "hide" pour afficher ou masquer la fenêtre de notifications.
+	 */
+	public toggleNotifsMenu = async (event: MouseEvent): Promise<void> => {
+		const allNotifs = this.notifsWindow.querySelectorAll('.notif-item');
+		if (!allNotifs || allNotifs.length === 0) {
+			this.notifsCounter.textContent = "0";
+			this.addNewNotification("No notification yet.");
+			toggleClass(this.notifsWindow, 'flex', 'hidden');
+			return;
+		}
+		const allNewNotifs = this.notifsWindow.querySelectorAll('.new-notif');
+		if (allNewNotifs && allNewNotifs.length > 0) {
+			this.notifsCounter.textContent = "0";
+			allNewNotifs.forEach(notif => {
+				notif.classList.remove('new-notif');
+			});
+		}
+		toggleClass(this.notifsWindow, 'flex', 'hidden');
+	}
+
+	/**
+	 * Bascule la visibilité de la fenêtre de chat.
+	 * 
+	 * Alterne entre les classes "show" et "hide" pour afficher ou masquer la fenêtre de chat.
+	 */
+	private toggleChatWindow = async (event: MouseEvent): Promise<void> => {
+		toggleClass(this.chatWindow, 'flex', 'hidden');
+	}
 
 	/**
 	 * Listener sur le bouton logout de la navbar.

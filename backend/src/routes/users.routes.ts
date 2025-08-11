@@ -1,21 +1,22 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { getUser, getUserFriends, getUserGames, getUserChat, getAvatar, getUserAllInfo } from '../db/user';
-import { getAllUsers, getAllUsersInfos, getUsersWithPagination } from '../db/user';
-import { UserModel, SafeUserModel, PublicUser, Friends, PaginatedUsers, SortOrder, UserSortField, UserSearchField } from '../shared/types/user.types';
-import { insertAvatar } from '../db/usermaj';
+import { getAllUsersInfos, getUsersWithPagination } from '../db/user';
+import { UserModel, SafeUserModel, PublicUser, PaginatedUsers, SortOrder, UserSortField } from '../shared/types/user.types';
+// import { insertAvatar } from '../db/usermaj';
 import { FriendModel } from '../shared/types/friend.types';	// en rouge car dossier local 'shared' != dossier conteneur
 import { addUserFriend, updateRelationshipBlocked, updateRelationshipConfirmed, updateRelationshipDelete } from '../db/friendmaj';
 import { Buffer } from 'buffer';
 import bcrypt from 'bcrypt';
 import { GetAvatarFromBuffer, bufferizeStream } from '../helpers/image.helpers';
-import { RegisterInputSchema, RegisterInput, ModUserInput, ModUserInputSchema, FriendsInputSchema, FriendInput } from '../types/zod/auth.zod';
+import { ModUserInput, ModUserInputSchema, FriendsInputSchema, FriendInput } from '../types/zod/auth.zod';
 import { searchNewName } from '../helpers/auth.helpers';
 import { changeUserData } from '../db/usermaj';
 import { promises as fs } from 'fs';
-import { DB_CONST } from '../shared/config/constants.config';
+import { DB_CONST, FRIEND_REQUEST_ACTIONS } from '../shared/config/constants.config';
 import { JwtPayload } from '../types/jwt.types';
 import { checkParsing, isParsingError, adaptBodyForPassword } from '../helpers/types.helpers';
-import { UserWS } from '../types/user.types';
+import { sendToSocket } from '../helpers/query.helpers';
+// import { UserWS } from '../types/user.types';
 import { FriendRequest } from '../shared/types/websocket.types';
 
 /* ======================== USERS ROUTES ======================== */
@@ -146,14 +147,12 @@ export async function usersRoutes(app: FastifyInstance) {
 		await addUserFriend(id, friend.id);
 
 		// Si l'utilisateur est connecté, envoyer une notification via WebSocket
-		const userWS: UserWS | undefined = app.usersWS.find((user: UserWS) => user.id == friend.id);
 		const friendRequestData: FriendRequest = {
-			type: "send",
+			action: FRIEND_REQUEST_ACTIONS.ADD,
 			from: id,
 			to: friend.id,
 		};
-		if (userWS)
-			userWS.WS.send(JSON.stringify(friendRequestData));
+		sendToSocket(app, friendRequestData);
 
 		return reply.code(200).send({ message : 'Ask to be friend confirmed'});
 	})
@@ -176,18 +175,32 @@ export async function usersRoutes(app: FastifyInstance) {
 			return reply.code(404).send({ errorMessage : 'User not found'});
 
 		const isFriend = friends.some(f => f.id === friend.id);
-		if (action === 'block') {
-			if (isFriend)
+		if (action === FRIEND_REQUEST_ACTIONS.BLOCK) {
+			if (isFriend) {
 				await updateRelationshipBlocked(id, friend.id);
-			else
+				const friendRequestData: FriendRequest = {
+					action: FRIEND_REQUEST_ACTIONS.BLOCK,
+					from: id,
+					to: friend.id,
+				};
+				sendToSocket(app, friendRequestData);
+			} else {
 				return reply.code(404).send({ errorMessage : 'not your friend'});
+			}
 			return reply.code(200).send({ message : 'friend blocked'});			
 		}
-		if (action === 'accept') {
-			if (isFriend)
+		if (action === FRIEND_REQUEST_ACTIONS.ACCEPT) {
+			if (isFriend) {
 				await updateRelationshipConfirmed(id, friend.id);
-			else
+				const friendRequestData: FriendRequest = {
+					action: FRIEND_REQUEST_ACTIONS.ACCEPT,
+					from: id,
+					to: friend.id,
+				};
+				sendToSocket(app, friendRequestData);
+			} else {
 				return reply.code(404).send({ errorMessage : 'not asked to be friend'});
+			}
 			return reply.code(200).send({ message : 'friend successfully added'});			
 		}
 	})
@@ -209,10 +222,17 @@ export async function usersRoutes(app: FastifyInstance) {
 			return reply.code(404).send({ errorMessage : 'User not found'});
 
 		const isFriend = friends.some(f => f.id === friend.id);
-		if (isFriend)
+		if (isFriend) {
 			await updateRelationshipDelete(id, friend.id);
-		else
+			const friendRequestData: FriendRequest = {
+				action: FRIEND_REQUEST_ACTIONS.DELETE,
+				from: Number(id),
+				to: friend.id,
+			};
+			sendToSocket(app, friendRequestData);
+		} else {
 			return reply.code(404).send({ errorMessage : 'not your friend'});
+		}
 		return reply.code(200).send({ message : 'friend deleted'});			
 	})
 /* -------------------------------------------------------------------------- */
@@ -243,8 +263,6 @@ export async function usersRoutes(app: FastifyInstance) {
 		if (id1 !== jwtUser.id)
 			return reply.status(403).send({ errorMessage: 'Forbidden' });
 		const { id2 } = request.params as { id2: number };
-		// console.log("id1 = ", id1);
-		// return id1;
 		const chat = await getUserChat(id1, id2);
 		if (!chat)
 			return reply.code(404).send({ Error : 'User not found'});

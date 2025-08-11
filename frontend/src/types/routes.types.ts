@@ -74,12 +74,16 @@ export interface RouteParams {
  * Interface représentant une page en cours d'affichage dans PageService.
  *
  * Regroupe les éléments nécessaires à l'affichage dynamique:
+ * - config: configuration de la route associée
  * - render: fonction de rendu HTML
  * - cleanup: fonction de nettoyage avant de changer de page
+ * - getComponentInstance: fonction pour récupérer une instance de composant spécifique
  */
 export interface PageInstance {
+	config: RouteConfig;
 	render: () => Promise<void>;
 	cleanup?: () => Promise<void>;
+	getComponentInstance?<T>(name: string): T | undefined;
 }
 
 /**

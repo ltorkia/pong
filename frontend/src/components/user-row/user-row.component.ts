@@ -199,7 +199,7 @@ export class UserRowComponent extends BaseComponent {
 	 * Si l'utilisateur est ami, affiche le bouton de débloquage.
 	 * Si l'utilisateur est bloqué, affiche le bouton de débloquage.
 	 */
-	private async toggleFriendButton(): Promise<void> {
+	public async toggleFriendButton(): Promise<void> {
 		if (this.user!.id !== this.currentUser!.id) {
 			this.hideAllButtons();
 			const friend = await dataService.isFriendWithCurrentUser(this.user!.id);

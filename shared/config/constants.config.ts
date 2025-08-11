@@ -92,6 +92,21 @@ export const IMAGE_CONST = {
 }
 
 /**
+ * Définit les actions pouvant être effectuées sur une demande d'ami.
+ * 
+ * - `SEND` : Envoyer une demande d'ami à un autre utilisateur.
+ * - `ACCEPT` : Accepter une demande d'ami reçue.
+ * - `DELETE` : Supprimer une demande d'ami.
+ * - `BLOCK` : Bloquer un utilisateur.
+ */
+export const FRIEND_REQUEST_ACTIONS = {
+	ADD: 'add',
+	ACCEPT: 'accept',
+	DELETE: 'delete',
+	BLOCK: 'block',
+} as const;
+
+/**
  * Liste des champs de tri et des ordres autorisés
  * pour les requêtes utilisateurs.
  */

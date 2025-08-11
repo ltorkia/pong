@@ -1,6 +1,6 @@
 import { defineConfig } from 'vite';
 import { viteStaticCopy } from 'vite-plugin-static-copy';
-import path from 'path';
+// import path from 'path';
 
 // ===========================================
 // VITE CONFIG
@@ -18,11 +18,11 @@ export default defineConfig(({ command: command }: { command: string }) => {
     const isProduction = command === 'build';						// Détermine si l'environnement est en production
 
     return {
-        resolve: {
-            alias: {
-                "@shared": path.resolve(__dirname, "../shared"),
-            }
-        },
+        // resolve: {
+        //     alias: {
+        //         "@shared": path.resolve(__dirname, "../shared"),
+        //     }
+        // },
         server: {
             host: '0.0.0.0',										// Hôte du serveur
             port: 3000,												// Port du serveur

@@ -38,12 +38,11 @@ export class PageService {
 	 * - Stocke la nouvelle page en cours dans currentPage.
 	 * - Appelle la méthode render() de la page pour l'affichage.
 	 * 
-	 * @param {RouteConfig} config - Configuration de la page.
 	 * @param {PageInstance} page - Instance de la page à afficher.
 	 */
-	public async renderPage(config: RouteConfig, page: PageInstance): Promise<void> {
+	public async renderPage(page: PageInstance): Promise<void> {
 
-		this.toggleParticles(config);
+		this.toggleParticles(page.config);
 		const appDiv = getHTMLElementById(APP_ID);
 		const navbarDiv = getHTMLElementById(HTML_COMPONENT_CONTAINERS.NAVBAR_ID);
 		await animationService.pageTransitionOut(appDiv);
