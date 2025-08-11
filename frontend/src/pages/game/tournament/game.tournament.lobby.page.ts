@@ -6,22 +6,8 @@ import { TournamentLobbyUpdate, PlayerReadyUpdate, StartTournament, DismantleTou
 import { UserModel } from '../../../../../shared/types/user.types';
 import { webSocketService } from '../../../services/user/user.service'
 import { router } from '../../../router/router';
-
-const animateCSS = (element: HTMLElement, animation: string, prefix = 'animate__') =>
-    // We create a Promise and return it
-    new Promise((resolve, reject) => {
-        const animationName = `${prefix}${animation}`;
-        element.classList.add(`${prefix}animated`, animationName);
-        // When the animation ends, we clean the classes and resolve the Promise
-        function handleAnimationEnd(event: any) {
-            event.stopPropagation();
-            element.classList.remove(`${prefix}animated`, animationName);
-            resolve('Animation ended');
-        }
-
-        element.addEventListener('animationend', handleAnimationEnd, { once: true });
-    });
-
+import { animateCSS } from '../../../utils/animate.utils';
+import { joinTournament, leaveTournamentBeacon, leaveTournamentReq, sendDismantleRequest, sendReadyRequest, startTournament } from '../../../api/game/tournamentRequests.api';
 
 export class GameTournamentLobby extends BasePage {
     private tournamentID: number;
@@ -47,17 +33,13 @@ export class GameTournamentLobby extends BasePage {
         };
         const rowCount = this.tournament?.maxPlayers;
         this.gridRowStyle = gridRowClass[rowCount as keyof typeof gridRowClass];
-        this.onClientNavigation(async () => {
-            if (!this.leavingPage)
-                await this.leaveTournament();
-        });
     }
 
     protected async beforeMount(): Promise<void> {
         await this.fetchPastille();
         await this.fetchTournament();
         if (!this.tournament?.players.find((p: Player) => p.ID == this.currentUser.id)) {
-            await this.joinTournament();
+            await joinTournament(this.currentUser.id, this.tournamentID);
             await this.fetchTournament();
             console.log("WASNT IN THE TOURNAMENT AND JOINED");
         } else {
@@ -74,8 +56,12 @@ export class GameTournamentLobby extends BasePage {
             const startBtn = document.getElementById("tournament-start-btn")!;
             startBtn.classList.remove("hidden");
             cancelBtn.classList.remove("hidden");
-            startBtn.addEventListener("click", () => {
-                this.startTournament();
+            startBtn.addEventListener("click", async () => {
+                try {
+                    await startTournament(this.currentUser.id, this.tournamentID);
+                } catch (error: any) {
+                    this.printError(error.message);
+                }
             })
             cancelBtn.addEventListener("click", () => this.handleCancelModal());
         }
@@ -114,114 +100,6 @@ export class GameTournamentLobby extends BasePage {
         document.getElementById("redirect-btn")?.addEventListener("click", () => {
             router.navigate("/game/tournaments");
         })
-    }
-
-    private async leaveTournament(): Promise<void> {
-        this.leavingPage = true;
-        const lobbyUpdate: TournamentLobbyUpdate = {
-            type: "tournament_lobby_update",
-            playerID: this.currentUser.id,
-            tournamentID: this.tournamentID,
-        }
-        const res = await fetch("/api/game/leave_tournament", {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(lobbyUpdate),
-            credentials: 'include',
-        });
-        if (!res.ok) {
-            const error = await res.json();
-            console.error(error.error);
-            return;
-        }
-    }
-
-    private leaveTournamentBeacon(): void {
-        if (this.beaconSent) return;
-        this.beaconSent = true;
-        this.leavingPage = true;
-        const lobbyUpdate: TournamentLobbyUpdate = {
-            type: "tournament_lobby_update",
-            playerID: this.currentUser.id,
-            tournamentID: this.tournamentID,
-        }
-        const data = JSON.stringify(lobbyUpdate);
-        navigator.sendBeacon("/api/game/leave_tournament", data);
-    }
-
-    private async joinTournament(): Promise<void> {
-        const lobbyUpdate: TournamentLobbyUpdate = {
-            type: "tournament_lobby_update",
-            playerID: this.currentUser.id,
-            tournamentID: this.tournamentID,
-        }
-        const res = await fetch("/api/game/join_tournament", {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(lobbyUpdate),
-            credentials: 'include',
-        });
-        if (!res.ok) {
-            const error = await res.json();
-            console.error(error.error);
-            return;
-        }
-    }
-
-    private async sendReadyRequest(): Promise<void> {
-        const readyUpdate: PlayerReadyUpdate = {
-            type: "player_ready_update",
-            playerID: this.currentUser.id,
-            tournamentID: this.tournamentID,
-            ready: this.ready
-        };
-        const res = await fetch("/api/game/player_ready", {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(readyUpdate),
-            credentials: 'include',
-        });
-        if (!res.ok) {
-            const error = await res.json();
-            console.error(error.error);
-        }
-    }
-
-    private async sendDismantleRequest(): Promise<void> {
-        const dismantleReq: DismantleTournament = {
-            type: "dismantle_tournament",
-            playerID: this.currentUser.id,
-            tournamentID: this.tournamentID,
-            ready: this.ready,
-        }
-        const res = await fetch("/api/game/dismantle_tournament", {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(dismantleReq),
-            credentials: 'include',
-        });
-        if (!res.ok) {
-            const error = await res.json();
-            console.error(error.error);
-        }
-    }
-
-    private async startTournament(): Promise<void> {
-        const startTournamentReq: StartTournament = {
-            type: "start_tournament",
-            playerID: this.currentUser.id,
-            tournamentID: this.tournamentID,
-        };
-        const res = await fetch("/api/game/start_tournament", {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(startTournamentReq),
-            credentials: 'include',
-        });
-        if (!res.ok) {
-            const error = await res.json();
-            this.printError(error.error);
-        }
     }
 
     private printError(error: string): void {
@@ -333,7 +211,11 @@ export class GameTournamentLobby extends BasePage {
         });
 
         window.addEventListener("beforeunload", () => {
-            this.leaveTournamentBeacon();
+            if (!this.leavingPage && !this.beaconSent) {
+                this.leavingPage = true;
+                this.beaconSent = true;
+                leaveTournamentBeacon(this.currentUser.id, this.tournamentID);
+            }
         })
     }
 
@@ -351,11 +233,21 @@ export class GameTournamentLobby extends BasePage {
 
         document.getElementById("tournament-ready-btn")?.addEventListener("click", () => {
             this.ready = !this.ready;
-            this.sendReadyRequest();
+            sendReadyRequest(this.currentUser.id, this.tournamentID, this.ready);
         });
 
         document.getElementById("yes-btn")?.addEventListener("click", () => {
-            this.sendDismantleRequest();
+            sendDismantleRequest(this.currentUser.id, this.tournamentID);
         })
+
+        this.onClientNavigation(async () => {
+            if (!this.leavingPage)
+                this.leavingPage = true;
+            try {
+                await leaveTournamentReq(this.currentUser.id, this.tournamentID);
+            } catch (error: any) {
+                console.error(error.message);
+            }
+        });
     }
 }

@@ -1,6 +1,4 @@
-import { generateUniqueID } from "../shared/functions";
 import { GameData, Player, Tournament } from "../shared/types/game.types"
-import { FastifyInstance } from "fastify";
 
 const DEG_TO_RAD = Math.PI / 180;
 
@@ -113,8 +111,11 @@ export class Game {
             if (this.ball.x + this.ball.radius / 2 <= -1 || this.ball.x + this.ball.radius / 2 >= 1)
                 return (this.checkScore());
             const now = Date.now();
-            if (now - then < fps)
+            if (now - then < fps) {
+                console.log(`i did sleep at frame ${frame}`);
                 await sleep(fps - (now - then));
+            }
+            frame++;
             this.sendGameUpdate();
             then = Date.now();
         }
@@ -140,7 +141,6 @@ export class Game {
             if (score == 3)
                 return (this.endGame())
         });
-        console.log(this.ball.vSpeed);
         this.initRound();
     }
 
@@ -168,7 +168,7 @@ export class Game {
     }
 
     private sendGameUpdate() {
-        const gameUpdate = new GameData(this.players, this.ball);
+        const gameUpdate = new GameData(this.players, this.ball, this.score);
         for (let i = 0; i < this.players.length; i++) {
             this.webSockets[i].send(JSON.stringify(gameUpdate));
         }

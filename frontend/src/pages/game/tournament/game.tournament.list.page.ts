@@ -4,9 +4,9 @@ import { router } from '../../../router/router';
 import { secureFetch } from '../../../utils/app.utils';
 import { Tournament } from '../../../shared/types/game.types';
 import { generateUniqueID } from '../../../shared/functions'
-import { Player } from '../../../../../shared/types/game.types';
 import { currentService } from '../../../services/index.service';
-import { webSocketService } from '../../../services/user/user.service';
+import { animateCSS } from '../../../utils/animate.utils';
+import { joinTournament, postNewTournament, sendDismantleRequest } from '../../../api/game/tournamentRequests.api';
 
 const MAX_PLAYERS = 16;
 const MIN_PLAYERS = 4;
@@ -16,6 +16,7 @@ export class GameTournamentList extends BasePage {
     private playersNb: number = MIN_PLAYERS; // Minimum players required
     private alias: string = "";
     private tournamentItemHTML: Node;
+    private tournamentToCancel: number = 0;
 
     constructor(config: RouteConfig) {
         super(config);
@@ -26,12 +27,10 @@ export class GameTournamentList extends BasePage {
     protected async mount(): Promise<void> {
         this.getTournaments();
         this.applyAppClasses();
-        console.log(sessionStorage);
     }
 
     private applyAppClasses(): void {
         const app = document.getElementById("app");
-        console.log(app);
         app!.classList.add("flex", "border-white");
     }
 
@@ -81,29 +80,10 @@ export class GameTournamentList extends BasePage {
             this.tournamentItemHTML = item.cloneNode(true);
     }
 
-    private async joinTournament(tournamentID: number): Promise<void> {
-        const res = await fetch("/api/game/join_tournament", {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                playerID: this.currentUser.id,
-                tournamentID: tournamentID,
-            }),
-            credentials: 'include',
-        });
-        if (!res.ok) {
-            const error = await res.json();
-            this.printError(error.error);
-            return ;
-        }
-        router.navigate(`/game/tournaments/:${tournamentID}`);
-    }
-
     private printError(error: string): void {
         const errorDiv = document.createElement("div");
         const container = document.getElementById("alias-container");
         const tournamentBox = document.querySelectorAll("#input-box")[1];
-        console.log(tournamentBox);
         errorDiv.textContent = error;
         errorDiv.classList.add(
             "absolute", "top-50", "left-0", "right-0", "translate-y-1/2",
@@ -128,6 +108,27 @@ export class GameTournamentList extends BasePage {
         tournamentBox?.classList.remove("translate-y-0");
     }
 
+    private handleCancelModal(tournamentID: number): void {
+        const cancelDialogOverlay = document.getElementById("cancel-dialog-overlay")!;
+        const dialog = document.getElementById("cancel-dialog")!;
+        this.tournamentToCancel = tournamentID;
+
+        animateCSS(cancelDialogOverlay, "fadeIn");
+        cancelDialogOverlay.classList.remove("hidden", "opacity-0");
+
+        const clickOutsideHandler = (event: MouseEvent) => {
+            const target = event.target as HTMLElement;
+            if (!dialog.contains(target)) {
+                animateCSS(cancelDialogOverlay, "fadeOut").then(() => {
+                    cancelDialogOverlay.classList.add("hidden");
+                });
+                cancelDialogOverlay.removeEventListener("click", clickOutsideHandler);
+                this.tournamentToCancel = 0;
+            }
+        };
+        cancelDialogOverlay.addEventListener("click", clickOutsideHandler);
+    }
+
     private displayTournamentsAndAttachListeners(allTournaments: Tournament[]): void {
         const tournamentList = document.getElementById("all-tournaments") as HTMLElement;
         while (tournamentList.lastChild)
@@ -138,8 +139,19 @@ export class GameTournamentList extends BasePage {
             tournamentItem.querySelector("#players")!.textContent = `${tournament.players.length} / ${tournament.maxPlayers}`;
             if (tournament.players == tournament.maxPlayers)
                 tournamentItem.querySelector("#status")!.classList.add("text-red");
+            if (tournament.masterPlayerID == this.currentUser.id) {
+                const cancelBtn = tournamentItem.querySelector("#cancel-tournament");
+                cancelBtn?.classList.remove("hidden");
+                cancelBtn?.addEventListener("click", (event) => {
+                    event.stopPropagation();
+                    this.handleCancelModal(tournament.ID);
+                });
+            }
             tournamentList!.append(tournamentItem);
-            tournamentItem.addEventListener("click", () => this.joinTournament(tournament.ID));
+            tournamentItem.addEventListener("click", async () => {
+                await joinTournament(this.currentUser.id, tournament.ID);
+                await router.navigate(`/game/tournaments/:${tournament.ID}`);
+            });
         }
     }
 
@@ -156,7 +168,6 @@ export class GameTournamentList extends BasePage {
             t.isStarted,
         )))
         this.displayTournamentsAndAttachListeners(allTournaments);
-        console.log(allTournaments);
     }
 
     private async sendTournament(tournamentName: string): Promise<void> {
@@ -167,16 +178,10 @@ export class GameTournamentList extends BasePage {
             currentService.getCurrentUser().id,
             false,
         )
-        console.log(newTournament);
-        const res: Response = await fetch('/api/game/new_tournament', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(newTournament),
-            credentials: 'include',
-        });
-        if (!res.ok) {
-            const error = await res.json();
-            return this.printError(error.error);
+        try {
+            postNewTournament(newTournament);
+        } catch (error: any) {
+            console.error(error.message);
         }
     }
 
@@ -233,6 +238,23 @@ export class GameTournamentList extends BasePage {
         tournamentList.addEventListener("wheel", (e) => {
             e.preventDefault(); // empêche le scroll page
             tournamentList.scrollTop += e.deltaY; // pour scroll horizontal avec molette
+        });
+
+        document.getElementById("yes-btn")!.addEventListener("click", async (event) => {
+            const cancelDialogOverlay = document.getElementById("cancel-dialog-overlay")!;
+            await sendDismantleRequest(this.currentUser.id, this.tournamentToCancel);
+            animateCSS(cancelDialogOverlay, "fadeOut").then(() => {
+                cancelDialogOverlay.classList.add("hidden");
+            });
+            await this.getTournaments();
+        });
+
+        document.getElementById("no-btn")?.addEventListener("click", () => {
+            const cancelDialogOverlay = document.getElementById("cancel-dialog-overlay")!;
+            animateCSS(cancelDialogOverlay, "fadeOut").then(() => {
+                cancelDialogOverlay.classList.add("hidden");
+            });
+            this.tournamentToCancel = 0;
         });
 
         refreshBtn.addEventListener("click", () => this.getTournaments());

@@ -96,22 +96,14 @@ export async function tournamentRoutes(app: FastifyInstance) {
 
         const playerIdx = tournament.players.findIndex((p: Player) => p.ID == leaveTournamentReq.data.playerID);
         if (playerIdx != -1) {
-            if (tournament.masterPlayerID == tournament.players[playerIdx].ID) {
-                const stopSignal: DismantleSignal = { type: "dismantle_signal" };
-                const tournamentIdx: number = allTournaments.findIndex((t: Tournament) => t.ID == tournament.ID);
-                sendToTournamentPlayers(stopSignal, tournament, app);
-                allTournaments.splice(tournamentIdx, 1);
-                return reply.code(200).send(`Succesfully deleted tournament ${tournament.ID}`);
-            } else {
-                tournament.players.splice(playerIdx, 1);
-                const playerData: TournamentLobbyUpdate = {
-                    type: "tournament_lobby_update",
-                    players: tournament.players,
-                };
-                sendToTournamentPlayers(playerData, tournament, app);
-                return reply.code(200).send("Successfully left tournament");
+            tournament.players.splice(playerIdx, 1);
+            const playerData: TournamentLobbyUpdate = {
+                type: "tournament_lobby_update",
+                players: tournament.players,
+            };
+            sendToTournamentPlayers(playerData, tournament, app);
+            return reply.code(200).send("Successfully left tournament");
 
-            }
         } else
             console.log("DIDNT FIND PLAYER IN THIS TOURNAMENT");
     });
@@ -183,12 +175,13 @@ export async function tournamentRoutes(app: FastifyInstance) {
         if (!tournament)
             return reply.code(404).send({ error: "Tournament not found" });
 
-        const player = tournament.players.find((p: Player) => p.ID == dismantleTournamentReq.data.playerID);
+        const player = app.lobby.allPlayers.find((p: Player) => p.ID == dismantleTournamentReq.data.playerID);
         if (!player)
-            return reply.code(404).send({ error: "Player not found in tournament" });
+            return reply.code(404).send({ error: "Player not found" });
 
-        if (player.ID != tournament.masterPlayerID)
+        if (player.ID != tournament.masterPlayerID) {
             return reply.code(403).send({ error: "Can't dismantle tournament if not owner" });
+        }
 
         const toDeleteIdx = allTournaments.findIndex((t: Tournament) => t.ID == tournament.ID);
         if (toDeleteIdx != -1) {

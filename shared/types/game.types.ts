@@ -50,9 +50,10 @@ export class Player {
 export class GameData {
     type: string = "GameData";
     ball: PositionObj;
+    score: number[];
     players: { id: number, pos: { x: number, y: number } }[] = [];
 
-    constructor(players: Player[], ball: { x: number, y: number }) {
+    constructor(players: Player[], ball: { x: number, y: number }, score: number[]) {
         for (const player of players) {
             this.players.push({
                 id: player.ID,
@@ -60,6 +61,7 @@ export class GameData {
             });
         }
         this.ball = { x: ball.x, y: ball.y };
+        this.score = score;
     }
 }
 

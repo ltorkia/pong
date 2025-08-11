@@ -49,19 +49,12 @@ export class GameMenuMulti extends BasePage {
         }
     }
 
-    protected initLobby(): void {
-
-    }
-
     private initGame(playerID: number, gameID: number): void {
         const allChildren = document.getElementById("pong-section");
         while (allChildren?.firstChild)
             allChildren.firstChild.remove();
         this.game = new MultiPlayerGame(2, playerID, gameID);
         this.game.initGame();
-    }
-
-    protected async mount(): Promise<void> {
     }
 
     protected attachListeners(): void {
@@ -74,9 +67,9 @@ export class GameMenuMulti extends BasePage {
                 console.log("END GAME DETECTED")
                 this.game!.clearScreen();
                 document.querySelector("canvas")?.remove();
-                this.initLobby();
             } else if (msg.type == "GameData") {
                 this.game!.setAllPositions(msg);
+                this.game!.setScore(msg.score);
             } else if (msg.type == "msg")
                 console.log(msg.msg);
         })
