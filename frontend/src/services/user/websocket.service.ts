@@ -8,7 +8,10 @@ export class WebSocketService {
 	}
 
 	public async openWebSocket() {
-		this.webSocket = new WebSocket(`${location.origin}/api/ws/`);
+		// this.webSocket = new WebSocket(`${location.origin}/api/ws/`);
+		const wsProtocol = location.protocol === "https:" ? "wss" : "ws";
+		this.webSocket = new WebSocket(`${wsProtocol}://${location.host}/api/ws/`);
+
 		if (!this.webSocket)
 			console.log("Websocket problem");
 		else
