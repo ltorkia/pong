@@ -43,7 +43,7 @@ export class Player {
         this.ready = false;
         this.matchMaking = false;
         this.width = 0.02;
-        this.height = 0.30;
+        this.height = 0.40;
     }
 }
 

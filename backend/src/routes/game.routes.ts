@@ -49,7 +49,7 @@ const startGame = (app: FastifyInstance, players: Player[]) => {
             webSockets.push(user.WS);
         }
     }
-    const newGame = new Game(2, players, webSockets, gameID);
+    const newGame = new Game(2, players, webSockets);
     allGames.push(newGame);
     newGame.initGame();
 }

@@ -1,6 +1,5 @@
 import { BasePage } from '../base/base.page';
 import { RouteConfig } from '../../types/routes.types';
-// import { PositionObj, PlayerObj, GameData } from '../shared/types/game.types'
 import { MatchMakingReq } from '../../shared/types/websocket.types'
 import { MultiPlayerGame } from '../../components/game/MultiplayerGame.component';
 import { webSocketService } from '../../services/user/user.service';
@@ -66,9 +65,10 @@ export class GameMenuMulti extends BasePage {
             } else if (msg.type == "end") {
                 console.log("END GAME DETECTED")
                 this.game!.clearScreen();
+                this.game!.gameStarted = false;
                 document.querySelector("canvas")?.remove();
             } else if (msg.type == "GameData") {
-                this.game!.setAllPositions(msg);
+                this.game!.registerGameData(msg);
                 this.game!.setScore(msg.score);
             } else if (msg.type == "msg")
                 console.log(msg.msg);

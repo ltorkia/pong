@@ -22,8 +22,15 @@ export class Ball {
     verticalCollision() {
         this.vAngle = (360 - this.vAngle) % 360;
     }
-    horizontalCollision() {
-        this.vAngle = (180 - this.vAngle + 360) % 360;
+    horizontalCollision(players: Player[]) {
+        if ((this.isGoingLeft() && this.y < players[0].pos.y / 2 && players[0].inputDown) ||
+            (this.isGoingRight() && this.y < players[1].pos.y / 2 && players[1].inputDown) ||
+            (this.isGoingLeft() && this.y > players[0].pos.y / 2 && players[0].inputUp) || 
+            (this.isGoingRight() && this.y > players[1].pos.y / 2 && players[1].inputUp))
+            this.vAngle = (180 + this.vAngle + 360) % 360;
+        else
+            this.vAngle = (180 - this.vAngle + 360) % 360;
+
     }
     isGoingRight() {
         return ((this.vAngle >= 0 && this.vAngle < 90) || (this.vAngle >= 270 && this.vAngle <= 360));
@@ -67,7 +74,6 @@ export class Ball {
 };
 
 export class Game {
-    private ID: number;
     private duration: number = 0;
     private players: Player[] = [];
     private webSockets: WebSocket[] = [];
@@ -76,11 +82,10 @@ export class Game {
     private gameStarted: boolean = false;
     private score: number[] = [];
 
-    constructor(playersCount: number, players: Player[], webSockets: WebSocket[], ID: number) {
+    constructor(playersCount: number, players: Player[], webSockets: WebSocket[]) {
         this.playersCount = playersCount;
         this.players = players;
-        this.webSockets = webSockets,
-            this.ID = ID;
+        this.webSockets = webSockets;
     }
 
     private async gameLoop(): Promise<void> {
@@ -96,8 +101,7 @@ export class Game {
             }
             const collision: boolean = this.ball.checkPlayerCollision(this.players);
             if (collision && (this.ball.isGoingRight() || this.ball.isGoingLeft())) {
-                // console.log("HORIZONTAL");
-                this.ball.horizontalCollision();
+                this.ball.horizontalCollision(this.players);
             }
             else if (collision && (this.ball.isGoingUp() || this.ball.isGoingDown())) {
                 // console.log("VERTICAL");

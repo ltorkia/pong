@@ -142,7 +142,7 @@ export class BoidsPage extends BasePage {
     //the height of the canvas
     public ch: number = 0;
     public cy: number = 0;
-    public L: number = 20;
+    public L: number = 5;
     public R: number = (this.L * .5) / Math.cos(Math.PI / 6);
     public triangles: Triangle[] = [];
     public clearFillStyle = 1;
@@ -168,7 +168,7 @@ export class BoidsPage extends BasePage {
     }
 
     initTriangles = () => {
-        for (let i = 0; i < 200; i++) {
+        for (let i = 0; i < 1000; i++) {
             const triangle = new Triangle(this.cx, this.cy, this.R, this.ctx);
             this.triangles.push(triangle);
             this.cx -= 5;
