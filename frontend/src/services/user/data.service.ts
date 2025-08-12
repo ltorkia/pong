@@ -1,7 +1,6 @@
 import { ROUTE_PATHS } from '../../config/routes.config';
 import { COMPONENT_NAMES } from '../../config/components.config';
 import { NavbarComponent } from '../../components/navbar/navbar.component';
-import { UserRowComponent } from '../../components/user-row/user-row.component';
 import { User } from '../../shared/models/user.model';
 import { Friend } from '../../shared/models/friend.model';
 import { dataApi } from '../../api/index.api';
@@ -131,25 +130,28 @@ export class DataService {
 	 * - `to`: l'identifiant de l'utilisateur destinataire de la demande.
 	 */
 	public async handleFriendRequest(data: FriendRequest) {
-		console.log("BLOUUUUUUUU");
+		// const page = pageService.getCurrentPage()!;
+		// if (page.config.path === ROUTE_PATHS.USERS) {
+		// 	const key = `${COMPONENT_NAMES.USER_ROW}-${data.from}`;
+		// 	const userRowInstance = page.getComponentInstance!<UserRowComponent>(key);
+		// 	await (userRowInstance as UserRowComponent).toggleFriendButton();
+		// }
+
 		const page = pageService.getCurrentPage()!;
-		if (page.config.path === ROUTE_PATHS.USERS) {
-			console.log("BLAAAAAA");
-			const userRowInstance = page.getComponentInstance!<UserRowComponent>(COMPONENT_NAMES.USER_ROW);
-			await (userRowInstance as UserRowComponent).toggleFriendButton();
-		}
+		// if (page.config.path === ROUTE_PATHS.USERS) {
+		// 	await page.updateFriendButtons!(data);
+		// }
+
 		const navbarInstance = page.getComponentInstance!<NavbarComponent>(COMPONENT_NAMES.NAVBAR);
+		navbarInstance!.refreshFriendButtons(data);
 		switch (data.action) {
 			case FRIEND_REQUEST_ACTIONS.ADD:
-				alert(`New friend request from ${data.from}`);
 				console.log("New friend request from user ID:", data.from, "to user ID:", data.to);
-				navbarInstance!.updateNotifsCounter();
-				navbarInstance!.addNewNotification(`${data.from} has sent you a friend request.`);
+				await navbarInstance!.addNewNotification(data);
 				break;
 			case FRIEND_REQUEST_ACTIONS.ACCEPT:
 				console.log("Friend request accepted from user ID:", data.from, "to user ID:", data.to);
-				navbarInstance!.updateNotifsCounter();
-				navbarInstance!.addNewNotification(`${data.from} has accepted your friend request.`);
+				navbarInstance!.addNewNotification(data);
 				break;
 			case FRIEND_REQUEST_ACTIONS.DELETE:
 				console.log("Friend request deleted from user ID:", data.from, "to user ID:", data.to);

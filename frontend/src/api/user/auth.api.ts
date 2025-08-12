@@ -45,6 +45,11 @@ export class AuthApi {
 		// Stockage sécurisé via le store
 		currentService.setCurrentUserFromServer(data);
 
+		// Si pas de websocket ouvert, on l'ouvre
+		if (!webSocketService.getWebSocket()) {
+			webSocketService.openWebSocket();
+		}
+
 		// Instance avec email en mémoire
 		return currentService.getCurrentUser() as User;
 	}

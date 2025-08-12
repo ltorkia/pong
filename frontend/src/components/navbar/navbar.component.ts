@@ -9,7 +9,10 @@ import { ComponentConfig } from '../../types/components.types';
 import { getHTMLElementByClass, toggleClass } from '../../utils/dom.utils';
 import { getHTMLElementById, getHTMLAnchorElement, getHTMLElementByTagName } from '../../utils/dom.utils';
 import { ROUTE_PATHS, PROFILE_HTML_ANCHOR } from '../../config/routes.config';
-import { DB_CONST } from '../../shared/config/constants.config';
+import { DB_CONST, FRIEND_REQUEST_ACTIONS } from '../../shared/config/constants.config';
+import type { FriendRequest } from '../../shared/types/websocket.types';
+import { dataApi } from '../../api/index.api';
+import { dataService, pageService } from '../../services/index.service';
 
 // ===========================================
 // NAVBAR COMPONENT
@@ -191,8 +194,8 @@ export class NavbarComponent extends BaseComponent {
 	public updateNotifsCounter(): void {
 		const currentCount = parseInt(this.notifsCounter.textContent || '0', 10);
 		this.notifsCounter.textContent = (currentCount + 1).toString();
-		if (this.notifsCounter.classList.contains('hide')) {
-			this.notifsCounter.classList.remove('hide');
+		if (this.notifsCounter.classList.contains('hidden')) {
+			this.notifsCounter.classList.remove('hidden');
 		}
 	}
 
@@ -205,15 +208,61 @@ export class NavbarComponent extends BaseComponent {
 	 * Met à jour le compteur de notifications.
 	 * 
 	 * Permet d'afficher de nouvelles notifications en temps réel.
-	 * @param {string} notification - Le texte de la notification à ajouter.
+	 * 
+	 * @param {any} socketType - La notif envoyée par l'utilisateur.
 	 */
-	public addNewNotification(notification: string): void {
+	public async addNewNotification(socketType?: any): Promise<void> {
 		const notifItem = document.createElement('div');
 		notifItem.classList.add('notif-item');
+
+		if (!socketType) {
+			notifItem.classList.add('default-notif');
+			notifItem.textContent = 'No notification yet.';
+			this.notifsWindow.appendChild(notifItem);
+			return;
+		}
+
+		const user = await dataApi.getUserById(socketType.from);
 		notifItem.classList.add('new-notif');
-		notifItem.textContent = notification;
+		const textSpan = document.createElement('span');
+		let notif = '';
+		let buttons: HTMLElement | null = null;
+		if (dataService.isFriendRequest(socketType)) {
+			if (socketType.action === FRIEND_REQUEST_ACTIONS.ADD) {
+				notif = `has sent you a friend request.`;
+				buttons = this.createNotifButtons(socketType);
+			}
+			if (socketType.action === FRIEND_REQUEST_ACTIONS.ACCEPT) {
+				notif = `has accepted your friend request.`;
+			}
+
+
+		}
+		textSpan.textContent = `${user.username} ${notif}`;
+		notifItem.appendChild(textSpan);
+		if (buttons) {
+			notifItem.appendChild(buttons);
+		}
 		this.notifsWindow.appendChild(notifItem);
 		this.updateNotifsCounter();
+	}
+
+
+	/**
+	 * Met à jour les boutons d'amitié pour la page des utilisateurs si elle est affichée.
+	 *
+	 * Si la page des utilisateurs est affichée, appelle la méthode updateFriendButtons de la page
+	 * pour mettre à jour les boutons d'amitié correspondant à l'utilisateur d'ID "from" en fonction
+	 * de la demande d'amitié reçue.
+	 *
+	 * @param {FriendRequest} data La demande d'amitié reçue.
+	 * @returns {Promise<void>} Une promesse qui se résout lorsque les boutons d'amitié ont été mis à jour.
+	 */
+	public async refreshFriendButtons(data: FriendRequest): Promise<void> {
+		const page = pageService.getCurrentPage()!;
+		if (page.config.path === ROUTE_PATHS.USERS) {
+			await page.updateFriendButtons!(data);
+		}
 	}
 
 	// ===========================================
@@ -276,6 +325,56 @@ export class NavbarComponent extends BaseComponent {
 		toggleClass(this.navbarMenu, 'show', 'hide');
 	};
 
+	/**
+	 * Crée les boutons de notification pour une demande d'amitié.
+	 *
+	 * Les boutons sont placés dans un élément `<div>` avec la classe `notif-actions`.
+	 * Si la demande d'amitié n'a pas encore été acceptée, deux boutons sont créés:
+	 * - "Accept" : accepte la demande d'amitié et remplace le contenu de l'élément par "Request accepted ✅".
+	 * - "Decline" : refuse la demande d'amitié et remplace le contenu de l'élément par "Request declined ❌".
+	 * Si la demande d'amitié a déjà été acceptée, le contenu de l'élément est simplement "Request accepted ✅".
+	 *
+	 * @param {any} socketType - La notif envoyée par l'utilisateur.
+	 * @returns {HTMLElement} L'élément `<div>` contenant les boutons de notification.
+	 */
+	private createNotifButtons(socketType: any): HTMLElement {
+		const actionsDiv = document.createElement('div');
+		actionsDiv.classList.add('notif-actions', 'flex', 'justify-center', 'space-x-4');
+
+		if (dataService.isFriendRequest(socketType)
+			&& socketType.action === FRIEND_REQUEST_ACTIONS.ADD) {
+			const acceptButton = document.createElement('button');
+			acceptButton.textContent = 'Accept';
+			acceptButton.classList.add('btn', 'smaller-btn');
+			acceptButton.addEventListener('click', async () => {
+				const res = await dataApi.acceptFriend(this.currentUser.id, socketType.from);
+				// if (res.errorMessage) {
+				// 	showAlert(res.errorMessage, `alert-${this.user.id}`, 'error');
+				// 	return;
+				// }
+				actionsDiv.replaceChildren(document.createTextNode('Request accepted ✅'));
+				this.refreshFriendButtons(socketType);
+			});
+			actionsDiv.appendChild(acceptButton);
+
+			const declineButton = document.createElement('button');
+			declineButton.textContent = 'Decline';
+			declineButton.classList.add('btn', 'smaller-btn');
+			declineButton.addEventListener('click', async () => {
+				const res = await dataApi.removeFriend(this.currentUser.id, socketType.from);
+				// if (res.errorMessage) {
+				// 	showAlert(res.errorMessage, `alert-${this.user.id}`, 'error');
+				// 	return;
+				// }
+				actionsDiv.replaceChildren(document.createTextNode('Request declined ❌'));
+				this.refreshFriendButtons(socketType);
+			});
+
+			actionsDiv.appendChild(declineButton);
+		}
+		return actionsDiv;
+	}
+
 	// ===========================================
 	// LISTENER HANDLERS
 	// ===========================================
@@ -323,26 +422,39 @@ export class NavbarComponent extends BaseComponent {
 	};
 
 	/**
-	 * Bascule la visibilité de la fenêtre de notifications.
-	 * 
-	 * Alterne entre les classes "show" et "hide" pour afficher ou masquer la fenêtre de notifications.
+	 * Bascule la visibilité du menu des notifications et met à jour l'état des notifications.
+	 *
+	 * - S'il n'y a aucune notification, ajoute une notification par défaut et affiche le menu.
+	 * - Sinon, bascule la visibilité du menu.
+	 * - Si le menu est ouvert et qu'il y a de nouvelles notifications, les marque comme lues,
+	 *   réinitialise le compteur de notifications et le masque.
+	 *
+	 * @param event - L'événement de souris déclenché par l'interaction utilisateur.
+	 * @returns Une promesse qui se résout lorsque l'opération de bascule est terminée.
 	 */
-	public toggleNotifsMenu = async (event: MouseEvent): Promise<void> => {
+	private toggleNotifsMenu = async (event: MouseEvent): Promise<void> => {
 		const allNotifs = this.notifsWindow.querySelectorAll('.notif-item');
 		if (!allNotifs || allNotifs.length === 0) {
-			this.notifsCounter.textContent = "0";
-			this.addNewNotification("No notification yet.");
+			this.addNewNotification();
 			toggleClass(this.notifsWindow, 'flex', 'hidden');
 			return;
 		}
+		const defaultNotif = this.notifsWindow.querySelector('.default-notif');
+		if (defaultNotif) {
+			defaultNotif.remove();
+		}
 		const allNewNotifs = this.notifsWindow.querySelectorAll('.new-notif');
-		if (allNewNotifs && allNewNotifs.length > 0) {
-			this.notifsCounter.textContent = "0";
+		toggleClass(this.notifsWindow, 'flex', 'hidden');
+		if (this.notifsWindow.classList.contains('hidden') 
+			&& allNewNotifs && allNewNotifs.length > 0) {
+			this.notifsCounter.textContent = '0';
 			allNewNotifs.forEach(notif => {
 				notif.classList.remove('new-notif');
 			});
+			if (!this.notifsCounter.classList.contains('hidden')) {
+				this.notifsCounter.classList.add('hidden');
+			}
 		}
-		toggleClass(this.notifsWindow, 'flex', 'hidden');
 	}
 
 	/**

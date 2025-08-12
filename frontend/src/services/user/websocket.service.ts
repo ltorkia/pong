@@ -8,9 +8,7 @@ export class WebSocketService {
 	}
 
 	public async openWebSocket() {
-		// this.webSocket = new WebSocket(`${location.origin}/api/ws/`);
-		const wsProtocol = location.protocol === "https:" ? "wss" : "ws";
-		this.webSocket = new WebSocket(`${wsProtocol}://${location.host}/api/ws/`);
+		this.webSocket = new WebSocket(`${location.origin}/api/ws/`);
 
 		if (!this.webSocket)
 			console.log("Websocket problem");
@@ -18,10 +16,8 @@ export class WebSocketService {
 			console.log("WEBSOCKET CONNECTED!");
 
 		this.webSocket.onmessage = async (event) => {
-			console.log("TESSSSSSTING WEBSOCKET MESSAGE");
 			try {
 				const data = JSON.parse(event.data);
-				console.log("WebSocket message received:", data);
 				if (dataService.isFriendRequest(data)) {
 					console.log("Handling friend request:", data);
 					await dataService.handleFriendRequest(data);

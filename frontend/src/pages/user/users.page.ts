@@ -1,15 +1,17 @@
 import { BasePage } from '../base/base.page';
 import { User } from '../../shared/models/user.model';
-import { Friend } from '../../shared/models/friend.model';
 import { dataApi } from '../../api/index.api';
+import { pageService } from '../../services/index.service';
 import { SearchBarComponent } from '../../components/search-bar/search-bar.component';
 import { UserRowComponent } from '../../components/user-row/user-row.component';
 import { PaginationComponent } from '../../components/pagination/pagination.component';
 import { getHTMLElementById } from '../../utils/dom.utils';
 import { RouteConfig } from '../../types/routes.types';
+import { ROUTE_PATHS } from '../../config/routes.config';
 import { COMPONENT_NAMES, HTML_COMPONENT_CONTAINERS } from '../../config/components.config';
 import { ComponentConfig, ComponentName, PaginationParams } from '../../types/components.types';
 import { SafeUserModel, PaginatedUsers, PaginationInfos } from '../../shared/types/user.types';
+import type { FriendRequest } from "../../shared/types/websocket.types";
 
 // ===========================================
 // USERS PAGE
@@ -149,7 +151,6 @@ export class UsersPage extends BasePage {
 		this.userList.replaceChildren();
 		const renderPromises: Promise<void>[] = [];
 
-		let i = 1;
 		for (const user of this.users! as User[]) {
 			let tempContainer = document.createElement('div');
 			const rowComponent = new UserRowComponent(this.config, this.userRowConfig!, tempContainer, user);
@@ -160,7 +161,7 @@ export class UsersPage extends BasePage {
 				rowComponent.render().then(() => {
 					const userLine = tempContainer.querySelector('.user-line');
 					if (userLine) {
-						userLine.id = `${COMPONENT_NAMES.USER_ROW}-${i++}`;
+						userLine.id = instanceKey;
 						if (user.id === this.currentUser!.id) {
 							(userLine as HTMLElement).style.backgroundColor = '#5e8ca5';
 						}
@@ -204,5 +205,27 @@ export class UsersPage extends BasePage {
 		this.currentPage = page;
 		await this.injectUserList();
 		await this.injectPagination();
+	}
+
+	// ===========================================
+	// METHODES PUBLICS
+	// ===========================================
+
+	/**
+	 * Met à jour les boutons d'amitié pour l'utilisateur d'ID "from" en fonction de la
+	 * demande d'amitié reçue.
+	 * 
+	 * Cherche l'instance du composant UserRowComponent correspondant à l'utilisateur
+	 * en fonction de son ID, puis appelle la méthode toggleFriendButton de ce
+	 * composant pour mettre à jour les boutons d'amitié.
+	 * 
+	 * @param {FriendRequest} data La demande d'amitié reçue.
+	 * @returns {Promise<void>} Une promesse qui se résout lorsque les boutons d'amitié
+	 * ont été mis à jour.
+	 */
+	public async updateFriendButtons(data: FriendRequest): Promise<void> {
+		const key = `${COMPONENT_NAMES.USER_ROW}-${data.from}`;
+		const userRowInstance = this.getComponentInstance!<UserRowComponent>(key);
+		await (userRowInstance as UserRowComponent).toggleFriendButton();
 	}
 }

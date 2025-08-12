@@ -129,7 +129,6 @@ export async function usersRoutes(app: FastifyInstance) {
 		const jwtUser = request.user as JwtPayload;
 		if (id != jwtUser.id)
 			return reply.status(403).send({ errorMessage: 'Forbidden' });
-		const { action } = request.params as { action: string };
 
 		const userdataCheck = await checkParsing(FriendsInputSchema, request.body);
 		if (isParsingError(userdataCheck))
@@ -149,7 +148,7 @@ export async function usersRoutes(app: FastifyInstance) {
 		// Si l'utilisateur est connecté, envoyer une notification via WebSocket
 		const friendRequestData: FriendRequest = {
 			action: FRIEND_REQUEST_ACTIONS.ADD,
-			from: id,
+			from: Number(id),
 			to: friend.id,
 		};
 		sendToSocket(app, friendRequestData);
@@ -180,7 +179,7 @@ export async function usersRoutes(app: FastifyInstance) {
 				await updateRelationshipBlocked(id, friend.id);
 				const friendRequestData: FriendRequest = {
 					action: FRIEND_REQUEST_ACTIONS.BLOCK,
-					from: id,
+					from: Number(id),
 					to: friend.id,
 				};
 				sendToSocket(app, friendRequestData);
@@ -194,7 +193,7 @@ export async function usersRoutes(app: FastifyInstance) {
 				await updateRelationshipConfirmed(id, friend.id);
 				const friendRequestData: FriendRequest = {
 					action: FRIEND_REQUEST_ACTIONS.ACCEPT,
-					from: id,
+					from: Number(id),
 					to: friend.id,
 				};
 				sendToSocket(app, friendRequestData);

@@ -1,6 +1,7 @@
 import { User } from '../../shared/models/user.model';
 import { storageService } from '../index.service';
 import { UserModel, SafeUserModel } from '../../shared/types/user.types';
+import { webSocketService } from '../../services/user/user.service';
 
 // ===========================================
 // CURRENT SERVICE
@@ -55,6 +56,11 @@ export class CurrentService {
 	public setCurrentUser(user: User) {
 		this.currentUser = user;
 		storageService.setCurrentUser(this.currentUser);
+
+		// Ouvre WS si pas déjà ouvert
+		if (!webSocketService.getWebSocket()) {
+			webSocketService.openWebSocket();
+		}
 	}
 
 	/**
@@ -68,6 +74,7 @@ export class CurrentService {
 	public async setCurrentUserFromServer(userData: UserModel): Promise<void> {
 		this.currentUser = User.fromJSON(userData);
 		storageService.setCurrentUser(this.currentUser);
+
 		console.log(`[${this.constructor.name}] Utilisateur mis à jour depuis serveur (email en mémoire uniquement):`, this.currentUser);
 	}
 
