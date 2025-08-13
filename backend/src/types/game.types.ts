@@ -1,4 +1,4 @@
-import { GameData, Player, Tournament } from "../shared/types/game.types"
+import { GameData, Player } from "../shared/types/game.types"
 
 const DEG_TO_RAD = Math.PI / 180;
 
@@ -7,6 +7,15 @@ const MAX_SCORE = 3;
 const clamp = (val: number, min: number, max: number) => { return Math.min(Math.max(val, min), max) };
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+const shuffleArray = (array: any[]) => {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        const temp = array[i];
+        array[i] = array[j];
+        array[j] = temp;
+    }
+}
 
 export class Ball {
     public x: number;
@@ -25,7 +34,7 @@ export class Ball {
     horizontalCollision(players: Player[]) {
         if ((this.isGoingLeft() && this.y < players[0].pos.y / 2 && players[0].inputDown) ||
             (this.isGoingRight() && this.y < players[1].pos.y / 2 && players[1].inputDown) ||
-            (this.isGoingLeft() && this.y > players[0].pos.y / 2 && players[0].inputUp) || 
+            (this.isGoingLeft() && this.y > players[0].pos.y / 2 && players[0].inputUp) ||
             (this.isGoingRight() && this.y > players[1].pos.y / 2 && players[1].inputUp))
             this.vAngle = (180 + this.vAngle + 360) % 360;
         else
@@ -76,16 +85,14 @@ export class Ball {
 export class Game {
     private duration: number = 0;
     private players: Player[] = [];
-    private webSockets: WebSocket[] = [];
     private ball = new Ball();
     private playersCount: number = 0;
     private gameStarted: boolean = false;
     private score: number[] = [];
 
-    constructor(playersCount: number, players: Player[], webSockets: WebSocket[]) {
+    constructor(playersCount: number, players: Player[]) {
         this.playersCount = playersCount;
         this.players = players;
-        this.webSockets = webSockets;
     }
 
     private async gameLoop(): Promise<void> {
@@ -125,7 +132,6 @@ export class Game {
         }
         console.log("EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEND");
         console.log("GAME ENDEED");
-        this.endGame();
     };
 
     private initSizePos(): void {
@@ -163,18 +169,21 @@ export class Game {
     }
 
     public endGame(): void {
+        console.log("coucou end !");
         this.gameStarted = false;
-        for (const ws of this.webSockets) {
-            ws.send(JSON.stringify({
-                type: "end",
-            }));
+        for (const player of this.players) {
+            if (player.webSocket)
+                player.webSocket.send(JSON.stringify({
+                    type: "end",
+                }));
         }
     }
 
     private sendGameUpdate() {
         const gameUpdate = new GameData(this.players, this.ball, this.score);
-        for (let i = 0; i < this.players.length; i++) {
-            this.webSockets[i].send(JSON.stringify(gameUpdate));
+        for (const player of this.players) {
+            if (player.webSocket)
+                player.webSocket.send(JSON.stringify(gameUpdate));
         }
     };
 
@@ -189,6 +198,34 @@ export class Game {
 
     public setGameStarted(started: boolean) { this.gameStarted = started };
 };
+
+export class Tournament {
+    public name: string;
+    public alias?: string;
+    public maxPlayers: number;
+    public ID?: number;
+    public masterPlayerID?: number;
+    public isStarted?: boolean;
+    public players: Player[] = [];
+    public games: Game[] = [];
+
+    constructor(name: string, maxPlayers: number, ID?: number, masterPlayerID?: number, isStarted?: boolean) {
+        this.name = name;
+        this.maxPlayers = maxPlayers;
+        this.ID = ID ?? 0;
+        this.masterPlayerID = masterPlayerID ?? 0;
+        this.isStarted = isStarted ?? true;
+    }
+
+    public startTournament(): void {
+        shuffleArray(this.players);
+        for (let i = 0; i < this.players.length; i++) {
+            const newGame = new Game(2, [this.players[i], this.players[i + 1]]);
+            this.games.push(newGame);
+            i += 2;
+        }
+    }
+}
 
 export class Lobby {
     public allPlayers: Player[] = [];

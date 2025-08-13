@@ -20,6 +20,7 @@ export type PositionObj = {
 
 export class Player {
     public ID: number;
+    public webSocket?: WebSocket;
     public inGame: boolean;
     public ready: boolean;
     public matchMaking: boolean;
@@ -65,20 +66,21 @@ export class GameData {
     }
 }
 
-export class Tournament {
-    public name: string;
-    public alias?: string;
-    public maxPlayers: number;
-    public ID?: number;
-    public masterPlayerID?: number;
-    public isStarted?: boolean;
-    public players: Player[] = [];
+export interface GameInterface {
+    duration?: number;
+    players: Player[];
+    playersCount: number;
+    gameStarted: boolean;
+    score: number[];
+}
 
-    constructor(name: string, maxPlayers: number, ID?: number, masterPlayerID?: number, isStarted?: boolean) {
-        this.name = name;
-        this.maxPlayers = maxPlayers;
-        this.ID = ID ?? 0;
-        this.masterPlayerID = masterPlayerID ?? 0;
-        this.isStarted = isStarted ?? true;
-    }
+export interface TournamentInterface {
+    name: string;
+    alias?: string;
+    maxPlayers: number;
+    ID: number;
+    masterPlayerID?: number;
+    isStarted?: boolean;
+    players?: Player[];
+    games?: GameInterface[];
 }

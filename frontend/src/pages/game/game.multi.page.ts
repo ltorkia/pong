@@ -8,6 +8,7 @@ export class GameMenuMulti extends BasePage {
     private webSocket!: WebSocket | undefined;
     private gameStarted: boolean = false;
     private game?: MultiPlayerGame;
+    private finalScore: number[] = [];
 
     constructor(config: RouteConfig) {
         super(config);
@@ -56,17 +57,27 @@ export class GameMenuMulti extends BasePage {
         this.game.initGame();
     }
 
+    private showEndGamePanel(): void {
+        const panel = document.getElementById("endgame-panel")!;
+        panel.classList.remove("hidden");
+        panel.innerText += ` ${this.finalScore[0]} : ${this.finalScore[1]}`;
+    }
+
     protected attachListeners(): void {
         webSocketService.getWebSocket()!.addEventListener("message", (event) => {
             const msg = JSON.parse(event.data);
             if (msg.type == "start_game") {
                 console.log(`game starts ! id = ${msg.gameID}`);
                 this.initGame(this.currentUser.id, msg.gameID);
-            } else if (msg.type == "end") {
+                this.gameStarted = true;
+            } else if (msg.type == "end" && this.gameStarted) {
+                this.game!.gameStarted = false;
                 console.log("END GAME DETECTED")
                 this.game!.clearScreen();
-                this.game!.gameStarted = false;
                 document.querySelector("canvas")?.remove();
+                document.querySelector("#pong-section")!.remove();
+                this.finalScore = this.game!.getScore();
+                this.showEndGamePanel();
             } else if (msg.type == "GameData") {
                 this.game!.registerGameData(msg);
                 this.game!.setScore(msg.score);

@@ -27,6 +27,7 @@ export type DismantleSignal = {
 
 export type TournamentLobbyUpdate = {
     type: "tournament_lobby_update",
+    tournamentID: number,
     players: Player[],
 };
 

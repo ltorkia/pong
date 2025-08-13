@@ -46,10 +46,10 @@ const startGame = (app: FastifyInstance, players: Player[]) => {
                 if (msg.type == "movement")
                     newGame.registerInput(msg.playerID, msg.key, msg.status);
             }
-            webSockets.push(user.WS);
+            player.webSocket = user.WS;
         }
     }
-    const newGame = new Game(2, players, webSockets);
+    const newGame = new Game(2, players);
     allGames.push(newGame);
     newGame.initGame();
 }

@@ -2,11 +2,12 @@ import { BasePage } from '../../base/base.page';
 import { RouteConfig } from '../../../types/routes.types';
 import { router } from '../../../router/router';
 import { secureFetch } from '../../../utils/app.utils';
-import { Tournament } from '../../../shared/types/game.types';
 import { generateUniqueID } from '../../../shared/functions'
 import { currentService } from '../../../services/index.service';
 import { animateCSS } from '../../../utils/animate.utils';
-import { joinTournament, postNewTournament, sendDismantleRequest } from '../../../api/game/tournamentRequests.api';
+// import { joinTournament, postNewTournament, sendDismantleRequest } from '../../../api/game/tournament.api';
+import { TournamentService } from '../../../api/game/game.api';
+import { Tournament } from '../../../types/game.types';
 
 const MAX_PLAYERS = 16;
 const MIN_PLAYERS = 4;
@@ -136,8 +137,8 @@ export class GameTournamentList extends BasePage {
         for (const tournament of allTournaments) {
             const tournamentItem = this.tournamentItemHTML.cloneNode(true) as HTMLElement;
             tournamentItem.querySelector("#tournament-name")!.textContent = tournament.name;
-            tournamentItem.querySelector("#players")!.textContent = `${tournament.players.length} / ${tournament.maxPlayers}`;
-            if (tournament.players == tournament.maxPlayers)
+            tournamentItem.querySelector("#players")!.textContent = `${tournament.players!.length} / ${tournament.maxPlayers}`;
+            if (tournament.players?.length == tournament.maxPlayers)
                 tournamentItem.querySelector("#status")!.classList.add("text-red");
             if (tournament.masterPlayerID == this.currentUser.id) {
                 const cancelBtn = tournamentItem.querySelector("#cancel-tournament");
@@ -149,8 +150,8 @@ export class GameTournamentList extends BasePage {
             }
             tournamentList!.append(tournamentItem);
             tournamentItem.addEventListener("click", async () => {
-                await joinTournament(this.currentUser.id, tournament.ID);
-                await router.navigate(`/game/tournaments/:${tournament.ID}`);
+                // await TournamentService.joinTournament(this.currentUser.id, tournament.ID);
+                await router.navigate(`/game/tournaments/:${tournament.ID}/lobby`);
             });
         }
     }
@@ -165,21 +166,20 @@ export class GameTournamentList extends BasePage {
             t.maxPlayers,
             t.ID,
             t.masterPlayerID,
-            t.isStarted,
         )))
         this.displayTournamentsAndAttachListeners(allTournaments);
     }
 
     private async sendTournament(tournamentName: string): Promise<void> {
-        const newTournament = new Tournament(
-            tournamentName,
-            this.playersNb,
-            generateUniqueID(this.allTournaments),
-            currentService.getCurrentUser().id,
-            false,
-        )
+        const newTournament: Tournament = {
+            name: tournamentName,
+            maxPlayers: this.playersNb,
+            ID: generateUniqueID(this.allTournaments),
+            masterPlayerID: currentService.getCurrentUser().id,
+            isStarted: false,
+        };
         try {
-            postNewTournament(newTournament);
+            TournamentService.postNewTournament(newTournament);
         } catch (error: any) {
             console.error(error.message);
         }
@@ -242,7 +242,7 @@ export class GameTournamentList extends BasePage {
 
         document.getElementById("yes-btn")!.addEventListener("click", async (event) => {
             const cancelDialogOverlay = document.getElementById("cancel-dialog-overlay")!;
-            await sendDismantleRequest(this.currentUser.id, this.tournamentToCancel);
+            await TournamentService.sendDismantleRequest(this.currentUser.id, this.tournamentToCancel);
             animateCSS(cancelDialogOverlay, "fadeOut").then(() => {
                 cancelDialogOverlay.classList.add("hidden");
             });

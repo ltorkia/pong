@@ -1,3 +1,6 @@
+import { FastifyInstance } from "fastify";
+import { UserWS } from "src/types/user.types";
+
 /**
  * Sanitize un terme de recherche.
  *
@@ -16,4 +19,10 @@ export function sanitizeSearchTerm(term: unknown): string {
 		return '';
 	}
 	return term.trim().slice(0, 100);
+}
+
+export function findPlayerWebSocket(id: number, app: FastifyInstance): WebSocket | undefined{
+	const user = app.usersWS.find((u: UserWS) => u.id == id);
+	if (user)
+		return user.WS;
 }

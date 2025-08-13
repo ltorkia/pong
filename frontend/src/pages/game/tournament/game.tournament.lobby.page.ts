@@ -1,17 +1,19 @@
 import { BasePage } from '../../base/base.page';
 import { RouteConfig } from '../../../types/routes.types';
 import { DataService } from '../../../services/user/data.service';
-import { Player, Tournament } from '../../../../../shared/types/game.types';
-import { TournamentLobbyUpdate, PlayerReadyUpdate, StartTournament, DismantleTournament } from '../../../shared/types/websocket.types';
+import { Player } from '../../../../../shared/types/game.types';
+import { Tournament } from '../../../types/game.types';
+import { TournamentService } from '../../../api/game/game.api';
 import { UserModel } from '../../../../../shared/types/user.types';
 import { webSocketService } from '../../../services/user/user.service'
 import { router } from '../../../router/router';
 import { animateCSS } from '../../../utils/animate.utils';
-import { joinTournament, leaveTournamentBeacon, leaveTournamentReq, sendDismantleRequest, sendReadyRequest, startTournament } from '../../../api/game/tournamentRequests.api';
+import { TournamentAPI } from '../../../api/game/tournament.api';
 
 export class GameTournamentLobby extends BasePage {
     private tournamentID: number;
     private tournament: Tournament | undefined;
+    private joined: boolean = false;
     private pastilleHTML: Node;
     private dataApi: DataService = new DataService();
     private gridRowStyle: string = "";
@@ -21,7 +23,7 @@ export class GameTournamentLobby extends BasePage {
 
     constructor(config: RouteConfig) {
         super(config);
-        this.tournamentID = Number(window.location.href.split('/').reverse()[0].slice(1));
+        this.tournamentID = Number(window.location.href.split('/').reverse()[1].slice(1));
         this.pastilleHTML = document.createElement("div");
         const gridRowClass = {
             1: 'grid-rows-1',
@@ -38,9 +40,11 @@ export class GameTournamentLobby extends BasePage {
     protected async beforeMount(): Promise<void> {
         await this.fetchPastille();
         await this.fetchTournament();
-        if (!this.tournament?.players.find((p: Player) => p.ID == this.currentUser.id)) {
-            await joinTournament(this.currentUser.id, this.tournamentID);
-            await this.fetchTournament();
+        if (!this.tournament?.players?.find((p: Player) => p.ID == this.currentUser.id)) {
+            this.joined = false;
+            document.getElementById("tournament-join-leave-btn")!.textContent = "JOIN";
+            // await TournamentService.joinTournament(this.currentUser.id, this.tournamentID);
+            // await this.fetchTournament();
             console.log("WASNT IN THE TOURNAMENT AND JOINED");
         } else {
             console.log("WAS IN THE TOURNAMENT HENCE DIDNT JOINED");
@@ -58,7 +62,7 @@ export class GameTournamentLobby extends BasePage {
             cancelBtn.classList.remove("hidden");
             startBtn.addEventListener("click", async () => {
                 try {
-                    await startTournament(this.currentUser.id, this.tournamentID);
+                    await TournamentService.startTournament(this.currentUser.id, this.tournamentID);
                 } catch (error: any) {
                     this.printError(error.message);
                 }
@@ -120,11 +124,11 @@ export class GameTournamentLobby extends BasePage {
         const tournamentHolder = document.getElementById("pastilles-holder");
         while (tournamentHolder?.lastChild)
             tournamentHolder?.lastChild.remove();
-        this.tournament?.players.map((player: Player) => this.appendPlayerPastille(player));
+        this.tournament?.players?.map((player: Player) => this.appendPlayerPastille(player));
     }
 
     private checkPlayersDifference(playersUpdate: Player[]): void {
-        for (const player of this.tournament!.players) {
+        for (const player of this.tournament!.players!) {
             const playerUpdate = playersUpdate.find((p: Player) => p.ID == player.ID);
             if (!playerUpdate)
                 return document.querySelector(`[data-player-id="${player.ID}"]`)?.remove();
@@ -135,17 +139,15 @@ export class GameTournamentLobby extends BasePage {
             }
         }
         for (const player of playersUpdate) {
-            const playerInLocalTournament = this.tournament?.players.find((p: Player) => p.ID == player.ID);
+            const playerInLocalTournament = this.tournament?.players?.find((p: Player) => p.ID == player.ID);
             if (!playerInLocalTournament)
                 this.appendPlayerPastille(player);
         }
     }
 
     private async fetchTournament(): Promise<void> {
-        const res = await fetch(`/api/game/tournaments/:${this.tournamentID}`);
-        if (res.ok) {
-            this.tournament = await res.json();
-        } else {
+        this.tournament = await TournamentService.fetchTournament(this.tournamentID);
+        if (!this.tournament) {
             this.handleRedirectModal();
             console.error("Tournament not found");
         }
@@ -184,70 +186,97 @@ export class GameTournamentLobby extends BasePage {
         }
         pastille.dataset.playerId = player.ID.toString();
         pastilleHolder!.append(pastille);
-        requestAnimationFrame(() => pastille.classList.add("opacity-100"));
         const img = pastille.querySelector("#user-avatar") as HTMLImageElement;
         if (this.tournament?.maxPlayers == 16)
             img.classList.add("w-8", "h-8");
         img.src = await this.dataApi.getUserAvatarURL(user);
+        // requestAnimationFrame(() => 
+        pastille.classList.remove("opacity-0");
+        pastille.classList.add("opacity-100")
+        // });
     }
 
-    private onClientNavigation(callback: (type: "pushState" | "replaceState" | "popstate" | "refresh", ...args: any[]) => void) {
-        const originalPushState = history.pushState;
-        history.pushState = function (...args) {
-            const result = originalPushState.apply(this, args);
-            callback("pushState", ...args);
-            return result;
-        };
+    // private onClientNavigation(callback: (type: "pushState" | "replaceState" | "popstate" | "refresh", ...args: any[]) => void) {
+    //     const originalPushState = history.pushState;
+    //     history.pushState = function (...args) {
+    //         const result = originalPushState.apply(this, args);
+    //         callback("pushState", ...args);
+    //         return result;
+    //     };
 
-        const originalReplaceState = history.replaceState;
-        history.replaceState = function (...args) {
-            const result = originalReplaceState.apply(this, args);
-            callback("replaceState", ...args);
-            return result;
-        };
+    //     const originalReplaceState = history.replaceState;
+    //     history.replaceState = function (...args) {
+    //         const result = originalReplaceState.apply(this, args);
+    //         callback("replaceState", ...args);
+    //         return result;
+    //     };
 
-        window.addEventListener("popstate", () => {
-            callback("popstate");
-        });
+    //     window.addEventListener("popstate", () => {
+    //         callback("popstate");
+    //     });
 
-        window.addEventListener("beforeunload", () => {
-            if (!this.leavingPage && !this.beaconSent) {
-                this.leavingPage = true;
-                this.beaconSent = true;
-                leaveTournamentBeacon(this.currentUser.id, this.tournamentID);
-            }
-        })
-    }
+    //     window.addEventListener("beforeunload", () => {
+    //         if (!this.leavingPage && !this.beaconSent) {
+    //             this.leavingPage = true;
+    //             this.beaconSent = true;
+    //             TournamentService.leaveTournamentBeacon(this.currentUser.id, this.tournamentID);
+    //         }
+    //     })
+    // }
 
     protected async attachListeners(): Promise<void> {
         webSocketService.getWebSocket()?.addEventListener("message", (event) => {
             const lobbyUpdate = JSON.parse(event.data);
+            console.log(lobbyUpdate);
             if (!lobbyUpdate)
                 return;
-            if (lobbyUpdate.type == "tournament_lobby_update" && !this.leavingPage) {
+            if (lobbyUpdate.type == "tournament_lobby_update" && lobbyUpdate.tournamentID == this.tournamentID) {
                 this.checkPlayersDifference(lobbyUpdate.players);
                 this.tournament!.players = lobbyUpdate.players;
-            } else if (lobbyUpdate.type == "dismantle_signal")
+            } else if (lobbyUpdate.type == "dismantle_signal") {
                 this.handleRedirectModal();
+            } else if (lobbyUpdate.type == "start_tournament_signal")
+                router.navigate(`/game/tournaments/:${this.tournamentID}/overview`)
         });
 
-        document.getElementById("tournament-ready-btn")?.addEventListener("click", () => {
+        document.getElementById("tournament-join-leave-btn")?.addEventListener("click", async (event) => {
+            console.log("coucou");
+            if (!this.joined) {
+                this.joined = true;
+                TournamentService.joinTournament(this.currentUser.id, this.tournamentID);
+                const btn = event.target as HTMLElement;
+                btn.textContent = "LEAVE";
+            } else {
+                this.joined = false;
+                console.log('Leaving');
+                TournamentService.leaveTournamentReq(this.currentUser.id, this.tournamentID);
+                const btn = event.target as HTMLElement;
+                btn.textContent = "JOIN";
+            }
+        });
+
+        document.getElementById("tournament-ready-btn")?.addEventListener("click", async () => {
             this.ready = !this.ready;
-            sendReadyRequest(this.currentUser.id, this.tournamentID, this.ready);
+            try {
+                await TournamentService.sendReadyRequest(this.currentUser.id, this.tournamentID, this.ready);
+            } catch (error: any) {
+                this.printError("Please join tournament first!");
+            }
         });
 
         document.getElementById("yes-btn")?.addEventListener("click", () => {
-            sendDismantleRequest(this.currentUser.id, this.tournamentID);
+            TournamentService.sendDismantleRequest(this.currentUser.id, this.tournamentID);
         })
 
-        this.onClientNavigation(async () => {
-            if (!this.leavingPage)
-                this.leavingPage = true;
-            try {
-                await leaveTournamentReq(this.currentUser.id, this.tournamentID);
-            } catch (error: any) {
-                console.error(error.message);
-            }
-        });
+
+        // this.onClientNavigation(async () => {
+        //     if (!this.leavingPage)
+        //         this.leavingPage = true;
+        //     try {
+        //         await TournamentService.leaveTournamentReq(this.currentUser.id, this.tournamentID);
+        //     } catch (error: any) {
+        //         console.error(error.message);
+        //     }
+        // });
     }
 }

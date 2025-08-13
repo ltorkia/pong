@@ -1,8 +1,10 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { TournamentSchema, TournamentReqSchema, TournamentPlayerReadySchema, StartTournamentSchema, DismantleTournamentSchema } from '../types/zod/game.zod';
-import { Tournament, Player } from '../shared/types/game.types'
+import { Player } from '../shared/types/game.types';
+import { Tournament } from '../types/game.types';
 import { TournamentLobbyUpdate, StartTournamentSignal, DismantleSignal } from '../shared/types/websocket.types'
 import { UserWS } from '../types/user.types';
+import { findPlayerWebSocket } from '../helpers/query.helpers';
 
 export async function tournamentRoutes(app: FastifyInstance) {
     app.get("/tournaments", async (request: FastifyRequest, reply: FastifyReply) => {
@@ -15,6 +17,7 @@ export async function tournamentRoutes(app: FastifyInstance) {
         const allTournaments = app.lobby.allTournaments;
         const tournament = allTournaments.find((t: Tournament) => t.ID == tournamentID);
         if (tournament) {
+            console.log(tournament);
             return reply.code(200).send(tournament);
         } else {
             return reply.code(404).send({ error: "Tournament not found" });
@@ -30,7 +33,7 @@ export async function tournamentRoutes(app: FastifyInstance) {
         if (app.lobby.allTournaments.find((t: any) => t.name == tournamentParse.data.name))
             return reply.code(409).send({ error: "Tournament name already exists!" });
 
-        const newTournament = new Tournament(
+        const newTournament: Tournament = new Tournament(
             tournamentParse.data.name,
             tournamentParse.data.maxPlayers,
             tournamentParse.data.ID,
@@ -58,8 +61,8 @@ export async function tournamentRoutes(app: FastifyInstance) {
         if (!player)
             return reply.code(404).send({ error: "Player not found" });
 
-        for (const tournament of allTournaments) {
-            if (tournament.players.find((p: Player) => p.ID == joinTournamentReq.data.playerID))
+        for (const tournamentIt of allTournaments) {
+            if (tournamentIt.players.find((p: Player) => tournamentIt.ID != tournament.ID && p.ID == joinTournamentReq.data.playerID))
                 return reply.code(409).send({ error: "Can't join more than one tournament!" });
         }
 
@@ -70,9 +73,10 @@ export async function tournamentRoutes(app: FastifyInstance) {
             tournament.players.push(player);
             const playerData: TournamentLobbyUpdate = {
                 type: "tournament_lobby_update",
+                tournamentID: tournament.ID!,
                 players: tournament.players,
             };
-            sendToTournamentPlayers(playerData, tournament, app);
+            broadcast(playerData, app);
             reply.code(200).send("Join tournament succesfully");
         }
     });
@@ -99,9 +103,11 @@ export async function tournamentRoutes(app: FastifyInstance) {
             tournament.players.splice(playerIdx, 1);
             const playerData: TournamentLobbyUpdate = {
                 type: "tournament_lobby_update",
+                tournamentID: tournament.ID!,
                 players: tournament.players,
             };
-            sendToTournamentPlayers(playerData, tournament, app);
+            broadcast(playerData, app);
+            // sendToTournamentPlayers(playerData, tournament, app);
             return reply.code(200).send("Successfully left tournament");
 
         } else
@@ -125,6 +131,7 @@ export async function tournamentRoutes(app: FastifyInstance) {
         player.ready = readyReq.data.ready;
         const playerData: TournamentLobbyUpdate = {
             type: "tournament_lobby_update",
+            tournamentID: tournament.ID!,
             players: tournament.players,
         }
 
@@ -157,8 +164,9 @@ export async function tournamentRoutes(app: FastifyInstance) {
             if (!player.ready)
                 return reply.code(412).send({ error: "Not all players are ready!" });
         }
-
+        
         tournament.isStarted = true;
+        tournament.startTournament();
 
         const startSignal: StartTournamentSignal = { type: "start_tournament_signal" };
 
@@ -202,3 +210,8 @@ const sendToTournamentPlayers = (toSend: any, tournament: Tournament, app: Fasti
             userWS.WS.send(JSON.stringify(toSend));
     }
 };
+
+const broadcast = (toSend: any, app: FastifyInstance) => {
+    for (const user of app.usersWS)
+        user.WS.send(JSON.stringify(toSend));
+}

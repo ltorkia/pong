@@ -172,6 +172,8 @@ export class MultiPlayerGame {
 
     public setScore(score: number[]): void { this.score = score };
 
+    public getScore(): number[] { return this.score };
+
     private printScore(): void {
         this.canvasCtx.textAlign = "center";  // Centre horizontalement
         this.canvasCtx.textBaseline = "middle"; // Centre verticalement
