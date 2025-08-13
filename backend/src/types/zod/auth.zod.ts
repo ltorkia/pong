@@ -35,8 +35,15 @@ export const FriendsInputSchema = z.object({
   friendId: z.number(),
 });
 
+export const NotificationInputSchema = z.object({
+  userId: z.number(),
+  receiverId: z.number(),
+  content: z.string(),
+});
+
 export type ModUserInput = z.infer<typeof ModUserInputSchema>;
 export type RegisterInput = z.infer<typeof RegisterInputSchema>;
 export type LoginInput = z.infer<typeof LoginInputSchema>;
 export type TwoFAInput = z.infer<typeof TwoFAInputSchema>;
 export type FriendInput = z.infer<typeof FriendsInputSchema>;
+export type NotificationInput = z.infer<typeof NotificationInputSchema>;

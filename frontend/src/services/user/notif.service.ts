@@ -156,6 +156,15 @@ export class NotifService {
 		this.updateNotifsCounter();
 	}
 
+	public async displayNotifsFromDb(navbarInstance: NavbarComponent): Promise<void> {
+		const notifsDb: Notification[] = await dataApi.getUserNotifications(this.currentUser.id);
+		if (notifsDb && notifsDb.length > 0) {
+			notifsDb.forEach(notifDb => {
+				// notif.classList.remove('new-notif');
+			});		
+		}
+	}
+
 	/**
 	 * Crée les boutons de notification pour une demande d'amitié.
 	 *

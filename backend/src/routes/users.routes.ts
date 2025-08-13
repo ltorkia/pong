@@ -1,14 +1,13 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
-import { getUser, getUserFriends, getUserGames, getUserChat, getAvatar, getUserAllInfo } from '../db/user';
+import { getUser, getUserFriends, getUserGames, getUserChat, getUserAllInfo } from '../db/user';
 import { getAllUsersInfos, getUsersWithPagination } from '../db/user';
 import { UserModel, SafeUserModel, PublicUser, PaginatedUsers, SortOrder, UserSortField } from '../shared/types/user.types';
-// import { insertAvatar } from '../db/usermaj';
 import { FriendModel } from '../shared/types/friend.types';	// en rouge car dossier local 'shared' != dossier conteneur
 import { addUserFriend, updateRelationshipBlocked, updateRelationshipConfirmed, updateRelationshipDelete } from '../db/friendmaj';
 import { Buffer } from 'buffer';
 import bcrypt from 'bcrypt';
 import { GetAvatarFromBuffer, bufferizeStream } from '../helpers/image.helpers';
-import { ModUserInput, ModUserInputSchema, FriendsInputSchema, FriendInput } from '../types/zod/auth.zod';
+import { ModUserInput, ModUserInputSchema, FriendsInputSchema, FriendInput, NotificationInputSchema, NotificationInput } from '../types/zod/auth.zod';
 import { searchNewName } from '../helpers/auth.helpers';
 import { changeUserData } from '../db/usermaj';
 import { promises as fs } from 'fs';
@@ -16,8 +15,8 @@ import { DB_CONST, FRIEND_REQUEST_ACTIONS } from '../shared/config/constants.con
 import { JwtPayload } from '../types/jwt.types';
 import { checkParsing, isParsingError, adaptBodyForPassword } from '../helpers/types.helpers';
 import { sendToSocket } from '../helpers/query.helpers';
-// import { UserWS } from '../types/user.types';
 import { FriendRequest } from '../shared/types/websocket.types';
+import { insertNotification, getUserNotifications, getNotification, updateNotification } from '../db/notification';
 
 /* ======================== USERS ROUTES ======================== */
 
@@ -136,7 +135,7 @@ export async function usersRoutes(app: FastifyInstance) {
 		let data = userdataCheck as FriendInput;
 
 		const friends = await getUserFriends(id);
-		const friend: PublicUser = await getUser(data.friendId, null);		
+		const friend: PublicUser = await getUser(data.friendId);		
 		if (!friend)
 			return reply.code(404).send({ errorMessage : 'User not found'});
 
@@ -169,7 +168,7 @@ export async function usersRoutes(app: FastifyInstance) {
 		
 		let data = userdataCheck as FriendInput;
 		const friends = await getUserFriends(id);
-		const friend: PublicUser = await getUser(data.friendId, null);
+		const friend: PublicUser = await getUser(data.friendId);
 		if (!friend)
 			return reply.code(404).send({ errorMessage : 'User not found'});
 
@@ -397,6 +396,82 @@ export async function usersRoutes(app: FastifyInstance) {
 			});
 		}
 	})
+
+/* -------------------------------------------------------------------------- */
+/*                     ⚙️ - Gere les notifications de l'utilisateur           */
+/* -------------------------------------------------------------------------- */
+
+	// --- Ajoute une notification en db ---
+	app.post('/:id/notifs/add', async(request: FastifyRequest, reply: FastifyReply): Promise<void> => {
+		const { id } = request.params as { id: number };
+		const jwtUser = request.user as JwtPayload;
+		if (id != jwtUser.id)
+			return reply.status(403).send({ errorMessage: 'Forbidden' });
+
+		const userdataCheck = await checkParsing(NotificationInputSchema, request.body);
+		if (isParsingError(userdataCheck))
+			return reply.status(400).send(userdataCheck);
+		let data = userdataCheck as NotificationInput;
+		if (id != data.userId)
+			return reply.status(403).send({ errorMessage: 'Forbidden' });
+		await insertNotification(data);
+		return reply.code(200).send({ message : 'Notif sent' });
+	})
+
+	// --- Marque une notification comme lue ---
+	app.put('/:id/notifs/update', async(request: FastifyRequest, reply: FastifyReply): Promise<void> => {
+		const { id } = request.params as { id: number };
+		const jwtUser = request.user as JwtPayload;
+		if (id != jwtUser.id)
+			return reply.status(403).send({ errorMessage: 'Forbidden' });
+
+		if (!request.body || typeof (request.body as any).notifId !== 'number') {
+			return reply.status(400).send({ errorMessage: 'notifId missing or invalid' });
+		}
+		const { notifId } = request.body as { notifId: number };
+		const notif = await getNotification(notifId);
+		if (!notif)
+			return reply.status(404).send({ errorMessage: 'Notif not found' });
+		if (id != notif.receiverId)
+			return reply.status(403).send({ errorMessage: 'Forbidden' });
+		await updateNotification(notif.id);
+		return reply.code(200).send({ message : 'Notif marked read' });
+	})
+
+	// --- Récupère toutes les notifications d'un utilisateur ---
+	app.get('/:id/notifs', async (request: FastifyRequest, reply: FastifyReply): Promise<void> => {
+		const { id } = request.params as { id: number };
+		const jwtUser = request.user as JwtPayload;
+
+		if (id !== jwtUser.id)
+			return reply.status(403).send({ errorMessage: 'Forbidden' });
+
+		try {
+			const notifications = await getUserNotifications(id);
+			return reply.code(200).send(notifications);
+		} catch (err) {
+			return reply.status(500).send({ errorMessage: 'Erreur serveur' });
+		}
+	});
+
+	// --- Récupère une notification par son ID ---
+	app.get('/:userId/notifs/id', async (request: FastifyRequest, reply: FastifyReply): Promise<void> => {
+		const { userId } = request.params as { userId: number };
+		const { notifId } = request.query as { notifId: number };
+		const jwtUser = request.user as JwtPayload;
+
+		if (userId !== jwtUser.id)
+			return reply.status(403).send({ errorMessage: 'Forbidden' });
+
+		try {
+			const notification = await getNotification(notifId);
+			if (!notification)
+				return reply.status(404).send({ errorMessage: 'Notif not found' });
+			return reply.code(200).send(notification);
+		} catch (err) {
+			return reply.status(500).send({ errorMessage: 'Error server' });
+		}
+	});
 
 }
 

@@ -9,9 +9,9 @@ import { ComponentConfig } from '../../types/components.types';
 import { getHTMLElementByClass, toggleClass } from '../../utils/dom.utils';
 import { getHTMLElementById, getHTMLAnchorElement, getHTMLElementByTagName } from '../../utils/dom.utils';
 import { ROUTE_PATHS, PROFILE_HTML_ANCHOR } from '../../config/routes.config';
+import { dataApi } from '../../api/index.api';
 import { DB_CONST } from '../../shared/config/constants.config';
-import type { FriendRequest } from '../../shared/types/websocket.types';
-import { pageService, notifService } from '../../services/index.service';
+import { notifService } from '../../services/index.service';
 
 // ===========================================
 // NAVBAR COMPONENT
@@ -303,6 +303,8 @@ export class NavbarComponent extends BaseComponent {
 	 * @returns Une promesse qui se résout lorsque l'opération de bascule est terminée.
 	 */
 	private toggleNotifsMenu = async (event: MouseEvent): Promise<void> => {
+		notifService.displayNotifsFromDb(this);
+		
 		const allNotifs = this.notifsWindow.querySelectorAll('.notif-item');
 		if (!allNotifs || allNotifs.length === 0) {
 			notifService.addNewNotification(this);
@@ -321,6 +323,15 @@ export class NavbarComponent extends BaseComponent {
 			allNewNotifs.forEach(notif => {
 				notif.classList.remove('new-notif');
 			});
+
+			const addNotifDb = await dataApi.addNotification(socketType);
+			if (addNotifDb.errorMessage) {
+				console.error(addNotifDb.errorMessage);
+				return;
+			}
+			console.log('Notif lue ajoutée en bdd:', addNotifDb);
+			await dataApi.updateNotification(socketType);
+
 			if (!this.notifsCounter.classList.contains('hidden')) {
 				this.notifsCounter.classList.add('hidden');
 			}

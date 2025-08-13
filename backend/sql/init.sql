@@ -31,7 +31,8 @@ CREATE TABLE IF NOT EXISTS Notif (
 	sender_id INTEGER NOT NULL,
 	receiver_id INTEGER NOT NULL,                                                   
 	created_at DATETIME NOT NULL DEFAULT (datetime('now')),
-	content TEXT NOT NULL,													
+	content TEXT NOT NULL,
+	status INTEGER DEFAULT 0 NOT NULL CHECK (status IN (0, 1)),													
 	FOREIGN KEY (sender_id) REFERENCES User(id),
 	FOREIGN KEY (receiver_id) REFERENCES User(id)
 );

@@ -16,6 +16,7 @@ export type FriendRequest = {
 	action: FriendRequestAction,
 	from: number,
 	to: number,
+	content?: string
 }
 export type FriendRequestAction =
 	typeof FRIEND_REQUEST_ACTIONS[keyof typeof FRIEND_REQUEST_ACTIONS];
