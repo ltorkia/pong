@@ -1,7 +1,6 @@
 import { BasePage } from '../base/base.page';
 import { User } from '../../shared/models/user.model';
 import { dataApi } from '../../api/index.api';
-import { pageService } from '../../services/index.service';
 import { SearchBarComponent } from '../../components/search-bar/search-bar.component';
 import { UserRowComponent } from '../../components/user-row/user-row.component';
 import { PaginationComponent } from '../../components/pagination/pagination.component';
@@ -212,20 +211,28 @@ export class UsersPage extends BasePage {
 	// ===========================================
 
 	/**
-	 * Met à jour les boutons d'amitié pour l'utilisateur d'ID "from" en fonction de la
-	 * demande d'amitié reçue.
-	 * 
-	 * Cherche l'instance du composant UserRowComponent correspondant à l'utilisateur
-	 * en fonction de son ID, puis appelle la méthode toggleFriendButton de ce
-	 * composant pour mettre à jour les boutons d'amitié.
-	 * 
+	 * Met à jour les boutons d'amitié pour une ligne utilisateur
+	 * suite à une modification de la demande d'amitié.
+	 *
+	 * Si un instance de UserRowComponent est fournie, met à jour
+	 * les boutons d'amitié correspondant à l'utilisateur d'ID "from"
+	 * en fonction de la demande d'amitié reçue. Sinon, cherche
+	 * l'instance de UserRowComponent correspondante à l'ID "from"
+	 * dans la liste des instances de composants stockées et la met
+	 * à jour.
+	 *
 	 * @param {FriendRequest} data La demande d'amitié reçue.
-	 * @returns {Promise<void>} Une promesse qui se résout lorsque les boutons d'amitié
-	 * ont été mis à jour.
+	 * @param {UserRowComponent} userRowInstance L'instance de UserRowComponent
+	 * à mettre à jour. Si non fourni, cherche l'instance dans la liste
+	 * des instances de composants stockées.
+	 * @returns {Promise<void>} Une promesse qui se résout lorsque les boutons
+	 * d'amitié ont été mis à jour.
 	 */
-	public async updateFriendButtons(data: FriendRequest): Promise<void> {
-		const key = `${COMPONENT_NAMES.USER_ROW}-${data.from}`;
-		const userRowInstance = this.getComponentInstance!<UserRowComponent>(key);
+	public async updateFriendButtons(data: FriendRequest, userRowInstance?: UserRowComponent): Promise<void> {
+		if (!userRowInstance) {
+			const key = `${COMPONENT_NAMES.USER_ROW}-${data.from}`;
+			userRowInstance = this.getComponentInstance!<UserRowComponent>(key);
+		}
 		await (userRowInstance as UserRowComponent).toggleFriendButton();
 	}
 }

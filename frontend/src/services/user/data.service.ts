@@ -1,16 +1,12 @@
-import { ROUTE_PATHS } from '../../config/routes.config';
-import { COMPONENT_NAMES } from '../../config/components.config';
-import { NavbarComponent } from '../../components/navbar/navbar.component';
 import { User } from '../../shared/models/user.model';
 import { Friend } from '../../shared/models/friend.model';
 import { dataApi } from '../../api/index.api';
 import { AuthResponse } from '../../types/api.types';
-import { currentService, pageService } from '../../services/index.service';
+import { currentService } from '../../services/index.service';
 import { showAlert } from '../../utils/dom.utils';
 import { isValidImage, checkImageExists } from '../../utils/image.utils';
 import { UserStatus } from '../../shared/types/user.types';
-import { DB_CONST, IMAGE_CONST, FRIEND_REQUEST_ACTIONS } from '../../shared/config/constants.config'; // en rouge car dossier local 'shared' != dossier conteneur
-import type { FriendRequest } from "../../shared/types/websocket.types";
+import { DB_CONST, IMAGE_CONST } from '../../shared/config/constants.config'; // en rouge car dossier local 'shared' != dossier conteneur
 
 // ============================================================================
 // DATA SERVICE
@@ -91,78 +87,6 @@ export class DataService {
 		return userFriends.some(friend => friend.id === userId)
 			? userFriends.find(friend => friend.id === userId)!
 			: null;
-	}
-
-	/**
-	 * Vérifie si l'objet `data` correspond à une demande d'amitié.
-	 *
-	 * Une demande d'amitié est un objet qui contient les propriétés suivantes:
-	 *
-	 * - `action`: une valeur du type `FRIEND_REQUEST_ACTIONS` qui indique
-	 *   l'action demandée (envoi, acceptation, suppression, blocage).
-	 * - `from`: l'identifiant de l'utilisateur qui envoie la demande.
-	 * - `to`: l'identifiant de l'utilisateur destinataire de la demande.
-	 *
-	 * Si l'objet `data` correspond à ces critères, la fonction renvoie `true`.
-	 * Sinon, la fonction renvoie `false`.
-	 *
-	 * @param {any} data - L'objet à vérifier.
-	 * @returns {data is FriendRequest} Si l'objet `data` correspond à une demande
-	 * d'amitié, la fonction renvoie `true`. Sinon, la fonction renvoie `false`.
-	 */
-	public isFriendRequest(data: any): data is FriendRequest {
-		return (
-			data &&
-			Object.values(FRIEND_REQUEST_ACTIONS).includes(data.action) &&
-			typeof data.from === "number" &&
-			typeof data.to === "number"
-		);
-	}
-
-	/**
-	 * Gère une demande d'amitié reçue via une requête WebSocket.
-	 *
-	 * Une demande d'amitié est un objet qui contient les propriétés suivantes:
-	 *
-	 * - `action`: une valeur du type `FRIEND_REQUEST_ACTIONS` qui indique
-	 *   l'action demandée (envoi, acceptation, suppression, blocage).
-	 * - `from`: l'identifiant de l'utilisateur qui envoie la demande.
-	 * - `to`: l'identifiant de l'utilisateur destinataire de la demande.
-	 */
-	public async handleFriendRequest(data: FriendRequest) {
-		// const page = pageService.getCurrentPage()!;
-		// if (page.config.path === ROUTE_PATHS.USERS) {
-		// 	const key = `${COMPONENT_NAMES.USER_ROW}-${data.from}`;
-		// 	const userRowInstance = page.getComponentInstance!<UserRowComponent>(key);
-		// 	await (userRowInstance as UserRowComponent).toggleFriendButton();
-		// }
-
-		const page = pageService.getCurrentPage()!;
-		// if (page.config.path === ROUTE_PATHS.USERS) {
-		// 	await page.updateFriendButtons!(data);
-		// }
-
-		const navbarInstance = page.getComponentInstance!<NavbarComponent>(COMPONENT_NAMES.NAVBAR);
-		navbarInstance!.refreshFriendButtons(data);
-		switch (data.action) {
-			case FRIEND_REQUEST_ACTIONS.ADD:
-				console.log("New friend request from user ID:", data.from, "to user ID:", data.to);
-				await navbarInstance!.addNewNotification(data);
-				break;
-			case FRIEND_REQUEST_ACTIONS.ACCEPT:
-				console.log("Friend request accepted from user ID:", data.from, "to user ID:", data.to);
-				navbarInstance!.addNewNotification(data);
-				break;
-			case FRIEND_REQUEST_ACTIONS.DELETE:
-				console.log("Friend request deleted from user ID:", data.from, "to user ID:", data.to);
-				break;
-			case FRIEND_REQUEST_ACTIONS.BLOCK:
-				console.log("User ID:", data.from, "blocked user ID:", data.to);
-				break;
-			default:
-				console.error("Unknown friend request action:", data.action);
-				break;
-		}
 	}
 
 	// ============================================================================

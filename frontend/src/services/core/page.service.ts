@@ -1,5 +1,4 @@
-import { particlesService } from '../index.service';
-import { animationService } from '../index.service';
+import { particlesService, animationService, notifService } from '../index.service';
 import { getHTMLElementById } from '../../utils/dom.utils';
 import { APP_ID } from '../../config/routes.config';
 import { RouteConfig, PageInstance } from '../../types/routes.types';
@@ -37,6 +36,7 @@ export class PageService {
 	 * - Nettoie l'ancienne page.
 	 * - Stocke la nouvelle page en cours dans currentPage.
 	 * - Appelle la méthode render() de la page pour l'affichage.
+	 * - Initialise les notifications de la page.
 	 * 
 	 * @param {PageInstance} page - Instance de la page à afficher.
 	 */
@@ -52,6 +52,7 @@ export class PageService {
 		await animationService.pageTransitionIn(appDiv);
 		await this.currentPage.render();
 		await this.checkNavbarAnimationOut(navbarDiv);
+		notifService.init(this.currentPage);
 	}
 
 	/**

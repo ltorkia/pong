@@ -2,6 +2,7 @@ import { BasePage } from '../pages/base/base.page';
 import { ComponentName, ComponentConfig } from './components.types';
 import { PAGE_NAMES, ROUTE_PATHS, TEMPLATE_PATHS } from '../config/routes.config';
 import type { FriendRequest } from '../shared/types/websocket.types';
+import { UserRowComponent } from '../components/user-row/user-row.component';
 
 // ===========================================
 // ROUTES TYPES
@@ -79,13 +80,14 @@ export interface RouteParams {
  * - render: fonction de rendu HTML
  * - cleanup: fonction de nettoyage avant de changer de page
  * - getComponentInstance: fonction pour récupérer une instance de composant spécifique
+ * - updateFriendButtons: fonction pour mettre à jour les boutons d'amitié
  */
 export interface PageInstance {
 	config: RouteConfig;
 	render: () => Promise<void>;
 	cleanup?: () => Promise<void>;
 	getComponentInstance?<T>(name: string): T | undefined;
-	updateFriendButtons?: (data: FriendRequest) => Promise<void>;
+	updateFriendButtons?: (data: FriendRequest, userRowInstance?: UserRowComponent) => Promise<void>;
 }
 
 /**

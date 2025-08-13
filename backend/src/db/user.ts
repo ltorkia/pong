@@ -294,3 +294,18 @@ export async function getAvatar(id: number)
 // 		`,
 // 	[email]);	
 // }
+
+export async function insertNotification({fromId, toId, content}: {fromId: number, toId: number, content: string})
+{
+	const db = await getDb();
+	if (fromId != toId)
+	{
+		await db.run(`
+			INSERT INTO Notif (sender_id, receiver_id, content)
+			VALUES (?, ?, ?)
+			`,
+			[fromId, toId, content]
+		);
+	}
+	return {statusCode : 201, message : 'notif add'};
+}

@@ -5,11 +5,11 @@ import { BaseComponent } from '../base/base.component';
 import { RouteConfig } from '../../types/routes.types';
 import { router } from '../../router/router';
 import { ComponentConfig } from '../../types/components.types';
-import { User } from '../../shared/models/user.model';
 import { dataApi } from '../../api/index.api';
-import { dataService } from '../../services/index.service';
+import { dataService, notifService } from '../../services/index.service';
 import { getHTMLElementByClass, getHTMLElementByTagName, showAlert } from '../../utils/dom.utils';
-import { DB_CONST } from '../../shared/config/constants.config';
+import { DB_CONST, FRIEND_REQUEST_ACTIONS } from '../../shared/config/constants.config';
+import { User } from '../../shared/models/user.model';
 
 // ===========================================
 // USER ROW COMPONENT
@@ -171,33 +171,16 @@ export class UserRowComponent extends BaseComponent {
 	}
 
 	// ===========================================
-	// METHODES PRIVATES
+	// METHODES PUBLICS
 	// ===========================================
 
 	/**
-	 * Charge le template HTML du composant en mode développement
-	 * (hot-reload Vite).
+	 * Affiche ou masque dynamiquement les boutons d'action liés à l'amitié selon le statut de la relation
+	 * entre l'utilisateur courant et l'utilisateur sélectionné. La méthode commence par masquer tous les boutons,
+	 * puis affiche le ou les boutons appropriés selon que les utilisateurs sont amis, qu'une demande est en attente,
+	 * qu'ils sont bloqués ou qu'il n'y a aucune relation.
 	 *
-	 * Si le hot-reload est actif (en mode développement), charge le
-	 * template HTML du composant en remplaçant le contenu du conteneur
-	 * par le template. Sinon, ne fait rien.
-	 *
-	 * @returns {Promise<void>} Une promesse qui se résout lorsque le
-	 * template est chargé et injecté dans le conteneur.
-	 */
-	private async loadTemplateDev(): Promise<void> {
-		await this.loadTemplate(template);
-	}
-
-	/**
-	 * Vérifie le statut d'amitié entre l'utilisateur courant et l'utilisateur affiché
-	 * dans la ligne d'utilisateur.
-	 *
-	 * Si l'utilisateur n'est pas ami, affiche le bouton d'envoi de demande d'amitié.
-	 * Si l'utilisateur est en attente de validation, affiche le bouton d'annulation
-	 * de la demande d'amitié.
-	 * Si l'utilisateur est ami, affiche le bouton de débloquage.
-	 * Si l'utilisateur est bloqué, affiche le bouton de débloquage.
+	 * @returns {Promise<void>} Une promesse qui se résout lorsque l'affichage des boutons est terminé.
 	 */
 	public async toggleFriendButton(): Promise<void> {
 		if (this.user!.id !== this.currentUser!.id) {
@@ -230,6 +213,32 @@ export class UserRowComponent extends BaseComponent {
 		}
 	}
 
+	// ===========================================
+	// METHODES PRIVATES
+	// ===========================================
+
+	/**
+	 * Charge le template HTML du composant en mode développement
+	 * (hot-reload Vite).
+	 *
+	 * Si le hot-reload est actif (en mode développement), charge le
+	 * template HTML du composant en remplaçant le contenu du conteneur
+	 * par le template. Sinon, ne fait rien.
+	 *
+	 * @returns {Promise<void>} Une promesse qui se résout lorsque le
+	 * template est chargé et injecté dans le conteneur.
+	 */
+	private async loadTemplateDev(): Promise<void> {
+		await this.loadTemplate(template);
+	}
+
+	/**
+	 * Masque tous les boutons d'action utilisateur en ajoutant la classe CSS 'hidden'
+	 * à chaque élément bouton de la ligne utilisateur.
+	 *
+	 * Cette méthode est généralement utilisée pour réinitialiser l'état de l'interface
+	 * ou pour empêcher les interactions utilisateur avec ces boutons dans certaines conditions.
+	 */
 	private hideAllButtons() {
 		this.challengeButton.classList.add('hidden');
 		this.addFriendButton.classList.add('hidden');
@@ -266,6 +275,17 @@ export class UserRowComponent extends BaseComponent {
 		await router.navigate(this.profilePath);
 	};
 
+	/**
+	 * Gère l'événement de clic pour l'ajout d'un ami.
+	 * 
+	 * Empêche le comportement par défaut de l'événement, vérifie si l'utilisateur cible existe,
+	 * envoie une demande d'ami via l'API, et affiche une alerte en cas d'erreur.
+	 * Si la demande réussit, rafraîchit les boutons d'amis via le service de notification
+	 * et log l'action dans la console.
+	 * 
+	 * @param event - L'événement souris déclenché par le clic sur le bouton d'ajout d'ami.
+	 * @returns Une promesse qui se résout lorsque le processus de demande d'ami est terminé.
+	 */
 	private addFriendClick = async (event: MouseEvent): Promise<void> => {
 		event.preventDefault();
 		if (!this.user) {
@@ -276,10 +296,22 @@ export class UserRowComponent extends BaseComponent {
 			showAlert(res.errorMessage, `alert-${this.user.id}`, 'error');
 			return;
 		}
-		await this.toggleFriendButton();
+		const data = {action: FRIEND_REQUEST_ACTIONS.ADD, from: this.currentUser.id, to: this.user.id};
+		await notifService.refreshFriendButtons(data, this);
 		console.log(`Friend request sent to ${this.user.username}`);
 	}
 
+	/**
+	 * Gère l'événement de clic pour accepter une demande d'ami.
+	 *
+	 * Empêche le comportement par défaut de l'événement, vérifie si l'utilisateur cible existe,
+	 * envoie une requête pour accepter l'ami via l'API, et affiche une alerte en cas d'erreur.
+	 * Si la demande réussit, rafraîchit les boutons d'amis via le service de notification
+	 * et log l'action dans la console.
+	 *
+	 * @param event - L'événement souris déclenché par le clic sur le bouton d'acceptation.
+	 * @returns Une promesse qui se résout lorsque la demande d'ami a été traitée.
+	 */
 	private acceptFriendClick = async (event: MouseEvent): Promise<void> => {
 		event.preventDefault();
 		if (!this.user) {
@@ -290,10 +322,22 @@ export class UserRowComponent extends BaseComponent {
 			showAlert(res.errorMessage, `alert-${this.user.id}`, 'error');
 			return;
 		}
-		await this.toggleFriendButton();
+		const data = {action: FRIEND_REQUEST_ACTIONS.ACCEPT, from: this.currentUser.id, to: this.user.id};
+		await notifService.refreshFriendButtons(data, this);
 		console.log(`Friend request accepted for ${this.user.username}`);
 	}
 
+	/**
+	 * Gère l'événement de clic pour bloquer un ami.
+	 * 
+	 * Empêche le comportement par défaut de l'événement, vérifie si l'utilisateur cible existe,
+	 * envoie une requête pour bloquer l'ami via l'API, et affiche une alerte en cas d'erreur.
+	 * Si la demande réussit, rafraîchit les boutons d'amis via le service de notification
+	 * et log l'action dans la console.
+	 *
+	 * @param event - L'événement souris déclenché par le clic sur le bouton de blocage.
+	 * @returns Une promesse qui se résout lorsque l'opération de blocage est terminée.
+	 */
 	private blockFriendClick = async (event: MouseEvent): Promise<void> => {
 		event.preventDefault();
 		if (!this.user) {
@@ -304,10 +348,22 @@ export class UserRowComponent extends BaseComponent {
 			showAlert(res.errorMessage, `alert-${this.user.id}`, 'error');
 			return;
 		}
-		await this.toggleFriendButton();
+		const data = {action: FRIEND_REQUEST_ACTIONS.BLOCK, from: this.currentUser.id, to: this.user.id};
+		await notifService.refreshFriendButtons(data, this);
 		console.log(`Friend ${this.user.username} blocked`);
 	}
 
+	/**
+	 * Gère l'événement de clic pour débloquer un ami.
+	 *
+	 * Empêche le comportement par défaut de l'événement, vérifie si l'utilisateur cible existe,
+	 * envoie une requête pour débloquer l'ami via l'API, et affiche une alerte en cas d'erreur.
+	 * Si la demande réussit, rafraîchit les boutons d'amis via le service de notification
+	 * et log l'action dans la console.
+	 *
+	 * @param event - L'événement souris déclenché par le clic sur le bouton de déblocage.
+	 * @returns Une promesse qui se résout lorsque l'opération de déblocage est terminée.
+	 */
 	private unblockFriendClick = async (event: MouseEvent): Promise<void> => {
 		event.preventDefault();
 		if (!this.user) {
@@ -318,10 +374,22 @@ export class UserRowComponent extends BaseComponent {
 			showAlert(res.errorMessage, `alert-${this.user.id}`, 'error');
 			return;
 		}
-		await this.toggleFriendButton();
+		const data = {action: FRIEND_REQUEST_ACTIONS.ACCEPT, from: this.currentUser.id, to: this.user.id};
+		await notifService.refreshFriendButtons(data, this);
 		console.log(`Friend request sent to ${this.user.username}`);
 	}
 
+	/**
+	 * Gère l'annulation d'une demande d'ami lors du clic sur le bouton correspondant.
+	 * 
+	 * Empêche le comportement par défaut de l'événement, vérifie si l'utilisateur cible existe,
+	 * et tente de supprimer la demande d'ami via l'API. En cas d'erreur, affiche une alerte
+	 * avec le message d'erreur. En cas de succès, met à jour l'interface utilisateur
+	 * en rafraîchissant les boutons d'amis et log l'annulation dans la console.
+	 * 
+	 * @param event - L'événement souris déclenché par le clic sur le bouton d'annulation de la demande d'ami.
+	 * @returns Une promesse qui se résout lorsque l'opération est terminée.
+	 */
 	private cancelFriendRequestClick = async (event: MouseEvent): Promise<void> => {
 		event.preventDefault();
 		if (!this.user) {
@@ -332,7 +400,8 @@ export class UserRowComponent extends BaseComponent {
 			showAlert(res.errorMessage, `alert-${this.user.id}`, 'error');
 			return;
 		}
-		await this.toggleFriendButton();
+		const data = {action: FRIEND_REQUEST_ACTIONS.DELETE, from: this.currentUser.id, to: this.user.id};
+		await notifService.refreshFriendButtons(data, this);
 		console.log(`Friend request canceled for ${this.user!.username}`);
 	}
 

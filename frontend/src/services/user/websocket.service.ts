@@ -1,4 +1,4 @@
-import { currentService, dataService } from "./user.service";
+import { currentService, notifService } from "./user.service";
 
 export class WebSocketService {
 	private webSocket: WebSocket | undefined;
@@ -18,9 +18,9 @@ export class WebSocketService {
 		this.webSocket.onmessage = async (event) => {
 			try {
 				const data = JSON.parse(event.data);
-				if (dataService.isFriendRequest(data)) {
+				if (notifService.isFriendRequest(data)) {
 					console.log("Handling friend request:", data);
-					await dataService.handleFriendRequest(data);
+					await notifService.handleFriendRequest(data);
 				}
 			} catch (err) {
 				console.error("Erreur de parsing WebSocket message :", err);

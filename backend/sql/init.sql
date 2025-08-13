@@ -25,6 +25,17 @@ CREATE TABLE IF NOT EXISTS User (
 	code_2FA_expire_at INTEGER
 );
 
+-- Notif -> pour gerer les notifications
+CREATE TABLE IF NOT EXISTS Notif (
+	id INTEGER PRIMARY KEY AUTOINCREMENT,
+	sender_id INTEGER NOT NULL,
+	receiver_id INTEGER NOT NULL,                                                   
+	created_at DATETIME NOT NULL DEFAULT (datetime('now')),
+	content TEXT NOT NULL,													
+	FOREIGN KEY (sender_id) REFERENCES User(id),
+	FOREIGN KEY (receiver_id) REFERENCES User(id)
+);
+
 -- Game -> donnees propre au jeu
 CREATE TABLE IF NOT EXISTS Game (
 	id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -38,24 +49,24 @@ CREATE TABLE IF NOT EXISTS Game (
 
 -- User_Game : resultat entre user et game 
 CREATE TABLE IF NOT EXISTS User_Game (
-	Game_id INTEGER NOT NULL,												-- necessaire pour ensuite faire les foreign key et relier les tables entre elles
-	User_id INTEGER NOT NULL,
+	game_id INTEGER NOT NULL,												-- necessaire pour ensuite faire les foreign key et relier les tables entre elles
+	user_id INTEGER NOT NULL,
 	status_win INTEGER DEFAULT 0 NOT NULL CHECK (status_win IN (0, 1)),		-- 0 = perdu 1 = gagne (pas de NULL car on ne peut pas avoir un jeu sans resultat)
 	duration INTEGER NOT NULL,												-- Duree du jeu (pas en DATETIME car DATETIME = une date + heure))
-	FOREIGN KEY (Game_id) REFERENCES Game(id) ON DELETE CASCADE,			-- ON DELETE CASCADE: si le jeu est supprime on supprime le resultat du jeu
-	FOREIGN KEY (User_id) REFERENCES User(id),								-- pas de DELETE CASCADE ici pour garder les stats du user (pour ses partenaires par exemple)
-	PRIMARY KEY (Game_id, User_id)											-- un element pour chaque user qui a participe au meme jeu
+	FOREIGN KEY (game_id) REFERENCES Game(id) ON DELETE CASCADE,			-- ON DELETE CASCADE: si le jeu est supprime on supprime le resultat du jeu
+	FOREIGN KEY (user_id) REFERENCES User(id),								-- pas de DELETE CASCADE ici pour garder les stats du user (pour ses partenaires par exemple)
+	PRIMARY KEY (Game_id, user_id)											-- un element pour chaque user qui a participe au meme jeu
 );
 
 -- Chat -> pour gerer les messages echanges
 CREATE TABLE IF NOT EXISTS Chat (
 	id INTEGER PRIMARY KEY AUTOINCREMENT,
-	Sender_id INTEGER NOT NULL,
-	Receiver_id INTEGER NOT NULL,                                                   
+	sender_id INTEGER NOT NULL,
+	receiver_id INTEGER NOT NULL,                                                   
 	time_send DATETIME NOT NULL DEFAULT (datetime('now')),
-	message TEXT NOT NULL,													-- si on a bloque la personne
-	FOREIGN KEY (Sender_id) REFERENCES User(id),
-	FOREIGN KEY (Receiver_id) REFERENCES User(id)
+	message TEXT NOT NULL,													
+	FOREIGN KEY (sender_id) REFERENCES User(id),
+	FOREIGN KEY (receiver_id) REFERENCES User(id)
 );
 
 -- liste d amis et status
