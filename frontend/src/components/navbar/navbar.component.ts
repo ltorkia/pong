@@ -9,7 +9,7 @@ import { ComponentConfig } from '../../types/components.types';
 import { getHTMLElementByClass, toggleClass } from '../../utils/dom.utils';
 import { getHTMLElementById, getHTMLAnchorElement, getHTMLElementByTagName } from '../../utils/dom.utils';
 import { ROUTE_PATHS, PROFILE_HTML_ANCHOR } from '../../config/routes.config';
-import { dataApi } from '../../api/index.api';
+import { notifApi } from '../../api/index.api';
 import { DB_CONST } from '../../shared/config/constants.config';
 import { notifService } from '../../services/index.service';
 
@@ -101,22 +101,9 @@ export class NavbarComponent extends BaseComponent {
 		this.mainSection = getHTMLElementByTagName('main');
 	}
 
-	/**
-	 * Méthode de montage du composant de la navbar.
-	 * 
-	 * Affiche ou non le lien Settings en fonction de si l'utilisateur est enregistré via Google.
-	 * Met à jour le lien actif de la navigation au premier chargement de la page.
-	 * Ajoute un margin à la balise 'main' qui correspond à la hauteur de la navbar.
-	 * 
-	 * @returns {Promise<void>} Une promesse qui se résout quand le composant est monté.
-	 */
 	protected async mount(): Promise<void> {
 		this.toggleSettingsLink();
 		this.setActiveLink(this.routeConfig.path);
-		if (this.notifsCounter.textContent != '0'
-			&& this.notifsCounter.classList.contains('hide')) {
-			this.notifsCounter.classList.remove('hide');
-		}
 		this.mainSection.classList.add('mt-main');
 	}
 
@@ -291,49 +278,22 @@ export class NavbarComponent extends BaseComponent {
 		}
 	};
 
-	/**
-	 * Bascule la visibilité du menu des notifications et met à jour l'état des notifications.
-	 *
-	 * - S'il n'y a aucune notification, ajoute une notification par défaut et affiche le menu.
-	 * - Sinon, bascule la visibilité du menu.
-	 * - Si le menu est ouvert et qu'il y a de nouvelles notifications, les marque comme lues,
-	 *   réinitialise le compteur de notifications et le masque.
-	 *
-	 * @param event - L'événement de souris déclenché par l'interaction utilisateur.
-	 * @returns Une promesse qui se résout lorsque l'opération de bascule est terminée.
-	 */
 	private toggleNotifsMenu = async (event: MouseEvent): Promise<void> => {
-		notifService.displayNotifsFromDb(this);
-		
 		const allNotifs = this.notifsWindow.querySelectorAll('.notif-item');
-		if (!allNotifs || allNotifs.length === 0) {
-			notifService.addNewNotification(this);
-			toggleClass(this.notifsWindow, 'flex', 'hidden');
-			return;
-		}
 		const defaultNotif = this.notifsWindow.querySelector('.default-notif');
-		if (defaultNotif) {
+		if (allNotifs && allNotifs.length > 0 && defaultNotif) {
 			defaultNotif.remove();
 		}
 		const allNewNotifs = this.notifsWindow.querySelectorAll('.new-notif');
 		toggleClass(this.notifsWindow, 'flex', 'hidden');
 		if (this.notifsWindow.classList.contains('hidden') 
 			&& allNewNotifs && allNewNotifs.length > 0) {
-			this.notifsCounter.textContent = '0';
-			allNewNotifs.forEach(notif => {
+			notifService.updateNotifsCounter(true);
+			for (const notif of allNewNotifs) {
 				notif.classList.remove('new-notif');
-			});
-
-			const addNotifDb = await dataApi.addNotification(socketType);
-			if (addNotifDb.errorMessage) {
-				console.error(addNotifDb.errorMessage);
-				return;
-			}
-			console.log('Notif lue ajoutée en bdd:', addNotifDb);
-			await dataApi.updateNotification(socketType);
-
-			if (!this.notifsCounter.classList.contains('hidden')) {
-				this.notifsCounter.classList.add('hidden');
+				const notifId = Number(notif.id.replace("notif-", ""));
+				await notifApi.updateNotifStatus(notifId);
+				console.log('Notif mise à jour')
 			}
 		}
 	}

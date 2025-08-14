@@ -28,13 +28,14 @@ CREATE TABLE IF NOT EXISTS User (
 -- Notif -> pour gerer les notifications
 CREATE TABLE IF NOT EXISTS Notif (
 	id INTEGER PRIMARY KEY AUTOINCREMENT,
-	sender_id INTEGER NOT NULL,
-	receiver_id INTEGER NOT NULL,                                                   
+	"from" INTEGER NOT NULL,
+	"to" INTEGER NOT NULL,
+	type TEXT NOT NULL CHECK (type IN ('add', 'accept', 'delete', 'block')),
 	created_at DATETIME NOT NULL DEFAULT (datetime('now')),
 	content TEXT NOT NULL,
 	status INTEGER DEFAULT 0 NOT NULL CHECK (status IN (0, 1)),													
-	FOREIGN KEY (sender_id) REFERENCES User(id),
-	FOREIGN KEY (receiver_id) REFERENCES User(id)
+	FOREIGN KEY ("from") REFERENCES User(id),
+	FOREIGN KEY ("to") REFERENCES User(id)
 );
 
 -- Game -> donnees propre au jeu

@@ -1,4 +1,6 @@
 import { NotificationModel } from '../types/notification.types';	// en rouge car dossier local 'shared' != dossier conteneur
+import type { FriendRequestAction } from '../types/notification.types';
+import { FRIEND_REQUEST_ACTIONS } from '../config/constants.config';
 
 // ===========================================
 // NOTIFICATIONMODEL
@@ -8,8 +10,9 @@ export class Notification {
 
 	constructor(
 		public id: number,
-		public userId: number,
-		public receiverId: number,
+		public from: number,
+		public to: number,
+		public type: FriendRequestAction,
 		public content: string,
 		public createdAt: string,
 		public status: number
@@ -22,8 +25,9 @@ export class Notification {
 	public toJSON(): NotificationModel {
 		return {
 			id: this.id,
-			userId: this.userId,
-			receiverId: this.receiverId,
+			from: this.from,
+			to: this.to,
+			type: this.type,
 			content: this.content,
 			createdAt: this.createdAt,
 			status: this.status
@@ -36,14 +40,15 @@ export class Notification {
 
 	public static fromJSON(data: Partial<NotificationModel>): Notification {
 
-		if (!data.id) {
-			throw new Error('id manquant dans les données du modèle Notification');
+		if (!data) {
+			throw new Error('Données manquantes pour créer une notification');
 		}
 
 		return new Notification(
 			data.id ?? 0,
-			data.userId ?? 0,
-			data.receiverId ?? 0,
+			data.from ?? 0,
+			data.to ?? 0,
+			data.type ?? FRIEND_REQUEST_ACTIONS.DELETE,
 			data.content ?? '',
 			data.createdAt ?? '',
 			data.status ?? 0

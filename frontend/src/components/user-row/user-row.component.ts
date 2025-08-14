@@ -10,6 +10,8 @@ import { dataService, notifService } from '../../services/index.service';
 import { getHTMLElementByClass, getHTMLElementByTagName, showAlert } from '../../utils/dom.utils';
 import { DB_CONST, FRIEND_REQUEST_ACTIONS } from '../../shared/config/constants.config';
 import { User } from '../../shared/models/user.model';
+import { NotificationModel } from '../../shared/types/notification.types';
+import { FriendRequestAction } from '../../../../shared/types/notification.types';
 
 // ===========================================
 // USER ROW COMPONENT
@@ -28,7 +30,7 @@ import { User } from '../../shared/models/user.model';
  */
 export class UserRowComponent extends BaseComponent {
 	protected user?: User | null = null;
-	private userline!: HTMLDivElement;
+	public userline!: HTMLDivElement;
 	private userCell!: HTMLAnchorElement;
 	private avatarImg!: HTMLImageElement;
 	private nameCell!: HTMLElement;
@@ -260,6 +262,25 @@ export class UserRowComponent extends BaseComponent {
 		return div;
 	}
 
+	/**
+	 * Retourne un modèle de notification pour une action de demande d'ami.
+	 *
+	 * Crée un objet `NotificationModel` contenant les informations nécessaires
+	 * pour une notification liée à une action de demande d'ami. Cet objet
+	 * inclut l'identifiant de l'utilisateur actuel, l'identifiant de l'utilisateur
+	 * cible et le type d'action de la demande d'ami.
+	 *
+	 * @param {FriendRequestAction} type - Le type de l'action de la demande d'ami.
+	 * @returns {NotificationModel} Un objet contenant les informations de la notification.
+	 */
+	private getNotifData(type: FriendRequestAction): NotificationModel {
+		return {
+			from: this.currentUser.id,
+			to: this.user!.id,
+			type: type
+		}
+	}
+
 	// ===========================================
 	// LISTENER HANDLERS
 	// ===========================================
@@ -296,8 +317,9 @@ export class UserRowComponent extends BaseComponent {
 			showAlert(res.errorMessage, `alert-${this.user.id}`, 'error');
 			return;
 		}
-		const data = {action: FRIEND_REQUEST_ACTIONS.ADD, from: this.currentUser.id, to: this.user.id};
-		await notifService.refreshFriendButtons(data, this);
+		const data: NotificationModel = this.getNotifData(FRIEND_REQUEST_ACTIONS.ADD);
+		notifService.setNotifData(data);
+		await notifService.refreshFriendButtons(this);
 		console.log(`Friend request sent to ${this.user.username}`);
 	}
 
@@ -322,8 +344,9 @@ export class UserRowComponent extends BaseComponent {
 			showAlert(res.errorMessage, `alert-${this.user.id}`, 'error');
 			return;
 		}
-		const data = {action: FRIEND_REQUEST_ACTIONS.ACCEPT, from: this.currentUser.id, to: this.user.id};
-		await notifService.refreshFriendButtons(data, this);
+		const data: NotificationModel = this.getNotifData(FRIEND_REQUEST_ACTIONS.ACCEPT);
+		notifService.setNotifData(data);
+		await notifService.refreshFriendButtons(this);
 		console.log(`Friend request accepted for ${this.user.username}`);
 	}
 
@@ -348,8 +371,9 @@ export class UserRowComponent extends BaseComponent {
 			showAlert(res.errorMessage, `alert-${this.user.id}`, 'error');
 			return;
 		}
-		const data = {action: FRIEND_REQUEST_ACTIONS.BLOCK, from: this.currentUser.id, to: this.user.id};
-		await notifService.refreshFriendButtons(data, this);
+		const data: NotificationModel = this.getNotifData(FRIEND_REQUEST_ACTIONS.BLOCK);
+		notifService.setNotifData(data);
+		await notifService.refreshFriendButtons(this);
 		console.log(`Friend ${this.user.username} blocked`);
 	}
 
@@ -374,8 +398,9 @@ export class UserRowComponent extends BaseComponent {
 			showAlert(res.errorMessage, `alert-${this.user.id}`, 'error');
 			return;
 		}
-		const data = {action: FRIEND_REQUEST_ACTIONS.ACCEPT, from: this.currentUser.id, to: this.user.id};
-		await notifService.refreshFriendButtons(data, this);
+		const data: NotificationModel = this.getNotifData(FRIEND_REQUEST_ACTIONS.ACCEPT);
+		notifService.setNotifData(data);
+		await notifService.refreshFriendButtons(this);
 		console.log(`Friend request sent to ${this.user.username}`);
 	}
 
@@ -400,8 +425,9 @@ export class UserRowComponent extends BaseComponent {
 			showAlert(res.errorMessage, `alert-${this.user.id}`, 'error');
 			return;
 		}
-		const data = {action: FRIEND_REQUEST_ACTIONS.DELETE, from: this.currentUser.id, to: this.user.id};
-		await notifService.refreshFriendButtons(data, this);
+		const data: NotificationModel = this.getNotifData(FRIEND_REQUEST_ACTIONS.DELETE);
+		notifService.setNotifData(data);
+		await notifService.refreshFriendButtons(this);
 		console.log(`Friend request canceled for ${this.user!.username}`);
 	}
 

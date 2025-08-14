@@ -1,7 +1,3 @@
-import { FastifyInstance } from 'fastify';
-import { UserWS } from '../types/user.types';
-import { FriendRequest } from '../shared/types/websocket.types';
-
 /**
  * Sanitize un terme de recherche.
  *
@@ -20,20 +16,4 @@ export function sanitizeSearchTerm(term: unknown): string {
 		return '';
 	}
 	return term.trim().slice(0, 100);
-}
-
-/**
- * Envoie un message à un utilisateur connecté via WebSockets.
- * La clé "to" du objet data est utilisée pour identifier l'utilisateur ciblé.
- * Si l'utilisateur est connecté, alors le message est envoyé via WebSockets.
- * @param app - L'instance de l'application Fastify.
- * @param data - L'objet contenant les données à envoyer.
- */
-export function sendToSocket(app: FastifyInstance, data: any): void {
-	console.log("!!!!!!! Sending data to user via WebSocket:", data);
-	const userWS: UserWS | undefined = app.usersWS.find((user: UserWS) => user.id == data.to);
-	if (userWS) {
-		console.log("→ Envoi WS vers", userWS.id, ":", JSON.stringify(data));
-		userWS.WS.send(JSON.stringify(data));
-	}
 }

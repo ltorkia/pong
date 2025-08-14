@@ -1,5 +1,4 @@
 import { Player } from './game.types'
-import { FRIEND_REQUEST_ACTIONS } from '../config/constants.config';
 
 export type startGame = {
 	type: "start",
@@ -11,12 +10,3 @@ export type TournamentLobbyUpdate = {
 	type: "tournament_lobby_update",
 	players: Player[],
 }
-
-export type FriendRequest = {
-	action: FriendRequestAction,
-	from: number,
-	to: number,
-	content?: string
-}
-export type FriendRequestAction =
-	typeof FRIEND_REQUEST_ACTIONS[keyof typeof FRIEND_REQUEST_ACTIONS];

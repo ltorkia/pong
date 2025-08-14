@@ -2,7 +2,7 @@ import { particlesService, animationService, notifService } from '../index.servi
 import { getHTMLElementById } from '../../utils/dom.utils';
 import { APP_ID } from '../../config/routes.config';
 import { RouteConfig, PageInstance } from '../../types/routes.types';
-import { HTML_COMPONENT_CONTAINERS } from '../../config/components.config';
+import { COMPONENT_NAMES, HTML_COMPONENT_CONTAINERS } from '../../config/components.config';
 
 // ===========================================
 // PAGE SERVICE
@@ -52,7 +52,9 @@ export class PageService {
 		await animationService.pageTransitionIn(appDiv);
 		await this.currentPage.render();
 		await this.checkNavbarAnimationOut(navbarDiv);
-		notifService.init(this.currentPage);
+		if (this.currentPage.config.components
+			&& COMPONENT_NAMES.NAVBAR in this.currentPage.config.components)
+			await notifService.init(this.currentPage);
 	}
 
 	/**

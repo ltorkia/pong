@@ -1,11 +1,9 @@
 import { User } from '../../shared/models/user.model';
 import { Game } from '../../shared/models/game.model';
 import { Friend } from '../../shared/models/friend.model';
-import { Notification } from '../../shared/models/notification.model';
 import { SafeUserModel, PaginatedUsers } from '../../shared/types/user.types';	// en rouge car dossier local 'shared' != dossier conteneur
 import { FriendModel } from '../../shared/types/friend.types';	// en rouge car dossier local 'shared' != dossier conteneur
 import { GameModel } from '../../shared/types/game.types';	// en rouge car dossier local 'shared' != dossier conteneur
-import { NotificationModel } from '../../shared/types/notification.types';	// en rouge car dossier local 'shared' != dossier conteneur
 import { dataService, currentService } from '../../services/index.service';
 import { secureFetch } from '../../utils/app.utils';
 import { BasicResponse, AuthResponse } from '../../types/api.types';
@@ -164,52 +162,6 @@ export class DataApi {
 		}
 		const data: GameModel[] = await res.json();
 		return Game.fromJSONArray(data) as Game[];
-	}
-
-	/**
-	 * Récupère la liste des notifications d'un utilisateur.
-	 *
-	 * Envoie une requête GET à la route API `/users/:id/notifs` pour récupérer
-	 * les informations des notifications de l'utilisateur d'identifiant `id`.
-	 *
-	 * Si la requête réussit, renvoie un tableau d'instances `Notification`
-	 * contenant les informations des notifications de l'utilisateur stockées en base de données.
-	 * Sinon, lève une erreur.
-	 *
-	 * @param {number} id Identifiant de l'utilisateur pour lequel récupérer la liste des notifications.
-	 * @returns {Promise<Notification>} Promesse qui se résout avec un tableau d'instances `Notification`.
-	 */
-	public async getUserNotifications(id: number): Promise<Notification> {
-		const res: Response = await secureFetch(`/api/users/${id}/notifs`, { method: 'GET' });
-		if (!res.ok) {
-			throw new Error('Erreur de l\'API');
-		}
-		const data: NotificationModel[] = await res.json();
-		return Notification.fromJSONArray(data) as Notification[];
-	}
-
-	/**
-	 * Récupère une notification par son identifiant.
-	 *
-	 * Envoie une requête GET à la route API `/users/:userId/notifs?id=:notifId` pour
-	 * récupérer les informations de la notification d'identifiant `notifId` de l'utilisateur
-	 * d'identifiant `userId`.
-	 *
-	 * Si la requête réussit, renvoie l'instance `Notification` contenant les informations
-	 * de la notification stockée en base de données.
-	 * Sinon, lève une erreur.
-	 *
-	 * @param {number} userId Identifiant de l'utilisateur pour lequel récupérer la notification.
-	 * @param {number} notifId Identifiant de la notification à récupérer.
-	 * @returns {Promise<Notification>} Promesse qui se résout avec l'instance `Notification`.
-	 */
-	public async getNotificationById(userId: number, notifId: number): Promise<Notification> {
-		const res: Response = await secureFetch(`/api/users/${userId}/notifs?id=${notifId}`, { method: 'GET' });
-		if (!res.ok) {
-			throw new Error('Erreur de l\'API');
-		}
-		const data: NotificationModel = await res.json();
-		return Notification.fromJSON(data) as Notification;
 	}
 
 	// ===========================================
@@ -376,61 +328,6 @@ export class DataApi {
 			method: 'DELETE',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({ friendId })
-		});
-		const data: BasicResponse = await res.json();
-		if (!res.ok || data.errorMessage) {
-			return { errorMessage: data.errorMessage || 'Erreur lors de la suppression d\'ami' };
-		}
-		return data as BasicResponse;
-	}
-
-	// ===========================================
-	// NOTIFICATION PUT REQUESTS - DATABASE UPDATE
-	// ===========================================
-
-	/**
-	 * Envoie une requête POST à la route API `/users/:userId/notifs/add` pour envoyer
-	 * une notification à l'utilisateur d'identifiant `receiverId` provenant de l'utilisateur
-	 * d'identifiant `userId`.
-	 * 
-	 * Si la requête réussit, renvoie un objet contenant les informations de l'opération.
-	 * Sinon, renvoie un objet contenant un message d'erreur.
-	 * 
-	 * @param {any} notifData - Objet contenant les données de la notification.
-	 * @returns {Promise<BasicResponse>} Promesse qui se résout avec les informations
-	 * de l'opération ou un message d'erreur.
-	 */
-	public async addNotification(notifData: any): Promise<BasicResponse> {
-		const res: Response = await secureFetch(`/api/users/${notifData.userId}/notifs/add`, {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify(notifData)
-		});
-		const data: BasicResponse = await res.json();
-		if (!res.ok || data.errorMessage) {
-			return { errorMessage: data.errorMessage || 'Erreur lors de la suppression d\'ami' };
-		}
-		return data as BasicResponse;
-	}
-
-	/**
-	 * Met à jour une notification.
-	 * 
-	 * Envoie une requête POST à la route API `/users/:notifId/notifs/update` pour
-	 * mettre à jour la notification d'identifiant `notifId` pour passer du statut unread vers read.
-	 * 
-	 * Si la requête réussit, renvoie un objet contenant les informations de l'opération.
-	 * Sinon, renvoie un objet contenant un message d'erreur.
-	 * 
-	 * @param {number} notifId - Identifiant de la notification à mettre à jour.
-	 * @returns {Promise<BasicResponse>} Promesse qui se résout avec les informations
-	 * de l'opération ou un message d'erreur.
-	 */
-	public async updateNotification(notifId: number): Promise<BasicResponse> {
-		const res: Response = await secureFetch(`/api/users/${notifId}/notifs/update`, {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify(notifId)
 		});
 		const data: BasicResponse = await res.json();
 		if (!res.ok || data.errorMessage) {
