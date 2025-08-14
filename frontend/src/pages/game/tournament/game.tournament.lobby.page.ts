@@ -17,8 +17,8 @@ export class GameTournamentLobby extends BasePage {
     private pastilleHTML: Node;
     private dataApi: DataService = new DataService();
     private gridRowStyle: string = "";
-    private leavingPage: boolean = false;
-    private beaconSent: boolean = false;
+    // private leavingPage: boolean = false;
+    // private beaconSent: boolean = false;
     private ready: boolean = false;
 
     constructor(config: RouteConfig) {
@@ -164,10 +164,11 @@ export class GameTournamentLobby extends BasePage {
     }
 
     private async appendPlayerPastille(player: Player): Promise<void> {
-        const res = await fetch(`/api/users/${player.ID}`)
-        if (!res.ok)
-            return console.error("User fetch failed");
-        const user: UserModel = await res.json();
+        // const res = await fetch(`/api/users/${player.ID}`)
+        // if (!res.ok)
+        //     return console.error("User fetch failed");
+        // const user: UserModel = await res.json();
+        const user: UserModel = await TournamentService.fetchUser(player.ID);
         const pastille = this.pastilleHTML.cloneNode(true) as HTMLElement;
         const h2 = pastille.querySelector("h2");
         if (player.alias)

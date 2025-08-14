@@ -8,16 +8,20 @@ export class Tournament implements TournamentInterface {
     ID: number;
     masterPlayerID?: number;
     isStarted?: boolean;
-    games?: GameInterface[] | undefined;
+    stageOneGames?: GameInterface[] | undefined;
+    stageTwoGames?: GameInterface[] | undefined;
     players?: Player[]
 
-    constructor(name: string, maxPlayers: number, ID: number, masterPlayerID?: number, games?: Game[], isStarted?: boolean, players?: Player[]) {
+    constructor(name: string, maxPlayers: number, ID: number, masterPlayerID?: number, 
+        stageOneGames?: Game[], stageTwoGames?: Game[], 
+            isStarted?: boolean, players?: Player[]) {
         this.name = name;
         this.maxPlayers = maxPlayers;
         this.ID = ID;
         this.masterPlayerID = masterPlayerID ?? 0;
         this.isStarted = isStarted ?? true;
-        this.games = games ?? undefined;
+        this.stageOneGames = stageOneGames ?? undefined;
+        this.stageTwoGames = this.stageTwoGames ?? undefined;
         this.players = players
     }
 }
@@ -27,12 +31,14 @@ export class Game implements GameInterface {
     players: Player[];
     playersCount: number;
     gameStarted: boolean;
+    isOver: boolean;
     score: number[];
 
-    constructor(players: Player[], playersCount: number, gameStarted: boolean, score: number[]) {
+    constructor(players: Player[], playersCount: number, gameStarted: boolean, isOver: boolean, score: number[]) {
         this.players = players;
         this.playersCount = playersCount;
         this.gameStarted = gameStarted;
         this.score = score;
+        this.isOver = isOver;
     }
 }

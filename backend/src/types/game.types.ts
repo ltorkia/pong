@@ -88,6 +88,7 @@ export class Game {
     private ball = new Ball();
     private playersCount: number = 0;
     private gameStarted: boolean = false;
+    private isOver: boolean = false;
     private score: number[] = [];
 
     constructor(playersCount: number, players: Player[]) {
@@ -171,6 +172,7 @@ export class Game {
     public endGame(): void {
         console.log("coucou end !");
         this.gameStarted = false;
+        this.isOver = true;
         for (const player of this.players) {
             if (player.webSocket)
                 player.webSocket.send(JSON.stringify({
@@ -207,7 +209,8 @@ export class Tournament {
     public masterPlayerID?: number;
     public isStarted?: boolean;
     public players: Player[] = [];
-    public games: Game[] = [];
+    public stageOneGames: Game[] = [];
+    public stageTwoGames: Game[] = [];
 
     constructor(name: string, maxPlayers: number, ID?: number, masterPlayerID?: number, isStarted?: boolean) {
         this.name = name;
@@ -219,10 +222,11 @@ export class Tournament {
 
     public startTournament(): void {
         shuffleArray(this.players);
-        for (let i = 0; i < this.players.length; i++) {
-            const newGame = new Game(2, [this.players[i], this.players[i + 1]]);
-            this.games.push(newGame);
-            i += 2;
+        let playerIdx = 0;
+        for (let i = 0; i < 2; i++) {
+            const newGame = new Game(2, [this.players[playerIdx], this.players[playerIdx + 1]]);
+            this.stageOneGames.push(newGame);
+            playerIdx += 2;
         }
     }
 }

@@ -1,4 +1,5 @@
 // import { Tournament } from "../../../../shared/types/game.types";
+import { UserModel } from '../../../../../shared/types/user.types';
 import { TournamentLobbyUpdate, PlayerReadyUpdate, DismantleTournament, StartTournament } from "../../shared/websocket.types";
 import { Tournament } from "../../types/game.types";
 
@@ -127,7 +128,8 @@ export class TournamentAPI {
                 tournamentJSON.maxPlayers,
                 tournamentJSON.ID,
                 tournamentJSON?.masterPlayerID,
-                tournamentJSON?.games,
+                tournamentJSON?.stageOneGames,
+                tournamentJSON?.stageTwoGames,
                 tournamentJSON?.isStarted,
                 tournamentJSON?.players
             );
@@ -137,4 +139,13 @@ export class TournamentAPI {
         }
     }
 
+    public async fetchUser(userID: number): Promise<UserModel | undefined> {
+        const res = await fetch(`/api/users/${userID}`)
+        if (res.ok) {
+            const user: UserModel = await res.json();
+            return user;
+        }
+            console.error("User fetch failed");
+            return undefined;
+    }
 }

@@ -25,7 +25,7 @@ export async function gameRoutes(app: FastifyInstance) {
         if (playerTwo) {
             startGame(app, [newPlayer, playerTwo]);
         }
-    })
+    });
 };
 
 const startGame = (app: FastifyInstance, players: Player[]) => {

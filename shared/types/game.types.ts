@@ -71,6 +71,7 @@ export interface GameInterface {
     players: Player[];
     playersCount: number;
     gameStarted: boolean;
+    isOver: boolean;
     score: number[];
 }
 
