@@ -12,7 +12,8 @@ const MIN_PLAYERS = 4;
 
 export class GameTournamentOverview extends BasePage {
     private tournamentID: number;
-    private pastilleHTML: Node | undefined;
+    private pastilleHTML: HTMLElement | undefined;
+    private toolTipHTML: HTMLElement | undefined;
     private tournament: Tournament | undefined;
     private dataApi = new DataService();
     private users: UserModel[] = [];
@@ -24,21 +25,28 @@ export class GameTournamentOverview extends BasePage {
             console.error("Tournament not found");
             router.navigate("/game/tournaments");
         }
-        await this.fetchPastille();
+        this.pastilleHTML = await this.fetchHTML("../../../../public/templates/game/tournament_pastille.html", "#tournament-pastille");
+        this.toolTipHTML = await this.fetchHTML("../../../../public/templates/game/tournament_tooltip.html", "#tooltip");
         await this.fetchUsers();
         console.log(this.tournament);
     }
 
-    private async fetchPastille(): Promise<void> {
-        const response = await fetch("../../../../public/templates/game/tournament_pastille.html");
-        if (!response)
-            return console.error("fetch pastille failed");
+    private async fetchHTML(src: string, idTopContainer: string): Promise<HTMLElement | undefined> {
+        const response = await fetch(src);
+        if (!response) {
+            console.error("fetch pastille failed");
+            return undefined;
+        }
         const html = await response.text();
         const parser = new DOMParser();
         const doc = parser.parseFromString(html, "text/html");
-        const pastilleDiv = doc.querySelector("#tournament-pastille");
-        if (pastilleDiv)
-            this.pastilleHTML = pastilleDiv.cloneNode(true);
+        const div = doc.querySelector(idTopContainer);
+        if (div)
+            return div.cloneNode(true) as HTMLElement;
+        else {
+            console.error("didnt find top container");
+            return undefined;
+        }
     }
 
     constructor(config: RouteConfig) {
@@ -61,6 +69,12 @@ export class GameTournamentOverview extends BasePage {
         await this.displayStage(this.tournament?.stageTwoGames!, 2, secondStage);
         await this.displayStage(this.tournament?.stageOneGames!, 4, firstStage);
         await this.displayWinner();
+
+        const allPastilles = document.querySelectorAll("#tournament-pastille");
+        for (const pastille of allPastilles) {
+            pastille.classList.remove("opacity-0");
+            pastille.classList.add("opacity-100");
+        }
     }
 
     private async displayWinner(): Promise<void> {
@@ -78,28 +92,57 @@ export class GameTournamentOverview extends BasePage {
 
     private async displayStage(stage: Game[], playerNb: number, container: HTMLElement): Promise<void> {
         for (let i = 0; i < playerNb / 2; i++) {
-            for (let j = 0; j < 2; j++) { 
+            const div = document.createElement("div");
+            div.id = "match-container";
+            div.classList.add("relative");
+            // div.dataset
+            for (let j = 0; j < 2; j++) {
                 const playerPastille = this.pastilleHTML?.cloneNode(true) as HTMLElement;
                 if (stage && stage[i]) {
                     const player = stage[i].players[j];
                     const user = this.users.find((u: UserModel) => u.id == player.ID)
                     playerPastille.querySelector("#pastille-name")!.textContent = user!.username;
+                    playerPastille.dataset.id = user?.id.toString();
                     const img = playerPastille.querySelector("#user-avatar") as HTMLImageElement;
                     img.src = await this.dataApi.getUserAvatarURL(user);
                 } else {
                     playerPastille.textContent = "?";
                 }
-                container.append(playerPastille);
+                div.append(playerPastille);
             }
+            container.append(div);
+            const newTooltip = this.toolTipHTML?.cloneNode(true) as HTMLElement;
+            // newTooltip!.style.top = div.getBoundingClientRect().top.toString();
+            // newTooltip!.style.left = div.getBoundingClientRect().left.toFixed(0).toString() + "px";
+            div.append(newTooltip);
         }
     }
 
 
     protected async mount(): Promise<void> {
-        this.displayTournament();
+        await this.displayTournament();
+        // await this.attachPastilleListeners();
+    }
+
+    private getGameByPlayerID(id: number, stage: Game[]): Game | undefined {
+        return stage.find((game: Game) => game.players.find((p: Player) => p.ID == id));
     }
 
 
     protected attachListeners(): void {
+        const allMatches = document.querySelectorAll("#match-container");
+        
+        for (const match of allMatches) {
+            const tooltip = match.querySelector("#tooltip");
+            match.addEventListener("mouseenter", (event) => {
+                tooltip!.classList.remove("opacity-0", "pointer-events-none");
+                tooltip!.classList.add("opacity-90");
+                tooltip?.querySelector("h2");
+            });
+            match.addEventListener("mouseleave", () => {
+                tooltip?.classList.remove("opacity-90");
+                tooltip?.classList.add("opacity-0", "pointer-events-none");
+            })
+        }
     }
 }
