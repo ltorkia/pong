@@ -51,12 +51,12 @@ export async function getNotification(notifId: number): Promise<NotificationMode
  * Une notification jumelle est une notification qui a les mêmes expéditeurs et
  * destinataires, ainsi que le même type, que la notification en paramètre.
  *
- * @param {NotificationInput} notifData - La notification qui sert de base pour
+ * @param {NotificationModel} notifData - La notification qui sert de base pour
  * la recherche des notifications jumelles.
  * @returns {Promise<NotificationModel[]>} Promesse qui se résout avec un tableau
  * contenant les notifications jumelles.
  */
-export async function getTwinNotifications(notifData: NotificationInput): Promise<NotificationModel[]> {
+export async function getTwinNotifications(notifData: NotificationModel): Promise<NotificationModel[]> {
 	const db = await getDb();
 	const notifs = await db.all(`
 		SELECT n.id, n."from", n."to", n.type, n.content, n.created_at, n.status
@@ -93,7 +93,7 @@ export async function insertNotification(notifData: NotificationInput) {
 			[notifData.from, notifData.to, notifData.type, notifData.content]
 		);
 
-		const insertedNotif = await getNotification(result.lastID);
+		const insertedNotif = await getNotification(result.lastID!);
 		return {
 			statusCode: 201,
 			data: snakeToCamel(insertedNotif) as NotificationModel
@@ -130,7 +130,7 @@ export async function updateNotification(notifId: number, notifData: Notificatio
 			[notifData.type, notifData.content, notifId]
 		);
 
-		const updatedNotif = await getNotification(result.lastID);
+		const updatedNotif = await getNotification(result.lastID!);
 		return {
 			statusCode: 201,
 			data: snakeToCamel(updatedNotif) as NotificationModel

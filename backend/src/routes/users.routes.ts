@@ -17,7 +17,7 @@ import { JwtPayload } from '../types/jwt.types';
 import { checkParsing, isParsingError, adaptBodyForPassword } from '../helpers/types.helpers';
 import { updateFriendProcess, sendToSocket, addNotifContent } from '../helpers/notifications.helpers';
 import { NotificationInput, NotifInput, NotifInputSchema } from '../types/zod/app.zod';
-import { NotificationModel } from '../shared/types/notification.types';
+import { NotificationModel, FriendRequestAction } from '../shared/types/notification.types';
 
 /* ======================== USERS ROUTES ======================== */
 
@@ -151,11 +151,11 @@ export async function usersRoutes(app: FastifyInstance) {
 			from: Number(id),
 			to: friend.id
 		};
-		const notifData: NotificationInput = addNotifContent(friendRequestData);
+		const notifData: NotificationInput = await addNotifContent(friendRequestData);
 		const notif = await insertNotification(notifData);
-		if (!notif || data.errorMessage)
-			return reply.code(500).send({ errorMessage : data.errorMessage || 'Error inserting notification'});
-		sendToSocket(app, [notif]);
+		if (!notif || notif.errorMessage || !notif.data)
+			return reply.code(500).send({ errorMessage : notif.errorMessage || 'Error inserting notification'});
+		sendToSocket(app, [notif.data]);
 
 		return reply.code(200).send({ message : 'Ask to be friend confirmed'});
 	})
@@ -165,7 +165,7 @@ export async function usersRoutes(app: FastifyInstance) {
 		const jwtUser = request.user as JwtPayload;
 		if (id != jwtUser.id)
 			return reply.status(403).send({ errorMessage: 'Forbidden' });
-		const { action } = request.params as { action: string };
+		const { action } = request.params as { action: FriendRequestAction };
 
 		const notifDataCheck = await checkParsing(NotifInputSchema, request.body);
 		if (isParsingError(notifDataCheck))
@@ -180,7 +180,11 @@ export async function usersRoutes(app: FastifyInstance) {
 		const isFriend = friends.some(f => f.id === friend.id);
 		if (!isFriend)
 			return reply.code(404).send({ errorMessage : 'not your friend'});
-		await updateFriendProcess(app, id, friend.id, data, action);
+		const notifData: NotificationModel = await getNotification(data.notifId);
+		if (!notifData)
+			return reply.code(404).send({ errorMessage : 'Notification not found'});
+		await updateFriendProcess(app, id, friend.id, notifData, action);
+		
 		switch (action) {
 			case FRIEND_REQUEST_ACTIONS.ACCEPT:
 				return reply.code(200).send({ message : 'friend accepted'});
@@ -208,7 +212,8 @@ export async function usersRoutes(app: FastifyInstance) {
 		if (isFriend) {
 			await updateRelationshipDelete(id, friend.id);
 			const notifData: NotificationModel = await getNotification(data.notifId);
-			if (notifData.statut === DB_CONST.FRIENDS.STATUS.PENDING) {
+			const friendStatus = friends.find(f => f.id === friend.id)!.friendStatus;
+			if (friendStatus === DB_CONST.FRIENDS.STATUS.PENDING) {
 				await deleteNotification(notifData.id);
 			}
 		} else {
