@@ -127,7 +127,7 @@ export async function getUser2FA(email: string) {
 // pour choper les friends, mais implique qu un element chat soit forcement cree des qu on devient ami
 //  -> comment ajouter un ami ? nouvelle page ?
 //  -> version ou on decide d avoir forcement de cree par defaut une donnee avec le client en tant que sender et receveur
-export async function getUserFriends(userId: number) {
+export async function getUserFriends(userId: number): Promise<FriendModel[]> {
 	const db = await getDb();
 	const friends = await db.all(`
 		SELECT u.id, u.username, u.avatar, u.begin_log, u.end_log, 
@@ -143,7 +143,6 @@ export async function getUserFriends(userId: number) {
 	);
 	return snakeArrayToCamel(friends) as FriendModel[];
 }
-// pour insert : const [u1, u2] = [userIdA, userIdB].sort((a, b) => a - b);
 		
 export async function getUserGames(userId: number) {
 	const db = await getDb();

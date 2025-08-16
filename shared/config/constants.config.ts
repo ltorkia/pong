@@ -1,4 +1,5 @@
 import { UserSortField, SortOrder } from "../types/user.types";
+import { NotificationType } from "../types/notification.types";
 
 // ===========================================
 // CONSTANTS CONFIG
@@ -105,6 +106,15 @@ export const FRIEND_REQUEST_ACTIONS = {
 	DELETE: 'delete',
 	BLOCK: 'block',
 } as const;
+
+
+/**
+ * Liste des types de notification autorisées.
+ */
+export const NOTIFICATION_TYPES: NotificationType[] = [
+	...Object.values(FRIEND_REQUEST_ACTIONS),
+	// à compléter si d'autres types de notifications sont ajoutées
+];
 
 /**
  * Liste des champs de tri et des ordres autorisés

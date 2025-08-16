@@ -1,12 +1,13 @@
 import { User } from '../../shared/models/user.model';
 import { Game } from '../../shared/models/game.model';
 import { Friend } from '../../shared/models/friend.model';
+import { AppNotification } from '../../shared/models/notification.model';
 import { SafeUserModel, PaginatedUsers } from '../../shared/types/user.types';	// en rouge car dossier local 'shared' != dossier conteneur
 import { FriendModel } from '../../shared/types/friend.types';	// en rouge car dossier local 'shared' != dossier conteneur
 import { GameModel } from '../../shared/types/game.types';	// en rouge car dossier local 'shared' != dossier conteneur
 import { dataService, currentService } from '../../services/index.service';
 import { secureFetch } from '../../utils/app.utils';
-import { BasicResponse, AuthResponse } from '../../types/api.types';
+import { UserResponse, FriendResponse } from '../../shared/types/response.types';
 
 // ===========================================
 // DATA API
@@ -65,7 +66,6 @@ export class DataApi {
 		const res: Response = await secureFetch('/api/users', { method: 'GET' });
 		if (!res.ok) {
 			throw new Error('Erreur de l\'API');
-			
 		}
 		const data: SafeUserModel[] = await res.json();
 		return User.fromSafeJSONArray(data) as User[];
@@ -179,20 +179,20 @@ export class DataApi {
 	 *
 	 * @param {number} id Identifiant de l'utilisateur à mettre à jour.
 	 * @param {Record<string, string>} userData Données à mettre à jour.
-	 * @returns {Promise<AuthResponse>} Promesse qui se résout avec un objet User ou un message d'erreur.
+	 * @returns {Promise<UserResponse>} Promesse qui se résout avec un objet User ou un message d'erreur.
 	 */
-	public async updateUser(id: number, userData: Record<string, string>): Promise<AuthResponse> {
+	public async updateUser(id: number, userData: Record<string, string>): Promise<UserResponse> {
 		const res: Response = await secureFetch(`/api/users/${id}/moduser`, {
 			method: 'PUT',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify(userData)
 		});
-		const data: AuthResponse = await res.json();
+		const data: UserResponse = await res.json();
 		if (!res.ok || data.errorMessage || !data.user) {
 			return { errorMessage: data.errorMessage || data.message || 'Erreur lors de la mise à jour' };
 		}
 		await currentService.updateCurrentUser(data.user);
-		return data as AuthResponse;
+		return data as UserResponse;
 	}
 
 /**
@@ -207,10 +207,10 @@ export class DataApi {
  * 
  * @param {number} userId - Identifiant de l'utilisateur à mettre à jour.
  * @param {FormData} formData - Données de l'avatar à mettre à jour.
- * @returns {Promise<AuthResponse>} Promesse qui se résout avec les informations mises à jour de l'utilisateur ou un message d'erreur.
+ * @returns {Promise<UserResponse>} Promesse qui se résout avec les informations mises à jour de l'utilisateur ou un message d'erreur.
  */
 
-	public async updateAvatar(userId: number, formData: FormData): Promise<AuthResponse> {
+	public async updateAvatar(userId: number, formData: FormData): Promise<UserResponse> {
 		const res: Response = await secureFetch(`/api/users/${userId}/moduser/avatar`, {
 			method: 'PUT',
 			body: formData,
@@ -220,7 +220,7 @@ export class DataApi {
 			return { errorMessage: data.errorMessage || 'Erreur lors de la mise à jour' };
 		}			
 		await currentService.updateCurrentUser(data.user);
-		return data as AuthResponse;
+		return data as UserResponse;
 	}
 
 	// ===========================================
@@ -238,20 +238,22 @@ export class DataApi {
 	 * 
 	 * @param {number} userId - Identifiant de l'utilisateur ajoutant un ami.
 	 * @param {number} friendId - Identifiant de l'ami à ajouter.
-	 * @returns {Promise<BasicResponse>} Promesse qui se résout avec les informations
+	 * @returns {Promise<FriendResponse>} Promesse qui se résout avec les informations
 	 * de l'opération ou un message d'erreur.
 	 */
-	public async addFriend(userId: number, friendId: number): Promise<BasicResponse> {
+	public async addFriend(userId: number, friendId: number): Promise<FriendResponse> {
 		const res: Response = await secureFetch(`/api/users/${userId}/friends/add`, {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({ friendId })
 		});
-		const data: BasicResponse = await res.json();
-		if (!res.ok || data.errorMessage) {
+		const data: FriendResponse = await res.json();
+		if (!res.ok || data.errorMessage || !data.relation || !data.notifs) {
 			return { errorMessage: data.errorMessage || 'Erreur lors de l\'ajout d\'ami' };
 		}
-		return data as BasicResponse;
+		data.relation = Friend.fromJSON(data.relation) as FriendModel;
+		data.notifs = AppNotification.fromJSONArray(data.notifs) as AppNotification[];
+		return data as FriendResponse;
 	}
 
 	/**
@@ -266,20 +268,22 @@ export class DataApi {
 	 * 
 	 * @param {number} userId - Identifiant de l'utilisateur acceptant la demande d'amitié.
 	 * @param {number} friendId - Identifiant de l'utilisateur qui a envoyé la demande d'amitié.
-	 * @returns {Promise<BasicResponse>} Promesse qui se résout avec les informations
+	 * @returns {Promise<FriendResponse>} Promesse qui se résout avec les informations
 	 * de l'opération ou un message d'erreur.
 	 */
-	public async acceptFriend(userId: number, friendId: number): Promise<BasicResponse> {
+	public async acceptFriend(userId: number, friendId: number): Promise<FriendResponse> {
 		const res: Response = await secureFetch(`/api/users/${userId}/friends/accept`, {
 			method: 'PUT',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({ friendId })
 		});
-		const data: BasicResponse = await res.json();
-		if (!res.ok || data.errorMessage) {
+		const data: FriendResponse = await res.json();
+		if (!res.ok || data.errorMessage || !data.relation || !data.notifs) {
 			return { errorMessage: data.errorMessage || 'Erreur lors de l\'acceptation d\'ami' };
 		}
-		return data as BasicResponse;
+		data.relation = Friend.fromJSON(data.relation) as FriendModel;
+		data.notifs = AppNotification.fromJSONArray(data.notifs) as AppNotification[];
+		return data as FriendResponse;
 	}
 
 	/**
@@ -293,20 +297,22 @@ export class DataApi {
 	 * 
 	 * @param {number} userId - Identifiant de l'utilisateur bloquant l'ami.
 	 * @param {number} friendId - Identifiant de l'ami à bloquer.
-	 * @returns {Promise<BasicResponse>} Promesse qui se résout avec les informations
+	 * @returns {Promise<FriendResponse>} Promesse qui se résout avec les informations
 	 * de l'opération ou un message d'erreur.
 	 */
-	public async blockFriend(userId: number, friendId: number): Promise<BasicResponse> {
+	public async blockFriend(userId: number, friendId: number): Promise<FriendResponse> {
 		const res: Response = await secureFetch(`/api/users/${userId}/friends/block`, {
 			method: 'PUT',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({ friendId })
 		});
-		const data: BasicResponse = await res.json();
-		if (!res.ok || data.errorMessage) {
-			return { errorMessage: data.errorMessage || 'Erreur lors de la suppression d\'ami' };
+		const data: FriendResponse = await res.json();
+		if (!res.ok || data.errorMessage || !data.relation || !data.notifs) {
+			return { errorMessage: data.errorMessage || 'Erreur lors de l\'acceptation d\'ami' };
 		}
-		return data as BasicResponse;
+		data.relation = Friend.fromJSON(data.relation) as FriendModel;
+		data.notifs = AppNotification.fromJSONArray(data.notifs) as AppNotification[];
+		return data as FriendResponse;
 	}
 
 	/**
@@ -320,19 +326,20 @@ export class DataApi {
 	 * 
 	 * @param {number} userId - Identifiant de l'utilisateur qui supprime l'ami.
 	 * @param {number} friendId - Identifiant de l'ami à supprimer.
-	 * @returns {Promise<BasicResponse>} Promesse qui se résout avec les informations
+	 * @returns {Promise<FriendResponse>} Promesse qui se résout avec les informations
 	 * de l'opération ou un message d'erreur.
 	 */
-	public async removeFriend(userId: number, friendId: number): Promise<BasicResponse> {
+	public async removeFriend(userId: number, friendId: number): Promise<FriendResponse> {
 		const res: Response = await secureFetch(`/api/users/${userId}/friends/delete`, {
 			method: 'DELETE',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({ friendId })
 		});
-		const data: BasicResponse = await res.json();
-		if (!res.ok || data.errorMessage) {
-			return { errorMessage: data.errorMessage || 'Erreur lors de la suppression d\'ami' };
+		const data: FriendResponse = await res.json();
+		if (!res.ok || data.errorMessage || !data.notifs) {
+			return { errorMessage: data.errorMessage || 'Erreur lors de l\'acceptation d\'ami' };
 		}
-		return data as BasicResponse;
+		data.notifs = AppNotification.fromJSONArray(data.notifs) as AppNotification[];
+		return data as FriendResponse;
 	}
 }

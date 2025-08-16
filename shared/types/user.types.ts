@@ -1,5 +1,6 @@
 import { DB_CONST, IMAGE_CONST } from '../config/constants.config';
 import { User } from '../models/user.model';
+import { AppNotification } from '../models/notification.model';
 
 // ===========================================
 // USER TYPES
@@ -7,12 +8,6 @@ import { User } from '../models/user.model';
 /**
  * Ce fichier contient les définitions de types pour représenter les informations relatives
  * à un utilisateur.
- * 
- * Les types définis dans ce fichier servent à définir la structure des données liées
- * à un utilisateur, comme son identifiant, son nom d'utilisateur, son adresse e-mail, etc.
- * 
- * Les types exportés sont utilisés dans les parties de l'application qui ont besoin de
- * connaître les informations relatives à un utilisateur.
  */
 
 /**
@@ -63,6 +58,7 @@ export interface SafeUserModel {
 	isDeleted: number;
 	registerFrom: RegisterMethod;
 	active2Fa: TwoFaMethod;
+	notifications?: AppNotification[];
 }
 
 /**

@@ -221,14 +221,14 @@ export class UsersPage extends BasePage {
 	 * dans la liste des instances de composants stockées et la met
 	 * à jour.
 	 *
-	 * @param {Notification | NotificationModel} data La demande d'amitié reçue ou une notification.
+	 * @param {Notification} data La demande d'amitié reçue ou une notification.
 	 * @param {UserRowComponent} userRowInstance L'instance de UserRowComponent
 	 * à mettre à jour. Si non fourni, cherche l'instance dans la liste
 	 * des instances de composants stockées.
 	 * @returns {Promise<void>} Une promesse qui se résout lorsque les boutons
 	 * d'amitié ont été mis à jour.
 	 */
-	public async updateFriendButtons(data: Notification | NotificationModel, userRowInstance?: UserRowComponent): Promise<void> {
+	public async updateFriendButtons(data: Notification, userRowInstance?: UserRowComponent): Promise<void> {
 		if (!userRowInstance) {
 			const key = `${COMPONENT_NAMES.USER_ROW}-${data.from}`;
 			userRowInstance = this.getComponentInstance!<UserRowComponent>(key);

@@ -181,7 +181,6 @@ app.post('/login', async (request: FastifyRequest, reply: FastifyReply) => {
 			}));
 
         } catch (err) {
-            console.log(err);
             request.log.error(err);
             return reply.status(500).send({
                 statusCode: 500,
@@ -314,7 +313,6 @@ app.post('/login', async (request: FastifyRequest, reply: FastifyReply) => {
 			const avatarUrl = payloadDecoded.picture ?? DB_CONST.USER.DEFAULT_AVATAR;
 			if (avatarUrl != DB_CONST.USER.DEFAULT_AVATAR){
 				const response = await fetch(avatarUrl);
-				console.log(response);
 
 				if (user.avatar != DB_CONST.USER.DEFAULT_AVATAR) //pour supprimer l ancien avatar s'il n est pas celui par defaut
 				{

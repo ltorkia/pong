@@ -3,17 +3,17 @@ import type { FriendRequestAction } from '../types/notification.types';
 import { FRIEND_REQUEST_ACTIONS } from '../config/constants.config';
 
 // ===========================================
-// NOTIFICATIONMODEL
+// APPNOTIFICATION MODEL
 // ===========================================
 
-export class Notification {
+export class AppNotification {
 
 	constructor(
 		public id: number,
 		public from: number,
 		public to: number,
 		public type: FriendRequestAction,
-		public content: string,
+		public content: string | null,
 		public createdAt: string,
 		public status: number
 	) {}
@@ -38,13 +38,13 @@ export class Notification {
 	// MÉTHODE DE DÉSÉRIALISATION (JSON → OBJECT)
 	// ============================================================================
 
-	public static fromJSON(data: Partial<NotificationModel>): Notification {
+	public static fromJSON(data: Partial<NotificationModel>): AppNotification {
 
 		if (!data) {
 			throw new Error('Données manquantes pour créer une notification');
 		}
 
-		return new Notification(
+		return new AppNotification(
 			data.id ?? 0,
 			data.from ?? 0,
 			data.to ?? 0,
@@ -59,11 +59,11 @@ export class Notification {
 	// MÉTHODES STATIQUES SUR TABLEAUX DE NOTIFS
 	// ============================================================================
 
-	public static fromJSONArray(notifs: Partial<NotificationModel>[]): Notification[] {
+	public static fromJSONArray(notifs: Partial<NotificationModel>[]): AppNotification[] {
 		return notifs.map(notif => this.fromJSON(notif));
 	}
 
-	public static toJSONArray(notifs: Notification[]): NotificationModel[] {
+	public static toJSONArray(notifs: AppNotification[]): NotificationModel[] {
 		return notifs.map(notif => notif.toJSON());
 	}
 }

@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { FRIEND_REQUEST_ACTIONS } from '../../shared/config/constants.config';
 
 export const NotificationInputSchema = z.object({
+	id: z.number().optional(),
 	from: z.number(),
 	to: z.number(),
 	type: z.enum([
@@ -11,11 +12,14 @@ export const NotificationInputSchema = z.object({
 		FRIEND_REQUEST_ACTIONS.BLOCK,
 	]),
 	content: z.string().optional(),
+	createdAt: z.string().optional(),
+	status: z.number().optional()
 });
 
 export const NotifInputSchema = z.object({
-	notifId: z.number(),
-	friendId: z.number(),
+	id: z.number(),
+	to: z.number(),
+	from: z.number(),
 });
 
 export type NotificationInput = z.infer<typeof NotificationInputSchema>;

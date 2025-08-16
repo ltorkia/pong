@@ -1,4 +1,5 @@
 import { SafeUserModel, UserModel, PublicUser, UserStatus, RegisterMethod, TwoFaMethod } from '../types/user.types';	// en rouge car dossier local 'shared' != dossier conteneur
+import { AppNotification } from './notification.model';
 import { DB_CONST } from '../config/constants.config';
 
 // ===========================================
@@ -36,7 +37,8 @@ export class User {
 		public status: UserStatus,
 		public isDeleted: number,
 		public registerFrom: RegisterMethod,
-		public active2Fa: TwoFaMethod
+		public active2Fa: TwoFaMethod,
+		public notifications: AppNotification[]
 	) {}
 
 	// ============================================================================
@@ -115,7 +117,8 @@ export class User {
 			status: this.status,
 			isDeleted: this.isDeleted,
 			registerFrom: this.registerFrom,
-			active2Fa: this.active2Fa
+			active2Fa: this.active2Fa,
+			notifications: this.notifications
 		};
 	}
 
@@ -144,7 +147,8 @@ export class User {
 			status: this.status,
 			isDeleted: this.isDeleted,
 			registerFrom: this.registerFrom,
-			active2Fa: this.active2Fa
+			active2Fa: this.active2Fa,
+			notifications: this.notifications
 		};
 	}
 
@@ -183,7 +187,8 @@ export class User {
 			data.status ?? DB_CONST.USER.STATUS.OFFLINE,
 			data.isDeleted ?? 0,
 			data.registerFrom ?? DB_CONST.USER.REGISTER_FROM.LOCAL,
-			data.active2Fa ?? DB_CONST.USER.ACTIVE_2FA.DISABLED
+			data.active2Fa ?? DB_CONST.USER.ACTIVE_2FA.DISABLED,
+			data.notifications ?? []
 		);
 	}
 
@@ -227,7 +232,8 @@ export class User {
 			data.status ?? DB_CONST.USER.STATUS.OFFLINE,
 			0, // isDeleted à 0 par défaut
 			DB_CONST.USER.REGISTER_FROM.LOCAL, // registerFrom par défaut
-			DB_CONST.USER.ACTIVE_2FA.DISABLED, // active2Fa à disabled par défaut
+			DB_CONST.USER.ACTIVE_2FA.DISABLED, // active2Fa à disabled par défaut,
+			[] // notifications vides par défaut
 		);
 	}
 

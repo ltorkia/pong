@@ -4,16 +4,13 @@ export interface NotificationModel {
 	id: number;
 	from: number;
 	to: number;
-	type: FriendRequestAction;
-	content?: string;
-	createdAt?: string;
-	status?: number;
+	type: NotificationType;
+	content: string | null;
+	createdAt: string;
+	status: number;
 };
 
-export interface NotifResponse {
-	notif?: NotificationModel;
-	notifs?: NotificationModel[];
-	errorMessage: string;
-}
+export type NotificationType = FriendRequestAction;
+
 export type FriendRequestAction =
 	typeof FRIEND_REQUEST_ACTIONS[keyof typeof FRIEND_REQUEST_ACTIONS];

@@ -2,13 +2,12 @@ import { router } from '../../router/router';
 import { showAlert } from '../../utils/dom.utils';
 import { authApi } from '../../api/index.api';
 import { animationService } from '../index.service';
-import { AuthResponse, BasicResponse } from '../../types/api.types';
+import { AuthResponse, BasicResponse } from '../../shared/types/response.types';
 import { isValidImage } from '../../utils/image.utils';
 import { DEFAULT_ROUTE, AUTH_FALLBACK_ROUTE, PAGE_NAMES } from '../../config/routes.config';
 import { REGISTERED_MSG } from '../../config/messages.config';
 import { DB_CONST } from '../../shared/config/constants.config';
 import { TwoFaMethod } from '../../shared/types/user.types';
-import { webSocketService } from './user.service';
 
 // ===========================================
 // AUTHENTICATION SERVICE
@@ -46,10 +45,7 @@ export class AuthService {
 			console.log(`[${this.constructor.name}] Utilisateur inscrit.`);
 			alert(REGISTERED_MSG);
 			animationService.animateNavbarOut = true;
-            if (!webSocketService.getWebSocket())
-                webSocketService.openWebSocket();
 			await router.redirect(DEFAULT_ROUTE);
-
 		} catch (err) {
 			console.error(`[${this.constructor.name}] Erreur réseau ou serveur`, err);
 			showAlert('Erreur réseau');
@@ -86,8 +82,6 @@ export class AuthService {
 			console.log(`[${this.constructor.name}] Authentification réussie sans 2FA`);
 
 			animationService.animateNavbarOut = true;
-            if (!webSocketService.getWebSocket())
-                webSocketService.openWebSocket();
 			await router.redirect(DEFAULT_ROUTE);
 			return data as AuthResponse;
 

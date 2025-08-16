@@ -12,6 +12,7 @@ import { DB_CONST, FRIEND_REQUEST_ACTIONS } from '../../shared/config/constants.
 import { User } from '../../shared/models/user.model';
 import { NotificationModel } from '../../shared/types/notification.types';
 import { FriendRequestAction } from '../../../../shared/types/notification.types';
+import { AppNotification } from '../../shared/models/notification.model';
 
 // ===========================================
 // USER ROW COMPONENT
@@ -317,9 +318,8 @@ export class UserRowComponent extends BaseComponent {
 			showAlert(res.errorMessage, `alert-${this.user.id}`, 'error');
 			return;
 		}
-		const data: NotificationModel = this.getNotifData(FRIEND_REQUEST_ACTIONS.ADD);
-		notifService.setNotifData(data);
-		await notifService.refreshFriendButtons(this);
+		const data = AppNotification.fromJSON(res.notif) as AppNotification;
+		await notifService.handleNotifications(data);
 		console.log(`Friend request sent to ${this.user.username}`);
 	}
 
@@ -344,9 +344,8 @@ export class UserRowComponent extends BaseComponent {
 			showAlert(res.errorMessage, `alert-${this.user.id}`, 'error');
 			return;
 		}
-		const data: NotificationModel = this.getNotifData(FRIEND_REQUEST_ACTIONS.ACCEPT);
-		notifService.setNotifData(data);
-		await notifService.refreshFriendButtons(this);
+		const data = AppNotification.fromJSONArray(res.notifs) as AppNotification[];
+		await notifService.handleNotifications(data);
 		console.log(`Friend request accepted for ${this.user.username}`);
 	}
 
@@ -372,8 +371,7 @@ export class UserRowComponent extends BaseComponent {
 			return;
 		}
 		const data: NotificationModel = this.getNotifData(FRIEND_REQUEST_ACTIONS.BLOCK);
-		notifService.setNotifData(data);
-		await notifService.refreshFriendButtons(this);
+		await notifService.handleNotifications(data);
 		console.log(`Friend ${this.user.username} blocked`);
 	}
 
@@ -399,8 +397,7 @@ export class UserRowComponent extends BaseComponent {
 			return;
 		}
 		const data: NotificationModel = this.getNotifData(FRIEND_REQUEST_ACTIONS.ACCEPT);
-		notifService.setNotifData(data);
-		await notifService.refreshFriendButtons(this);
+		await notifService.handleNotifications(data);
 		console.log(`Friend request sent to ${this.user.username}`);
 	}
 
@@ -426,8 +423,7 @@ export class UserRowComponent extends BaseComponent {
 			return;
 		}
 		const data: NotificationModel = this.getNotifData(FRIEND_REQUEST_ACTIONS.DELETE);
-		notifService.setNotifData(data);
-		await notifService.refreshFriendButtons(this);
+		await notifService.handleNotifications(data);
 		console.log(`Friend request canceled for ${this.user!.username}`);
 	}
 

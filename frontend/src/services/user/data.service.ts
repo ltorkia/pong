@@ -1,7 +1,7 @@
 import { User } from '../../shared/models/user.model';
 import { Friend } from '../../shared/models/friend.model';
 import { dataApi } from '../../api/index.api';
-import { AuthResponse } from '../../types/api.types';
+import { UserResponse } from '../../shared/types/response.types';
 import { currentService } from '../../services/index.service';
 import { showAlert } from '../../utils/dom.utils';
 import { isValidImage, checkImageExists } from '../../utils/image.utils';
@@ -27,7 +27,7 @@ export class DataService {
 	 * @returns {Promise<boolean>} - Promesse qui se resout lorsque l'utilisateur est mis à jour
 	 */
 	public async updateUser(id: number, userData: Record<string, string>, alertDivId?: string): Promise<boolean> {
-		const result: AuthResponse = await dataApi.updateUser(id, userData);
+		const result: UserResponse = await dataApi.updateUser(id, userData);
 		if (result.errorMessage) {
 			console.error(`[${this.constructor.name}] Erreur de mise à jour utilisateur.`);
 			showAlert(result.errorMessage, alertDivId);
@@ -55,7 +55,7 @@ export class DataService {
 		}
 		const formData = new FormData();
 		formData.append('avatar', file);
-		const result: AuthResponse = await dataApi.updateAvatar(id, formData);
+		const result: UserResponse = await dataApi.updateAvatar(id, formData);
 		if (result.errorMessage) {
 			console.error(`[${this.constructor.name}] Erreur de mise à jour de l'avatar utilisateur.`);
 			showAlert(result.errorMessage);
