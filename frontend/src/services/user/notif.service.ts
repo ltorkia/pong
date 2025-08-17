@@ -1,10 +1,10 @@
 import { ROUTE_PATHS } from '../../config/routes.config';
-import { dataApi, notifApi } from '../../api/index.api';
+import { notifApi } from '../../api/index.api';
 import { PageInstance } from '../../types/routes.types';
 import { COMPONENT_NAMES } from '../../config/components.config';
 import { NavbarComponent } from '../../components/navbar/navbar.component';
 import { UserRowComponent } from '../../components/user-row/user-row.component';
-import { currentService, storageService } from './user.service';
+import { currentService, storageService, friendService } from './user.service';
 import { User } from '../../shared/models/user.model';
 import { AppNotification } from '../../shared/models/notification.model';
 import { NotifResponse, FriendResponse } from '../../shared/types/response.types';
@@ -19,13 +19,16 @@ import { getHTMLElementById } from '../../utils/dom.utils';
  * Service de gestion des notifications.
  */
 export class NotifService {
-	public currentNotif: AppNotification | null = null;
 	private currentUser: User | null = null;
 	private currentPage!: PageInstance;
 	private navbarInstance!: NavbarComponent | undefined;
 	private notifs: AppNotification[] = [];
 	private notifCount: number = 0;
 	private notifItem: HTMLDivElement | null = null;
+
+	public currentNotif: AppNotification | null = null;
+	public friendId: number | null = null;
+	public rowFriendId: number | null = null;
 
 	// ===========================================
 	// METHODES PUBLICS
@@ -59,6 +62,8 @@ export class NotifService {
 		for (const notif of notifs) {
 			if (isValidNotificationType()) {
 				this.currentNotif = notif;
+				this.friendId = notif.from;
+				this.rowFriendId = this.friendId;
 				await this.handleNotification();
 			}
 		}
@@ -76,12 +81,51 @@ export class NotifService {
 	 */
 	public async markAsRead(id: number): Promise<void> {
 		this.setCurrentNotif(id);
-		this.currentNotif.status = 1;
-		const updatedNotif = await notifApi.updateNotification(this.currentNotif);
-		if (updatedNotif.errorMessage) {
-			console.error(updatedNotif.errorMessage);
+		this.currentNotif.read = 1;
+		const updatedRes = await notifApi.updateNotification(this.currentNotif);
+		if (updatedRes.errorMessage) {
+			console.error(updatedRes.errorMessage);
 		}
-		this.replaceNotif();
+		this.currentNotif = updatedRes.notif;
+	}
+
+	/**
+	 * Définit l'identifiant de l'ami de la ligne utilisée pour mettre à jour les boutons
+	 * de l'utilisateur dans la page de la liste des utilisateurs.
+	 * 
+	 * Cette méthode est utilisée pour indiquer à quelle ligne se rapporte l'ami pour lequel
+	 * les boutons d'amitié doivent être mis à jour.
+	 * 
+	 * @param {number} id - L'identifiant de l'ami de la ligne.
+	 * @returns {void}
+	 */
+	public setRowFriendId(id: number): void {
+		console.log(`setRowFriendId: ${id}`);
+		this.rowFriendId = id;
+		this.friendId = id;
+	}
+
+	/**
+	 * Met à jour le compteur de notifications non lues.
+	 *
+	 * - Si le compteur est égal à zéro, cache le compteur.
+	 * - Sinon, affiche le compteur avec la valeur donnée.
+	 *
+	 * @returns {void}
+	 */
+	public updateNotifsCounter(): void {
+		this.notifCount = this.getNotifCount();
+		if (this.notifCount === 0) {
+			this.navbarInstance!.notifsCounter.textContent = '0';
+			if (!this.navbarInstance!.notifsCounter.classList.contains('hidden')) {
+				this.navbarInstance!.notifsCounter.classList.add('hidden');
+			}
+			return;
+		}
+		this.navbarInstance!.notifsCounter.textContent = this.notifCount.toString();
+		if (this.navbarInstance!.notifsCounter.classList.contains('hidden')) {
+			this.navbarInstance!.notifsCounter.classList.remove('hidden');
+		}
 	}
 
 	// ===========================================
@@ -125,7 +169,7 @@ export class NotifService {
 	 * 
 	 * @returns {Promise<void>} Une promesse qui est résolue lorsque la notification est traitée.
 	 */
-	public async handleNotification(): Promise<void> {
+	private async handleNotification(): Promise<void> {
 		const isLoaded = this.notifs.find((notif) => notif.id === this.currentNotif.id);
 		if (!isLoaded()) {
 			this.notifs.push(this.currentNotif);
@@ -239,10 +283,7 @@ export class NotifService {
 	 */
 	private async refreshFriendButtons(userRowInstance?: UserRowComponent): Promise<void> {
 		if (this.currentPage.config.path === ROUTE_PATHS.USERS) {
-			if (!userRowInstance) {
-				
-			}
-			await this.currentPage.updateFriendButtons!(this.currentNotif!, userRowInstance);
+			await this.currentPage.updateFriendButtons!(this.rowFriendId!, userRowInstance);
 		}
 	}
 
@@ -265,7 +306,7 @@ export class NotifService {
 		notifItem.classList.add('notif-item');
 		notifItem.id = `notif-${this.currentNotif.id}`;
 		notifItem.innerHTML = `<span>${this.currentNotif.content}</span>` || '';
-		if (this.currentNotif.status === 0) {
+		if (this.currentNotif.read === 0) {
 			notifItem.classList.add('new-notif');
 		}
 		if (this.needButtons()) {
@@ -289,10 +330,6 @@ export class NotifService {
 		this.navbarInstance!.notifsWindow.appendChild(notifItem);
 	}
 
-	// ===========================================
-	// LISTENERS
-	// ===========================================
-
 	/**
 	 * Ajoute des listeners pour gérer les événements de clic sur les boutons des notifications.
 	 *
@@ -311,43 +348,78 @@ export class NotifService {
 		}
 	}
 
-	private handleAcceptClick = async (): Promise<void> => {
-		console.log("ACCEPPPPPT Accepting friend request from user ID:", this.currentNotif.from, "to user ID:", this.currentNotif.to);
-		let friendResult: FriendResponse = await dataApi.acceptFriend(this.currentNotif.from, this.currentNotif.to);
+	// ===========================================
+	// LISTENERS
+	// ===========================================
+
+	public handleAddClick = async (): Promise<void> => {
+		console.log("ADDDD Add friend request from user ID:", this.currentUser.id, "to user ID:", this.friendId!);
+		let friendResult: FriendResponse = await friendService.addFriend(this.currentUser.id, this.friendId!);
 		if (friendResult.errorMessage) {
 			console.error(friendResult.errorMessage);
 			return;
 		}
-		for (const notif of friendResult.notifs) {
-			this.currentNotif = notif;
-			this.deleteNotif(notif);
-		}
 		this.currentNotif = friendResult.notif;
+		await this.refreshFriendButtons();
+	}
+
+	public handleAcceptClick = async (): Promise<void> => {
+		console.log("ACCEPPPPPT Accepting friend request from user ID:", this.currentUser.id, "to user ID:", this.friendId!);
 		this.currentNotif.type = FRIEND_REQUEST_ACTIONS.ACCEPT;
-		this.currentNotif.status = 1;
-		const notifResult = await notifApi.updateNotification(this.currentNotif);
+		this.currentNotif.read = 1;
+		let notifResult: NotifResponse = await notifApi.updateNotification(this.currentNotif);
 		if (notifResult.errorMessage) {
 			console.error(notifResult.errorMessage);
 			return;
 		}
-		await this.refreshFriendButtons();
-	}
-
-	private handleDeclineClick = async (): Promise<void> => {
-		console.log("DECLINE CLICK: Decline friend request from user ID:", this.currentNotif.from, "to user ID:", this.currentNotif.to);
-		let friendResult: FriendResponse = await dataApi.removeFriend(this.currentNotif.from, this.currentNotif.to);
+		this.currentNotif = notifResult.notif;
+		let friendResult: FriendResponse = await friendService.acceptFriend(this.currentUser.id, this.friendId!);
 		if (friendResult.errorMessage) {
 			console.error(friendResult.errorMessage);
 			return;
 		}
+		await this.refreshFriendButtons();
+		await this.handleNotifications(friendResult.notifs);
+		this.currentNotif = friendResult.notif;
+	}
+
+	public handleDeclineClick = async (): Promise<void> => {
+		console.log("DECLINE CLICK: Decline friend request from user ID:", this.currentUser.id, "to user ID:", this.friendId!);
 		this.currentNotif.type = FRIEND_REQUEST_ACTIONS.DELETE;
-		this.currentNotif.status = 1;
-		result = await notifApi.updateNotification(this.currentNotif);
-		if (result.errorMessage) {
-			console.error(result.errorMessage);
+		this.currentNotif.read = 1;
+		let notifResult: NotifResponse = await notifApi.updateNotification(this.currentNotif);
+		if (notifResult.errorMessage) {
+			console.error(notifResult.errorMessage);
 			return;
 		}
-		await this.handleNotifications([result.notif]);
+		this.currentNotif = notifResult.notif;
+		let friendResult: FriendResponse = await friendService.removeFriend(this.currentUser.id, this.friendId!);
+		if (friendResult.errorMessage) {
+			console.error(friendResult.errorMessage);
+			return;
+		}
+		await this.refreshFriendButtons();
+		await this.handleNotifications(friendResult.notifs);
+	}
+
+	public handleBlockClick = async (): Promise<void> => {
+		console.log("BLOCKKKKK Blocking friend:", this.friendId!);
+		this.currentNotif.type = FRIEND_REQUEST_ACTIONS.BLOCK;
+		this.currentNotif.read = 1;
+		let notifResult: NotifResponse = await notifApi.updateNotification(this.currentNotif);
+		if (notifResult.errorMessage) {
+			console.error(notifResult.errorMessage);
+			return;
+		}
+		this.currentNotif = notifResult.notif;
+		let friendResult: FriendResponse = await friendService.blockFriend(this.currentUser.id, this.friendId!);
+		if (friendResult.errorMessage) {
+			console.error(friendResult.errorMessage);
+			return;
+		}
+		await this.refreshFriendButtons();
+		await this.handleNotifications(friendResult.notifs);
+		this.currentNotif = friendResult.notif;
 	}
 
 	// ===========================================
@@ -362,30 +434,7 @@ export class NotifService {
 	 * @return {number} Le nombre de notifications non lues.
 	 */
 	private getNotifCount(): number {
-		return this.notifs.filter(n => n.status === 0).length;
-	}
-
-	/**
-	 * Met à jour le compteur de notifications non lues.
-	 *
-	 * - Si le compteur est égal à zéro, cache le compteur.
-	 * - Sinon, affiche le compteur avec la valeur donnée.
-	 *
-	 * @returns {void}
-	 */
-	private updateNotifsCounter(): void {
-		this.notifCount = this.getNotifCount();
-		if (this.notifCount === 0) {
-			this.navbarInstance!.notifsCounter.textContent = '0';
-			if (!this.navbarInstance!.notifsCounter.classList.contains('hidden')) {
-				this.navbarInstance!.notifsCounter.classList.add('hidden');
-			}
-			return;
-		}
-		this.navbarInstance!.notifsCounter.textContent = this.notifCount.toString();
-		if (this.navbarInstance!.notifsCounter.classList.contains('hidden')) {
-			this.navbarInstance!.notifsCounter.classList.remove('hidden');
-		}
+		return this.notifs.filter(n => n.read === 0).length;
 	}
 
 	/**

@@ -1,6 +1,7 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { JwtPayload } from '../types/jwt.types';
 import { getUserNotifications, getNotification, updateNotification } from '../db/notification';
+import { sendUpdateNotification } from '../helpers/notifications.helpers';
 import { NotifResponse } from '../shared/types/response.types';
 import type { NotificationModel } from '../shared/types/notification.types';
 
@@ -69,13 +70,13 @@ export async function notificationsRoutes(app: FastifyInstance) {
 		if (notification.from != jwtUser.id) {
 			return reply.status(403).send({ errorMessage: 'Forbidden' });
 		}
-
-		notifRes = await updateNotification(notification);
-		if (!notifRes || notifRes.errorMessage || !notifRes.notif)
-			return reply.code(404).send({ errorMessage: 'Notification not found'});
 		
-		notification = notifRes.notif;
-		return reply.code(200).send({ notif: notification });
+		// On met à jour la notification en base de données et on la renvoie à l'utilisateur concerné
+		const updatedRes: NotifResponse = await sendUpdateNotification(app, notification);
+		if (updatedRes.errorMessage)
+			return reply.code(500).send({ errorMessage: updatedRes.errorMessage });
+
+		return reply.code(200).send({ notif: updatedRes.notif, notifs: updatedRes.notifs });
 	});
 
 }

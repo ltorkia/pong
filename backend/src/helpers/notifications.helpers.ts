@@ -64,7 +64,7 @@ export async function sendUpdateNotification(app: FastifyInstance, data: Notific
 
 	// On envoie les notifications mises à jour
 	sendToSocket(app, updatedNotifs);
-	return { notifs: updatedNotifs };
+	return { notif: returnedNotif, notifs: updatedNotifs };
 }
 
 /**

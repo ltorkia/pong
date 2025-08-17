@@ -1,4 +1,5 @@
 import { DB_CONST } from '../config/constants.config';
+import { UserStatus } from './user.types';
 
 export interface FriendModel {
 	id: number;
@@ -7,9 +8,16 @@ export interface FriendModel {
 	avatar: string;
 	beginLog: string;
 	endLog: string;
+	tournament: number;
 	friendStatus: FriendStatus;
 	blockedBy: number;
-	date: string;
+	meetDate: string;
+	status: UserStatus;
+	gamePlayed: number;
+	gameWin: number;
+	gameLoose: number;
+	timePlayed: number;
+	isDesactivated: number;
 }
 
 export type FriendStatus = 

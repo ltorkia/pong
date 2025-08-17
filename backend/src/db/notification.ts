@@ -17,7 +17,7 @@ export async function getUserNotifications(id: number): Promise<NotifResponse> {
 	const db = await getDb();
 	try {
 		const notifs = await db.all(`
-			SELECT n.id, n."from", n."to", n.type, n.content, n.created_at, n.status
+			SELECT n.id, n."from", n."to", n.type, n.content, n.created_at, n.read
 			FROM Notif n
 			WHERE n."to" = ?
 			ORDER BY n.created_at DESC
@@ -43,7 +43,7 @@ export async function getNotification(notifId: number): Promise<NotifResponse> {
 	const db = await getDb();
 	try {
 		const notif = await db.get(`
-			SELECT n.id, n."from", n."to", n.type, n.content, n.created_at, n.status
+			SELECT n.id, n."from", n."to", n.type, n.content, n.created_at, n.read
 			FROM Notif n
 			WHERE n.id = ?
 			`,
@@ -69,7 +69,7 @@ export async function getTwinNotifications(notifData: NotificationModel): Promis
 	const db = await getDb();
 	try {
 		const notifs = await db.all(`
-			SELECT n.id, n."from", n."to", n.type, n.content, n.created_at, n.status
+			SELECT n.id, n."from", n."to", n.type, n.content, n.created_at, n.read
 			FROM Notif n
 			WHERE n."from" = ? AND n."to" = ? AND n.type = ?
 			`,
@@ -124,8 +124,9 @@ export async function insertNotification(notifData: NotificationInput): Promise<
  * Sinon, renvoie un objet contenant un message d'erreur.
  * 
  * @param {NotificationModel} notifData - Informations de la notification à mettre à jour.
+ * @returns {Promise<NotifResponse>} Promesse qui se résout avec l'objet
  */
-export async function updateNotification(notifData: NotificationModel) {
+export async function updateNotification(notifData: NotificationModel): Promise<NotifResponse> {
 	const db = await getDb();
 	try {
 		const result = await db.run(`
@@ -133,7 +134,7 @@ export async function updateNotification(notifData: NotificationModel) {
 			SET type = ?, content = ?, status = ?
 			WHERE (id = ?)
 			`,
-			[notifData.type, notifData.content, notifData.status, notifData.id]
+			[notifData.type, notifData.content, notifData.read, notifData.id]
 		);
 
 		const updatedNotif = await getNotification(result.lastID!);

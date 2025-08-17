@@ -9,7 +9,8 @@ import { getUser, getUserFriends, getUserGames, getUserChat, getUserAllInfo } fr
 import { getAllUsersInfos, getUsersWithPagination } from '../db/user';
 import { UserModel, SafeUserModel, PublicUser, PaginatedUsers, SortOrder, UserSortField } from '../shared/types/user.types';
 import { FriendModel } from '../shared/types/friend.types';	// en rouge car dossier local 'shared' != dossier conteneur
-import { getRelation, addUserFriend, updateRelationshipConfirmed, updateRelationshipBlocked, updateRelationshipDelete } from '../db/friendmaj'
+import { getRelation } from '../db/friend'
+import { addUserFriend, updateRelationshipConfirmed, updateRelationshipBlocked, updateRelationshipDelete } from '../db/friendmaj'
 import { FriendResponse } from '../shared/types/response.types';
 
 import { checkParsing, isParsingError, adaptBodyForPassword } from '../helpers/types.helpers';
@@ -73,19 +74,13 @@ export async function usersRoutes(app: FastifyInstance) {
 /*            🔎 - Affiche des infos detaillees sur un user specifique ami    */
 /* -------------------------------------------------------------------------- */
 	//:friend : username  
-	app.get('/search/:friend', async(request: FastifyRequest, reply: FastifyReply): Promise<PublicUser | void> => {
+	app.get('/search/:id', async(request: FastifyRequest, reply: FastifyReply): Promise<FriendResponse> => {
 		const { id } = request.params as { id: number };
-		const { friend } = request.params as { friend: string };
-		// peut etre pas necessaire en fonction de comment renvoie le front
-		const userdataCheck = await checkParsing(FriendsInputSchema, {friend: friend});
-		if (isParsingError(userdataCheck))
-			return reply.status(400).send(userdataCheck);
-		let data = userdataCheck as FriendInput;
-		// TODO : rechercher pour check si user demande est un friend ou pas 
-		const user: PublicUser = await getUser(null, friend);
-		if (!user)
-			return reply.code(404).send({ Error : 'User not found'});
-		return reply.status(200).send(user);
+		const jwtUser = request.user as JwtPayload;
+		const userFriend: FriendModel = await getRelation(jwtUser.id, id);
+		if (!userFriend)
+			return reply.code(404).send({ errorMessage : 'User not found'});
+		return reply.status(200).send({ user: userFriend });
 	})
 
 /* -------------------------------------------------------------------------- */
@@ -105,7 +100,7 @@ export async function usersRoutes(app: FastifyInstance) {
 	})
 
 /* -------------------------------------------------------------------------- */
-/*           🔎💛 - Affiche des infos sir les friends de l utilisateur        */
+/*           🔎💛 - Affiche des infos sur les friends de l utilisateur        */
 /* -------------------------------------------------------------------------- */
 	// :id = id de l utilisateur dans la db dont on cherche les amis
 
@@ -134,14 +129,14 @@ export async function usersRoutes(app: FastifyInstance) {
 			return reply.status(400).send(userdataCheck);
 
 		let data = userdataCheck as FriendInput;
-		const friend: PublicUser = await getUser(data.friendId);
+		const friend: UserModel = await getUser(data.friendId);
 		if (!friend)
 			return reply.code(404).send({ errorMessage: 'User not found'});
+
+		await addUserFriend(id, friend.id);
 		const relation: FriendModel = await getRelation(jwtUser.id, data.friendId);
 		if (!relation)
 			return reply.code(404).send({ errorMessage: 'Relation not found'});
-
-		await addUserFriend(id, friend.id);
 
 		// Si l'utilisateur est connecté, envoyer une notification via WebSocket
 		let friendRequestData: NotificationInput = {
@@ -174,7 +169,7 @@ export async function usersRoutes(app: FastifyInstance) {
 			return reply.status(400).send(notifDataCheck);
 		
 		let data = notifDataCheck as NotifInput;
-		const friend: PublicUser = await getUser(data.to);
+		const friend: UserModel = await getUser(data.to);
 		if (!friend)
 			return reply.code(404).send({ errorMessage: 'User not found'});
 		let relation: FriendModel = await getRelation(jwtUser.id, data.to);
@@ -198,9 +193,6 @@ export async function usersRoutes(app: FastifyInstance) {
 			case FRIEND_REQUEST_ACTIONS.BLOCK:
 				relation = await updateRelationshipBlocked(notif.from, notif.to);
 				break;
-			case FRIEND_REQUEST_ACTIONS.DELETE:
-				await updateRelationshipDelete(notif.from, notif.to);
-				break;
 		}
 
 		// On met à jour la notification en base de données et on la renvoie à l'utilisateur concerné
@@ -208,7 +200,7 @@ export async function usersRoutes(app: FastifyInstance) {
 		if (updatedRes.errorMessage)
 			return reply.code(500).send({ errorMessage: updatedRes.errorMessage });
 
-		return reply.code(200).send({ relation: relation, notifs: updatedRes.notifs });
+		return reply.code(200).send({ relation: relation, notif: updatedRes.notif, notifs: updatedRes.notifs });
 	})
 
 	app.delete('/:id/friends/delete', async(request: FastifyRequest, reply: FastifyReply): Promise<FriendResponse> => {
@@ -222,7 +214,7 @@ export async function usersRoutes(app: FastifyInstance) {
 			return reply.status(400).send(notifDataCheck);
 
 		let data = notifDataCheck as NotifInput;
-		const friend: PublicUser = await getUser(data.to);
+		const friend: UserModel = await getUser(data.to);
 		if (!friend)
 			return reply.code(404).send({ errorMessage: 'User not found'});
 		const relation: FriendModel = await getRelation(jwtUser.id, data.to);
@@ -235,7 +227,7 @@ export async function usersRoutes(app: FastifyInstance) {
 		if (deletedNotifs.errorMessage)
 			return reply.code(500).send({ errorMessage: deletedNotifs.errorMessage });
 
-		return reply.code(200).send({ notifs: deletedNotifs });	
+		return reply.code(200).send({ relation: relation, notifs: deletedNotifs });	
 	})
 /* -------------------------------------------------------------------------- */
 /*                   🕹️ - Recupere les donnees de jeu d un user               */

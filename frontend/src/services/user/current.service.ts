@@ -1,7 +1,7 @@
 import { User } from '../../shared/models/user.model';
 import { storageService } from '../index.service';
 import { UserModel, SafeUserModel } from '../../shared/types/user.types';
-import { webSocketService } from '../../services/user/user.service';
+import { webSocketService } from '../../services/index.service';
 
 // ===========================================
 // CURRENT SERVICE

@@ -81,9 +81,11 @@ export class NotifApi {
 			body: JSON.stringify({ notifData })
 		});
 		const data: BasicResponse = await res.json();
-		if (!res.ok || data.errorMessage || !data.notif) {
+		if (!res.ok || data.errorMessage || !data.notifs) {
 			return { errorMessage: data.errorMessage || 'Erreur lors de la mise à jour de la notif' };
 		}
-		return AppNotification.fromJSON(data.notif) as NotifResponse;
+		data.notif = AppNotification.fromJSON(data.notifs) as AppNotification;
+		data.notifs = AppNotification.fromJSONArray(data.notifs) as AppNotification[];
+		return data as NotifResponse;
 	}
 }

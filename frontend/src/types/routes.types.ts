@@ -87,7 +87,7 @@ export interface PageInstance {
 	render: () => Promise<void>;
 	cleanup?: () => Promise<void>;
 	getComponentInstance?<T>(name: string): T | undefined;
-	updateFriendButtons?: (data: AppNotification, userRowInstance?: UserRowComponent) => Promise<void>;
+	updateFriendButtons?: (friendId?: number, userRowInstance?: UserRowComponent) => Promise<void>;
 }
 
 /**

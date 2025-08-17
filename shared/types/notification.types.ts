@@ -7,7 +7,7 @@ export interface NotificationModel {
 	type: NotificationType;
 	content: string | null;
 	createdAt: string;
-	status: number;
+	read: number;
 };
 
 export type NotificationType = FriendRequestAction;

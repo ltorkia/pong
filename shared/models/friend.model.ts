@@ -1,4 +1,5 @@
 import { FriendModel, FriendStatus } from '../types/friend.types';	// en rouge car dossier local 'shared' != dossier conteneur
+import { UserStatus } from '../types/user.types';
 import { DB_CONST } from '../config/constants.config'; // en rouge car dossier local 'shared' != dossier conteneur
 
 // ===========================================
@@ -14,10 +15,42 @@ export class Friend {
 		public avatar: string,
 		public beginLog: string,
 		public endLog: string,
+		public tournament: number,
 		public friendStatus: FriendStatus,
 		public blockedBy: number,
-		public date: string
+		public meetDate: string,
+		public status: UserStatus,
+		public gamePlayed: number,
+		public gameWin: number,
+		public gameLoose: number,
+		public timePlayed: number,
+		public isDesactivated: number
 	) {}
+
+	// ============================================================================
+	// GETTERS POUR L'AFFICHAGE
+	// ============================================================================
+
+	get displayName(): string {
+		return this.username;
+	}
+
+	get isActive(): boolean {
+		return !this.isDesactivated;
+	}
+	
+	isOnline(): boolean {
+		return this.status === DB_CONST.USER.STATUS.ONLINE;
+	}
+
+	get formattedLastLog(): string {
+		return this.beginLog ? new Date(this.beginLog).toLocaleString() : 'User has never logged in';
+	}
+	
+	get winRate(): number {
+		if (!this.gamePlayed || this.gamePlayed === 0) return 0;
+		return Math.round((this.gameWin / this.gamePlayed) * 100);
+	}
 
 	// ============================================================================
 	// MÉTHODE DE SÉRIALISATION (OBJECT → JSON)
@@ -31,9 +64,16 @@ export class Friend {
 			avatar: this.avatar,
 			beginLog: this.beginLog,
 			endLog: this.endLog,
+			tournament: this.tournament,
 			friendStatus: this.friendStatus,
 			blockedBy: this.blockedBy,
-			date: this.date
+			meetDate: this.meetDate,
+			status: this.status,
+			gamePlayed: this.gamePlayed,
+			gameWin: this.gameWin,
+			gameLoose: this.gameLoose,
+			timePlayed: this.timePlayed,
+			isDesactivated: this.isDesactivated
 		};
 	}
 
@@ -54,9 +94,16 @@ export class Friend {
 			data.avatar ?? DB_CONST.USER.DEFAULT_AVATAR,
 			data.beginLog ?? '',
 			data.endLog ?? '',
+			data.tournament ?? 0,
 			data.friendStatus ?? DB_CONST.FRIENDS.STATUS.PENDING,
 			data.blockedBy ?? 0,
-			data.date ?? new Date().toISOString()
+			data.meetDate ?? new Date().toISOString(),
+			data.status ?? DB_CONST.USER.STATUS.OFFLINE,
+			data.gamePlayed ?? 0,
+			data.gameWin ?? 0,
+			data.gameLoose ?? 0,
+			data.timePlayed ?? 0,
+			data.isDesactivated ?? 0
 		);
 	}
 

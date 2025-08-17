@@ -15,7 +15,7 @@ export class AppNotification {
 		public type: FriendRequestAction,
 		public content: string | null,
 		public createdAt: string,
-		public status: number
+		public read: number
 	) {}
 
 	// ============================================================================
@@ -30,7 +30,7 @@ export class AppNotification {
 			type: this.type,
 			content: this.content,
 			createdAt: this.createdAt,
-			status: this.status
+			read: this.read
 		};
 	}
 
@@ -51,7 +51,7 @@ export class AppNotification {
 			data.type ?? FRIEND_REQUEST_ACTIONS.DELETE,
 			data.content ?? '',
 			data.createdAt ?? '',
-			data.status ?? 0
+			data.read ?? 0
 		);
 	}
 
