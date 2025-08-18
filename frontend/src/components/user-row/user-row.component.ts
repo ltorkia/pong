@@ -5,8 +5,7 @@ import { BaseComponent } from '../base/base.component';
 import { RouteConfig } from '../../types/routes.types';
 import { router } from '../../router/router';
 import { ComponentConfig } from '../../types/components.types';
-import { dataApi } from '../../api/index.api';
-import { dataService, notifService } from '../../services/index.service';
+import { dataService, notifService, friendService } from '../../services/index.service';
 import { getHTMLElementByClass, getHTMLElementByTagName, showAlert } from '../../utils/dom.utils';
 import { DB_CONST, FRIEND_REQUEST_ACTIONS } from '../../shared/config/constants.config';
 import { User } from '../../shared/models/user.model';
@@ -165,9 +164,9 @@ export class UserRowComponent extends BaseComponent {
 	protected removeListeners(): void {
 		this.userCell.removeEventListener('click', this.handleUsercellClick);
 		this.addFriendButton.removeEventListener('click', this.addFriendClick);
-		this.acceptFriendButton.removeEventListener('click', this.acceptFriendClick);
+		this.acceptFriendButton.removeEventListener('click', notifService.handleAcceptClick);
 		this.removeFriendButton.removeEventListener('click', this.cancelFriendRequestClick);
-		this.blockFriendButton.removeEventListener('click', this.blockFriendClick);
+		this.blockFriendButton.removeEventListener('click', notifService.handleDeclineClick);
 		this.unblockFriendButton.removeEventListener('click', this.unblockFriendClick);
 		// this.challengeButton.removeEventListener('click', this.challengeClick);
 	}
@@ -187,7 +186,7 @@ export class UserRowComponent extends BaseComponent {
 	public async toggleFriendButton(): Promise<void> {
 		if (this.user!.id !== this.currentUser!.id) {
 			this.hideAllButtons();
-			const friend = await dataService.isFriendWithCurrentUser(this.user!.id);
+			const friend = await friendService.isFriendWithCurrentUser(this.user!.id);
 			if (!friend) {
 				this.addFriendButton.classList.remove('hidden');
 				return;
@@ -312,14 +311,8 @@ export class UserRowComponent extends BaseComponent {
 		if (!this.user) {
 			return;
 		}
-		const res = await dataApi.addFriend(this.currentUser.id, this.user.id);
-		if (res.errorMessage) {
-			showAlert(res.errorMessage, `alert-${this.user.id}`, 'error');
-			return;
-		}
-		const data: NotificationModel = this.getNotifData(FRIEND_REQUEST_ACTIONS.ADD);
-		notifService.setNotifData(data);
-		await notifService.refreshFriendButtons(this);
+		notifService.setNotifsData(this.user.id);
+		await notifService.handleAddClick();
 		console.log(`Friend request sent to ${this.user.username}`);
 	}
 
@@ -339,14 +332,8 @@ export class UserRowComponent extends BaseComponent {
 		if (!this.user) {
 			return;
 		}
-		const res = await dataApi.acceptFriend(this.currentUser.id, this.user.id);
-		if (res.errorMessage) {
-			showAlert(res.errorMessage, `alert-${this.user.id}`, 'error');
-			return;
-		}
-		const data: NotificationModel = this.getNotifData(FRIEND_REQUEST_ACTIONS.ACCEPT);
-		notifService.setNotifData(data);
-		await notifService.refreshFriendButtons(this);
+		notifService.setNotifsData(this.user.id, FRIEND_REQUEST_ACTIONS.ADD);
+		await notifService.handleAcceptClick();
 		console.log(`Friend request accepted for ${this.user.username}`);
 	}
 
@@ -366,14 +353,8 @@ export class UserRowComponent extends BaseComponent {
 		if (!this.user) {
 			return;
 		}
-		const res = await dataApi.blockFriend(this.currentUser.id, this.user.id);
-		if (res.errorMessage) {		
-			showAlert(res.errorMessage, `alert-${this.user.id}`, 'error');
-			return;
-		}
-		const data: NotificationModel = this.getNotifData(FRIEND_REQUEST_ACTIONS.BLOCK);
-		notifService.setNotifData(data);
-		await notifService.refreshFriendButtons(this);
+		notifService.setNotifsData(this.user.id, FRIEND_REQUEST_ACTIONS.ACCEPT);
+		await notifService.handleBlockClick();
 		console.log(`Friend ${this.user.username} blocked`);
 	}
 
@@ -393,14 +374,8 @@ export class UserRowComponent extends BaseComponent {
 		if (!this.user) {
 			return;
 		}
-		const res = await dataApi.acceptFriend(this.currentUser.id, this.user.id);
-		if (res.errorMessage) {		
-			showAlert(res.errorMessage, `alert-${this.user.id}`, 'error');
-			return;
-		}
-		const data: NotificationModel = this.getNotifData(FRIEND_REQUEST_ACTIONS.ACCEPT);
-		notifService.setNotifData(data);
-		await notifService.refreshFriendButtons(this);
+		notifService.setNotifsData(this.user.id, FRIEND_REQUEST_ACTIONS.BLOCK);
+		await notifService.handleAcceptClick();
 		console.log(`Friend request sent to ${this.user.username}`);
 	}
 
@@ -420,15 +395,9 @@ export class UserRowComponent extends BaseComponent {
 		if (!this.user) {
 			return;
 		}
-		const res = await dataApi.removeFriend(this.currentUser.id, this.user.id);
-		if (res.errorMessage) {
-			showAlert(res.errorMessage, `alert-${this.user.id}`, 'error');
-			return;
-		}
-		const data: NotificationModel = this.getNotifData(FRIEND_REQUEST_ACTIONS.DELETE);
-		notifService.setNotifData(data);
-		await notifService.refreshFriendButtons(this);
-		console.log(`Friend request canceled for ${this.user!.username}`);
+		notifService.setNotifsData(this.user.id);
+		await notifService.handleCancelClick();
+		console.log(`Friend request canceled for ${this.user.username}`);
 	}
 
 	// private challengeClick = async (event: MouseEvent): Promise<void> => {
@@ -436,7 +405,7 @@ export class UserRowComponent extends BaseComponent {
 	// 	if (!this.user) {
 	// 		return;
 	// 	}
-	// 	const res = await dataApi.challengeUser(this.currentUser.id, this.user.id);
+	// 	const res = await friendApi.challengeUser(this.currentUser.id, this.user.id);
 	// 	if (res.errorMessage) {
 	// 		showAlert(res.errorMessage, `alert-${this.user.id}`, 'error');
 	// 		return;

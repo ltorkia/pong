@@ -1,32 +1,27 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
-import { getUser, getUserFriends, getUserGames, getUserChat, getUserAllInfo } from '../db/user';
-import { getAllUsersInfos, getUsersWithPagination } from '../db/user';
-import { insertNotification, getNotification, deleteNotification } from '../db/notification';
-import { UserModel, SafeUserModel, PublicUser, PaginatedUsers, SortOrder, UserSortField } from '../shared/types/user.types';
-import { FriendModel } from '../shared/types/friend.types';	// en rouge car dossier local 'shared' != dossier conteneur
-import { addUserFriend, updateRelationshipDelete } from '../db/friendmaj';
+import { promises as fs } from 'fs';
 import { Buffer } from 'buffer';
 import bcrypt from 'bcrypt';
+import { JwtPayload } from '../types/jwt.types';
+import { DB_CONST } from '../shared/config/constants.config';
+
+import { getUser, getUserGames, getUserChat, getUserAllInfo } from '../db/user';
+import { getAllUsersInfos } from '../db/user';
+import { UserModel, SafeUserModel } from '../shared/types/user.types';
+
+import { checkParsing, isParsingError, adaptBodyForPassword } from '../helpers/types.helpers';
 import { GetAvatarFromBuffer, bufferizeStream } from '../helpers/image.helpers';
-import { ModUserInput, ModUserInputSchema, FriendsInputSchema, FriendInput } from '../types/zod/auth.zod';
+import { ModUserInput, ModUserInputSchema } from '../types/zod/auth.zod';
 import { searchNewName } from '../helpers/auth.helpers';
 import { changeUserData } from '../db/usermaj';
-import { promises as fs } from 'fs';
-import { DB_CONST, FRIEND_REQUEST_ACTIONS } from '../shared/config/constants.config';
-import { JwtPayload } from '../types/jwt.types';
-import { checkParsing, isParsingError, adaptBodyForPassword } from '../helpers/types.helpers';
-import { updateFriendProcess, sendToSocket, addNotifContent } from '../helpers/notifications.helpers';
-import { NotificationInput, NotifInput, NotifInputSchema } from '../types/zod/app.zod';
-import { NotificationModel } from '../shared/types/notification.types';
 
 /* ======================== USERS ROUTES ======================== */
 
 export async function usersRoutes(app: FastifyInstance) {
 
-
-/* -------------------------------------------------------------------------- */
-/*            🔎 - Affiche tous les users avec infos non sensible             */
-/* -------------------------------------------------------------------------- */
+	/* -------------------------------------------------------------------------- */
+	/*            🔎 - Affiche tous les users avec infos non sensible             */
+	/* -------------------------------------------------------------------------- */
 
 	app.get('/', async (request: FastifyRequest, reply: FastifyReply): Promise<SafeUserModel[] | void> => {
 		// const users: UserBasic[] = await getAllUsers();
@@ -34,60 +29,9 @@ export async function usersRoutes(app: FastifyInstance) {
 		return users;
 	})
 
-/* -------------------------------------------------------------------------- */
-/*      🔎 - Affiche tous les users avec pagination et paramètres de tri      */
-/* -------------------------------------------------------------------------- */
-	// Query params (optionnels) : sortBy, sortOrder
-	// Exemple : /api/users/page/1/20?sortBy=registration&sortOrder=DESC
-
-	app.get('/page/:page/:limit', async (request: FastifyRequest<{ 
-		Params: { page: string; limit: string }; 
-		Querystring: { sortBy?: UserSortField; sortOrder?: SortOrder }}>, 
-		reply: FastifyReply): Promise<PaginatedUsers | void> => {
-		try {
-			const { page, limit } = request.params;
-			const { sortBy = 'username', sortOrder = 'ASC' } = request.query;
-			const pageNum = parseInt(page);
-			const limitNum = parseInt(limit);
-			if (isNaN(pageNum) || pageNum < 1) {
-				return reply.status(400).send({ error: 'Le paramètre page doit être un nombre positif' });
-			}
-			if (isNaN(limitNum) || limitNum < 1 || limitNum > 100) {
-				return reply.status(400).send({ error: 'Le paramètre limit doit être entre 1 et 100' });
-			}
-			const result: PaginatedUsers = await getUsersWithPagination(pageNum, limitNum, sortBy, sortOrder);
-				return result;
-		} catch (error) {
-			console.error('Erreur lors de la récupération des utilisateurs:', error);
-			return reply.status(500).send({ error: 'Erreur interne du serveur' });
-		}
-	})
-
-
-/* -------------------------------------------------------------------------- */
-/*            🔎 - Affiche des infos detaillees sur un user specifique ami    */
-/* -------------------------------------------------------------------------- */
-	//:friend : username  
-	app.get('/search/:friend', async(request: FastifyRequest, reply: FastifyReply): Promise<PublicUser | void> => {
-		const { id } = request.params as { id: number };
-		const { friend } = request.params as { friend: string };
-		console.log(friend);
-		// peut etre pas necessaire en fonction de comment renvoie le front
-		const userdataCheck = await checkParsing(FriendsInputSchema, {friend: friend});
-		if (isParsingError(userdataCheck))
-			return reply.status(400).send(userdataCheck);
-		let data = userdataCheck as FriendInput;
-		console.log(data);
-		// TODO : rechercher pour check si user demande est un friend ou pas 
-		const user: PublicUser = await getUser(null, friend);
-		if (!user)
-			return reply.code(404).send({ Error : 'User not found'});
-		return reply.status(200).send(user);
-	})
-
-/* -------------------------------------------------------------------------- */
-/*            🔎 - Affiche des infos detaillees sur un user specifique        */
-/* -------------------------------------------------------------------------- */
+	/* -------------------------------------------------------------------------- */
+	/*            🔎 - Affiche des infos detaillees sur un user specifique        */
+	/* -------------------------------------------------------------------------- */
 	// (sans password)
 	// :id = id de l utilisateur dans la db 
 
@@ -97,128 +41,13 @@ export async function usersRoutes(app: FastifyInstance) {
 			return reply.status(403).send({ errorMessage: 'Forbidden' });
 		const user: SafeUserModel = await getUser(id);
 		if (!user)
-			return reply.code(404).send({ Error : 'User not found'});
+			return reply.code(404).send({ errorMessage: 'User not found'});
 		return user;
 	})
 
-/* -------------------------------------------------------------------------- */
-/*           🔎💛 - Affiche des infos sir les friends de l utilisateur        */
-/* -------------------------------------------------------------------------- */
-	// :id = id de l utilisateur dans la db dont on cherche les amis
-
-	app.get('/:id/friends', async(request: FastifyRequest, reply: FastifyReply): Promise<FriendModel[] | void> => {
-		const { id } = request.params as { id: number };
-		if (isNaN(id))
-			return reply.status(403).send({ errorMessage: 'Forbidden' });
-		const friends: FriendModel[] = await getUserFriends(id);
-		// if (!friends)
-		// 	return reply.code(404).send({ Error : 'User not found'});
-		return friends;
-	})
-
-/* -------------------------------------------------------------------------- */
-/*                     ⚙️💛 - Gere les actions entre amis                     */
-/* -------------------------------------------------------------------------- */
-	// :id = id de l utilisateur dans la db dont on cherche les amis
-	// :action = pending (demande d ajout), blocked(pour bloauer klk1), accepted (pour valider une demande) 
-	// attend dans la requete le nom de l ami recherche -> a adapter en fonction des besoins	 
-	// TODO : a readapter en fonction du front
-
-	app.post('/:id/friends/add', async(request: FastifyRequest, reply: FastifyReply): Promise<PublicUser | void> => {
-		const { id } = request.params as { id: number };
-		const jwtUser = request.user as JwtPayload;
-		if (id != jwtUser.id)
-			return reply.status(403).send({ errorMessage: 'Forbidden' });
-
-		const userdataCheck = await checkParsing(FriendsInputSchema, request.body);
-		if (isParsingError(userdataCheck))
-			return reply.status(400).send(userdataCheck);
-		let data = userdataCheck as FriendInput;
-
-		const friends = await getUserFriends(id);
-		const friend: PublicUser = await getUser(data.friendId);		
-		if (!friend)
-			return reply.code(404).send({ errorMessage : 'User not found'});
-
-		const isFriend = friends.some(f => f.id === friend.id);
-		if (isFriend)
-			return reply.code(404).send({ errorMessage : 'Already friend'});
-		await addUserFriend(id, friend.id);
-
-		// Si l'utilisateur est connecté, envoyer une notification via WebSocket
-		let friendRequestData: NotificationInput = {
-			type: FRIEND_REQUEST_ACTIONS.ADD,
-			from: Number(id),
-			to: friend.id
-		};
-		const notifData: NotificationInput = addNotifContent(friendRequestData);
-		const notif = await insertNotification(notifData);
-		if (!notif || data.errorMessage)
-			return reply.code(500).send({ errorMessage : data.errorMessage || 'Error inserting notification'});
-		sendToSocket(app, [notif]);
-
-		return reply.code(200).send({ message : 'Ask to be friend confirmed'});
-	})
-
-	app.put('/:id/friends/:action', async(request: FastifyRequest, reply: FastifyReply): Promise<PublicUser | void> => {
-		const { id } = request.params as { id: number };
-		const jwtUser = request.user as JwtPayload;
-		if (id != jwtUser.id)
-			return reply.status(403).send({ errorMessage: 'Forbidden' });
-		const { action } = request.params as { action: string };
-
-		const notifDataCheck = await checkParsing(NotifInputSchema, request.body);
-		if (isParsingError(notifDataCheck))
-			return reply.status(400).send(notifDataCheck);
-		
-		let data = notifDataCheck as NotifInput;
-		const friends = await getUserFriends(id);
-		const friend: PublicUser = await getUser(data.friendId);
-		if (!friend)
-			return reply.code(404).send({ errorMessage : 'User not found'});
-
-		const isFriend = friends.some(f => f.id === friend.id);
-		if (!isFriend)
-			return reply.code(404).send({ errorMessage : 'not your friend'});
-		await updateFriendProcess(app, id, friend.id, data, action);
-		switch (action) {
-			case FRIEND_REQUEST_ACTIONS.ACCEPT:
-				return reply.code(200).send({ message : 'friend accepted'});
-			case FRIEND_REQUEST_ACTIONS.BLOCK:
-				return reply.code(200).send({ message : 'friend blocked'});
-		}
-	})
-
-	app.delete('/:id/friends/delete', async(request: FastifyRequest, reply: FastifyReply): Promise<PublicUser | void> => {
-		const { id } = request.params as { id: number };
-		const jwtUser = request.user as JwtPayload;
-		if (id != jwtUser.id)
-			return reply.status(403).send({ errorMessage: 'Forbidden' });
-
-		const notifDataCheck = await checkParsing(NotifInputSchema, request.body);
-		if (isParsingError(notifDataCheck))
-			return reply.status(400).send(notifDataCheck);
-		let data = notifDataCheck as NotifInput;
-		const friends = await getUserFriends(id);
-		const friend: PublicUser = await getUser(data.friendId);
-		if (!friend)
-			return reply.code(404).send({ errorMessage : 'User not found'});
-
-		const isFriend = friends.some(f => f.id === friend.id);
-		if (isFriend) {
-			await updateRelationshipDelete(id, friend.id);
-			const notifData: NotificationModel = await getNotification(data.notifId);
-			if (notifData.statut === DB_CONST.FRIENDS.STATUS.PENDING) {
-				await deleteNotification(notifData.id);
-			}
-		} else {
-			return reply.code(404).send({ errorMessage : 'not your friend'});
-		}
-		return reply.code(200).send({ message : 'friend deleted'});			
-	})
-/* -------------------------------------------------------------------------- */
-/*                   🕹️ - Recupere les donnees de jeu d un user               */
-/* -------------------------------------------------------------------------- */
+	/* -------------------------------------------------------------------------- */
+	/*                   🕹️ - Recupere les donnees de jeu d un user               */
+	/* -------------------------------------------------------------------------- */
 	// :id = id de l utilisateur dans la db dont on cherche les amis
 
 	app.get('/:id/games', async(request: FastifyRequest, reply: FastifyReply) => {
@@ -226,15 +55,14 @@ export async function usersRoutes(app: FastifyInstance) {
 		if (isNaN(id))
 			return reply.status(403).send({ errorMessage: 'Forbidden' });
 		const games = await getUserGames(id);
-		// console.log("id = ", id);
 		if (!games)
-			return reply.code(404).send({ Error : 'User not found'});
+			return reply.code(404).send({ errorMessage: 'User not found'});
 		return games;
 	})
 
-/* -------------------------------------------------------------------------- */
-/*             💬 - Recupere l'historique de tchat de 2 utilisateurs          */
-/* -------------------------------------------------------------------------- */
+	/* -------------------------------------------------------------------------- */
+	/*             💬 - Recupere l'historique de tchat de 2 utilisateurs          */
+	/* -------------------------------------------------------------------------- */
 	// :id1 et :id2 = id des utilisateurs dans la db dont on cherche les messages envoyes
 	// renvoyes par la db ranges chronologiquement
 
@@ -246,19 +74,18 @@ export async function usersRoutes(app: FastifyInstance) {
 		const { id2 } = request.params as { id2: number };
 		const chat = await getUserChat(id1, id2);
 		if (!chat)
-			return reply.code(404).send({ Error : 'User not found'});
+			return reply.code(404).send({ errorMessage: 'User not found'});
 		return chat;
 	})
 
 
-/* -------------------------------------------------------------------------- */
-/*                    ⚙️📸 - modifie l avatar de l utilisateur                */
-/* -------------------------------------------------------------------------- */
+	/* -------------------------------------------------------------------------- */
+	/*                    ⚙️📸 - modifie l avatar de l utilisateur                */
+	/* -------------------------------------------------------------------------- */
 	// :id = id de l utilisateur dans la db dont on cherche les amis
 
 	app.put('/:id/moduser/avatar', async(request: FastifyRequest, reply: FastifyReply) => {
 		try {
-			// console.log("--------------------------request is : " + request);
 			const elements = await request.parts({
 				limits: {
 				fileSize: 5 * 1024 * 1024}
@@ -270,7 +97,6 @@ export async function usersRoutes(app: FastifyInstance) {
 
 			//preparsing qui dispatch datatext d un cote et l avatar de l autre
 			for await (const element of elements) {
-				// console.log(element);
 				if (element.type === 'file' && element.fieldname === 'avatar' && element.filename != '') {
 					avatarFile = element;
 					avatarBuffer = await bufferizeStream(element.file);
@@ -293,7 +119,6 @@ export async function usersRoutes(app: FastifyInstance) {
 				await GetAvatarFromBuffer(reply, user, avatarFile.mimetype, avatarBuffer);
 			}
 			user = await getUser(id);
-			console.log(user!.avatar);
 			return reply.status(200).send({
 				statusCode: 200,
 				user: user
@@ -346,7 +171,7 @@ export async function usersRoutes(app: FastifyInstance) {
 				const UserEmailCheck = await getUser(null, dataUserReceived.email);
 				if (UserEmailCheck && UserEmailCheck.id != dataUser.id)
 					return {statusCode: 409, message : "Email already used"};
-				dataUserToUpdate.email = dataUserReceived.email;// console.log("user dans email diff", UserEmailCheck);
+				dataUserToUpdate.email = dataUserReceived.email;
 			}
 				
 			// check modification pour password 
@@ -365,7 +190,6 @@ export async function usersRoutes(app: FastifyInstance) {
 			}
 							
 			// une fois infos verifiees, changement des datas puis recup du nouvel user
-			// console.log("-----------------------", dataUserToUpdate);
 			await changeUserData(id, dataUserToUpdate);
 			const user = await getUser(id);
 			return reply.status(200).send({
@@ -379,6 +203,5 @@ export async function usersRoutes(app: FastifyInstance) {
 			});
 		}
 	})
-
 }
 

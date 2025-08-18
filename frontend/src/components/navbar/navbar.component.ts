@@ -288,12 +288,11 @@ export class NavbarComponent extends BaseComponent {
 		toggleClass(this.notifsWindow, 'flex', 'hidden');
 		if (this.notifsWindow.classList.contains('hidden') 
 			&& allNewNotifs && allNewNotifs.length > 0) {
-			notifService.updateNotifsCounter(true);
+			notifService.updateNotifsCounter();
 			for (const notif of allNewNotifs) {
 				notif.classList.remove('new-notif');
-				const notifId = Number(notif.id.replace("notif-", ""));
-				await notifApi.updateNotifStatus(notifId);
-				console.log('Notif mise à jour')
+				// const notifId = Number(notif.id.replace("notif-", ""));
+				await notifService.markAsRead(Number(notif.id));
 			}
 		}
 	}

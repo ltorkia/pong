@@ -1,25 +1,23 @@
--- User : comprend les infos persos du user + stats pour le dashboard + situation en cours
+-- User -> comprend les infos persos du user + stats pour le dashboard + situation en cours
 CREATE TABLE IF NOT EXISTS User (
 	id INTEGER PRIMARY KEY AUTOINCREMENT,
 	username TEXT UNIQUE NOT NULL,
 	email TEXT UNIQUE NOT NULL,
-	registration DATETIME NOT NULL DEFAULT (datetime('now')),																-- 1ere inscription
-	-- lastlog DATETIME,																			-- derniere connection (NULL si jamais connecté)
+	registration DATETIME DEFAULT CURRENT_TIMESTAMP,
 	begin_log DATETIME,
 	end_log DATETIME, 
-	password TEXT,																				-- a hascher + tard (NULL si register via Google)
-	-- ingame INTEGER DEFAULT 0 NOT NULL CHECK (ingame IN (0, 1)),								-- si actuellement en jeu
-	tournament INTEGER DEFAULT 0 NOT NULL,														-- a voir si utile ici, aussi s'il peut participer a plusieurs tournois
-	avatar TEXT DEFAULT 'default.png' NOT NULL,													-- facultatif / type TEXT car c'est le chemin de l'image qu'on stocke
-	game_played INTEGER DEFAULT 0 NOT NULL,														-- total des parties jouees -> permet d'eviter de recalculer a chaque fois dans la db
-	game_win INTEGER DEFAULT 0 NOT NULL,														-- total parties gagnees -> pareil
-	game_loose INTEGER DEFAULT 0 NOT NULL,														-- total parties perdues -> pareil
-	time_played INTEGER DEFAULT 0 NOT NULL,														-- total temps joue -> a remettre a jour a chaque fin de jeu
-	n_friends INTEGER DEFAULT 0 NOT NULL,														-- nbre d'amis total -> a mettre a jour a chaque ajout/suppression d'ami
-	status TEXT DEFAULT 'offline' NOT NULL CHECK (status IN ('online', 'offline', 'in-game')),
-	is_deleted INTEGER DEFAULT 0 NOT NULL CHECK (is_deleted IN (0, 1)),							-- pour savoir si le compte est actif ou non (on garde le user en bdd meme apres desinscription pour garder les stats des jeux pour ses partenaires toujours inscrits), 0 = actif, 1 = pas actif
-	register_from TEXT DEFAULT 'local' NOT NULL CHECK (register_from IN ('local', 'google')),	-- pour savoir si le user s'est inscrit via le site ou via Google, utile pour l'authentification
-	active_2FA TEXT DEFAULT 'disabled' NOT NULL CHECK (active_2FA IN ('disabled', 'email', 'qrcode')),
+	password TEXT,
+	tournament INTEGER DEFAULT 0,
+	avatar TEXT DEFAULT 'default.png',
+	game_played INTEGER DEFAULT 0,
+	game_win INTEGER DEFAULT 0,
+	game_loose INTEGER DEFAULT 0,
+	time_played INTEGER DEFAULT 0,
+	n_friends INTEGER DEFAULT 0,
+	status TEXT DEFAULT 'offline' CHECK (status IN ('online', 'offline', 'in-game')),
+	is_desactivated INTEGER DEFAULT 0 CHECK (is_desactivated IN (0, 1)),
+	register_from TEXT DEFAULT 'local' CHECK (register_from IN ('local', 'google')),
+	active_2FA TEXT DEFAULT 'disabled' CHECK (active_2FA IN ('disabled', 'email', 'qrcode')),
 	code_2FA_email TEXT,
 	code_2FA_qrcode TEXT,
 	code_2FA_expire_at INTEGER
@@ -30,45 +28,12 @@ CREATE TABLE IF NOT EXISTS Notif (
 	id INTEGER PRIMARY KEY AUTOINCREMENT,
 	"from" INTEGER NOT NULL,
 	"to" INTEGER NOT NULL,
-	type TEXT NOT NULL CHECK (type IN ('add', 'accept', 'delete', 'block')),
-	created_at DATETIME NOT NULL DEFAULT (datetime('now')),
-	content TEXT NOT NULL,
-	status INTEGER DEFAULT 0 NOT NULL CHECK (status IN (0, 1)),													
+	type TEXT NOT NULL CHECK (type IN ('add', 'invite', 'accept', 'delete', 'block', 'online', 'offline', 'in-game')),
+	created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+	content TEXT,
+	read INTEGER DEFAULT 0 CHECK (read IN (0, 1)),													
 	FOREIGN KEY ("from") REFERENCES User(id),
 	FOREIGN KEY ("to") REFERENCES User(id)
-);
-
--- Game -> donnees propre au jeu
-CREATE TABLE IF NOT EXISTS Game (
-	id INTEGER PRIMARY KEY AUTOINCREMENT,
-	n_participants INTEGER NOT NULL,
-	begin DATETIME NOT NULL DEFAULT (datetime('now')),											-- date et heure de debut du jeu, par defaut quand la table est creee (ouverture du jeu)
-	end DATETIME,																				-- date et heure de fin du jeu, NULL si le jeu n'est pas fini
-	tournament INTEGER DEFAULT 0 NOT NULL CHECK (tournament IN (0, 1)),							-- pour preciser si c'est un jeu de tournoi ou non, 0 = non, 1 = oui
-	status TEXT DEFAULT 'waiting' NOT NULL CHECK (status IN ('waiting', 'in_progress', 'cancelled', 'finished')),	-- pour preciser si en cours, annule ou termine                                                             -- jeu en cours, termine, ou pas encore commence si tournoi ? 
-	temporary_result INTEGER DEFAULT 0 NOT NULL													-- au cas ou le serveur plante, possibilite de recuperer le score en cours
-);
-
--- User_Game : resultat entre user et game 
-CREATE TABLE IF NOT EXISTS User_Game (
-	game_id INTEGER NOT NULL,												-- necessaire pour ensuite faire les foreign key et relier les tables entre elles
-	user_id INTEGER NOT NULL,
-	status_win INTEGER DEFAULT 0 NOT NULL CHECK (status_win IN (0, 1)),		-- 0 = perdu 1 = gagne (pas de NULL car on ne peut pas avoir un jeu sans resultat)
-	duration INTEGER NOT NULL,												-- Duree du jeu (pas en DATETIME car DATETIME = une date + heure))
-	FOREIGN KEY (game_id) REFERENCES Game(id) ON DELETE CASCADE,			-- ON DELETE CASCADE: si le jeu est supprime on supprime le resultat du jeu
-	FOREIGN KEY (user_id) REFERENCES User(id),								-- pas de DELETE CASCADE ici pour garder les stats du user (pour ses partenaires par exemple)
-	PRIMARY KEY (Game_id, user_id)											-- un element pour chaque user qui a participe au meme jeu
-);
-
--- Chat -> pour gerer les messages echanges
-CREATE TABLE IF NOT EXISTS Chat (
-	id INTEGER PRIMARY KEY AUTOINCREMENT,
-	sender_id INTEGER NOT NULL,
-	receiver_id INTEGER NOT NULL,                                                   
-	time_send DATETIME NOT NULL DEFAULT (datetime('now')),
-	message TEXT NOT NULL,													
-	FOREIGN KEY (sender_id) REFERENCES User(id),
-	FOREIGN KEY (receiver_id) REFERENCES User(id)
 );
 
 -- liste d amis et status
@@ -76,49 +41,95 @@ CREATE TABLE IF NOT EXISTS Friends (
 	user1_id INTEGER NOT NULL,
 	user2_id INTEGER NOT NULL,
 	requester_id INTEGER NOT NULL,												-- user qui a fait la demande d'ami
-	friend_status TEXT DEFAULT 'pending' NOT NULL CHECK (friend_status IN ('pending', 'accepted', 'blocked')),	-- pour checker le status, oui, non, en attente
-	blocked_by INTEGER DEFAULT 0 NOT NULL,
-	date DATETIME NOT NULL DEFAULT (datetime('now')),
+	friend_status TEXT DEFAULT 'pending' CHECK (friend_status IN ('pending', 'accepted', 'blocked')),	-- pour checker le status, oui, non, en attente
+	blocked_by INTEGER DEFAULT 0,
+	meet_date DATETIME DEFAULT CURRENT_TIMESTAMP,
 	FOREIGN KEY (user1_id) REFERENCES User(id) ON DELETE CASCADE,
 	FOREIGN KEY (user2_id) REFERENCES User(id) ON DELETE CASCADE,
 	CHECK (user1_id < user2_id), 
 	PRIMARY KEY (user1_id, user2_id)
 );
+
+-- Game -> donnees propre au jeu
+CREATE TABLE IF NOT EXISTS Game (
+	id INTEGER PRIMARY KEY AUTOINCREMENT,
+	n_participants INTEGER NOT NULL,
+	begin DATETIME DEFAULT CURRENT_TIMESTAMP,
+	end DATETIME,
+	tournament INTEGER DEFAULT 0 CHECK (tournament IN (0, 1)),
+	status TEXT DEFAULT 'waiting' CHECK (status IN ('waiting', 'in_progress', 'cancelled', 'finished')),
+	temporary_result INTEGER DEFAULT 0,
+	winner_id INTEGER,
+	FOREIGN KEY (winner_id) REFERENCES User(id)
+);
+
+-- User_Game -> resultat entre user et game 
+CREATE TABLE IF NOT EXISTS User_Game (
+	game_id INTEGER NOT NULL,												-- necessaire pour ensuite faire les foreign key et relier les tables entre elles
+	user_id INTEGER NOT NULL,
+	status_win INTEGER DEFAULT 0 CHECK (status_win IN (0, 1)),				-- 0 = perdu 1 = gagne (pas de NULL car on ne peut pas avoir un jeu sans resultat)
+	duration INTEGER DEFAULT 0,												-- Duree du jeu (pas en DATETIME car DATETIME = une date + heure))
+	FOREIGN KEY (game_id) REFERENCES Game(id) ON DELETE CASCADE,			-- ON DELETE CASCADE: si le jeu est supprime on supprime le resultat du jeu
+	FOREIGN KEY (user_id) REFERENCES User(id),								-- pas de DELETE CASCADE ici pour garder les stats du user (pour ses partenaires par exemple)
+	PRIMARY KEY (game_id, user_id)											-- un element pour chaque user qui a participe au meme jeu
+);
+
+-- Tournament -> donnees propres au tournoi
+CREATE TABLE IF NOT EXISTS Tournament ( 
+	id INTEGER PRIMARY KEY AUTOINCREMENT,
+	n_participants INTEGER NOT NULL,
+	n_round INTEGER NOT NULL,
+	started_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+	ended_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+	tournament_status TEXT DEFAULT 'pending' CHECK (tournament_status IN ('pending', 'in_progress', 'cancelled', 'finished'))
+);
+
+-- User_Tournament -> resultat entre user et tournoi
+CREATE TABLE IF NOT EXISTS User_Tournament (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    tournament_id INTEGER NOT NULL,
+    user_id INTEGER NOT NULL,
+    game_id INTEGER,
+    alias TEXT NOT NULL,
+    score INTEGER DEFAULT 0,				-- score cumulé dans le tournoi
+    wins INTEGER DEFAULT 0,					-- nombre de victoires
+    losses INTEGER DEFAULT 0,   			-- nombre de défaites
+    round_reached INTEGER DEFAULT 0,		-- dernier round atteint
+    status TEXT DEFAULT 'active' NOT NULL CHECK (status IN ('active', 'eliminated', 'finished')),
+    registered_at DATETIME DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (tournament_id) REFERENCES Tournament(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES User(id),
+    FOREIGN KEY (game_id) REFERENCES Game(id)
+);
+
+-- Chat -> pour gerer les messages echanges
+CREATE TABLE IF NOT EXISTS Chat (
+	id INTEGER PRIMARY KEY AUTOINCREMENT,
+	sender_id INTEGER NOT NULL,
+	receiver_id INTEGER NOT NULL,                                                   
+	time_send DATETIME DEFAULT CURRENT_TIMESTAMP,
+	message TEXT NOT NULL,													
+	FOREIGN KEY (sender_id) REFERENCES User(id),
+	FOREIGN KEY (receiver_id) REFERENCES User(id)
+);
 /*                                                       
 -- Chat -> pour gerer les messages echanges
 CREATE TABLE IF NOT EXISTS Chat (                                             -- Si on decide de rendre le chat a plus de 1 VS 1 / ou si on veut stocker dans un endroit precis les discussion en solo
 	id INTEGER PRIMARY KEY AUTOINCREMENT,                                     -- sur un seul user_chat puis message, a remettre en place
-	User_id INTEGER,                                                         -- user qui a envoye le message - pertinent ? 
+	user_id INTEGER,                                                         -- user qui a envoye le message - pertinent ? 
 	time_send DATETIME,
 	message TEXT,
-	FOREIGN KEY (User_id) REFERENCES User(id)
+	FOREIGN KEY (user_id) REFERENCES User(id)
 );
 CREATE TABLE IF NOT EXISTS User_Chat (
-	Chat_id INTEGER NOT NULL,                                                 
-	Sender_id INTEGER NOT NULL,
-	Receiver_id INTEGER NOT NULL,
+	chat_id INTEGER NOT NULL,                                                 
+	sender_id INTEGER NOT NULL,
+	receiver_id INTEGER NOT NULL,
 	friend BOOL,
 	lock BOOL,
-	FOREIGN KEY (Chat_id) REFERENCES Chat(id),
-	FOREIGN KEY (Sender_id) REFERENCES User(id),
-	FOREIGN KEY (Receiver_id) REFERENCES User(id),
-	PRIMARY KEY (Sender_id, Receiver_id)
+	FOREIGN KEY (chat_id) REFERENCES Chat(id),
+	FOREIGN KEY (sender_id) REFERENCES User(id),
+	FOREIGN KEY (receiver_id) REFERENCES User(id),
+	PRIMARY KEY (sender_id, receiver_id)
 );
 */
-
-CREATE TABLE IF NOT EXISTS Tournament ( 
-	id INTEGER PRIMARY KEY AUTOINCREMENT,
-	n_participants INTEGER NOT NULL,
-	n_round INTEGER NOT NULL
-);
-
-CREATE TABLE IF NOT EXISTS User_Tournament (
-	id INTEGER PRIMARY KEY AUTOINCREMENT,
-	Tournament_id INTEGER NOT NULL,
-	User_id INTEGER NOT NULL,
-	Game_id INTEGER,
-	alias TEXT NOT NULL,
-	FOREIGN KEY (Tournament_id) REFERENCES Tournament(id) ON DELETE CASCADE,
-	FOREIGN KEY (User_id) REFERENCES User(id),
-	FOREIGN KEY (Game_id) REFERENCES Game(id)
-);

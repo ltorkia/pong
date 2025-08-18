@@ -1,21 +1,20 @@
-import { NotificationModel } from '../types/notification.types';	// en rouge car dossier local 'shared' != dossier conteneur
-import type { FriendRequestAction } from '../types/notification.types';
-import { FRIEND_REQUEST_ACTIONS } from '../config/constants.config';
+import { NotificationModel, NotificationType } from '../types/notification.types';	// en rouge car dossier local 'shared' != dossier conteneur
+import { USER_ONLINE_STATUS } from '../config/constants.config';
 
 // ===========================================
-// NOTIFICATIONMODEL
+// APPNOTIFICATION MODEL
 // ===========================================
 
-export class Notification {
+export class AppNotification {
 
 	constructor(
 		public id: number,
 		public from: number,
 		public to: number,
-		public type: FriendRequestAction,
-		public content: string,
+		public type: NotificationType,
+		public content: string | null,
 		public createdAt: string,
-		public status: number
+		public read: number
 	) {}
 
 	// ============================================================================
@@ -30,7 +29,7 @@ export class Notification {
 			type: this.type,
 			content: this.content,
 			createdAt: this.createdAt,
-			status: this.status
+			read: this.read
 		};
 	}
 
@@ -38,20 +37,20 @@ export class Notification {
 	// MÉTHODE DE DÉSÉRIALISATION (JSON → OBJECT)
 	// ============================================================================
 
-	public static fromJSON(data: Partial<NotificationModel>): Notification {
+	public static fromJSON(data: Partial<NotificationModel>): AppNotification {
 
 		if (!data) {
 			throw new Error('Données manquantes pour créer une notification');
 		}
 
-		return new Notification(
+		return new AppNotification(
 			data.id ?? 0,
 			data.from ?? 0,
 			data.to ?? 0,
-			data.type ?? FRIEND_REQUEST_ACTIONS.DELETE,
+			data.type ?? USER_ONLINE_STATUS.OFFLINE,
 			data.content ?? '',
 			data.createdAt ?? '',
-			data.status ?? 0
+			data.read ?? 0
 		);
 	}
 
@@ -59,11 +58,11 @@ export class Notification {
 	// MÉTHODES STATIQUES SUR TABLEAUX DE NOTIFS
 	// ============================================================================
 
-	public static fromJSONArray(notifs: Partial<NotificationModel>[]): Notification[] {
+	public static fromJSONArray(notifs: Partial<NotificationModel>[]): AppNotification[] {
 		return notifs.map(notif => this.fromJSON(notif));
 	}
 
-	public static toJSONArray(notifs: Notification[]): NotificationModel[] {
+	public static toJSONArray(notifs: AppNotification[]): NotificationModel[] {
 		return notifs.map(notif => notif.toJSON());
 	}
 }

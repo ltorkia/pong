@@ -9,8 +9,6 @@ import { RouteConfig } from '../../types/routes.types';
 import { COMPONENT_NAMES, HTML_COMPONENT_CONTAINERS } from '../../config/components.config';
 import { ComponentConfig, ComponentName, PaginationParams } from '../../types/components.types';
 import { SafeUserModel, PaginatedUsers, PaginationInfos } from '../../shared/types/user.types';
-import type { NotificationModel } from "../../shared/types/notification.types";
-import { Notification } from '../../shared/models/notification.model';
 
 // ===========================================
 // USERS PAGE
@@ -221,16 +219,16 @@ export class UsersPage extends BasePage {
 	 * dans la liste des instances de composants stockées et la met
 	 * à jour.
 	 *
-	 * @param {Notification | NotificationModel} data La demande d'amitié reçue ou une notification.
+	 * @param {number} friendId L'identifiant de l'utilisateur qui a envoyé la demande d'amitié.
 	 * @param {UserRowComponent} userRowInstance L'instance de UserRowComponent
 	 * à mettre à jour. Si non fourni, cherche l'instance dans la liste
 	 * des instances de composants stockées.
 	 * @returns {Promise<void>} Une promesse qui se résout lorsque les boutons
 	 * d'amitié ont été mis à jour.
 	 */
-	public async updateFriendButtons(data: Notification | NotificationModel, userRowInstance?: UserRowComponent): Promise<void> {
+	public async updateFriendButtons(friendId?: number, userRowInstance?: UserRowComponent): Promise<void> {
 		if (!userRowInstance) {
-			const key = `${COMPONENT_NAMES.USER_ROW}-${data.from}`;
+			const key = `${COMPONENT_NAMES.USER_ROW}-${friendId}`;
 			userRowInstance = this.getComponentInstance!<UserRowComponent>(key);
 		}
 		await (userRowInstance as UserRowComponent).toggleFriendButton();

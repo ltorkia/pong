@@ -1,11 +1,12 @@
-import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
+import { FastifyInstance, FastifyReply } from 'fastify';
 import { JwtPayload } from '../types/jwt.types';
 import { getUser } from '../db/user';
 import { UserPassword } from '../types/user.types';
-import { COOKIES_CONST, DB_CONST } from '../shared/config/constants.config'; // en rouge car dossier local 'shared' != dossier conteneur
-import { insertCode2FAEmail, insertCode2FAQrcode, majLog } from '../db/usermaj';
+import { COOKIES_CONST, USER_ONLINE_STATUS } from '../shared/config/constants.config'; // en rouge car dossier local 'shared' != dossier conteneur
+import { insertCode2FAEmail, insertCode2FAQrcode } from '../db/usermaj';
 import nodemailer from 'nodemailer';
 import * as speakeasy from 'speakeasy';
+import { setOnlineStatus } from './notifications.helpers';
 
 /**
  * Génère un token JWT pour un utilisateur donné
@@ -27,13 +28,12 @@ export async function ProcessAuth(app: FastifyInstance, user: Partial<UserPasswo
 	// Création d'un token JWT qui sera utilisé par le frontend pour les requêtes authentifiées
 	// JWT = JSON Web Token = format pour transporter des informations de manière sécurisée entre deux parties, ici le frontend et le backend.
 	const userId = user.id!;
-	const username = user.username!;
 	const token = generateJwt(app, {
 		id: userId
 	});
 	setAuthCookie(reply, token);
 	setStatusCookie(reply);
-	await majLog(username, DB_CONST.USER.STATUS.ONLINE);
+	await setOnlineStatus(app, userId, USER_ONLINE_STATUS.ONLINE);
 }
 
 /**

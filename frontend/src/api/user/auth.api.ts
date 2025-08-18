@@ -2,7 +2,7 @@ import { User } from '../../shared/models/user.model';
 import { UserModel, TwoFaMethod } from '../../shared/types/user.types';	// en rouge car dossier local 'shared' != dossier conteneur
 import { DB_CONST } from '../../shared/config/constants.config';
 import { currentService } from '../../services/index.service';
-import { BasicResponse, AuthResponse } from '../../types/api.types';
+import { BasicResponse, AuthResponse } from '../../shared/types/response.types';
 import { secureFetch } from '../../utils/app.utils';
 import { webSocketService } from '../../services/user/user.service';
 
@@ -130,8 +130,6 @@ export class AuthApi {
 			return { errorMessage: data.errorMessage || data.message || 'Erreur inconnue' } as AuthResponse;
 		}
 		if (data.user.active2Fa === DB_CONST.USER.ACTIVE_2FA.DISABLED) {
-			if (!webSocketService.getWebSocket())
-				webSocketService.openWebSocket();
 			await currentService.setCurrentUserFromServer(data.user);
 		}
 		return data as AuthResponse;
@@ -191,8 +189,6 @@ export class AuthApi {
 		if (!res.ok || data.errorMessage || !data.user) {
 			return { errorMessage: data.errorMessage || data.message || 'Erreur avec la récupération de l\'utilisateur' };
 		}
-		if (!webSocketService.getWebSocket())
-			webSocketService.openWebSocket();
 		await currentService.setCurrentUserFromServer(data.user);
 		return data as AuthResponse;
 	}
@@ -222,8 +218,6 @@ export class AuthApi {
 			return { errorMessage: data.errorMessage || data.message || 'Erreur lors de la connexion Google' };
 		}
 		currentService.setCurrentUserFromServer(data.user);
-		if (!webSocketService.getWebSocket())
-			webSocketService.openWebSocket();
 		return data as AuthResponse;
 	}
 

@@ -1,15 +1,17 @@
 import { ROUTE_PATHS } from '../../config/routes.config';
-import { dataApi, notifApi } from '../../api/index.api';
+import { notifApi, friendApi } from '../../api/index.api';
 import { PageInstance } from '../../types/routes.types';
 import { COMPONENT_NAMES } from '../../config/components.config';
 import { NavbarComponent } from '../../components/navbar/navbar.component';
 import { UserRowComponent } from '../../components/user-row/user-row.component';
-import { currentService } from './user.service';
+import { currentService, storageService } from './user.service';
 import { User } from '../../shared/models/user.model';
-import { Notification } from '../../shared/models/notification.model';
-import { NotificationModel, FriendRequestAction } from '../../shared/types/notification.types';
+import { AppNotification } from '../../shared/models/notification.model';
+import { NotifResponse } from '../../shared/types/response.types';
 import { FRIEND_REQUEST_ACTIONS } from '../../shared/config/constants.config'; // en rouge car dossier local 'shared' != dossier conteneur
+import { isValidNotificationType, isFriendRequestAction, isUserOnlineStatus } from '../../shared/utils/app.utils';
 import { getHTMLElementById } from '../../utils/dom.utils';
+import { FriendRequestAction } from '../../shared/types/notification.types';
 
 // ============================================================================
 // NOTIF SERVICE
@@ -21,9 +23,39 @@ export class NotifService {
 	private currentUser: User | null = null;
 	private currentPage!: PageInstance;
 	private navbarInstance!: NavbarComponent | undefined;
-	private notifs: Notification[] = [];
-	private currentNotif: Notification | NotificationModel | null = null;
-	private notifItem: HTMLElement | null = null;
+	private notifs: AppNotification[] = [];
+	private notifCount: number = 0;
+	private notifItem: HTMLDivElement | null = null;
+
+	public currentNotif: AppNotification | null = null;
+	public friendId: number | null = null;
+
+	// ===========================================
+	// METHODES PUBLICS
+	// ===========================================
+
+	/**
+	 * Paramètre les données lorsque l'utilisateur clique sur un bouton avec un handler
+	 * de demande d'amitié.
+	 * 
+	 * Cette méthode indique quelle ligne se rapporte l'ami 
+	 * pour lequel les boutons d'amitié doivent être mis à jour.
+	 * 
+	 * @param {number} friendId - L'identifiant de l'ami de la ligne.
+	 * @param {FriendRequestAction} type - Le type de la demande d'amitié.
+	 * @returns {void}
+	 */
+	public setNotifsData(friendId: number, type?: FriendRequestAction, ): void {
+		console.log(`setNotifsData: ${friendId}`);
+		this.friendId = friendId;
+		if (type) {
+			this.currentNotif = this.notifs.find(n => 
+				n.type === type &&
+				n.from === this.friendId && 
+				n.to === this.currentUser.id
+			);
+		} 
+	}
 
 	/**
 	 * Initialise le service de notifications avec la page actuelle.
@@ -42,310 +74,246 @@ export class NotifService {
 	}
 
 	/**
-	 * Enregistre les données de la notification reçue par socket.
+	 * Gère une liste de notifications en les traitant en fonction de leur type.
 	 * 
-	 * @param {Notification | NotificationModel} data - Données de la notification.
+	 * Parcourt chaque notification de la liste et appelle `handleNotification` si le type de la notification est valide.
+	 * 
+	 * @param {AppNotification[]} notifs - La liste des notifications à gérer.
+	 * @returns {Promise<void>} Une promesse qui est résolue lorsque toutes les notifications ont été traitées.
 	 */
-	public setNotifData(data: Notification | NotificationModel): void {
-		this.currentNotif = data;
-		if (this.currentNotif.id && this.notifItem) {
-			this.notifItem.id = `notif-${this.currentNotif.id}`;
-			this.notifItem.innerHTML = this.currentNotif!.content || '';
-			this.notifItem = getHTMLElementById(`${this.notifItem.id}`, this.navbarInstance!.notifsWindow);
-			this.attachListeners();
-			if (this.currentNotif!.status === 0) {
-				this.notifItem.classList.add('new-notif');
-				this.updateNotifsCounter();
+	public async handleNotifications(notifs: AppNotification[]): Promise<void> {
+		console.log('On est dans handleNotifications')
+		for (const notif of notifs) {
+			console.log('On est dans la boucle')
+			if (isValidNotificationType(notif.type)) {
+				this.currentNotif = notif;
+				this.friendId = notif.from;
+				if (isUserOnlineStatus(notif.type)) {
+					await this.handleUserOnlineStatus(notif);
+				}
+				console.log('notiftype', notif.type);
+				if (isFriendRequestAction(notif.type)) {
+					await this.handleNotification();
+				}
 			}
-		}
-	}
-
-	/**
-	 * Vérifie si l'objet `data` correspond à une demande d'amitié.
-	 *
-	 * Une demande d'amitié est un objet qui contient les propriétés suivantes:
-	 *
-	 * - `action`: une valeur du type `FRIEND_REQUEST_ACTIONS` qui indique
-	 *   l'action demandée (envoi, acceptation, suppression, blocage).
-	 * - `from`: l'identifiant de l'utilisateur qui envoie la demande.
-	 * - `to`: l'identifiant de l'utilisateur destinataire de la demande.
-	 *
-	 * Si l'objet `data` correspond à ces critères, la fonction renvoie `true`.
-	 * Sinon, la fonction renvoie `false`.
-	 *
-	 * @returns {boolean} Si l'objet `this.currentNotif` correspond à une demande
-	 * d'amitié, la fonction renvoie `true`. Sinon, la fonction renvoie `false`.
-	 */
-	public isFriendRequest(): boolean {
-		return (
-			this.currentNotif &&
-			Object.values(FRIEND_REQUEST_ACTIONS).includes(this.currentNotif.type) &&
-			typeof this.currentNotif.from === "number" &&
-			typeof this.currentNotif.to === "number"
-		);
-	}
-
-	/**
-	 * Traite une demande d'amitié reçue par socket.
-	 *
-	 * Selon l'action de la demande, cette fonctionnalité effectue:
-	 * - Ajoute une nouvelle notification si l'action est l'envoi d'une demande
-	 *   d'amitié (FRIEND_REQUEST_ACTIONS.ADD).
-	 * - Ajoute une nouvelle notification si l'action est l'acceptation d'une
-	 *   demande d'amitié (FRIEND_REQUEST_ACTIONS.ACCEPT).
-	 * - N'affecte pas les notifications si l'action est la suppression d'une
-	 *   demande d'amitié (FRIEND_REQUEST_ACTIONS.DELETE).
-	 * - N'affecte pas les notifications si l'action est le blocage d'un utilisateur
-	 *   (FRIEND_REQUEST_ACTIONS.BLOCK).
-	 * - Affiche une erreur si l'action est inconnue.
-	 */
-	public async handleFriendRequest() {
-		if (!this.currentNotif) {
-			console.error('currentNotif est null dans handleFriendRequest');
-			return;
-		}
-		switch (this.currentNotif.type) {
-			case FRIEND_REQUEST_ACTIONS.ADD:
-				console.log("New friend request from user ID:", this.currentNotif.from, "to user ID:", this.currentNotif.to);
-				await this.addNewNotification();
-				break;
-			case FRIEND_REQUEST_ACTIONS.ACCEPT:
-				console.log("Friend request accepted from user ID:", this.currentNotif.from, "to user ID:", this.currentNotif.to);
-				this.addNewNotification();
-				break;
-			case FRIEND_REQUEST_ACTIONS.DELETE:
-				console.log("Friend request deleted from user ID:", this.currentNotif.from, "to user ID:", this.currentNotif.to);
-				break;
-			case FRIEND_REQUEST_ACTIONS.BLOCK:
-				console.log("User ID:", this.currentNotif.from, "blocked user ID:", this.currentNotif.to);
-				break;
-			default:
-				console.error("Unknown friend request action:", this.currentNotif.type);
-				break;
 		}
 		this.refreshFriendButtons();
 	}
 
 	/**
-	 * Ajoute une nouvelle notification basée sur le type de socket reçu.
+	 * Marque une notification comme lue en utilisant l'API envoyant une requête PUT
+	 * à la route `/api/notifs/:notifId/update` pour mettre à jour le statut de
+	 * la notification d'identifiant `notifId` de 0 à 1 (soit non lu à lu).
 	 *
-	 * Cette méthode traite différents types de notifications, en se concentrant
-	 * principalement sur les demandes d'amitié. Selon l'action de la demande
-	 * (envoi ou acceptation), elle génère le contenu de la notification et,
-	 * le cas échéant, crée les boutons d'action correspondants.
+	 * Si la requête réussit, la notification est mise à jour dans l'état de l'application.
 	 *
-	 * - Vérifie d'abord si la notification est destinée à l'utilisateur actuel.
-	 * - Récupère l'utilisateur expéditeur à partir de l'ID fourni.
-	 * - Génère le contenu de la notification en fonction de l'action.
-	 * - Ajoute la notification à la base de données via l'API.
-	 * - Recharge les notifications de l'utilisateur actuel après l'ajout.
-	 *
-	 * @returns {Promise<void>} Une promesse qui se résout lorsque la notification
-	 * a été ajoutée et les notifications rechargées.
+	 * @param {number} id - L'identifiant de la notification à marquer comme lue.
+	 * @returns {Promise<void>} Une promesse qui se résout une fois la notification marquée comme lue.
 	 */
-	public async addNewNotification(): Promise<void> {
-		if (this.currentNotif.to != this.currentUser!.id) {
-			console.error('Notif sans destinataire');
-			return;
+	public async markAsRead(id: number): Promise<void> {
+		this.setCurrentNotif(id);
+		this.currentNotif.read = 1;
+		const updatedRes = await notifApi.updateNotification(this.currentNotif);
+		if (updatedRes.errorMessage) {
+			console.error(updatedRes.errorMessage);
 		}
-		const user = await dataApi.getUserById(this.currentNotif.from);
-		let notif = '';
-		let buttons = null;
-		if (this.isFriendRequest()) {
-			if (this.currentNotif.type === FRIEND_REQUEST_ACTIONS.ADD) {
-				notif = `has sent you a friend request.`;
-				buttons = await this.createNotifButtonsHTML();
-			}
-			if (this.currentNotif.type === FRIEND_REQUEST_ACTIONS.ACCEPT) {
-				notif = `has accepted your friend request.`;
-			}
-		}
-		this.currentNotif.content = `<span>${user.username} ${notif}</span>`;
-		if (buttons) {
-			this.currentNotif.content += buttons;
-		}
-
-		const data = this.getNotifData();
-		const addNotifDb = await notifApi.addNotification(data);
-		if (addNotifDb.errorMessage) {
-			console.error(addNotifDb.errorMessage);
-			return;
-		}
-		console.log('Notif ajoutée en bdd:', addNotifDb);
-		this.loadNotifs();
+		this.currentNotif = updatedRes.notif;
 	}
 
 	/**
-	 * Recharge les notifications de l'utilisateur actuel.
+	 * Met à jour le compteur de notifications non lues.
 	 *
-	 * - Supprime le contenu actuel de la fenêtre de notifications.
-	 * - Récupère les notifications de l'utilisateur actuel via l'API.
-	 * - Si il n'y a pas de notifications, affiche un message par défaut.
-	 * - Sinon, parcourt les notifications et :
-	 *   - Crée un élément HTML pour chaque notification.
-	 *   - Ajoute l'élément HTML à la fenêtre de notifications.
-	 *   - Attache des listeners pour gérer les événements de clic sur les notifications.
-	 *   - Si la notification est non-lue, ajoute la classe 'new-notif' et met à jour le compteur de notifications non-lues.
-	 */
-	// public async loadNotifs(): Promise<void> {
-	// 	this.navbarInstance!.notifsWindow.replaceChildren();
-	// 	this.notifs = await notifApi.getUserNotifications();
-	// 	if (!this.notifs || this.notifs.length === 0) {
-	// 		this.updateNotifsCounter(true);
-	// 		const notifItem = document.createElement('div');
-	// 		notifItem.classList.add('default-notif');
-	// 		notifItem.textContent = 'No notification yet.';
-	// 		this.navbarInstance!.notifsWindow.appendChild(notifItem);
-	// 		return;
-	// 	}
-	// 	this.notifs.forEach((notifDb: Notification) => {
-	// 		this.setNotifData(notifDb);
-	// 		const notifItem = document.createElement('div');
-	// 		notifItem.classList.add('notif-item');
-	// 		notifItem.id = `notif-${this.currentNotif.id}`;
-	// 		notifItem.innerHTML = this.currentNotif.content;
-	// 		this.navbarInstance!.notifsWindow.appendChild(notifItem);
-	// 		this.notifItem = getHTMLElementById(`${notifItem.id.toString()}`, this.navbarInstance!.notifsWindow);
-	// 		this.attachListeners();
-	// 		if (this.currentNotif.status === 0) {
-	// 			this.notifItem.classList.add('new-notif');
-	// 			this.updateNotifsCounter();
-	// 		}
-	// 	});	
-	// }
-	public async loadNotifs(): Promise<void> {
-		this.navbarInstance!.notifsWindow.replaceChildren();
-		
-		try {
-			this.notifs = await notifApi.getUserNotifications();
-			console.log('Notifications rechargées:', this.notifs);
-			if (!this.notifs || this.notifs.length === 0) {
-				this.updateNotifsCounter(true);
-				const notifItem = document.createElement('div');
-				notifItem.classList.add('default-notif');
-				notifItem.textContent = 'No notification yet.';
-				this.navbarInstance!.notifsWindow.appendChild(notifItem);
-				return;
-			}
-			
-			this.notifs.forEach((notifDb: Notification) => {
-				const notifItem = document.createElement('div');
-				notifItem.classList.add('notif-item');
-				this.navbarInstance!.notifsWindow.appendChild(notifItem);
-				this.notifItem = notifItem;
-				this.setNotifData(notifDb);
-			});
-		} catch (error) {
-			console.error('Erreur lors du chargement des notifications:', error);
-		}
-	}
-
-	/**
-	 * Met à jour l'affichage d'une notification dans la fenêtre des notifications.
+	 * - Si le compteur est égal à zéro, cache le compteur.
+	 * - Sinon, affiche le compteur avec la valeur donnée.
 	 *
-	 * - Récupère la notification en base de données via l'API.
-	 * - Si la notification n'existe pas, affiche un message d'erreur.
-	 * - Si la notification est non-lue, retire la classe 'new-notif' et met à jour le compteur de notifications non-lues.
-	 * - Met à jour le contenu HTML de la notification.
-	 *
-	 * @returns {Promise<void>} Promesse qui se résout lorsque la mise à jour est terminée.
-	 */
-	// public async updateNotifDisplay(): Promise<void> {
-	// 	console.log(this.currentNotif);
-	// 	if (!this.currentNotif || !this.currentNotif.id) {
-	// 		return;
-	// 	}
-	// 	const notifDb: Notification = await notifApi.getNotificationById(this.currentNotif.id);
-	// 	if (!notifDb) {
-	// 		console.log(`La notification ${this.currentNotif.id} n'existe pas en base de données`);
-	// 		return;
-	// 	}
-	// 	if (notifDb.status === 1) {
-	// 		this.notifItem!.classList.remove('new-notif');
-	// 		this.updateNotifsCounter();
-	// 	}
-	// 	this.notifItem!.innerHTML = notifDb.content;
-	// }
-	public async updateNotifDisplay(): Promise<void> {
-		console.log(this.currentNotif);
-		if (!this.currentNotif || !this.currentNotif.id) {
-			return;
-		}
-		
-		try {
-			const notifDb: Notification = await notifApi.getNotificationById(this.currentNotif.id);
-			if (!notifDb) {
-				console.log(`La notification ${this.currentNotif.id} n'existe pas en base de données`);
-				return;
-			}
-			
-			// Vérifier que this.notifItem existe avant de l'utiliser
-			if (!this.notifItem) {
-				console.error('notifItem est null, on ne peut pas update le display des notifs');
-				return;
-			}
-			
-			if (notifDb.status === 1) {
-				this.notifItem.classList.remove('new-notif');
-				this.updateNotifsCounter();
-			}
-			this.notifItem.innerHTML = notifDb.content;
-		} catch (error) {
-			console.error('Erreur lors de la mise à jour de la notification:', error);
-		}
-	}
-
-	/**
-	 * Crée le HTML pour les boutons d'actions dans une notification.
-	 * 
-	 * Les boutons sont affichés en fonction de l'action de la notification.
-	 * Si la notification est une demande d'amitié, les boutons "Accept" et "Decline"
-	 * sont affichés.
-	 * 
-	 * @returns {Promise<string>} Le HTML des boutons d'actions.
-	 */
-	public async createNotifButtonsHTML(): Promise<string> {
-		let html = `<div class="notif-actions flex justify-center space-x-4">`;
-		if (this.isFriendRequest()
-			&& this.currentNotif.type === FRIEND_REQUEST_ACTIONS.ADD) {
-			
-			html += `
-				<button class="btn smaller-btn" data-action="accept" data-to="${this.currentNotif.to}" data-from="${this.currentNotif.from}">
-					Accept
-				</button>
-				<button class="btn smaller-btn" data-action="decline" data-to="${this.currentNotif.to}" data-from="${this.currentNotif.from}">
-					Decline
-				</button>
-			`;
-		}
-		html += `</div>`;
-		return html;
-	}
-
-	/**
-	 * Met à jour le compteur de notifications non lues dans la navbar.
-	 * 
-	 * Si `reset` est à `true`, remet le compteur à 0 et le rend invisible.
-	 * Sinon, incrémente le compteur de 1 et le rend visible.
-	 * @param {boolean} reset - Si `true`, remet le compteur à 0 et le rend invisible.
 	 * @returns {void}
 	 */
-	public updateNotifsCounter(reset: boolean = false): void {
-		let currentCount: number = 0;
-		if (reset) {
+	public updateNotifsCounter(): void {
+		this.notifCount = this.getNotifCount();
+		console.log('this.notifCount', this.notifCount);
+		if (this.notifCount === 0) {
 			this.navbarInstance!.notifsCounter.textContent = '0';
 			if (!this.navbarInstance!.notifsCounter.classList.contains('hidden')) {
 				this.navbarInstance!.notifsCounter.classList.add('hidden');
 			}
 			return;
 		}
-		currentCount = parseInt(this.navbarInstance!.notifsCounter.textContent || '0', 10);
-		this.navbarInstance!.notifsCounter.textContent = (currentCount + 1).toString();
+		this.navbarInstance!.notifsCounter.textContent = this.notifCount.toString();
 		if (this.navbarInstance!.notifsCounter.classList.contains('hidden')) {
 			this.navbarInstance!.notifsCounter.classList.remove('hidden');
 		}
 	}
 
+	// ===========================================
+	// METHODES PRIVATES
+	// ===========================================
+
+	private async handleUserOnlineStatus(notif: AppNotification): Promise<void> {
+		console.log('On est dans handleUserOnlineStatus');
+	}
+
+	/**
+	 * Charge les notifications de l'utilisateur courant et les affiche dans la fenêtre de notifications.
+	 * Si il n'y a pas de notifications, affiche un message par défaut.
+	 *
+	 * @returns {Promise<void>} Une promesse qui est resolvée lorsque les notifications sont chargées et affichées.
+	 */
+	private async loadNotifs(): Promise<void> {
+		this.navbarInstance!.notifsWindow.replaceChildren();
+		console.log('On est dans loadNotifs');
+		this.setCurrentNotifs();
+		this.updateNotifsCounter();
+
+		// Si il n'y a pas de notifications, affiche un message par défaut
+		if (this.notifCount === 0) {
+			this.displayDefaultNotif();
+			return;
+		}
+
+		// Sinon, parcourt les notifications et crée un élément HTML pour chacune
+		this.updateNotifsCounter();
+		this.notifs.forEach((notifDb: AppNotification) => {
+			this.currentNotif = notifDb;
+			this.displayNotif();
+		});
+	}
+
+	/**
+	 * Gère une notification en la traitant en fonction de son type.
+	 * 
+	 * - Stocke la notification en cours dans `currentNotif`.
+	 * - Vérifie si la notification est déjà chargée en utilisant `find` sur `notifs`.
+	 * - Si la notification n'est pas chargée, la stocke dans `notifs`, la sauvegarde en local,
+	 *   affiche la notification et met à jour le compteur de notifications.
+	 * - Sinon, selon le type de la notification, supprime ou remplace la notification existante.
+	 * - Met à jour les boutons d'amitié si la page des utilisateurs est affichée.
+	 * 
+	 * @returns {Promise<void>} Une promesse qui est résolue lorsque la notification est traitée.
+	 */
+	private async handleNotification(): Promise<void> {
+		console.log('On est dans handleNotification');
+		const notifIndex = this.notifs.findIndex((notif) => notif.id === this.currentNotif.id);
+		if (notifIndex === -1) {
+			this.notifs.push(this.currentNotif);
+			storageService.setCurrentNotifs(this.notifs);
+			console.log('this.notifs apres push', this.notifs);
+			this.updateNotifsCounter();
+			this.displayNotif();
+			return;
+		};
+		switch (this.currentNotif.type) {
+			case FRIEND_REQUEST_ACTIONS.ADD:
+			case FRIEND_REQUEST_ACTIONS.DELETE:
+				this.notifs.splice(notifIndex, 1);
+				this.deleteNotif();
+				this.updateNotifsCounter();
+				console.log('this.notifs apres delete', this.notifs);
+				break;
+			default:
+				this.notifs[notifIndex] = this.currentNotif;
+				this.replaceNotif();
+				console.log('this.notifs apres replace', this.notifs);
+				break;
+		}
+		storageService.setCurrentNotifs(this.notifs);
+	}
+
+	/**
+	 * Charge les notifications de l'utilisateur courant.
+	 *
+	 * Si les notifications de l'utilisateur courant sont déjà stockées en mémoire,
+	 * elles sont directement copiées dans `this.notifs`. Sinon, une requête à l'API
+	 * est envoyée pour récupérer les notifications de l'utilisateur courant.
+	 *
+	 * Si la requête réussit, les notifications sont stockées dans `this.notifs` et
+	 * stockées en local storage.
+	 *
+	 * @returns {Promise<void>} Une promesse qui est resolvée lorsque les notifications sont chargées.
+	 */
+	private async setCurrentNotifs(): Promise<void> {
+		if (this.currentUser.notifications.length > 0) {
+			console.log("bla");
+			this.notifs = this.currentUser.notifications;
+			console.log(this.notifs);
+			return;
+		}
+		const result: NotifResponse = await notifApi.getUserNotifications();
+		if (result.errorMessage) {
+			console.error(result.errorMessage);
+			return;
+		}
+		console.log(result);
+		this.notifs = result;
+		storageService.setCurrentNotifs(this.notifs);
+		console.log('Notifications rechargées:', this.notifs);
+	}
+
+	/**
+	 * Charge les informations d'une notification en fonction de son identifiant.
+	 *
+	 * Cette méthode envoie une requête à l'API pour récupérer les informations de la
+	 * notification d'identifiant `id`. Si la requête réussit, les informations sont
+	 * stockées dans `this.currentNotif`.
+	 *
+	 * @param {number} id - Identifiant de la notification à charger.
+	 * @returns {Promise<void>} Une promesse qui se résout lorsque les informations de la
+	 * notification sont chargées.
+	 */
+	private async setCurrentNotif(id: number): Promise<void> {
+		const result: NotifResponse = await notifApi.getNotificationById(id);
+		if (result.errorMessage) {
+			console.error(result.errorMessage);
+			return;
+		}
+		this.currentNotif = result;
+	}
+
+	/**
+	 * Affiche une notification en créant un élément de notification et en l'ajoutant
+	 * à la fenêtre des notifications dans la barre de navigation.
+	 *
+	 * Si la notification nécessite des boutons d'action, les boutons
+	 * sont créés en utilisant `this.createNotifButtonsHTML()` et des écouteurs d'événements sont attachés
+	 * en utilisant `this.attachListeners()`.
+	 */
+	private displayNotif(): void {
+		this.removeDefaultNotif();
+		this.notifItem = this.createNotifElement();
+		if (this.needButtons()) {
+			console.log('BLOUUUULJQSFHNSL/DHF');
+			this.notifItem.innerHTML += this.createNotifButtonsHTML();
+		}
+		this.navbarInstance!.notifsWindow.appendChild(this.notifItem);
+		this.notifItem = getHTMLElementById(`notif-${this.currentNotif.id}`, this.navbarInstance!.notifsWindow) as HTMLDivElement;
+		this.attachListeners();
+	}
+	
+	/**
+	 * Remplace l'élément HTML de la notification par un nouvel élément HTML généré à partir de la
+	 * notification courante.
+	 */
+	private replaceNotif(): void {
+		this.notifItem = getHTMLElementById(`notif-${this.currentNotif.id}`, this.navbarInstance!.notifsWindow) as HTMLDivElement;
+		if (!this.notifItem) {
+			console.warn(`[${this.constructor.name}] Aucune notification à mettre à jour`);
+			return;
+		}
+		const newNotifItem = this.createNotifElement();
+		this.notifItem.replaceWith(newNotifItem);
+	}
+
+	/**
+	 * Supprime la notification actuelle de la fenêtre des notifications dans la barre de navigation.
+	 */
+	private deleteNotif(): void {
+		this.displayDefaultNotif();
+		this.notifItem = getHTMLElementById(`notif-${this.currentNotif.id}`, this.navbarInstance!.notifsWindow) as HTMLDivElement;
+		if (!this.notifItem) {
+			console.warn(`[${this.constructor.name}] Aucune notification à supprimer`);
+			return;
+		}
+		this.notifItem.remove();
+	}
 	/**
 	 * Met à jour les boutons d'amitié pour la page des utilisateurs si elle est affichée.
 	 *
@@ -356,71 +324,64 @@ export class NotifService {
 	 * @param {UserRowComponent} [userRowInstance] - L'instance du composant UserRowComponent qui a envoyé la demande d'amitié.
 	 * @returns {Promise<void>} Une promesse qui se résout lorsque les boutons d'amitié ont été mis à jour.
 	 */
-	// public async refreshFriendButtons(userRowInstance?: UserRowComponent): Promise<void> {
-	// 	if (this.currentPage.config.path === ROUTE_PATHS.USERS) {
-	// 		await this.currentPage.updateFriendButtons!(this.currentNotif!, userRowInstance);
-	// 	}
-	// 	const notifTwins: Notification[] = this.getUserNotifsByTypeAndFrom(this.currentNotif.type, this.currentNotif.from);
-	// 	for (const notif of notifTwins) {
-	// 		this.setNotifData(notif);
-	// 		await this.updateNotifDisplay();
-	// 	}
-	// }
-	public async refreshFriendButtons(userRowInstance?: UserRowComponent): Promise<void> {
+	private async refreshFriendButtons(userRowInstance?: UserRowComponent): Promise<void> {
 		if (this.currentPage.config.path === ROUTE_PATHS.USERS) {
-			await this.currentPage.updateFriendButtons!(this.currentNotif!, userRowInstance);
+			await this.currentPage.updateFriendButtons!(this.friendId!, userRowInstance);
 		}
-		
-		// Correction: vérifier que currentNotif a les bonnes propriétés
-		if (!this.currentNotif || typeof this.currentNotif.type === 'undefined' || typeof this.currentNotif.from === 'undefined') {
-			console.error('currentNotif invalide pour refreshFriendButtons');
+	}
+
+	/**
+	 * Crée et retourne un élément HTML représentant une notification.
+	 *
+	 * L'élément HTML est créé en utilisant la méthode `document.createElement()`. Il est
+	 * configuré avec les classes CSS `.notif-item` et `.new-notif` en fonction du statut de la notification.
+	 * L'identifiant de l'élément est généré en utilisant l'identifiant de la notification. Le contenu de la
+	 * notification est ajouté en tant que contenu de l'élément.
+	 *
+	 * @returns {HTMLDivElement} L'élément HTML représentant la notification.
+	 */
+	private createNotifElement(): HTMLDivElement {
+		const notifItem = document.createElement('div');
+		notifItem.classList.add('notif-item');
+		notifItem.id = `notif-${this.currentNotif.id}`;
+		notifItem.innerHTML = `<span>${this.currentNotif.content}</span>` || '';
+		if (this.currentNotif.read === 0) {
+			notifItem.classList.add('new-notif');
+		}
+		return notifItem;
+	}
+
+	/**
+	 * Crée un élément HTML pour indiquer qu'il n'y a pas encore de notification,
+	 * et l'ajoute à la fenêtre de notifications.
+	 *
+	 * Cette méthode crée un élément HTML avec la classe 'default-notif' et le texte
+	 * "No notification yet", puis l'ajoute à la fenêtre de notifications.
+	 */
+	private displayDefaultNotif() {
+		if (this.getNotifCount() > 0)
 			return;
-		}
-		
-		const notifTwins: Notification[] = this.getUserNotifsByTypeAndFrom(this.currentNotif.type, this.currentNotif.from);
-		for (const notif of notifTwins) {
-			this.setNotifData(notif);
-			await this.updateNotifDisplay();
-		}
+		const notifItem = document.createElement('div');
+		notifItem.classList.add('default-notif');
+		notifItem.textContent = 'No notification yet.';
+		this.navbarInstance!.notifsWindow.appendChild(notifItem);
 	}
 
 	/**
-	 * Retourne un objet contenant les informations de la notification.
+	 * Supprime l'élément HTML indiquant qu'il n'y a pas encore de notification,
+	 * s'il existe.
 	 *
-	 * L'objet contient les clés suivantes :
-	 * - action : l'action de la notification (par exemple, FRIEND_REQUEST_ACTIONS.ADD)
-	 * - from : l'identifiant de l'utilisateur qui a envoyé la notification
-	 * - to : l'identifiant de l'utilisateur qui reçoit la notification (l'utilisateur actuel)
-	 * - type : le type de la notification (par exemple, "friendRequest")
-	 * - content : le contenu de la notification, qui peut inclure des balises HTML
-	 *
-	 * @returns {Notification | NotificationModel} L'objet contenant les informations de la notification.
+	 * Cette méthode recherche l'élément HTML avec la classe 'default-notif' dans la fenêtre
+	 * de notifications et l'enlève du DOM en utilisant la méthode `remove()`.
 	 */
-	public getNotifData(): Notification | NotificationModel {
-		return {
-			from: this.currentNotif.from, 
-			to: this.currentUser!.id, 
-			type: this.currentNotif.type, 
-			content: this.currentNotif.content
-		};
+	private removeDefaultNotif() {
+		if (this.getNotifCount() > 0) {
+			const notifItem = this.navbarInstance!.notifsWindow.querySelector('.default-notif');
+			if (notifItem) {
+				notifItem.remove();
+			}
+		}
 	}
-
-	/**
-	 * Filtre les notifications de l'utilisateur par type et par expéditeur.
-	 * 
-	 * @param {FriendRequestAction} type - Type à filtrer
-	 * @param {number} fromId - ID de l'expéditeur
-	 * @returns {Notification[]} Tableau de notifications filtrées
-	 */
-	public getUserNotifsByTypeAndFrom(type: FriendRequestAction, fromId: number): Notification[] {
-		return this.notifs.filter(notification => 
-			notification.type === type && notification.from === fromId
-		);
-	}
-
-	// ===========================================
-	// LISTENERS
-	// ===========================================
 
 	/**
 	 * Ajoute des listeners pour gérer les événements de clic sur les boutons des notifications.
@@ -440,109 +401,127 @@ export class NotifService {
 		}
 	}
 
-	/**
-	 * Gère l'événement de clic pour l'acceptation d'une notification de demande d'ami.
-	 *
-	 * Cette méthode effectue les actions suivantes :
-	 * 1. Appelle l'API pour accepter la demande d'ami entre l'expéditeur et le destinataire de la notification courante.
-	 * 2. Met à jour le contenu de la notification pour indiquer que la demande a été acceptée.
-	 * 3. Met à jour le statut et le contenu de la notification via l'API.
-	 * 4. Rafraîchit l'affichage de la notification et les boutons liés à l'amitié dans l'interface.
-	 *
-	 * @returns Une promesse qui se résout lorsque toutes les actions sont terminées.
-	 */
-	// private handleAcceptClick = async (): Promise<void> => {
-	// 	console.log("ACCEPPPPPT Accepting friend request from user ID:", this.currentNotif.from, "to user ID:", this.currentNotif.to);
-	// 	await dataApi.acceptFriend(this.currentNotif.to, this.currentNotif.from);
-	// 	const notifFrom: User = await dataApi.getUserById(this.currentNotif.from);
-	// 	if (!notifFrom) {
-	// 		console.error("User not found");
-	// 	}
-	// 	const notifContent = `<span>'Friend request from ${notifFrom.username} accepted ✅</span>`;
-	// 	await notifApi.updateNotifStatus(this.currentNotif.id);
-	// 	await notifApi.updateNotifContent(this.currentNotif.id, notifContent);
-	// 	await this.refreshFriendButtons();
-	// }
-	private handleAcceptClick = async (): Promise<void> => {
-		if (!this.currentNotif || typeof this.currentNotif.from === 'undefined' || typeof this.currentNotif.to === 'undefined') {
-			console.error('currentNotif invalide pour handleAcceptClick');
+	// ===========================================
+	// LISTENERS
+	// ===========================================
+
+	public handleAddClick = async (): Promise<void> => {
+		console.log("ADDDD Add friend request from user ID:", this.currentUser.id, "to user ID:", this.friendId!);
+		let res = await friendApi.addFriend(this.friendId!);
+		if ('errorMessage' in res) {
+			console.error(res.errorMessage);
 			return;
 		}
-		
-		try {
-			console.log("ACCEPPPPPT Accepting friend request from user ID:", this.currentNotif.from, "to user ID:", this.currentNotif.to);
-			await dataApi.acceptFriend(this.currentNotif.to, this.currentNotif.from);
-			const notifFrom: User = await dataApi.getUserById(this.currentNotif.from);
-			if (!notifFrom) {
-				console.error("User not found");
-				return;
-			}
-			const notifContent = `<span>Friend request from ${notifFrom.username} accepted ✅</span>`;
-			
-			// Vérifier que l'ID existe avant de faire les requêtes
-			if (!this.currentNotif.id) {
-				console.error('currentNotif.id manquant');
-				return;
-			}
-			
-			await notifApi.updateNotifStatus(this.currentNotif.id);
-			await notifApi.updateNotifContent(this.currentNotif.id, notifContent);
-			await this.refreshFriendButtons();
-		} catch (error) {
-			console.error('Erreur lors de l\'acceptation de la demande d\'ami:', error);
+		await this.refreshFriendButtons();
+	}
+
+	public handleCancelClick = async (): Promise<void> => {
+		console.log("CANCEL CLICK: Cancel friend request from user ID:", this.currentUser.id, "to user ID:", this.friendId!);
+		const data = {
+			id: 0,
+			to: this.friendId
 		}
+		let res = await friendApi.removeFriend(this.friendId!, data);
+		if ('errorMessage' in res) {
+			console.error(res.errorMessage);
+			return;
+		}
+		await this.refreshFriendButtons();
+	}
+
+	public handleDeclineClick = async (): Promise<void> => {
+		console.log("DECLINE CLICK: Decline friend request from user ID:", this.currentUser.id, "to user ID:", this.friendId!);
+		let res = await friendApi.removeFriend(this.friendId!, this.currentNotif);
+		if ('errorMessage' in res) {
+			console.error(res.errorMessage);
+			return;
+		}
+		await this.handleNotifications(res);
+	}
+
+	public handleAcceptClick = async (): Promise<void> => {
+		console.log("ACCEPPPPPT Accepting friend request from user ID:", this.currentUser.id, "to user ID:", this.friendId!);
+		console.log(this.currentNotif);
+		if (this.currentNotif.type !== FRIEND_REQUEST_ACTIONS.ADD) {
+			console.error("Invalid notification type for accepting friend request", this.currentNotif.type);
+			return;
+		}
+		this.currentNotif.toType = FRIEND_REQUEST_ACTIONS.ACCEPT;
+		let res = await friendApi.updateFriend(this.friendId!, this.currentNotif);
+		if ('errorMessage' in res) {
+			console.error(res.errorMessage);
+			return;
+		}
+		await this.handleNotifications(res);
+	}
+
+	public handleBlockClick = async (): Promise<void> => {
+		console.log("BLOCKKKKK Blocking friend:", this.friendId!);
+		if (this.currentNotif.type !== FRIEND_REQUEST_ACTIONS.ACCEPT) {
+			console.error("Invalid notification type for accepting friend request", this.currentNotif.type);
+			return;
+		}
+		this.currentNotif.toType = FRIEND_REQUEST_ACTIONS.BLOCK;
+		let res = await friendApi.updateFriend(this.friendId!, this.currentNotif);
+		if ('errorMessage' in res) {
+			console.error(res.errorMessage);
+			return;
+		}
+		await this.handleNotifications(res);
+	}
+
+	// ===========================================
+	// UTILS
+	// ===========================================
+
+	/**
+	 * Retourne le nombre de notifications non lues.
+	 *
+	 * Recherche et retourne le nombre de notifications dont le statut est 0 (non lu) dans le tableau `notifs`.
+	 *
+	 * @return {number} Le nombre de notifications non lues.
+	 */
+	private getNotifCount(): number {
+		return this.notifs.filter(n => n.read === 0).length;
 	}
 
 	/**
-	 * Gère l'action de refus pour une notification de demande d'ami.
-	 *
-	 * Cette méthode asynchrone effectue les étapes suivantes :
-	 * 1. Supprime la relation d'amitié entre l'expéditeur et le destinataire de la notification.
-	 * 2. Met à jour le contenu de la notification pour indiquer que la demande a été refusée.
-	 * 3. Met à jour le statut de la notification pour refléter le changement.
-	 * 4. Rafraîchit l'affichage de la notification et les boutons liés à l'amitié dans l'interface.
-	 *
-	 * @returns {Promise<void>} Une promesse qui se résout lorsque toutes les actions de refus sont terminées.
+	 * Détermine si les boutons d'actions sont nécessaires pour la notification courante.
+	 * 
+	 * @returns {boolean} True si le type de la notification est FRIEND_REQUEST_ACTIONS.ADD,
+	 *                   sinon False.
 	 */
-	// private handleDeclineClick = async (): Promise<void> => {
-	// 	console.log("DECLINE CLICK: Decline friend request from user ID:", this.currentNotif.from, "to user ID:", this.currentNotif.to);
-	// 	await dataApi.removeFriend(this.currentNotif.to, this.currentNotif.from);
-	// 	const notifFrom: User = await dataApi.getUserById(this.currentNotif.from);
-	// 	if (!notifFrom) {
-	// 		console.error("User not found");
-	// 	}
-	// 	const notifContent = `<span>'Friend request from ${notifFrom.username} declined ❌</span>`;
-	// 	await notifApi.updateNotifStatus(this.currentNotif.id);
-	// 	await notifApi.updateNotifContent(this.currentNotif.id, notifContent);
-	// 	await this.refreshFriendButtons();
-	// }
-	private handleDeclineClick = async (): Promise<void> => {
-		if (!this.currentNotif || typeof this.currentNotif.from === 'undefined' || typeof this.currentNotif.to === 'undefined') {
-			console.error('currentNotif invalide pour handleDeclineClick');
-			return;
+	private needButtons(): boolean {
+		const buttonCases = [
+			FRIEND_REQUEST_ACTIONS.ADD,
+		]
+		return Object.values(buttonCases).includes(this.currentNotif.type);
+	}
+
+	/**
+	 * Crée le HTML pour les boutons d'actions dans une notification.
+	 * 
+	 * Les boutons sont affichés en fonction de l'action de la notification.
+	 * Si la notification est une demande d'amitié, les boutons "Accept" et "Decline"
+	 * sont affichés.
+	 * 
+	 * @returns {string} Le HTML des boutons d'actions.
+	 */
+	private createNotifButtonsHTML(): string {
+		let html = `<div class="notif-actions flex justify-center space-x-4">`;
+		switch (this.currentNotif.type) {
+			case FRIEND_REQUEST_ACTIONS.ADD:
+				html += `
+					<button class="btn smaller-btn" data-action="accept" data-to="${this.currentNotif.to}" data-from="${this.currentNotif.from}">
+						Accept
+					</button>
+					<button class="btn smaller-btn" data-action="decline" data-to="${this.currentNotif.to}" data-from="${this.currentNotif.from}">
+						Decline
+					</button>
+				`;
+				break;
 		}
-		
-		try {
-			console.log("DECLINE CLICK: Decline friend request from user ID:", this.currentNotif.from, "to user ID:", this.currentNotif.to);
-			await dataApi.removeFriend(this.currentNotif.to, this.currentNotif.from);
-			const notifFrom: User = await dataApi.getUserById(this.currentNotif.from);
-			if (!notifFrom) {
-				console.error("User not found");
-				return;
-			}
-			const notifContent = `<span>Friend request from ${notifFrom.username} declined ❌</span>`;
-			
-			// Vérifier que l'ID existe avant de faire les requêtes
-			if (!this.currentNotif.id) {
-				console.error('currentNotif.id manquant');
-				return;
-			}
-			
-			await notifApi.updateNotifStatus(this.currentNotif.id);
-			await notifApi.updateNotifContent(this.currentNotif.id, notifContent);
-			await this.refreshFriendButtons();
-		} catch (error) {
-			console.error('Erreur lors du refus de la demande d\'ami:', error);
-		}
+		html += `</div>`;
+		return html;
 	}
 }

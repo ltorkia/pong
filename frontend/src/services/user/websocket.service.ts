@@ -1,5 +1,7 @@
-import { currentService, notifService } from "./user.service";
-import { NotificationModel } from "../../shared/models/notification.model";
+import { currentService, notifService } from './user.service';
+import { AppNotification } from '../../shared/models/notification.model';
+import type { NotificationModel } from '../../shared/types/notification.types';
+import { isNotificationModel } from '../../shared/utils/app.utils';
 
 export class WebSocketService {
 	private webSocket: WebSocket | undefined;
@@ -17,16 +19,15 @@ export class WebSocketService {
 			console.log("WEBSOCKET CONNECTED!");
 
 		this.webSocket.onmessage = async (event) => {
-			try {
-				const data = JSON.parse(event.data) as NotificationModel;
-				notifService.setNotifData(data);
-				if (notifService.isFriendRequest()) {
-					console.log("Handling friend request:", data);
-					await notifService.handleFriendRequest();
-				}
-			} catch (err) {
-				console.error("Erreur de parsing WebSocket message :", err);
+			const dataArray = JSON.parse(event.data);
+			console.log('NOTIF RECUEEEE');
+			if (Array.isArray(dataArray) 
+				&& dataArray.every(isNotificationModel)) {
+				const data = dataArray as NotificationModel[];
+				const formatedData = AppNotification.fromJSONArray(data) as AppNotification[];
+				await notifService.handleNotifications(formatedData);
 			}
+			console.log('fin traitement event socket')
 		};
 	}
 

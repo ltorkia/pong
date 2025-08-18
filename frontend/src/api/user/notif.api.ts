@@ -1,7 +1,6 @@
-import { Notification } from '../../shared/models/notification.model';
-import { NotifResponse, NotificationModel } from '../../shared/types/notification.types';	// en rouge car dossier local 'shared' != dossier conteneur
+import { AppNotification } from '../../shared/models/notification.model';
+import { BasicResponse, NotifResponse } from '../../shared/types/response.types';
 import { secureFetch } from '../../utils/app.utils';
-import { BasicResponse } from '../../types/api.types';
 
 // ===========================================
 // NOTIF API
@@ -24,15 +23,16 @@ export class NotifApi {
 	 * contenant les informations des notifications de l'utilisateur stockées en base de données.
 	 * Sinon, lève une erreur.
 	 *
-	 * @returns {Promise<Notification>} Promesse qui se résout avec un tableau d'instances `Notification`.
+	 * @returns {Promise<AppNotification[] | { errorMessage: string }>} Promesse qui se résout avec un tableau d'instances `Notification`.
 	 */
-	public async getUserNotifications(): Promise<Notification[]> {
+	public async getUserNotifications(): Promise<AppNotification[] | { errorMessage: string }> {
 		const res: Response = await secureFetch(`/api/notifs`, { method: 'GET' });
-		const data: NotifResponse = await res.json();
-		if (!res.ok || data.errorMessage) {
-			console.error(data.errorMessage);
+		const data = await res.json();
+		if (!res.ok || 'errorMessage' in data || !data) {
+			return { errorMessage: data.errorMessage || data.message || 'Erreur inconnue' };
 		}
-		return Notification.fromJSONArray(data.notifs) as Notification[];
+		console.log(data);
+		return AppNotification.fromJSONArray(data.notifs) as AppNotification[];
 	}
 
 	/**
@@ -47,15 +47,16 @@ export class NotifApi {
 	 * Sinon, lève une erreur.
 	 *
 	 * @param {number} notifId Identifiant de la notification à récupérer.
-	 * @returns {Promise<Notification>} Promesse qui se résout avec l'instance `Notification`.
+	 * @returns {Promise<AppNotification | { errorMessage: string }>} Promesse qui se résout avec l'instance `Notification`.
 	 */
-	public async getNotificationById(notifId: number): Promise<Notification> {
+	public async getNotificationById(notifId: number): Promise<AppNotification | { errorMessage: string }> {
 		const res: Response = await secureFetch(`/api/notifs?id=${notifId}`, { method: 'GET' });
-		const data: NotifResponse = await res.json();
-		if (!res.ok || data.errorMessage) {
-			console.error(data.errorMessage);
+		const data = await res.json();
+		if (!res.ok || 'errorMessage' in data || !data) {
+			return { errorMessage: data.errorMessage || data.message || 'Erreur inconnue' };
 		}
-		return Notification.fromJSON(data.notif) as Notification;
+		console.log(data);
+		return AppNotification.fromJSON(data) as AppNotification;
 	}
 
 	// ===========================================
@@ -63,83 +64,28 @@ export class NotifApi {
 	// ===========================================
 
 	/**
-	 * Envoie une requête POST à la route API `/users/:userId/notifs/add` pour envoyer
-	 * une notification à l'utilisateur d'identifiant `receiverId` provenant de l'utilisateur
-	 * courant.
-	 * 
-	 * Si la requête réussit, renvoie un objet contenant les informations de l'opération.
-	 * Sinon, renvoie un objet contenant un message d'erreur.
-	 * 
-	 * @param {any} notifData - Objet contenant les données de la notification.
-	 * @returns {Promise<BasicResponse>} Promesse qui se résout avec les informations
-	 * de l'opération ou un message d'erreur.
-	 */
-	public async addNotification(notifData: NotificationModel): Promise<BasicResponse> {
-		console.log(notifData);
-		const res: Response = await secureFetch(`/api/notifs/add`, {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify(notifData)
-		});
-		const data: BasicResponse = await res.json();
-		if (!res.ok || data.errorMessage) {
-			return { errorMessage: data.errorMessage || 'Erreur lors de la suppression d\'ami' };
-		}
-		return data as BasicResponse;
-	}
-
-	/**
 	 * Met à jour une notification.
-	 * 
-	 * Envoie une requête PUT à la route API `/users/notifs/:notifId/update` pour
-	 * mettre à jour la notification d'identifiant `notifId` pour passer du statut unread vers read.
-	 * 
-	 * Si la requête réussit, renvoie un objet contenant les informations de l'opération.
-	 * Sinon, renvoie un objet contenant un message d'erreur.
-	 * 
-	 * @param {number} notifId - Identifiant de la notification à mettre à jour.
-	 * @returns {Promise<BasicResponse>} Promesse qui se résout avec les informations
-	 * de l'opération ou un message d'erreur.
-	 */
-	public async updateNotifStatus(notifId: number): Promise<BasicResponse> {
-		const res = await secureFetch(`/api/notifs/update`, {
-			method: 'PUT',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({ notifId })
-		});
-		const data: BasicResponse = await res.json();
-		if (!res.ok || data.errorMessage) {
-			return { errorMessage: data.errorMessage || 'Erreur lors de la mise à jour de la notif' };
-		}
-		return data;
-	}
-
-	/**
-	 * Met à jour le contenu d'une notification.
 	 *
-	 * Envoie une requête PUT à la route API `/users/notifs/:notifId/update` pour
-	 * mettre à jour le contenu de la notification d'identifiant `notifId` avec le contenu
-	 * `notifContent`.
+	 * Envoie une requête PUT à la route API `/api/notifs/update` pour mettre à jour
+	 * la notification `notifData`.
 	 *
 	 * Si la requête réussit, renvoie un objet contenant les informations de l'opération.
 	 * Sinon, renvoie un objet contenant un message d'erreur.
 	 *
-	 * @param {number} notifId - Identifiant de la notification à mettre à jour.
-	 * @param {string} notifContent - Nouveau contenu de la notification.
-	 * @returns {Promise<BasicResponse>} Promesse qui se résout avec les informations
+	 * @param {AppNotification} notifData - Les informations de la notification à mettre à jour.
+	 * @returns {Promise<AppNotification | { errorMessage: string }>} Promesse qui se résout avec les informations
 	 * de l'opération ou un message d'erreur.
 	 */
-	public async updateNotifContent(notifId: number, notifContent: string): Promise<BasicResponse> {
+	public async updateNotification(notifData: AppNotification): Promise<AppNotification | { errorMessage: string }> {
 		const res = await secureFetch(`/api/notifs/update`, {
 			method: 'PUT',
 			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({ notifId, notifContent })
+			body: JSON.stringify({ notifData })
 		});
-		const data: BasicResponse = await res.json();
-		if (!res.ok || data.errorMessage) {
+		const data = await res.json();
+		if (!res.ok || 'errorMessage' in data || !data) {
 			return { errorMessage: data.errorMessage || 'Erreur lors de la mise à jour de la notif' };
 		}
-		return data;
+		return AppNotification.fromJSONArray(data) as AppNotification;
 	}
-
 }

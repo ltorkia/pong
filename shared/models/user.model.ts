@@ -1,5 +1,6 @@
 import { SafeUserModel, UserModel, PublicUser, UserStatus, RegisterMethod, TwoFaMethod } from '../types/user.types';	// en rouge car dossier local 'shared' != dossier conteneur
-import { DB_CONST } from '../config/constants.config';
+import { AppNotification } from './notification.model';
+import { DB_CONST, USER_ONLINE_STATUS } from '../config/constants.config';
 
 // ===========================================
 // USER MODEL
@@ -34,9 +35,10 @@ export class User {
 		public timePlayed: number,
 		public nFriends: number,
 		public status: UserStatus,
-		public isDeleted: number,
+		public isDesactivated: number,
 		public registerFrom: RegisterMethod,
-		public active2Fa: TwoFaMethod
+		public active2Fa: TwoFaMethod,
+		public notifications: AppNotification[]
 	) {}
 
 	// ============================================================================
@@ -48,11 +50,11 @@ export class User {
 	}
 
 	get isActive(): boolean {
-		return !this.isDeleted;
+		return !this.isDesactivated;
 	}
 
 	isOnline(): boolean {
-		return this.status === DB_CONST.USER.STATUS.ONLINE;
+		return this.status === USER_ONLINE_STATUS.ONLINE;
 	}
 
 	get formattedLastLog(): string {
@@ -69,9 +71,9 @@ export class User {
 	// ============================================================================
 
 	/**
-	 * Sérialise vers un objet PublicUser pour l'affichage public.
-	 * Contient uniquement les informations non-sensibles visibles par d'autres utilisateurs.
-	 * Utilisé pour: listes d'utilisateurs, classements, profils publics.
+	 * Sérialise vers un objet PublicUser.
+	 * Contient uniquement le strict minimum d'informations pour l'affichage public
+	 * et la gestion simple des données utilisateur.
 	 * 
 	 * @returns {PublicUser} - Version publique sans données sensibles
 	 */
@@ -80,11 +82,6 @@ export class User {
 			id: this.id,
 			username: this.username,
 			avatar: this.avatar,
-			gamePlayed: this.gamePlayed,
-			gameWin: this.gameWin,
-			gameLoose: this.gameLoose,
-			timePlayed: this.timePlayed,
-			nFriends: this.nFriends,
 			beginLog: this.beginLog,
 			endLog: this.endLog,
 			status: this.status
@@ -93,8 +90,9 @@ export class User {
 
 	/**
 	 * Sérialise vers un objet SafeUserModel pour les opérations internes.
-	 * Contient toutes les informations excepté l'email.
-	 * Utilisé pour: opérations internes où l'email n'est pas nécessaire.
+	 * Contient toutes les informations excepté les données sensibles.
+	 * Utilisé pour: opérations internes où l'email n'est pas nécessaire
+	 * et la gestion complète du profil, les classements etc.
 	 * 
 	 * @returns {SafeUserModel} - Version complète sans email
 	 */
@@ -113,15 +111,13 @@ export class User {
 			timePlayed: this.timePlayed,
 			nFriends: this.nFriends,
 			status: this.status,
-			isDeleted: this.isDeleted,
-			registerFrom: this.registerFrom,
-			active2Fa: this.active2Fa
+			isDesactivated: this.isDesactivated
 		};
 	}
 
 	/**
 	 * Sérialise vers un objet UserModel complet pour l'API.
-	 * Contient toutes les informations, y compris les données sensibles (email).
+	 * Contient toutes les informations, y compris les données sensibles (email etc.).
 	 * Utilisé pour: communications avec l'API, gestion complète du profil.
 	 * 
 	 * @returns {UserModel} - Version complète avec email
@@ -142,9 +138,10 @@ export class User {
 			timePlayed: this.timePlayed,
 			nFriends: this.nFriends,
 			status: this.status,
-			isDeleted: this.isDeleted,
+			isDesactivated: this.isDesactivated,
 			registerFrom: this.registerFrom,
-			active2Fa: this.active2Fa
+			active2Fa: this.active2Fa,
+			notifications: this.notifications
 		};
 	}
 
@@ -155,7 +152,7 @@ export class User {
 	/**
 	 * Désérialise un objet UserModel vers une instance de User.
 	 * Crée une instance complète avec toutes les méthodes disponibles.
-	 * Utilisé pour: récupération depuis l'API, restauration depuis stockage.
+	 * Utilisé pour: récupération depuis l'API, restauration depuis storage.
 	 * 
 	 * @param data - Données partielles de l'utilisateur
 	 * @returns {User} - Instance de User avec toutes ses méthodes
@@ -180,16 +177,16 @@ export class User {
 			data.gameLoose ?? 0,
 			data.timePlayed ?? 0,
 			data.nFriends ?? 0,
-			data.status ?? DB_CONST.USER.STATUS.OFFLINE,
-			data.isDeleted ?? 0,
+			data.status ?? USER_ONLINE_STATUS.OFFLINE,
+			data.isDesactivated ?? 0,
 			data.registerFrom ?? DB_CONST.USER.REGISTER_FROM.LOCAL,
-			data.active2Fa ?? DB_CONST.USER.ACTIVE_2FA.DISABLED
+			data.active2Fa ?? DB_CONST.USER.ACTIVE_2FA.DISABLED,
+			data.notifications ?? []
 		);
 	}
 
 	/**
-	 * Crée une instance User à partir de données SafeUserModel.
-	 * Utilisé quand on a des données sans email.
+	 * Crée une instance User à partir de données SafeUserModel (sans données sensibles).
 	 * 
 	 * @param data - Données SafeUserModel
 	 * @returns {User} - Instance de User (avec email vide)
@@ -219,15 +216,16 @@ export class User {
 			data.beginLog ?? '',
 			data.endLog ?? '',
 			0,  // Tournament à 0
-			data.gamePlayed ?? 0,
-			data.gameWin ?? 0,
-			data.gameLoose ?? 0,
-			data.timePlayed ?? 0,
-			data.nFriends ?? 0,
-			data.status ?? DB_CONST.USER.STATUS.OFFLINE,
-			0, // isDeleted à 0 par défaut
+			0,
+			0,
+			0,
+			0,
+			0,
+			data.status ?? USER_ONLINE_STATUS.OFFLINE,
+			0, // isDesactivated à 0 par défaut
 			DB_CONST.USER.REGISTER_FROM.LOCAL, // registerFrom par défaut
-			DB_CONST.USER.ACTIVE_2FA.DISABLED, // active2Fa à disabled par défaut
+			DB_CONST.USER.ACTIVE_2FA.DISABLED, // active2Fa à disabled par défaut,
+			[] // notifications vides par défaut
 		);
 	}
 

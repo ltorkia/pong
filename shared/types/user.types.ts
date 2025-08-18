@@ -1,5 +1,6 @@
 import { DB_CONST, IMAGE_CONST } from '../config/constants.config';
 import { User } from '../models/user.model';
+import { AppNotification } from '../models/notification.model';
 
 // ===========================================
 // USER TYPES
@@ -7,12 +8,6 @@ import { User } from '../models/user.model';
 /**
  * Ce fichier contient les définitions de types pour représenter les informations relatives
  * à un utilisateur.
- * 
- * Les types définis dans ce fichier servent à définir la structure des données liées
- * à un utilisateur, comme son identifiant, son nom d'utilisateur, son adresse e-mail, etc.
- * 
- * Les types exportés sont utilisés dans les parties de l'application qui ont besoin de
- * connaître les informations relatives à un utilisateur.
  */
 
 /**
@@ -42,9 +37,10 @@ export type AvatarExtension = typeof IMAGE_CONST.EXTENSIONS[AvatarMimeType];  //
 
 /**
  * Interface représentant le modèle de base de l'utilisateur.
- * Contient toutes les informations internes d'un utilisateur (excepté l'email).
+ * Contient toutes les informations excepté les données sensibles.
  * 
- * Utilisée pour les opérations internes où l'email n'est pas nécessaire.
+ * Utilisé pour: opérations internes où l'email n'est pas nécessaire
+ * et la gestion complète du profil, les classements etc.
  */
 export interface SafeUserModel {
 	id: number;
@@ -60,37 +56,53 @@ export interface SafeUserModel {
 	timePlayed: number;
 	nFriends: number;
 	status: UserStatus;
-	isDeleted: number;
-	registerFrom: RegisterMethod;
-	active2Fa: TwoFaMethod;
+	isDesactivated: number;
+	notifications?: AppNotification[];
 }
 
 /**
  * Interface représentant le modèle complet de l'utilisateur.
- * Contient toutes les informations, y compris les données sensibles (email).
+ * Contient toutes les informations, y compris les données sensibles (email etc.).
  * 
  * Utilisée pour les communications avec l'API et la gestion complète du profil.
  * Reçue après login/register et pour les opérations sur son propre profil.
  */
 export interface UserModel extends SafeUserModel {
 	email: string;
+	registerFrom: RegisterMethod;
+	active2Fa: TwoFaMethod;
 }
 
 /**
- * Interface représentant un utilisateur pour l'affichage public.
- * Contient uniquement les informations non-sensibles visibles par d'autres utilisateurs.
- * 
- * Utilisée pour les listes d'utilisateurs, classements, profils publics, etc.
+ * Interface représentant les informations de base d'un utilisateur.
+ * Contient l'identifiant, le nom d'utilisateur, l'adresse e-mail et l'avatar.
+ * Utilisée pour les opérations internes simples.
+ */
+export interface UserBasic {
+	id:number;
+	username: string;
+	email: string;
+	avatar: string;
+}
+
+/**
+ * Interface représentant les informations de base d'un utilisateur sans données sensibles.
+ * Contient l'identifiant, le nom d'utilisateur, et l'avatar.
+ * Utilisée pour les opérations publiques simples.
+ */
+export interface SafeUserBasic {
+	id:number;
+	username: string;
+	avatar: string;
+}
+
+/**
+ * Contient le strict minimum d'informations pour l'affichage public.
  */
 export interface PublicUser {
 	id: number;
 	username: string;
 	avatar: string;
-	gamePlayed: number;
-	gameWin: number;
-	gameLoose: number;
-	timePlayed: number;
-	nFriends: number;
 	beginLog: string;
 	endLog: string;
 	status: UserStatus;
@@ -101,39 +113,6 @@ export interface PublicUser {
  * Utile dans les cas de déconnexion ou les vérifications de session.
  */
 export type OptionalUser = SafeUserModel | null;
-
-/**
- * Interface représentant les informations de base d'un utilisateur.
- * Contient l'identifiant, le nom d'utilisateur, l'adresse e-mail et l'avatar.
- */
-export interface UserBasic {
-	id:number;
-	username: string;
-	email: string;
-	avatar: string;
-}
-
-/**
- * Interface représentant un utilisateur avec son avatar.
- * Contient l'identifiant, le nom d'utilisateur et l'avatar.
- */
-export interface UserWithAvatar {
-	id:number;
-	username: string;
-	avatar: string;
-}
-
-/**
- * Interface représentant un ami d'un utilisateur.
- * Contient l'identifiant, le nom d'utilisateur, l'avatar et la dernière connexion.
- */
-export interface Friends {
-	id: number;
-	username: string;
-	avatar?: string | null;
-	beginLog: number;
-	endLog: number;
-}
 
 /**
  * Interfaces et types pour les requêtes utilisateurs avec pagination et paramètres de tri.

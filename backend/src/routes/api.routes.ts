@@ -11,11 +11,13 @@ import { testsRoutes } from './tests.routes';
 import { apiMe } from './api.me';
 import { sessionRoutes } from './session.routes';
 import { gameRoutes } from './game.routes';
+import { tournamentRoutes } from './tournament.routes';
+import { webSocketRoutes } from './websocket.routes';
+import { friendsRoutes } from './friends.routes';
+import { searchRoutes } from './search.routes';
 
 // DB
 import { getUser } from '../db/user';
-import { tournamentRoutes } from './tournament.routes';
-import { webSocketRoutes } from './websocket.routes';
 
 export async function apiRoutes(app: FastifyInstance) {
 
@@ -50,7 +52,7 @@ export async function apiRoutes(app: FastifyInstance) {
 			// On check que l'utilisateur existe bien en bdd
 			// Si non on clear les cookies d'authentification
 			const user = await getUser(decoded.id);
-			if (!user || user.isDeleted) {
+			if (!user || user.isDesactivated) {
 				clearAuthCookies(reply);
 				return reply.status(401).send({
 					error: 'Unauthorized',
@@ -93,5 +95,7 @@ export async function apiRoutes(app: FastifyInstance) {
     await app.register(webSocketRoutes);
     await app.register(gameRoutes);
 	await app.register(tournamentRoutes, { prefix: '/game'});
+	await app.register(friendsRoutes, { prefix: '/friends' });
+	await app.register(searchRoutes, { prefix: '/search' });
     console.log(app.printRoutes());
 }

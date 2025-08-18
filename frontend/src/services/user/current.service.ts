@@ -1,7 +1,7 @@
 import { User } from '../../shared/models/user.model';
 import { storageService } from '../index.service';
 import { UserModel, SafeUserModel } from '../../shared/types/user.types';
-import { webSocketService } from '../../services/user/user.service';
+import { webSocketService } from '../../services/index.service';
 
 // ===========================================
 // CURRENT SERVICE
@@ -50,6 +50,7 @@ export class CurrentService {
 	 * - Met à jour l'utilisateur courant avec les données fournies.
 	 * - Sérialise l'utilisateur en un objet SafeUserModel (sans email) pour le stockage local.
 	 * - Enregistre les données sérialisées dans le localStorage sous le nom "currentUser".
+	 * - Ouvre le WebSocket de l'utilisateur si pas encore ouvert.
 	 * 
 	 * @param {User} user L'utilisateur à définir comme utilisateur courant.
 	 */

@@ -1,9 +1,8 @@
 import { BasePage } from '../pages/base/base.page';
 import { ComponentName, ComponentConfig } from './components.types';
 import { PAGE_NAMES, ROUTE_PATHS, TEMPLATE_PATHS } from '../config/routes.config';
-import type { FriendRequest } from '../shared/types/websocket.types';
 import { UserRowComponent } from '../components/user-row/user-row.component';
-import { Notification } from '../shared/models/notification.model';
+import { AppNotification } from '../shared/models/notification.model';
 
 // ===========================================
 // ROUTES TYPES
@@ -88,7 +87,7 @@ export interface PageInstance {
 	render: () => Promise<void>;
 	cleanup?: () => Promise<void>;
 	getComponentInstance?<T>(name: string): T | undefined;
-	updateFriendButtons?: (data: FriendRequest | Notification, userRowInstance?: UserRowComponent) => Promise<void>;
+	updateFriendButtons?: (friendId?: number, userRowInstance?: UserRowComponent) => Promise<void>;
 }
 
 /**

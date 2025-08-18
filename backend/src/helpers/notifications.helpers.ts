@@ -1,51 +1,16 @@
 import { FastifyInstance } from 'fastify';
 import { UserWS } from '../types/user.types';
-import { NotificationModel, FriendRequestAction } from '../shared/types/notification.types';
-import { FRIEND_REQUEST_ACTIONS } from '../../shared/config/constants.config';
+import { NotificationModel, UserOnlineStatus } from '../shared/types/notification.types';
+import { FRIEND_REQUEST_ACTIONS, USER_ONLINE_STATUS } from '../shared/config/constants.config';
 import { getUser } from '../db/user';
 import { NotificationInput } from '../types/zod/app.zod';
-import { getNotification, getTwinNotifications, updateNotification } from '../db/notification';
-import { updateRelationshipBlocked, updateRelationshipConfirmed } from '../db/friendmaj';
-
-/**
- * Met à jour les notifications liées à une demande d'amitié.
- *
- * - Met à jour la relation entre l'utilisateur courant et l'utilisateur ami.
- * - Récupère la notification liée à la demande d'amitié.
- * - Récupère les notifications jumelles (même expéditeur et destinataire, même type) à la notification liée.
- * - Met à jour chaque notification jumelle.
- * - Envoie les notifications mises à jour aux utilisateurs connectés via Websocket.
- *
- * @param {FastifyInstance} app - Instance de l'application Fastify.
- * @param {number} currentUserId - Identifiant de l'utilisateur courant.
- * @param {number} friendId - Identifiant de l'utilisateur ami.
- * @param {NotificationInput} data - Informations de la notification à mettre à jour.
- * @returns {Promise<void>} Une promesse qui se résout lorsque les notifications ont été mises à jour.
- */
-export async function updateFriendProcess(app: FastifyInstance, currentUserId: number, friendId: number, data: NotificationInput, newType: FriendRequestAction): Promise<void> {
-	switch (newType) {
-		case FRIEND_REQUEST_ACTIONS.ACCEPT:
-			await updateRelationshipConfirmed(currentUserId, friendId);
-			break;
-		case FRIEND_REQUEST_ACTIONS.BLOCK:
-			await updateRelationshipBlocked(currentUserId, friendId);
-			break;
-	}
-	const notifData: NotificationModel = await getNotification(data.notifId);
-	const twinNotifs: NotificationModel[] = await getTwinNotifications(notifData);
-	let updatedNotifs: NotificationModel[] = [];
-	for (const twinNotif of twinNotifs) {
-		twinNotif.type = newType;
-		const notif: NotificationModel = addNotifContent(twinNotif);
-		const updatedNotif = await updateNotification(twinNotif.id, notif);
-		if (data.errorMessage) {
-			console.error({ errorMessage: data.errorMessage || 'Error inserting notification' });
-			return;
-		}
-		updatedNotifs.push(updatedNotif);
-	}
-	sendToSocket(app, updatedNotifs);
-}
+import { getTwinNotifications, updateNotification, deleteNotification } from '../db/notification';
+import { isValidNotificationType } from '../shared/utils/app.utils';
+import { insertNotification } from '../db/notification';
+import { majLastlog } from '../db/usermaj';
+// import { NotifResponse } from '../shared/types/response.types';
+// import { FriendModel } from '../shared/types/friend.types';
+// import { DB_CONST } from '../shared/config/constants.config';
 
 /**
  * Envoie un message à un utilisateur connecté via WebSockets.
@@ -63,66 +28,138 @@ export function sendToSocket(app: FastifyInstance, data: NotificationModel[]): v
 }
 
 /**
- * Ajoute le contenu de la notification en fonction de l'action de la demande d'amitié.
- *
- * Si l'action de la demande d'amitié est connue, alors le contenu de la notification
- * est généré en conséquence. Si l'action est inconnue, alors une erreur est enregistrée.
- *
- * @param {NotificationInput | NotificationModel} notifData - L'objet contenant les informations de la notification.
- * @returns {NotificationInput | NotificationModel} L'objet mis à jour avec le contenu de la notification.
+ * Envoie un message à tous les utilisateurs connectés via WebSockets, sauf l'utilisateur identifié par `jwtUserId`.
+ * @param {FastifyInstance} app - L'instance de l'application Fastify.
+ * @param {number} jwtUserId - L'ID de l'utilisateur identifié par le JWT.
+ * @param {NotificationModel[]} data - Le tableau contenant les notifications à envoyer.
  */
-export async function addNotifContent(notifData: NotificationInput | NotificationModel): NotificationInput | NotificationModel {
-	const user = await getUser(notifData.type.from);
-	let notif = '';
-	let buttons = null;
-	if (Object.values(FRIEND_REQUEST_ACTIONS).includes(notifData.type)) {
-		switch (notifData.type) {
-			case FRIEND_REQUEST_ACTIONS.ADD:
-				notif = `has sent you a friend request.`;
-				buttons = addNotifButtonsHTML(notifData);
-				break;
-			case FRIEND_REQUEST_ACTIONS.ACCEPT:
-				notif = `has accepted your friend request.`;
-				break;
-			case FRIEND_REQUEST_ACTIONS.DELETE:
-				break;
-			case FRIEND_REQUEST_ACTIONS.BLOCK:
-				break;
-			default:
-				console.error("Unknown friend request action:", notifData.type);
-				break;
-		}
-		notifData.content = `<span>${user.username} ${notif}</span>`;
-		if (buttons) {
-			notifData.content += buttons;
-		}
-		return notifData;
+export function sendToAllSockets(app: FastifyInstance, jwtUserId: number, data: NotificationModel[]): void {
+	for (const userWS of app.usersWS) {
+		if (jwtUserId === userWS.id)
+			continue;
+		console.log("→ Envoi WS vers", userWS.id, ":", JSON.stringify(data));
+		userWS.WS.send(JSON.stringify(data));
 	}
 }
 
 /**
- * Crée le contenu de la notification avec le HTML pour les boutons d'actions dans une notification.
- * 
- * Si la notification est une demande d'amitié, les boutons "Accept" et "Decline"
- * seront ajoutés au contenu de la notification et seront affichés. Sinon, le HTML est vide.
- * 
- * @param {NotificationInput | NotificationModel} notifData - L'objet contenant les informations de la notification.
- * @returns {string} Le HTML des boutons d'actions.
+ * Met à jour l'état en ligne de l'utilisateur courant 
+ * et envoie une notification à tous les utilisateurs connectés, 
+ * à l'exception de l'utilisateur identifié par le JWT.
+ * @param {FastifyInstance} app - L'instance de l'application Fastify.
+ * @param {number} userId - L'ID de l'utilisateur.
+ * @param {UserOnlineStatus} status - L'état en ligne (en ligne, absent, etc.) à définir pour l'utilisateur.
  */
-export function addNotifButtonsHTML(notifData: NotificationInput | NotificationModel): string {
-	let html = `<div class="notif-actions flex justify-center space-x-4">`;
-	if (Object.values(FRIEND_REQUEST_ACTIONS).includes(notifData.type
-		&& notifData.type === FRIEND_REQUEST_ACTIONS.ADD)) {
-		
-		html += `
-			<button class="btn smaller-btn" data-action="accept" data-to="${notifData.to}" data-from="${notifData.from}">
-				Accept
-			</button>
-			<button class="btn smaller-btn" data-action="decline" data-to="${notifData.to}" data-from="${notifData.from}">
-				Decline
-			</button>
-		`;
+export async function setOnlineStatus(app: FastifyInstance, userId: number, status: UserOnlineStatus) {
+	await majLastlog(userId, USER_ONLINE_STATUS.ONLINE);
+	let notifData: NotificationInput = {
+		type: status,
+		from: userId,
+		to: 0
+	};
+	for (const userWS of app.usersWS) {
+		if (userId === userWS.id)
+			continue;
+		notifData.to = userWS.id;
+		console.log('BLAAAAAAA');
+		const notif = await insertNotification(notifData);
+		console.log('NOTIIIIIIF', notif);
+		if (!notif || 'errorMessage' in notif) {
+			console.log(notif.errorMessage);
+			return;
+		}
+		console.log("→ Envoi WS vers", userWS.id, ":", JSON.stringify([notif]));
+		userWS.WS.send(JSON.stringify([notif]));
 	}
-	html += `</div>`;
-	return html;
+}
+
+/**
+ * Met à jour et envoie une notification amicale.
+ * Cette fonction récupère la notification et ses potentiels doublons,
+ * les met à jour en utilisant le type donné dans le paramètre `data`,
+ * puis les envoie mises à jour via WebSockets.
+ * 
+ * @param {FastifyInstance} app - L'instance de l'application Fastify.
+ * @param {NotificationModel} data - Les données de la notification, y compris le type.
+ * @returns {Promise<NotificationModel[] | { errorMessage: string }>} Une promesse qui se résout lorsque les notifications sont mises à jour 
+ * et envoyées via WebSockets, ou par un message d'erreur.
+ */
+export async function sendUpdateNotification(app: FastifyInstance, data: NotificationModel): Promise<NotificationModel[] | { errorMessage: string }> {
+
+	const twinNotifs = await getTwinNotifications(data);
+	if (!twinNotifs || 'errorMessage' in twinNotifs)
+		return { errorMessage: twinNotifs.errorMessage };
+
+	// On met à jour les notifications
+	let updatedNotifs: NotificationModel[] = [];
+	for (const twinNotif of twinNotifs) {
+		twinNotif.type = data.type;
+		twinNotif.read = 1;
+		const notif: NotificationModel = await addNotifContent(twinNotif);
+		const updatedRes = await updateNotification(notif);
+		if (!updatedRes || 'errorMessage' in updatedRes) {
+			return { errorMessage: updatedRes.errorMessage || 'Error inserting notification' };
+		}
+		updatedNotifs.push(updatedRes);
+	}
+
+	// On envoie les notifications mises à jour
+	sendToSocket(app, updatedNotifs);
+	return updatedNotifs;
+}
+
+/**
+ * Supprime une notification et ses potentiels doublons et les envoie via WebSockets.
+ * Cette fonction récupère la notification et ses potentiels doublons, les supprime si la relation
+ * est en attente, puis les envoie supprimées via WebSockets pour référence.
+ * 
+ * @param {FastifyInstance} app - L'instance de l'application Fastify.
+ * @param {NotificationModel[]} data - Les données des notifications.
+ * @returns {Promise<NotificationModel[] | { errorMessage: string }>} Une promesse qui se résout lorsque les notifications sont supprimées
+ * et envoyées via WebSockets, ou par un message d'erreur.
+ */
+export async function sendDeleteNotification(app: FastifyInstance, data: NotificationModel[]): Promise<NotificationModel[] | { errorMessage: string }> {
+	const deletedNotifs: NotificationModel[] = [];
+	for (const notif of data) {
+		notif.type = FRIEND_REQUEST_ACTIONS.DELETE;
+		deletedNotifs.push(notif);
+		await deleteNotification(notif.id);
+	}
+	sendToSocket(app, deletedNotifs);
+	return deletedNotifs;
+}
+
+/**
+ * Ajoute le contenu de la notification à un objet de type NotificationInput ou NotificationModel.
+ * 
+ * Cette fonction vérifie si le type de la notification est un type de demande d'ami, un statut online etc.
+ * En fonction du type de la demande, elle génère le contenu de la notification.
+ * 
+ * @param {T extends NotificationInput | NotificationModel} notifData - L'objet contenant les données de la notification.
+ * @return {Promise<T>} L'objet de notification avec le contenu ajouté.
+ */
+export async function addNotifContent<T extends NotificationInput | NotificationModel>(notifData: T): Promise<T> {
+	if (!isValidNotificationType(notifData.type!)) {
+		throw new Error('Invalid notification type');
+	}
+	
+	const user = await getUser(notifData.from);
+	let notif = '';
+	if (!notifData.type) {
+		return notifData;
+	}
+	switch (notifData.type) {
+		case FRIEND_REQUEST_ACTIONS.ADD:
+			notif = `has sent you a friend request.`;
+			break;
+		case FRIEND_REQUEST_ACTIONS.ACCEPT:
+			notif = `has accepted your friend request.`;
+			break;
+		// case FRIEND_REQUEST_ACTIONS.DELETE:
+		// 	break;
+		// case FRIEND_REQUEST_ACTIONS.BLOCK:
+		// 	break;
+	}
+	notifData.content = `${user.username} ${notif}`;
+	return notifData;
 }

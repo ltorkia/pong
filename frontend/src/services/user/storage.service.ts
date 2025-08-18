@@ -1,5 +1,6 @@
 import { User } from '../../shared/models/user.model';
 import { SafeUserModel } from '../../shared/types/user.types';	// en rouge car dossier local 'shared' != dossier conteneur
+import { Notification } from '../../shared/models/notification.model';
 
 // ===========================================
 // STORAGE SERVICE
@@ -16,7 +17,7 @@ export class StorageService {
 	private storedUser: SafeUserModel | null = null;
 
 	/**
-	 * Stovke l'utilisateur courant en local storage.
+	 * Stocke l'utilisateur courant en local storage.
 	 * 
 	 * - Sérialise l'utilisateur en un objet SafeUserModel (sans email) pour le stockage local.
 	 * - Enregistre les données sérialisées dans le localStorage sous le nom "currentUser".
@@ -26,6 +27,19 @@ export class StorageService {
 	public setCurrentUser(user: User) {
 		this.storedUser = user.toSafeJSON();
 		localStorage.setItem('currentUser', JSON.stringify(this.storedUser));
+	}
+
+	/**
+	 * Stocke les notifications de l'utilisateur courant en local storage.
+	 * 
+	 * - Sérialise les notifications en un tableau de JSON.
+	 * - Enregistre les données sérialisées dans le localStorage sous le nom "notifs".
+	 * 
+	 * @param {Notification[]} notifications Les notifications à définir comme notifications courantes.
+	 */
+	public setCurrentNotifs(notifications: Notification[]) {
+		this.storedUser.notifications = notifications.map(n => n.toJSON());
+		localStorage.setItem('notifs', JSON.stringify(this.storedUser.notifications));
 	}
 
 	/**

@@ -2,27 +2,28 @@ import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import bcrypt from 'bcrypt';
 import { RegisterInput, RegisterInputSchema, LoginInputSchema, TwoFAInputSchema, TwoFAInput, LoginInput } from '../types/zod/auth.zod';
 import { insertUser, getUser, getUserP, getUser2FA } from '../db/user';
-import {eraseCode2FA, majLog} from '../db/usermaj';
+import { eraseCode2FA } from '../db/usermaj';
 import { ProcessAuth, clearAuthCookies,  GenerateEmailCode, GenerateQRCode  } from '../helpers/auth.helpers';
 import { GetAvatarFromBuffer, bufferizeStream } from '../helpers/image.helpers';
 import { GoogleUserInfo, UserPassword, User2FA, FastifyFileSizeError, AvatarResult } from '../types/user.types';
 import { UserModel } from '../shared/types/user.types'; // en rouge car dossier local 'shared' != dossier conteneur
-import { DB_CONST } from '../shared/config/constants.config'; // en rouge car dossier local 'shared' != dossier conteneur
+import { DB_CONST, USER_ONLINE_STATUS } from '../shared/config/constants.config'; // en rouge car dossier local 'shared' != dossier conteneur
 import { Buffer } from 'buffer';
 import { Readable } from 'stream';
 import { promises as fs } from 'fs';
 import * as speakeasy from 'speakeasy';
 import { checkParsing, isParsingError } from '../helpers/types.helpers';
 import { JwtPayload } from '../types/jwt.types';
+import { setOnlineStatus } from '../helpers/notifications.helpers';
 
 
 /* ======================== AUTHENTICATION ROUTES ======================== */
 
 export async function authRoutes(app: FastifyInstance) {
 
-/* -------------------------------------------------------------------------- */
-/*                 🔐 REGISTER - Enregistre l'utilisateur                     */
-/* -------------------------------------------------------------------------- */
+	/* -------------------------------------------------------------------------- */
+	/*                 🔐 REGISTER - Enregistre l'utilisateur                     */
+	/* -------------------------------------------------------------------------- */
 
 	app.post('/register', async (request: FastifyRequest, reply: FastifyReply) => {
 		try {
@@ -97,11 +98,11 @@ export async function authRoutes(app: FastifyInstance) {
 		}
 	});
 
-/* -------------------------------------------------------------------------- */
-/*                    🔐 LOGIN - Connecte l'utilisateur                       */
-/* -------------------------------------------------------------------------- */
+	/* -------------------------------------------------------------------------- */
+	/*                    🔐 LOGIN - Connecte l'utilisateur                       */
+	/* -------------------------------------------------------------------------- */
 
-app.post('/login', async (request: FastifyRequest, reply: FastifyReply) => {
+	app.post('/login', async (request: FastifyRequest, reply: FastifyReply) => {
 		try {
 
 			const userdataCheck = await checkParsing(LoginInputSchema, request.body);
@@ -152,10 +153,9 @@ app.post('/login', async (request: FastifyRequest, reply: FastifyReply) => {
 		}
 	});
 
-
-/* -------------------------------------------------------------------------- */
-/*                   🔐 2FA - Double Authentification - send                  */
-/* -------------------------------------------------------------------------- */
+	/* -------------------------------------------------------------------------- */
+	/*                   🔐 2FA - Double Authentification - send                  */
+	/* -------------------------------------------------------------------------- */
 	// :method -> methode souhaitee pour double authentification : email ou qrcode
 	// send -> envoie la requete au service de connection lie : 
 	// - email -> envoie un email a l utilisateur
@@ -182,7 +182,6 @@ app.post('/login', async (request: FastifyRequest, reply: FastifyReply) => {
 			}));
 
         } catch (err) {
-            console.log(err);
             request.log.error(err);
             return reply.status(500).send({
                 statusCode: 500,
@@ -191,9 +190,9 @@ app.post('/login', async (request: FastifyRequest, reply: FastifyReply) => {
         }
     });
 
-/* -------------------------------------------------------------------------- */
-/*                   🔐 2FA - Double Authentification - receive               */
-/* -------------------------------------------------------------------------- */
+	/* -------------------------------------------------------------------------- */
+	/*                   🔐 2FA - Double Authentification - receive               */
+	/* -------------------------------------------------------------------------- */
 	// :method -> methode souhaitee pour double authentification : email ou qrcode
 	// receive -> check si le code entre est correct por valider l authentification
 
@@ -248,15 +247,14 @@ app.post('/login', async (request: FastifyRequest, reply: FastifyReply) => {
     });
 
 
-/* -------------------------------------------------------------------------- */
-/*                                 🔒 LOGOUT                                  */
-/* -------------------------------------------------------------------------- */
+	/* -------------------------------------------------------------------------- */
+	/*                                 🔒 LOGOUT                                  */
+	/* -------------------------------------------------------------------------- */
 
 	app.post('/logout', async (request: FastifyRequest, reply: FastifyReply) => {
-		clearAuthCookies(reply);
 		const jwtUser = request.user as JwtPayload;
-		const user = await getUser(jwtUser.id, null);
-		await majLog(user.username, DB_CONST.USER.STATUS.OFFLINE);
+		clearAuthCookies(reply);
+		await setOnlineStatus(app, jwtUser.id, USER_ONLINE_STATUS.OFFLINE);
 		return reply.status(200).send({
 			statusCode: 200,
 			message: 'Déconnecté'
@@ -264,9 +262,9 @@ app.post('/login', async (request: FastifyRequest, reply: FastifyReply) => {
 	});
 
 
-/* -------------------------------------------------------------------------- */
-/*                                 🅶 GOOGLE                                  */
-/* -------------------------------------------------------------------------- */
+	/* -------------------------------------------------------------------------- */
+	/*                                 🅶 GOOGLE                                  */
+	/* -------------------------------------------------------------------------- */
 
 	app.post('/google', async (request: FastifyRequest, reply: FastifyReply) => {
 		const { id_token } = request.body as { id_token: string };
@@ -318,7 +316,6 @@ app.post('/login', async (request: FastifyRequest, reply: FastifyReply) => {
 			const avatarUrl = payloadDecoded.picture ?? DB_CONST.USER.DEFAULT_AVATAR;
 			if (avatarUrl != DB_CONST.USER.DEFAULT_AVATAR){
 				const response = await fetch(avatarUrl);
-				console.log(response);
 
 				if (user.avatar != DB_CONST.USER.DEFAULT_AVATAR) //pour supprimer l ancien avatar s'il n est pas celui par defaut
 				{

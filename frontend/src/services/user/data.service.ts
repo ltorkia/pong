@@ -1,8 +1,6 @@
 import { User } from '../../shared/models/user.model';
-import { Friend } from '../../shared/models/friend.model';
 import { dataApi } from '../../api/index.api';
-import { AuthResponse } from '../../types/api.types';
-import { currentService } from '../../services/index.service';
+import { UserResponse } from '../../shared/types/response.types';
 import { showAlert } from '../../utils/dom.utils';
 import { isValidImage, checkImageExists } from '../../utils/image.utils';
 import { UserStatus } from '../../shared/types/user.types';
@@ -27,7 +25,7 @@ export class DataService {
 	 * @returns {Promise<boolean>} - Promesse qui se resout lorsque l'utilisateur est mis à jour
 	 */
 	public async updateUser(id: number, userData: Record<string, string>, alertDivId?: string): Promise<boolean> {
-		const result: AuthResponse = await dataApi.updateUser(id, userData);
+		const result: UserResponse = await dataApi.updateUser(id, userData);
 		if (result.errorMessage) {
 			console.error(`[${this.constructor.name}] Erreur de mise à jour utilisateur.`);
 			showAlert(result.errorMessage, alertDivId);
@@ -55,7 +53,7 @@ export class DataService {
 		}
 		const formData = new FormData();
 		formData.append('avatar', file);
-		const result: AuthResponse = await dataApi.updateAvatar(id, formData);
+		const result: UserResponse = await dataApi.updateAvatar(id, formData);
 		if (result.errorMessage) {
 			console.error(`[${this.constructor.name}] Erreur de mise à jour de l'avatar utilisateur.`);
 			showAlert(result.errorMessage);
@@ -64,29 +62,6 @@ export class DataService {
 		console.log(`[${this.constructor.name}] Avatar de l'utilisateur mis à jour.`);
 		showAlert('Image successfully uploaded.', 'alert-avatar', 'success');
 		return true;
-	}
-
-	/**
-	 * Vérifie si un utilisateur est ami avec l'utilisateur courant.
-	 * 
-	 * Récupère la liste des amis de l'utilisateur courant et vérifie si l'utilisateur
-	 * d'identifiant `userId` est présent dans cette liste. Si l'utilisateur est un ami,
-	 * renvoie un objet contenant les informations de l'ami et le statut d'amitié.
-	 * Sinon, renvoie `null`.
-	 * 
-	 * @param {number} userId - Identifiant de l'utilisateur à vérifier.
-	 * @returns {Promise<Friend | null>} - Promesse qui se résout
-	 * avec un objet contenant l'ami ou `null` si l'utilisateur n'est pas ami.
-	 */
-	public async isFriendWithCurrentUser(userId: number): Promise<Friend | null> {
-		const currentUserId = currentService.getCurrentUser()!.id;
-		const userFriends: Friend[] = await dataApi.getUserFriends(currentUserId);
-		if (!userFriends || userFriends.length === 0) {
-			return null;
-		}
-		return userFriends.some(friend => friend.id === userId)
-			? userFriends.find(friend => friend.id === userId)!
-			: null;
 	}
 
 	// ============================================================================

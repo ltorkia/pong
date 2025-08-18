@@ -1,4 +1,5 @@
 import { UserSortField, SortOrder } from "../types/user.types";
+import { NotificationType } from "../types/notification.types";
 
 // ===========================================
 // CONSTANTS CONFIG
@@ -23,11 +24,6 @@ export const COOKIES_CONST = {
 export const DB_CONST = {
 	USER: {
 		DEFAULT_AVATAR: 'default.png',
-		STATUS: {
-			ONLINE: 'online',
-			OFFLINE: 'offline',
-			IN_GAME: 'in-game',
-		},
 		REGISTER_FROM: {
 			LOCAL: 'local',
 			GOOGLE: 'google',
@@ -92,7 +88,22 @@ export const IMAGE_CONST = {
 }
 
 /**
+ * Définit les états possibles d'un utilisateur en ligne.
+ * Utilisés dans les notifications.
+ * 
+ * - `ONLINE` : L'utilisateur est en ligne.
+ * - `OFFLINE` : L'utilisateur est hors ligne.
+ * - `IN_GAME` : L'utilisateur est en jeu.
+ */
+export const USER_ONLINE_STATUS = {
+	ONLINE: 'online',
+	OFFLINE: 'offline',
+	IN_GAME: 'in-game',
+} as const;
+
+/**
  * Définit les actions pouvant être effectuées sur une demande d'ami.
+ * Utilisées dans les notifications.
  * 
  * - `SEND` : Envoyer une demande d'ami à un autre utilisateur.
  * - `ACCEPT` : Accepter une demande d'ami reçue.
@@ -105,6 +116,16 @@ export const FRIEND_REQUEST_ACTIONS = {
 	DELETE: 'delete',
 	BLOCK: 'block',
 } as const;
+
+
+/**
+ * Liste des types de notification autorisées.
+ */
+export const NOTIFICATION_TYPES: NotificationType[] = [
+	...Object.values(FRIEND_REQUEST_ACTIONS),
+	...Object.values(USER_ONLINE_STATUS),
+	// à compléter si d'autres types de notifications sont ajoutées
+];
 
 /**
  * Liste des champs de tri et des ordres autorisés
