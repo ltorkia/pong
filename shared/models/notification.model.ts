@@ -1,6 +1,5 @@
-import { NotificationModel } from '../types/notification.types';	// en rouge car dossier local 'shared' != dossier conteneur
-import type { FriendRequestAction } from '../types/notification.types';
-import { FRIEND_REQUEST_ACTIONS } from '../config/constants.config';
+import { NotificationModel, NotificationType } from '../types/notification.types';	// en rouge car dossier local 'shared' != dossier conteneur
+import { USER_ONLINE_STATUS } from '../config/constants.config';
 
 // ===========================================
 // APPNOTIFICATION MODEL
@@ -12,7 +11,7 @@ export class AppNotification {
 		public id: number,
 		public from: number,
 		public to: number,
-		public type: FriendRequestAction,
+		public type: NotificationType,
 		public content: string | null,
 		public createdAt: string,
 		public read: number
@@ -48,7 +47,7 @@ export class AppNotification {
 			data.id ?? 0,
 			data.from ?? 0,
 			data.to ?? 0,
-			data.type ?? FRIEND_REQUEST_ACTIONS.DELETE,
+			data.type ?? USER_ONLINE_STATUS.OFFLINE,
 			data.content ?? '',
 			data.createdAt ?? '',
 			data.read ?? 0

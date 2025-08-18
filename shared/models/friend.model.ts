@@ -1,6 +1,6 @@
 import { FriendModel, FriendStatus } from '../types/friend.types';	// en rouge car dossier local 'shared' != dossier conteneur
 import { UserStatus } from '../types/user.types';
-import { DB_CONST } from '../config/constants.config'; // en rouge car dossier local 'shared' != dossier conteneur
+import { DB_CONST, USER_ONLINE_STATUS } from '../config/constants.config'; // en rouge car dossier local 'shared' != dossier conteneur
 
 // ===========================================
 // FRIENDS MODEL
@@ -40,7 +40,7 @@ export class Friend {
 	}
 	
 	isOnline(): boolean {
-		return this.status === DB_CONST.USER.STATUS.ONLINE;
+		return this.status === USER_ONLINE_STATUS.ONLINE;
 	}
 
 	get formattedLastLog(): string {
@@ -98,7 +98,7 @@ export class Friend {
 			data.friendStatus ?? DB_CONST.FRIENDS.STATUS.PENDING,
 			data.blockedBy ?? 0,
 			data.meetDate ?? new Date().toISOString(),
-			data.status ?? DB_CONST.USER.STATUS.OFFLINE,
+			data.status ?? USER_ONLINE_STATUS.OFFLINE,
 			data.gamePlayed ?? 0,
 			data.gameWin ?? 0,
 			data.gameLoose ?? 0,

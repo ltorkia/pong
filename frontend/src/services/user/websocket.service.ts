@@ -1,6 +1,7 @@
-import { currentService, notifService } from "./user.service";
-import { AppNotification } from "../../shared/models/notification.model";
-import { NotificationModel } from "../../shared/types/notification.type";
+import { currentService, notifService } from './user.service';
+import { AppNotification } from '../../shared/models/notification.model';
+import type { NotificationModel } from '../../shared/types/notification.types';
+import { isNotificationModel } from '../../shared/utils/app.utils';
 
 export class WebSocketService {
 	private webSocket: WebSocket | undefined;
@@ -19,9 +20,9 @@ export class WebSocketService {
 
 		this.webSocket.onmessage = async (event) => {
 			const dataArray = JSON.parse(event.data);
-			console.log('avant isArray')
-			if (Array.isArray(dataArray)) {
-				console.log('dans isArray')
+			console.log('NOTIF RECUEEEE');
+			if (Array.isArray(dataArray) 
+				&& dataArray.every(isNotificationModel)) {
 				const data = dataArray as NotificationModel[];
 				const formatedData = AppNotification.fromJSONArray(data) as AppNotification[];
 				await notifService.handleNotifications(formatedData);

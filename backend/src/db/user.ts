@@ -83,6 +83,18 @@ export async function getUserStats(userId: number): Promise<SafeUserModel> {
 	return snakeToCamel(user) as SafeUserModel;
 }
 
+export async function getUserStatus(id: number) {
+	const db = await getDb();
+	const user = await db.get(`
+		SELECT status
+		FROM User 
+		WHERE id = ?
+		`,
+		[id]
+	);
+	return snakeToCamel(user) as SafeUserBasic;
+}
+
 /* -------------------------------------------------------------------------- */
 /*      REQUÊTES USER POUR SETTINGS AUTHENTIFICATION CÔTE BACK UNIQUEMENT     */
 /* -------------------------------------------------------------------------- */

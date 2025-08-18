@@ -1,13 +1,16 @@
 import { FastifyInstance } from 'fastify';
 import { UserWS } from '../types/user.types';
-import { NotificationModel } from '../shared/types/notification.types';
-import { FRIEND_REQUEST_ACTIONS } from '../shared/config/constants.config';
+import { NotificationModel, UserOnlineStatus } from '../shared/types/notification.types';
+import { FRIEND_REQUEST_ACTIONS, USER_ONLINE_STATUS } from '../shared/config/constants.config';
 import { getUser } from '../db/user';
 import { NotificationInput } from '../types/zod/app.zod';
-import { getNotification, getTwinNotifications, updateNotification, deleteNotification } from '../db/notification';
-import { NotifResponse } from '../shared/types/response.types';
-import { FriendModel } from '../shared/types/friend.types';
-import { DB_CONST } from '../shared/config/constants.config';
+import { getTwinNotifications, updateNotification, deleteNotification } from '../db/notification';
+import { isValidNotificationType } from '../shared/utils/app.utils';
+import { insertNotification } from '../db/notification';
+import { majLastlog } from '../db/usermaj';
+// import { NotifResponse } from '../shared/types/response.types';
+// import { FriendModel } from '../shared/types/friend.types';
+// import { DB_CONST } from '../shared/config/constants.config';
 
 /**
  * Envoie un message à un utilisateur connecté via WebSockets.
@@ -21,6 +24,52 @@ export function sendToSocket(app: FastifyInstance, data: NotificationModel[]): v
 	if (userWS) {
 		console.log("→ Envoi WS vers", userWS.id, ":", JSON.stringify(data));
 		userWS.WS.send(JSON.stringify(data));
+	}
+}
+
+/**
+ * Envoie un message à tous les utilisateurs connectés via WebSockets, sauf l'utilisateur identifié par `jwtUserId`.
+ * @param {FastifyInstance} app - L'instance de l'application Fastify.
+ * @param {number} jwtUserId - L'ID de l'utilisateur identifié par le JWT.
+ * @param {NotificationModel[]} data - Le tableau contenant les notifications à envoyer.
+ */
+export function sendToAllSockets(app: FastifyInstance, jwtUserId: number, data: NotificationModel[]): void {
+	for (const userWS of app.usersWS) {
+		if (jwtUserId === userWS.id)
+			continue;
+		console.log("→ Envoi WS vers", userWS.id, ":", JSON.stringify(data));
+		userWS.WS.send(JSON.stringify(data));
+	}
+}
+
+/**
+ * Met à jour l'état en ligne de l'utilisateur courant 
+ * et envoie une notification à tous les utilisateurs connectés, 
+ * à l'exception de l'utilisateur identifié par le JWT.
+ * @param {FastifyInstance} app - L'instance de l'application Fastify.
+ * @param {number} userId - L'ID de l'utilisateur.
+ * @param {UserOnlineStatus} status - L'état en ligne (en ligne, absent, etc.) à définir pour l'utilisateur.
+ */
+export async function setOnlineStatus(app: FastifyInstance, userId: number, status: UserOnlineStatus) {
+	await majLastlog(userId, USER_ONLINE_STATUS.ONLINE);
+	let notifData: NotificationInput = {
+		type: status,
+		from: userId,
+		to: 0
+	};
+	for (const userWS of app.usersWS) {
+		if (userId === userWS.id)
+			continue;
+		notifData.to = userWS.id;
+		console.log('BLAAAAAAA');
+		const notif = await insertNotification(notifData);
+		console.log('NOTIIIIIIF', notif);
+		if (!notif || 'errorMessage' in notif) {
+			console.log(notif.errorMessage);
+			return;
+		}
+		console.log("→ Envoi WS vers", userWS.id, ":", JSON.stringify([notif]));
+		userWS.WS.send(JSON.stringify([notif]));
 	}
 }
 
@@ -43,7 +92,6 @@ export async function sendUpdateNotification(app: FastifyInstance, data: Notific
 
 	// On met à jour les notifications
 	let updatedNotifs: NotificationModel[] = [];
-	let returnedNotif: NotificationModel = data;
 	for (const twinNotif of twinNotifs) {
 		twinNotif.type = data.type;
 		twinNotif.read = 1;
@@ -53,9 +101,6 @@ export async function sendUpdateNotification(app: FastifyInstance, data: Notific
 			return { errorMessage: updatedRes.errorMessage || 'Error inserting notification' };
 		}
 		updatedNotifs.push(updatedRes);
-		if (updatedRes.id == data.id) {
-			returnedNotif = updatedRes;
-		}
 	}
 
 	// On envoie les notifications mises à jour
@@ -70,18 +115,12 @@ export async function sendUpdateNotification(app: FastifyInstance, data: Notific
  * 
  * @param {FastifyInstance} app - L'instance de l'application Fastify.
  * @param {NotificationModel[]} data - Les données des notifications.
- * @param {FriendModel} relation - Les données de la relation amicale.
  * @returns {Promise<NotificationModel[] | { errorMessage: string }>} Une promesse qui se résout lorsque les notifications sont supprimées
  * et envoyées via WebSockets, ou par un message d'erreur.
  */
 export async function sendDeleteNotification(app: FastifyInstance, data: NotificationModel[]): Promise<NotificationModel[] | { errorMessage: string }> {
 	const deletedNotifs: NotificationModel[] = [];
 	for (const notif of data) {
-		// if (relation.friendStatus === DB_CONST.FRIENDS.STATUS.PENDING) {
-		// 	notif.type = FRIEND_REQUEST_ACTIONS.DELETE;
-		// 	deletedNotifs.push(notif);
-		// 	await deleteNotification(notif.id);
-		// }
 		notif.type = FRIEND_REQUEST_ACTIONS.DELETE;
 		deletedNotifs.push(notif);
 		await deleteNotification(notif.id);
@@ -93,32 +132,34 @@ export async function sendDeleteNotification(app: FastifyInstance, data: Notific
 /**
  * Ajoute le contenu de la notification à un objet de type NotificationInput ou NotificationModel.
  * 
- * Cette fonction vérifie si le type de la notification est un type de demande d'ami.
+ * Cette fonction vérifie si le type de la notification est un type de demande d'ami, un statut online etc.
  * En fonction du type de la demande, elle génère le contenu de la notification.
  * 
  * @param {T extends NotificationInput | NotificationModel} notifData - L'objet contenant les données de la notification.
  * @return {Promise<T>} L'objet de notification avec le contenu ajouté.
  */
 export async function addNotifContent<T extends NotificationInput | NotificationModel>(notifData: T): Promise<T> {
+	if (!isValidNotificationType(notifData.type!)) {
+		throw new Error('Invalid notification type');
+	}
+	
 	const user = await getUser(notifData.from);
 	let notif = '';
 	if (!notifData.type) {
 		return notifData;
 	}
-	if (Object.values(FRIEND_REQUEST_ACTIONS).includes(notifData.type)) {
-		switch (notifData.type) {
-			case FRIEND_REQUEST_ACTIONS.ADD:
-				notif = `has sent you a friend request.`;
-				break;
-			case FRIEND_REQUEST_ACTIONS.ACCEPT:
-				notif = `has accepted your friend request.`;
-				break;
-			case FRIEND_REQUEST_ACTIONS.DELETE:
-				break;
-			case FRIEND_REQUEST_ACTIONS.BLOCK:
-				break;
-		}
-		notifData.content = `${user.username} ${notif}`;
+	switch (notifData.type) {
+		case FRIEND_REQUEST_ACTIONS.ADD:
+			notif = `has sent you a friend request.`;
+			break;
+		case FRIEND_REQUEST_ACTIONS.ACCEPT:
+			notif = `has accepted your friend request.`;
+			break;
+		// case FRIEND_REQUEST_ACTIONS.DELETE:
+		// 	break;
+		// case FRIEND_REQUEST_ACTIONS.BLOCK:
+		// 	break;
 	}
+	notifData.content = `${user.username} ${notif}`;
 	return notifData;
 }

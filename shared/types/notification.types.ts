@@ -1,4 +1,4 @@
-import { FRIEND_REQUEST_ACTIONS } from '../config/constants.config';
+import { FRIEND_REQUEST_ACTIONS, USER_ONLINE_STATUS } from '../config/constants.config';
 
 export interface NotificationModel {
 	id: number;
@@ -6,12 +6,15 @@ export interface NotificationModel {
 	to: number;
 	type: NotificationType;
 	toType?: NotificationType;
-	content: string | null;
+	content?: string | null;
 	createdAt: string;
 	read: number;
 };
 
-export type NotificationType = FriendRequestAction;
-
 export type FriendRequestAction =
 	typeof FRIEND_REQUEST_ACTIONS[keyof typeof FRIEND_REQUEST_ACTIONS];
+
+export type UserOnlineStatus =
+	typeof USER_ONLINE_STATUS[keyof typeof USER_ONLINE_STATUS];
+
+export type NotificationType = FriendRequestAction | UserOnlineStatus;

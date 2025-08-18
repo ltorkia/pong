@@ -4,12 +4,12 @@ import { PageInstance } from '../../types/routes.types';
 import { COMPONENT_NAMES } from '../../config/components.config';
 import { NavbarComponent } from '../../components/navbar/navbar.component';
 import { UserRowComponent } from '../../components/user-row/user-row.component';
-import { currentService, storageService, friendService } from './user.service';
+import { currentService, storageService } from './user.service';
 import { User } from '../../shared/models/user.model';
 import { AppNotification } from '../../shared/models/notification.model';
-import { NotifResponse, FriendResponse } from '../../shared/types/response.types';
+import { NotifResponse } from '../../shared/types/response.types';
 import { FRIEND_REQUEST_ACTIONS } from '../../shared/config/constants.config'; // en rouge car dossier local 'shared' != dossier conteneur
-import { isValidNotificationType } from '../../shared/utils/app.utils';
+import { isValidNotificationType, isFriendRequestAction, isUserOnlineStatus } from '../../shared/utils/app.utils';
 import { getHTMLElementById } from '../../utils/dom.utils';
 import { FriendRequestAction } from '../../shared/types/notification.types';
 
@@ -26,7 +26,6 @@ export class NotifService {
 	private notifs: AppNotification[] = [];
 	private notifCount: number = 0;
 	private notifItem: HTMLDivElement | null = null;
-	private userRowToUpdate: boolean = false;
 
 	public currentNotif: AppNotification | null = null;
 	public friendId: number | null = null;
@@ -84,17 +83,21 @@ export class NotifService {
 	 */
 	public async handleNotifications(notifs: AppNotification[]): Promise<void> {
 		console.log('On est dans handleNotifications')
-		this.userRowToUpdate = true;;
 		for (const notif of notifs) {
 			console.log('On est dans la boucle')
 			if (isValidNotificationType(notif.type)) {
-				console.log('Notif type valide')
 				this.currentNotif = notif;
 				this.friendId = notif.from;
-				await this.handleNotification();
+				if (isUserOnlineStatus(notif.type)) {
+					await this.handleUserOnlineStatus(notif);
+				}
+				console.log('notiftype', notif.type);
+				if (isFriendRequestAction(notif.type)) {
+					await this.handleNotification();
+				}
 			}
-			await this.refreshFriendButtons();
 		}
+		this.refreshFriendButtons();
 	}
 
 	/**
@@ -145,6 +148,10 @@ export class NotifService {
 	// METHODES PRIVATES
 	// ===========================================
 
+	private async handleUserOnlineStatus(notif: AppNotification): Promise<void> {
+		console.log('On est dans handleUserOnlineStatus');
+	}
+
 	/**
 	 * Charge les notifications de l'utilisateur courant et les affiche dans la fenêtre de notifications.
 	 * Si il n'y a pas de notifications, affiche un message par défaut.
@@ -162,13 +169,13 @@ export class NotifService {
 			this.displayDefaultNotif();
 			return;
 		}
-		
+
 		// Sinon, parcourt les notifications et crée un élément HTML pour chacune
+		this.updateNotifsCounter();
 		this.notifs.forEach((notifDb: AppNotification) => {
 			this.currentNotif = notifDb;
 			this.displayNotif();
 		});
-		this.updateNotifsCounter();
 	}
 
 	/**
@@ -184,30 +191,31 @@ export class NotifService {
 	 * @returns {Promise<void>} Une promesse qui est résolue lorsque la notification est traitée.
 	 */
 	private async handleNotification(): Promise<void> {
-		const isLoaded = this.notifs.find((notif) => notif.id === this.currentNotif.id);
-		if (!isLoaded) {
+		console.log('On est dans handleNotification');
+		const notifIndex = this.notifs.findIndex((notif) => notif.id === this.currentNotif.id);
+		if (notifIndex === -1) {
 			this.notifs.push(this.currentNotif);
 			storageService.setCurrentNotifs(this.notifs);
 			console.log('this.notifs apres push', this.notifs);
-			this.displayNotif();
 			this.updateNotifsCounter();
+			this.displayNotif();
 			return;
 		};
 		switch (this.currentNotif.type) {
 			case FRIEND_REQUEST_ACTIONS.ADD:
 			case FRIEND_REQUEST_ACTIONS.DELETE:
+				this.notifs.splice(notifIndex, 1);
 				this.deleteNotif();
 				this.updateNotifsCounter();
 				console.log('this.notifs apres delete', this.notifs);
 				break;
 			default:
+				this.notifs[notifIndex] = this.currentNotif;
 				this.replaceNotif();
 				console.log('this.notifs apres replace', this.notifs);
 				break;
 		}
 		storageService.setCurrentNotifs(this.notifs);
-		if (this.userRowToUpdate)
-			await this.refreshFriendButtons();
 	}
 
 	/**
@@ -263,10 +271,20 @@ export class NotifService {
 	/**
 	 * Affiche une notification en créant un élément de notification et en l'ajoutant
 	 * à la fenêtre des notifications dans la barre de navigation.
+	 *
+	 * Si la notification nécessite des boutons d'action, les boutons
+	 * sont créés en utilisant `this.createNotifButtonsHTML()` et des écouteurs d'événements sont attachés
+	 * en utilisant `this.attachListeners()`.
 	 */
 	private displayNotif(): void {
+		this.removeDefaultNotif();
 		this.notifItem = this.createNotifElement();
+		if (this.needButtons()) {
+			console.log('BLOUUUULJQSFHNSL/DHF');
+			this.notifItem.innerHTML += this.createNotifButtonsHTML();
+		}
 		this.navbarInstance!.notifsWindow.appendChild(this.notifItem);
+		this.notifItem = getHTMLElementById(`notif-${this.currentNotif.id}`, this.navbarInstance!.notifsWindow) as HTMLDivElement;
 		this.attachListeners();
 	}
 	
@@ -288,6 +306,7 @@ export class NotifService {
 	 * Supprime la notification actuelle de la fenêtre des notifications dans la barre de navigation.
 	 */
 	private deleteNotif(): void {
+		this.displayDefaultNotif();
 		this.notifItem = getHTMLElementById(`notif-${this.currentNotif.id}`, this.navbarInstance!.notifsWindow) as HTMLDivElement;
 		if (!this.notifItem) {
 			console.warn(`[${this.constructor.name}] Aucune notification à supprimer`);
@@ -319,10 +338,6 @@ export class NotifService {
 	 * L'identifiant de l'élément est généré en utilisant l'identifiant de la notification. Le contenu de la
 	 * notification est ajouté en tant que contenu de l'élément.
 	 *
-	 * Si la notification nécessite des boutons (c'est-à-dire si elle est en statut "unread"), les boutons
-	 * sont créés en utilisant `this.createNotifButtonsHTML()` et des écouteurs d'événements sont attachés
-	 * en utilisant `this.attachListeners()`.
-	 *
 	 * @returns {HTMLDivElement} L'élément HTML représentant la notification.
 	 */
 	private createNotifElement(): HTMLDivElement {
@@ -332,9 +347,6 @@ export class NotifService {
 		notifItem.innerHTML = `<span>${this.currentNotif.content}</span>` || '';
 		if (this.currentNotif.read === 0) {
 			notifItem.classList.add('new-notif');
-		}
-		if (this.needButtons()) {
-			this.createNotifButtonsHTML();
 		}
 		return notifItem;
 	}
@@ -347,10 +359,28 @@ export class NotifService {
 	 * "No notification yet", puis l'ajoute à la fenêtre de notifications.
 	 */
 	private displayDefaultNotif() {
+		if (this.getNotifCount() > 0)
+			return;
 		const notifItem = document.createElement('div');
 		notifItem.classList.add('default-notif');
 		notifItem.textContent = 'No notification yet.';
 		this.navbarInstance!.notifsWindow.appendChild(notifItem);
+	}
+
+	/**
+	 * Supprime l'élément HTML indiquant qu'il n'y a pas encore de notification,
+	 * s'il existe.
+	 *
+	 * Cette méthode recherche l'élément HTML avec la classe 'default-notif' dans la fenêtre
+	 * de notifications et l'enlève du DOM en utilisant la méthode `remove()`.
+	 */
+	private removeDefaultNotif() {
+		if (this.getNotifCount() > 0) {
+			const notifItem = this.navbarInstance!.notifsWindow.querySelector('.default-notif');
+			if (notifItem) {
+				notifItem.remove();
+			}
+		}
 	}
 
 	/**
@@ -475,23 +505,21 @@ export class NotifService {
 	 * Si la notification est une demande d'amitié, les boutons "Accept" et "Decline"
 	 * sont affichés.
 	 * 
-	 * @returns {Promise<string>} Le HTML des boutons d'actions.
+	 * @returns {string} Le HTML des boutons d'actions.
 	 */
-	private async createNotifButtonsHTML(): Promise<string> {
+	private createNotifButtonsHTML(): string {
 		let html = `<div class="notif-actions flex justify-center space-x-4">`;
-		if (this.currentNotif.type === FRIEND_REQUEST_ACTIONS) {
-			switch (this.currentNotif.type) {
-				case FRIEND_REQUEST_ACTIONS.ADD:
-					html += `
-						<button class="btn smaller-btn" data-action="accept" data-to="${this.currentNotif.to}" data-from="${this.currentNotif.from}">
-							Accept
-						</button>
-						<button class="btn smaller-btn" data-action="decline" data-to="${this.currentNotif.to}" data-from="${this.currentNotif.from}">
-							Decline
-						</button>
-					`;
-					break;
-			}
+		switch (this.currentNotif.type) {
+			case FRIEND_REQUEST_ACTIONS.ADD:
+				html += `
+					<button class="btn smaller-btn" data-action="accept" data-to="${this.currentNotif.to}" data-from="${this.currentNotif.from}">
+						Accept
+					</button>
+					<button class="btn smaller-btn" data-action="decline" data-to="${this.currentNotif.to}" data-from="${this.currentNotif.from}">
+						Decline
+					</button>
+				`;
+				break;
 		}
 		html += `</div>`;
 		return html;

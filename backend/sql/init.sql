@@ -28,9 +28,9 @@ CREATE TABLE IF NOT EXISTS Notif (
 	id INTEGER PRIMARY KEY AUTOINCREMENT,
 	"from" INTEGER NOT NULL,
 	"to" INTEGER NOT NULL,
-	type TEXT NOT NULL CHECK (type IN ('add', 'invite', 'accept', 'delete', 'block')),
+	type TEXT NOT NULL CHECK (type IN ('add', 'invite', 'accept', 'delete', 'block', 'online', 'offline', 'in-game')),
 	created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-	content TEXT NOT NULL,
+	content TEXT,
 	read INTEGER DEFAULT 0 CHECK (read IN (0, 1)),													
 	FOREIGN KEY ("from") REFERENCES User(id),
 	FOREIGN KEY ("to") REFERENCES User(id)

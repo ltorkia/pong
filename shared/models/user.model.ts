@@ -1,6 +1,6 @@
 import { SafeUserModel, UserModel, PublicUser, UserStatus, RegisterMethod, TwoFaMethod } from '../types/user.types';	// en rouge car dossier local 'shared' != dossier conteneur
 import { AppNotification } from './notification.model';
-import { DB_CONST } from '../config/constants.config';
+import { DB_CONST, USER_ONLINE_STATUS } from '../config/constants.config';
 
 // ===========================================
 // USER MODEL
@@ -54,7 +54,7 @@ export class User {
 	}
 
 	isOnline(): boolean {
-		return this.status === DB_CONST.USER.STATUS.ONLINE;
+		return this.status === USER_ONLINE_STATUS.ONLINE;
 	}
 
 	get formattedLastLog(): string {
@@ -177,7 +177,7 @@ export class User {
 			data.gameLoose ?? 0,
 			data.timePlayed ?? 0,
 			data.nFriends ?? 0,
-			data.status ?? DB_CONST.USER.STATUS.OFFLINE,
+			data.status ?? USER_ONLINE_STATUS.OFFLINE,
 			data.isDesactivated ?? 0,
 			data.registerFrom ?? DB_CONST.USER.REGISTER_FROM.LOCAL,
 			data.active2Fa ?? DB_CONST.USER.ACTIVE_2FA.DISABLED,
@@ -221,7 +221,7 @@ export class User {
 			0,
 			0,
 			0,
-			data.status ?? DB_CONST.USER.STATUS.OFFLINE,
+			data.status ?? USER_ONLINE_STATUS.OFFLINE,
 			0, // isDesactivated à 0 par défaut
 			DB_CONST.USER.REGISTER_FROM.LOCAL, // registerFrom par défaut
 			DB_CONST.USER.ACTIVE_2FA.DISABLED, // active2Fa à disabled par défaut,
