@@ -1,8 +1,9 @@
 import { BasePage } from '../../base/base.page';
 import { RouteConfig } from '../../../types/routes.types';
 import { router } from '../../../router/router';
-import { Tournament } from '../../../shared/types/game.types';
 import { secureFetch } from '../../../utils/app.utils';
+import { Tournament } from '../../../shared/types/game.types';
+import { generateUniqueID } from '../../../shared/functions'
 import { Player } from '../../../../../shared/types/game.types';
 import { currentService } from '../../../services/index.service';
 import { webSocketService } from '../../../services/user/user.service';
@@ -84,6 +85,24 @@ export class GameTournamentList extends BasePage {
             this.tournamentItemHTML = item.cloneNode(true);
     }
 
+    private async joinTournament(tournamentID: number): Promise<void> {
+        const res = await fetch("/api/game/join_tournament", {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                playerID: this.currentUser.id,
+                tournamentID: tournamentID,
+            }),
+            credentials: 'include',
+        });
+        if (!res.ok) {
+            const error = await res.json();
+            this.printError(error.error);
+            return ;
+        }
+        router.navigate(`/game/tournaments/:${tournamentID}`);
+    }
+
     private printError(error: string): void {
         const errorDiv = document.createElement("div");
         const container = document.getElementById("alias-container");
@@ -113,7 +132,7 @@ export class GameTournamentList extends BasePage {
         tournamentBox?.classList.remove("translate-y-0");
     }
 
-    private printTournaments(allTournaments: Tournament[]): void {
+    private displayTournamentsAndAttachListeners(allTournaments: Tournament[]): void {
         const tournamentList = document.getElementById("all-tournaments") as HTMLElement;
         while (tournamentList.lastChild)
             tournamentList.lastChild.remove();
@@ -121,10 +140,10 @@ export class GameTournamentList extends BasePage {
             const tournamentItem = this.tournamentItemHTML.cloneNode(true) as HTMLElement;
             tournamentItem.querySelector("#tournament-name")!.textContent = tournament.name;
             tournamentItem.querySelector("#players")!.textContent = `${tournament.players.length} / ${tournament.maxPlayers}`;
-            if (tournament.players == tournament.maxPlayers) { }
-            tournamentItem.querySelector("#status")!.classList.add("text-red");
+            if (tournament.players == tournament.maxPlayers)
+                tournamentItem.querySelector("#status")!.classList.add("text-red");
             tournamentList!.append(tournamentItem);
-            tournamentItem.addEventListener("click", () => router.navigate(`/game/tournaments/:${tournament.ID}`));
+            tournamentItem.addEventListener("click", () => this.joinTournament(tournament.ID));
         }
     }
 
@@ -140,12 +159,19 @@ export class GameTournamentList extends BasePage {
             t.masterPlayerID,
             t.isStarted,
         )))
-        this.printTournaments(allTournaments);
+        this.displayTournamentsAndAttachListeners(allTournaments);
         console.log(allTournaments);
     }
 
     private async sendTournament(tournamentName: string): Promise<void> {
-        const newTournament = { name: tournamentName, maxPlayers: this.playersNb };
+        const newTournament = new Tournament(
+            tournamentName,
+            this.playersNb,
+            generateUniqueID(this.allTournaments),
+            currentService.getCurrentUser().id,
+            false,
+        )
+        console.log(newTournament);
         const res: Response = await fetch('/api/game/new_tournament', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -164,6 +190,7 @@ export class GameTournamentList extends BasePage {
         const tournamentList = document.getElementById("all-tournaments") as HTMLElement;
         const aliasInput = document.getElementById("alias-name-input") as HTMLInputElement;
         const inputBoxes = document.querySelectorAll("#input-box");
+        const refreshBtn = document.getElementById("refresh-btn") as HTMLElement;
 
         for (const box of inputBoxes) {
             box.addEventListener("mouseover", () => {
@@ -175,7 +202,6 @@ export class GameTournamentList extends BasePage {
                 const input = box.querySelector("input");
                 input!.classList.remove("bg-black", "opacity-100", "text-black");
                 input!.classList.add("bg-white", "text-white");
-                // document.getElementById("alias-name-set")?.classList.add("text-black");
             });
         }
 
@@ -212,5 +238,7 @@ export class GameTournamentList extends BasePage {
             e.preventDefault(); // empêche le scroll page
             tournamentList.scrollTop += e.deltaY; // pour scroll horizontal avec molette
         });
+
+        refreshBtn.addEventListener("click", () => this.getTournaments());
     }
 }

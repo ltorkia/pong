@@ -1,13 +1,14 @@
 import { AuthApi } from './auth.api';
 import { DataApi } from './data.api';
+import { NotifApi } from './notif.api';
 
 // ===========================================
 // USER API - SINGLETONS
 // ===========================================
 /**
  * Instances uniques des classes AuthApi, DataApi
- * et QueryApi qui fournissent des méthodes pour interagir avec l'API
- * de l'utilisateur, y compris l'authentification, la gestion des utilisateurs
+ * et NotifApi qui fournissent des méthodes pour interagir avec l'API
+ * de l'utilisateur, y compris l'authentification, la gestion des utilisateurs, les notifications
  * et les requêtes basées sur des critères de recherche.
  */
 
@@ -26,9 +27,15 @@ const authApi = new AuthApi();
 const dataApi = new DataApi();
 
 /**
+ * Instance unique de la classe NotifApi qui fournit des méthodes pour
+ * gérer et récupérer les notifications utilisateur.
+ */
+const notifApi = new NotifApi();
+
+/**
  * Exporte les instances uniques des classes AuthApi et DataApi.
  * 
  * Les instances sont exportées pour être utilisées dans les parties de l'application
  * qui ont besoin d'interagir avec l'API utilisateur.
  */
-export { authApi, dataApi };
+export { authApi, dataApi, notifApi };

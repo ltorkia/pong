@@ -6,11 +6,11 @@ import { clearAuthCookies } from '../helpers/auth.helpers';
 import { healthRoutes } from './health.routes';
 import { authRoutes } from './auth.routes';
 import { usersRoutes } from './users.routes';
+import { notificationsRoutes } from './notifications.routes';
 import { testsRoutes } from './tests.routes';
 import { apiMe } from './api.me';
 import { sessionRoutes } from './session.routes';
 import { gameRoutes } from './game.routes';
-// import { websocketRoutes } from './ws';
 
 // DB
 import { getUser } from '../db/user';
@@ -86,6 +86,7 @@ export async function apiRoutes(app: FastifyInstance) {
 	await app.register(healthRoutes, { prefix: '/health' });
 	await app.register(authRoutes, { prefix: '/auth' });
     await app.register(usersRoutes, { prefix: '/users' });
+	await app.register(notificationsRoutes, { prefix: '/notifs' });
     await app.register(testsRoutes, { prefix: '/tests' });
     await app.register(apiMe, { prefix: '/me' });
     await app.register(sessionRoutes, { prefix: '/validate-session' });

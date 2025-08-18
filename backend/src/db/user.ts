@@ -1,14 +1,13 @@
 import { getDb } from './index.db';
 import { RegisterInput } from '../types/zod/auth.zod';
-import { Game } from '../types/game.types';
 import { ChatMessage } from '../types/chat.types';
 import { searchNewName } from '../helpers/auth.helpers';
 import { UserPassword, User2FA, UserForChangeData } from '../types/user.types';
 import { DB_CONST, ALLOWED_SORT_FIELDS, ALLOWED_SEARCH_FIELDS, ALLOWED_SORT_ORDERS } from '../shared/config/constants.config'; // en rouge car dossier local 'shared' != dossier conteneur
 import { UserModel, SafeUserModel, UserBasic, UserWithAvatar, PublicUser, UserSortField, SortOrder, PaginatedUsers, PaginationInfos, Friends } from '../shared/types/user.types'; // en rouge car dossier local 'shared' != dossier conteneur
 import { snakeToCamel, snakeArrayToCamel } from '../helpers/types.helpers';
-import { sanitizeSearchTerm } from '../helpers/query.helpers';
-
+import { FriendModel } from '../shared/types/friend.types';	// en rouge car dossier local 'shared' != dossier conteneur
+import { GameModel } from '../shared/types/game.types';	// en rouge car dossier local 'shared' != dossier conteneur
 // retourne les infos d un user particulier - userId = le id de l user a afficher
 // a priori ? protegerait contre les insertions sql
 export async function getUser(userId : number | null = null, search : string | null = null){
@@ -131,18 +130,18 @@ export async function getUser2FA(email: string) {
 export async function getUserFriends(userId: number) {
 	const db = await getDb();
 	const friends = await db.all(`
-		SELECT u.id, u.username, u.avatar, u.begin_log, u.end_log
+		SELECT u.id, u.username, u.avatar, u.begin_log, u.end_log, 
+		f.requester_id, f.friend_status, f.blocked_by, f.date
 		FROM Friends f
 		JOIN User u ON (
 			(f.User1_id = ? AND f.User2_id = u.id)
 			OR
 			(f.User2_id = ? AND f.User1_id = u.id)
 		)
-		WHERE f.status = 'accepted'
 		`,
 		[userId, userId]
 	);
-	return snakeArrayToCamel(friends) as PublicUser[];
+	return snakeArrayToCamel(friends) as FriendModel[];
 }
 // pour insert : const [u1, u2] = [userIdA, userIdB].sort((a, b) => a - b);
 		
@@ -168,7 +167,7 @@ export async function getUserGames(userId: number) {
 		);
 		game.other_players = players as UserWithAvatar[];
 	}
-	return snakeArrayToCamel(games) as Game[];
+	return snakeArrayToCamel(games) as GameModel[];
 }
 		
 export async function getUserChat(userId1: number, userId2: number) {

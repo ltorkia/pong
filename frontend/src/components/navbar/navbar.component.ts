@@ -6,10 +6,12 @@ import { authService } from '../../services/index.service';
 import { animationService } from '../../services/index.service';
 import { RouteConfig } from '../../types/routes.types';
 import { ComponentConfig } from '../../types/components.types';
-import { toggleClass } from '../../utils/dom.utils';
+import { getHTMLElementByClass, toggleClass } from '../../utils/dom.utils';
 import { getHTMLElementById, getHTMLAnchorElement, getHTMLElementByTagName } from '../../utils/dom.utils';
 import { ROUTE_PATHS, PROFILE_HTML_ANCHOR } from '../../config/routes.config';
+import { notifApi } from '../../api/index.api';
 import { DB_CONST } from '../../shared/config/constants.config';
+import { notifService } from '../../services/index.service';
 
 // ===========================================
 // NAVBAR COMPONENT
@@ -34,6 +36,11 @@ export class NavbarComponent extends BaseComponent {
 	private settingsLink!: HTMLAnchorElement;
 	private icon!: HTMLElement;
 	private logoutLink!: HTMLAnchorElement;
+	private notifsBtn!: HTMLElement;
+	public notifsCounter!: HTMLElement;
+	public notifsWindow!: HTMLElement;
+	private chatBtn!: HTMLElement;
+	private chatWindow!: HTMLElement;
 	private mainSection!: HTMLElement;
 
 	/**
@@ -86,18 +93,14 @@ export class NavbarComponent extends BaseComponent {
 		this.logoutLink = getHTMLAnchorElement(ROUTE_PATHS.LOGOUT, this.container);
 		this.profileLink = this.setNavLink(PROFILE_HTML_ANCHOR, `/user/${this.profilePlaceholder}`);
 		this.settingsLink = getHTMLAnchorElement(ROUTE_PATHS.SETTINGS, this.container);
+		this.notifsBtn = getHTMLElementById('notifs', this.container);
+		this.notifsCounter = getHTMLElementByClass('notif-count', this.container);
+		this.notifsWindow = getHTMLElementById('notifs-window', this.container);
+		this.chatBtn = getHTMLElementById('chat', this.container);
+		this.chatWindow = getHTMLElementById('chat-window', this.container);
 		this.mainSection = getHTMLElementByTagName('main');
 	}
 
-	/**
-	 * Méthode de montage du composant de la navbar.
-	 * 
-	 * Affiche ou non le lien Settings en fonction de si l'utilisateur est enregistré via Google.
-	 * Met à jour le lien actif de la navigation au premier chargement de la page.
-	 * Ajoute un margin à la balise 'main' qui correspond à la hauteur de la navbar.
-	 * 
-	 * @returns {Promise<void>} Une promesse qui se résout quand le composant est monté.
-	 */
 	protected async mount(): Promise<void> {
 		this.toggleSettingsLink();
 		this.setActiveLink(this.routeConfig.path);
@@ -118,6 +121,8 @@ export class NavbarComponent extends BaseComponent {
 		this.navLinks.forEach(link => {
 			link.addEventListener('click', this.handleNavLinkClick);
 		});
+		this.notifsBtn.addEventListener('click', this.toggleNotifsMenu);
+		this.chatBtn.addEventListener('click', this.toggleChatWindow);
 		this.logoutLink.addEventListener('click', this.handleLogoutClick);
 	}
 
@@ -272,6 +277,35 @@ export class NavbarComponent extends BaseComponent {
 			this.toggleDropdown();
 		}
 	};
+
+	private toggleNotifsMenu = async (event: MouseEvent): Promise<void> => {
+		const allNotifs = this.notifsWindow.querySelectorAll('.notif-item');
+		const defaultNotif = this.notifsWindow.querySelector('.default-notif');
+		if (allNotifs && allNotifs.length > 0 && defaultNotif) {
+			defaultNotif.remove();
+		}
+		const allNewNotifs = this.notifsWindow.querySelectorAll('.new-notif');
+		toggleClass(this.notifsWindow, 'flex', 'hidden');
+		if (this.notifsWindow.classList.contains('hidden') 
+			&& allNewNotifs && allNewNotifs.length > 0) {
+			notifService.updateNotifsCounter(true);
+			for (const notif of allNewNotifs) {
+				notif.classList.remove('new-notif');
+				const notifId = Number(notif.id.replace("notif-", ""));
+				await notifApi.updateNotifStatus(notifId);
+				console.log('Notif mise à jour')
+			}
+		}
+	}
+
+	/**
+	 * Bascule la visibilité de la fenêtre de chat.
+	 * 
+	 * Alterne entre les classes "show" et "hide" pour afficher ou masquer la fenêtre de chat.
+	 */
+	private toggleChatWindow = async (event: MouseEvent): Promise<void> => {
+		toggleClass(this.chatWindow, 'flex', 'hidden');
+	}
 
 	/**
 	 * Listener sur le bouton logout de la navbar.

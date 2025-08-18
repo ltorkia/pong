@@ -10,13 +10,20 @@ export const PlayerSchema = z.object({
     width: z.number(),
     inputUp: z.boolean(),
     inputDown: z.boolean(),
-})
+    alias: z.string(),
+});
 
 export const TournamentSchema = z.object({
     name: z.string().min(1).max(16),
-    // id: z.number().max(Number.MAX_SAFE_INTEGER),
-    // isStarted: z.boolean(),
-    // masterPlayerID: z.number(),
+    ID: z.number().max(Number.MAX_SAFE_INTEGER),
+    isStarted: z.boolean(),
+    masterPlayerID: z.number(),
     // player: z.array(PlayerSchema),
-    maxPlayers: z.number().min(4).max(16), 
-})
+    maxPlayers: z.number().min(4).max(16),
+});
+
+export const TournamentReqSchema = z.object({
+    playerID: z.number(),
+    tournamentID: z.number(),
+});
+

@@ -112,7 +112,7 @@ export class RoutingService {
 		if (!pageInstance) {
 			return;
 		};
-		await this.loadPage(config, pageInstance);
+		await this.loadPage(pageInstance);
 
 		console.log(`[${this.constructor.name}] ${config.name} rendue`);
 	}
@@ -142,7 +142,7 @@ export class RoutingService {
 		if (!pageInstance) {
 			return;
 		}
-		await this.loadPage(config, pageInstance);
+		await this.loadPage(pageInstance);
 		console.log(`[${this.constructor.name}] ${config.name} rendue`);
 	}
 
@@ -197,13 +197,12 @@ export class RoutingService {
 	 * 
 	 * - Gère les erreurs de chargement de la page en les loguant.
 	 * 
-	 * @param {RouteConfig} config Configuration de la route.
 	 * @param {any} pageInstance Instance de la page créée.
 	 * @returns {Promise<void>} Une promesse qui se résout lorsque la page est rendue.
 	 */
-	private async loadPage(config: RouteConfig, pageInstance: any): Promise<void> {
+	private async loadPage(pageInstance: any): Promise<void> {
 		try {
-			await pageService.renderPage(config, pageInstance);
+			await pageService.renderPage(pageInstance);
 		} catch (error) {
 			console.error('Erreur lors du chargement de la page:', error);
 		}

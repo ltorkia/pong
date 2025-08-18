@@ -1,9 +1,8 @@
-import { particlesService } from '../index.service';
-import { animationService } from '../index.service';
+import { particlesService, animationService, notifService } from '../index.service';
 import { getHTMLElementById } from '../../utils/dom.utils';
 import { APP_ID } from '../../config/routes.config';
 import { RouteConfig, PageInstance } from '../../types/routes.types';
-import { HTML_COMPONENT_CONTAINERS } from '../../config/components.config';
+import { COMPONENT_NAMES, HTML_COMPONENT_CONTAINERS } from '../../config/components.config';
 
 // ===========================================
 // PAGE SERVICE
@@ -37,13 +36,13 @@ export class PageService {
 	 * - Nettoie l'ancienne page.
 	 * - Stocke la nouvelle page en cours dans currentPage.
 	 * - Appelle la méthode render() de la page pour l'affichage.
+	 * - Initialise les notifications de la page.
 	 * 
-	 * @param {RouteConfig} config - Configuration de la page.
 	 * @param {PageInstance} page - Instance de la page à afficher.
 	 */
-	public async renderPage(config: RouteConfig, page: PageInstance): Promise<void> {
+	public async renderPage(page: PageInstance): Promise<void> {
 
-		this.toggleParticles(config);
+		this.toggleParticles(page.config);
 		const appDiv = getHTMLElementById(APP_ID);
 		const navbarDiv = getHTMLElementById(HTML_COMPONENT_CONTAINERS.NAVBAR_ID);
 		await animationService.pageTransitionOut(appDiv);
@@ -53,6 +52,9 @@ export class PageService {
 		await animationService.pageTransitionIn(appDiv);
 		await this.currentPage.render();
 		await this.checkNavbarAnimationOut(navbarDiv);
+		if (this.currentPage.config.components
+			&& COMPONENT_NAMES.NAVBAR in this.currentPage.config.components)
+			await notifService.init(this.currentPage);
 	}
 
 	/**

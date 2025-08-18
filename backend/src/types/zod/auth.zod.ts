@@ -1,5 +1,4 @@
 import { z } from 'zod';
-import { TwoFaMethod} from '../../shared/types/user.types';
 import { DB_CONST } from '../../shared/config/constants.config'; // ajuste le chemin si besoin
 
 export const RegisterInputSchema = z.object({

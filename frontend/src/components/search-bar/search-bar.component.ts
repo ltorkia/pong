@@ -48,9 +48,9 @@ export class SearchBarComponent extends BaseComponent {
 	 *
 	 * @throws {Error} Lance une erreur si aucun utilisateur n'est fourni.
 	 */
-	protected preRenderCheck(): void {
+	protected async preRenderCheck(): Promise<void> {
 		super.preRenderCheck();
-		this.loadTemplateDev();
+		await this.loadTemplateDev();
 	}
 
 	/**
@@ -124,7 +124,7 @@ export class SearchBarComponent extends BaseComponent {
 	 * template est chargé et injecté dans le conteneur.
 	 */
 	private async loadTemplateDev(): Promise<void> {
-		this.loadTemplate(template);
+		await this.loadTemplate(template);
 	}
 
 	// ===========================================

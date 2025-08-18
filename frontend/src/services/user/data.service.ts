@@ -1,4 +1,5 @@
 import { User } from '../../shared/models/user.model';
+import { Friend } from '../../shared/models/friend.model';
 import { dataApi } from '../../api/index.api';
 import { AuthResponse } from '../../types/api.types';
 import { currentService } from '../../services/index.service';
@@ -66,28 +67,26 @@ export class DataService {
 	}
 
 	/**
-	 * Vérifie si l'utilisateur courant est ami avec l'utilisateur d'ID `userId`.
+	 * Vérifie si un utilisateur est ami avec l'utilisateur courant.
 	 * 
-	 * Fait une requête API pour récupérer la liste des amis de l'utilisateur d'ID `userId`.
-	 * Si la liste est vide ou si la requête échoue, return false.
-	 * 
-	 * Sinon, parcourt la liste des amis pour vérifier si l'utilisateur courant est présent.
-	 * Si l'utilisateur courant est trouvé, return true, sinon return false.
+	 * Récupère la liste des amis de l'utilisateur courant et vérifie si l'utilisateur
+	 * d'identifiant `userId` est présent dans cette liste. Si l'utilisateur est un ami,
+	 * renvoie un objet contenant les informations de l'ami et le statut d'amitié.
+	 * Sinon, renvoie `null`.
 	 * 
 	 * @param {number} userId - Identifiant de l'utilisateur à vérifier.
-	 * @param {User[]} userFriends - Liste des amis de l'utilisateur.
-	 * @returns {Promise<boolean>} - Promesse qui se résout avec un booléen.
+	 * @returns {Promise<Friend | null>} - Promesse qui se résout
+	 * avec un objet contenant l'ami ou `null` si l'utilisateur n'est pas ami.
 	 */
-	public async isFriendWithCurrentUser(userId: number, userFriends: User[] | null = null): Promise<boolean> {
-		if (!userFriends) {
-			const friends: User[] = await dataApi.getUserFriends(userId);
-			if (!friends) {
-				return false;
-			}
-			userFriends = friends;
-		}
+	public async isFriendWithCurrentUser(userId: number): Promise<Friend | null> {
 		const currentUserId = currentService.getCurrentUser()!.id;
-		return userFriends.some(friend => friend.id === currentUserId);
+		const userFriends: Friend[] = await dataApi.getUserFriends(currentUserId);
+		if (!userFriends || userFriends.length === 0) {
+			return null;
+		}
+		return userFriends.some(friend => friend.id === userId)
+			? userFriends.find(friend => friend.id === userId)!
+			: null;
 	}
 
 	// ============================================================================

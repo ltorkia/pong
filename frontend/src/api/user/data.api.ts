@@ -1,9 +1,12 @@
 import { User } from '../../shared/models/user.model';
 import { Game } from '../../shared/models/game.model';
-import { SafeUserModel, PublicUser, PaginatedUsers } from '../../shared/types/user.types';	// en rouge car dossier local 'shared' != dossier conteneur
+import { Friend } from '../../shared/models/friend.model';
+import { SafeUserModel, PaginatedUsers } from '../../shared/types/user.types';	// en rouge car dossier local 'shared' != dossier conteneur
+import { FriendModel } from '../../shared/types/friend.types';	// en rouge car dossier local 'shared' != dossier conteneur
+import { GameModel } from '../../shared/types/game.types';	// en rouge car dossier local 'shared' != dossier conteneur
 import { dataService, currentService } from '../../services/index.service';
 import { secureFetch } from '../../utils/app.utils';
-import { AuthResponse } from 'src/types/api.types';
+import { BasicResponse, AuthResponse } from '../../types/api.types';
 
 // ===========================================
 // DATA API
@@ -135,13 +138,13 @@ export class DataApi {
 	 * @param {number} id Identifiant de l'utilisateur pour lequel récupérer la liste des amis.
 	 * @returns {Promise<User[]>} Promesse qui se résout avec un tableau d'instances `User`.
 	 */
-	public async getUserFriends(id: number): Promise<User[]> {
+	public async getUserFriends(id: number): Promise<Friend[]> {
 		const res: Response = await secureFetch(`/api/users/${id}/friends`, { method: 'GET' });
 		if (!res.ok) {
 			throw new Error('Erreur de l\'API');
 		}
-		const data: PublicUser[] = await res.json();
-		return User.fromPublicJSONArray(data) as User[];
+		const data: FriendModel[] = await res.json();
+		return Friend.fromJSONArray(data) as Friend[];
 	}
 
 	/**
@@ -157,12 +160,12 @@ export class DataApi {
 		if (!res.ok) {
 			throw new Error('Erreur de l\'API');
 		}
-		const data: Game[] = await res.json();
+		const data: GameModel[] = await res.json();
 		return Game.fromJSONArray(data) as Game[];
 	}
 
 	// ===========================================
-	// PUT REQUESTS - DATABASE UPDATE
+	// USER PUT REQUESTS - DATABASE UPDATE
 	// ===========================================
 
 	/**
@@ -220,120 +223,116 @@ export class DataApi {
 		return data as AuthResponse;
 	}
 
+	// ===========================================
+	// FRIEND PUT REQUESTS - DATABASE UPDATE
+	// ===========================================
+
 	/**
-	 * Ajoute un ami à la liste des amis d'un utilisateur.
+	 * Ajoute un ami à l'utilisateur spécifié.
 	 * 
-	 * Envoie une requête POST à la route API `/users/:id/friends/add` pour ajouter
-	 * l'utilisateur d'identifiant `newFriendId` à la liste des amis de l'utilisateur
-	 * d'identifiant `userId` avec le statut "pending".
+	 * Envoie une requête POST à la route API `/users/:userId/friends/add` pour ajouter
+	 * un utilisateur ami d'identifiant `friendId` à l'utilisateur d'identifiant `userId`.
 	 * 
-	 * Si la requête réussit, met à jour les informations de l'utilisateur en mémoire
-	 * et renvoie un objet contenant les informations mises à jour de l'utilisateur.
+	 * Si l'ajout réussit, renvoie un objet contenant les informations de l'opération.
 	 * Sinon, renvoie un objet contenant un message d'erreur.
 	 * 
-	 * @param {number} userId - Identifiant de l'utilisateur qui ajoute l'ami.
+	 * @param {number} userId - Identifiant de l'utilisateur ajoutant un ami.
 	 * @param {number} friendId - Identifiant de l'ami à ajouter.
-	 * @returns {Promise<AuthResponse>} Promesse qui se résout avec les informations mises à jour de l'utilisateur ou un message d'erreur.
+	 * @returns {Promise<BasicResponse>} Promesse qui se résout avec les informations
+	 * de l'opération ou un message d'erreur.
 	 */
-	public async addFriend(userId: number, friendId: number): Promise<AuthResponse> {
+	public async addFriend(userId: number, friendId: number): Promise<BasicResponse> {
 		const res: Response = await secureFetch(`/api/users/${userId}/friends/add`, {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({ friendId })
 		});
-		const data: AuthResponse = await res.json();
+		const data: BasicResponse = await res.json();
 		if (!res.ok || data.errorMessage) {
 			return { errorMessage: data.errorMessage || 'Erreur lors de l\'ajout d\'ami' };
 		}
-		// Si succes envoyer notif via socket a l'ami
-		// await currentService.updateCurrentUser(data.user);
-		return data as AuthResponse;
+		return data as BasicResponse;
 	}
 
 	/**
-	 * Accepte une demande d'ami.
+	 * Accepte une demande d'amitié envoyée par un utilisateur.
 	 * 
-	 * Envoie une requête POST à la route API `/users/:id/friends/accept` pour accepter
-	 * la demande d'ami de l'utilisateur d'identifiant `friendId` pour l'utilisateur
+	 * Envoie une requête POST à la route API `/users/:userId/friends/accept` pour accepter
+	 * une demande d'amitié envoyée par l'utilisateur d'identifiant `friendId` à l'utilisateur
 	 * d'identifiant `userId`.
 	 * 
-	 * Si la requête réussit, met à jour les informations de l'utilisateur en mémoire
-	 * et renvoie un objet contenant les informations mises à jour de l'utilisateur.
+	 * Si l'acceptation réussit, renvoie un objet contenant les informations de l'opération.
 	 * Sinon, renvoie un objet contenant un message d'erreur.
 	 * 
-	 * @param {number} userId - Identifiant de l'utilisateur qui accepte la demande d'ami.
-	 * @param {number} friendId - Identifiant de l'utilisateur qui a envoyé la demande d'ami.
-	 * @returns {Promise<AuthResponse>} Promesse qui se résout avec les informations mises à jour de l'utilisateur ou un message d'erreur.
+	 * @param {number} userId - Identifiant de l'utilisateur acceptant la demande d'amitié.
+	 * @param {number} friendId - Identifiant de l'utilisateur qui a envoyé la demande d'amitié.
+	 * @returns {Promise<BasicResponse>} Promesse qui se résout avec les informations
+	 * de l'opération ou un message d'erreur.
 	 */
-	public async acceptFriend(userId: number, friendId: number): Promise<AuthResponse> {
+	public async acceptFriend(userId: number, friendId: number): Promise<BasicResponse> {
 		const res: Response = await secureFetch(`/api/users/${userId}/friends/accept`, {
-			method: 'POST',
+			method: 'PUT',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({ friendId })
 		});
-		const data: AuthResponse = await res.json();
+		const data: BasicResponse = await res.json();
 		if (!res.ok || data.errorMessage) {
 			return { errorMessage: data.errorMessage || 'Erreur lors de l\'acceptation d\'ami' };
 		}
-		// await currentService.updateCurrentUser(data.user);
-		return data as AuthResponse;
+		return data as BasicResponse;
 	}
 
 	/**
-	 * Bloque un ami d'un utilisateur.
-	 *
-	 * Envoie une requête DELETE à la route API `/users/:userId/friends/block` pour
-	 * bloquer l'utilisateur d'identifiant `friendId` pour l'utilisateur
-	 * d'identifiant `userId`.
-	 *
-	 * Si la requête réussit, met à jour les informations de l'utilisateur en mémoire
-	 * et renvoie un objet contenant les informations mises à jour de l'utilisateur.
+	 * Bloque un utilisateur en tant qu'ami.
+	 * 
+	 * Envoie une requête PUT à la route API `/users/:userId/friends/block` pour
+	 * bloquer l'utilisateur d'identifiant `friendId` par l'utilisateur d'identifiant `userId`.
+	 * 
+	 * Si le blocage réussit, renvoie un objet contenant les informations de l'opération.
 	 * Sinon, renvoie un objet contenant un message d'erreur.
-	 *
-	 * @param {number} userId - Identifiant de l'utilisateur qui bloque l'ami.
+	 * 
+	 * @param {number} userId - Identifiant de l'utilisateur bloquant l'ami.
 	 * @param {number} friendId - Identifiant de l'ami à bloquer.
-	 * @returns {Promise<AuthResponse>} Promesse qui se résout avec les informations mises à jour de l'utilisateur ou un message d'erreur.
+	 * @returns {Promise<BasicResponse>} Promesse qui se résout avec les informations
+	 * de l'opération ou un message d'erreur.
 	 */
-	public async blockFriend(userId: number, friendId: number): Promise<AuthResponse> {
+	public async blockFriend(userId: number, friendId: number): Promise<BasicResponse> {
 		const res: Response = await secureFetch(`/api/users/${userId}/friends/block`, {
-			method: 'DELETE',
+			method: 'PUT',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({ friendId })
 		});
-		const data: AuthResponse = await res.json();
+		const data: BasicResponse = await res.json();
 		if (!res.ok || data.errorMessage) {
 			return { errorMessage: data.errorMessage || 'Erreur lors de la suppression d\'ami' };
 		}
-		// await currentService.updateCurrentUser(data.user);
-		return data as AuthResponse;
+		return data as BasicResponse;
 	}
 
 	/**
-	 * Supprime un ami de la liste d'amis d'un utilisateur.
-	 *
-	 * Envoie une requête DELETE à la route API `/users/:userId/friends/remove` pour
-	 * supprimer l'ami d'identifiant `friendId` de la liste d'amis de l'utilisateur
-	 * d'identifiant `userId`.
-	 *
-	 * Si la requête réussit, met à jour les informations de l'utilisateur en mémoire
-	 * et renvoie un objet contenant les informations mises à jour de l'utilisateur.
+	 * Supprime un ami de l'utilisateur.
+	 * 
+	 * Envoie une requête DELETE à la route API `/users/:userId/friends/delete` pour supprimer
+	 * l'ami d'identifiant `friendId` de l'utilisateur d'identifiant `userId`.
+	 * 
+	 * Si la suppression réussit, renvoie un objet contenant les informations de l'opération.
 	 * Sinon, renvoie un objet contenant un message d'erreur.
-	 *
-	 * @param {number} userId - Identifiant de l'utilisateur effectuant la suppression.
+	 * 
+	 * @param {number} userId - Identifiant de l'utilisateur qui supprime l'ami.
 	 * @param {number} friendId - Identifiant de l'ami à supprimer.
-	 * @returns {Promise<AuthResponse>} Promesse qui se résout avec les informations mises à jour de l'utilisateur ou un message d'erreur.
+	 * @returns {Promise<BasicResponse>} Promesse qui se résout avec les informations
+	 * de l'opération ou un message d'erreur.
 	 */
-	public async removeFriend(userId: number, friendId: number): Promise<AuthResponse> {
-		const res: Response = await secureFetch(`/api/users/${userId}/friends/remove`, {
+	public async removeFriend(userId: number, friendId: number): Promise<BasicResponse> {
+		const res: Response = await secureFetch(`/api/users/${userId}/friends/delete`, {
 			method: 'DELETE',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({ friendId })
 		});
-		const data: AuthResponse = await res.json();
+		const data: BasicResponse = await res.json();
 		if (!res.ok || data.errorMessage) {
 			return { errorMessage: data.errorMessage || 'Erreur lors de la suppression d\'ami' };
 		}
-		// await currentService.updateCurrentUser(data.user);
-		return data as AuthResponse;
+		return data as BasicResponse;
 	}
 }

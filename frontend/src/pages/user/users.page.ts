@@ -9,6 +9,8 @@ import { RouteConfig } from '../../types/routes.types';
 import { COMPONENT_NAMES, HTML_COMPONENT_CONTAINERS } from '../../config/components.config';
 import { ComponentConfig, ComponentName, PaginationParams } from '../../types/components.types';
 import { SafeUserModel, PaginatedUsers, PaginationInfos } from '../../shared/types/user.types';
+import type { NotificationModel } from "../../shared/types/notification.types";
+import { Notification } from '../../shared/models/notification.model';
 
 // ===========================================
 // USERS PAGE
@@ -61,6 +63,7 @@ export class UsersPage extends BasePage {
 		if (!this.components) {
 			return;
 		}
+
 		this.searchBarConfig = this.checkComponentConfig(COMPONENT_NAMES.SEARCH_BAR);
 		this.userRowConfig = this.checkComponentConfig(COMPONENT_NAMES.USER_ROW);
 		this.paginationConfig = this.checkComponentConfig(COMPONENT_NAMES.PAGINATION);
@@ -147,7 +150,6 @@ export class UsersPage extends BasePage {
 		this.userList.replaceChildren();
 		const renderPromises: Promise<void>[] = [];
 
-		let i = 1;
 		for (const user of this.users! as User[]) {
 			let tempContainer = document.createElement('div');
 			const rowComponent = new UserRowComponent(this.config, this.userRowConfig!, tempContainer, user);
@@ -158,7 +160,7 @@ export class UsersPage extends BasePage {
 				rowComponent.render().then(() => {
 					const userLine = tempContainer.querySelector('.user-line');
 					if (userLine) {
-						userLine.id = `${COMPONENT_NAMES.USER_ROW}-${i++}`;
+						userLine.id = instanceKey;
 						if (user.id === this.currentUser!.id) {
 							(userLine as HTMLElement).style.backgroundColor = '#5e8ca5';
 						}
@@ -202,5 +204,35 @@ export class UsersPage extends BasePage {
 		this.currentPage = page;
 		await this.injectUserList();
 		await this.injectPagination();
+	}
+
+	// ===========================================
+	// METHODES PUBLICS
+	// ===========================================
+
+	/**
+	 * Met à jour les boutons d'amitié pour une ligne utilisateur
+	 * suite à une modification de la demande d'amitié.
+	 *
+	 * Si un instance de UserRowComponent est fournie, met à jour
+	 * les boutons d'amitié correspondant à l'utilisateur d'ID "from"
+	 * en fonction de la demande d'amitié reçue. Sinon, cherche
+	 * l'instance de UserRowComponent correspondante à l'ID "from"
+	 * dans la liste des instances de composants stockées et la met
+	 * à jour.
+	 *
+	 * @param {Notification | NotificationModel} data La demande d'amitié reçue ou une notification.
+	 * @param {UserRowComponent} userRowInstance L'instance de UserRowComponent
+	 * à mettre à jour. Si non fourni, cherche l'instance dans la liste
+	 * des instances de composants stockées.
+	 * @returns {Promise<void>} Une promesse qui se résout lorsque les boutons
+	 * d'amitié ont été mis à jour.
+	 */
+	public async updateFriendButtons(data: Notification | NotificationModel, userRowInstance?: UserRowComponent): Promise<void> {
+		if (!userRowInstance) {
+			const key = `${COMPONENT_NAMES.USER_ROW}-${data.from}`;
+			userRowInstance = this.getComponentInstance!<UserRowComponent>(key);
+		}
+		await (userRowInstance as UserRowComponent).toggleFriendButton();
 	}
 }
