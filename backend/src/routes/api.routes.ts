@@ -1,5 +1,5 @@
 import { FastifyRequest, FastifyReply, FastifyInstance } from 'fastify';
-import { JwtPayload } from '../types/jwt.types';
+import { JwtPayload } from '../types/user.types';
 import { clearAuthCookies } from '../helpers/auth.helpers';
 
 // ROUTES

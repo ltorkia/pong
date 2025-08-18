@@ -2,7 +2,7 @@ import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { promises as fs } from 'fs';
 import { Buffer } from 'buffer';
 import bcrypt from 'bcrypt';
-import { JwtPayload } from '../types/jwt.types';
+import { JwtPayload } from '../types/user.types';
 import { DB_CONST } from '../shared/config/constants.config';
 
 import { getUser, getUserGames, getUserChat, getUserAllInfo } from '../db/user';

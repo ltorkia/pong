@@ -1,5 +1,5 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
-import { JwtPayload } from '../types/jwt.types';
+import { JwtPayload } from '../types/user.types';
 import { FRIEND_REQUEST_ACTIONS } from '../shared/config/constants.config';
 
 import { getUser } from '../db/user';
@@ -12,11 +12,11 @@ import { FriendResponse } from '../shared/types/response.types';
 import { IdInputSchema, IdInput } from '../types/zod/app.zod';
 import { checkParsing, isParsingError } from '../helpers/types.helpers';
 
-import { NotificationModel } from '../shared/types/notification.types';
+// import { NotificationModel } from '../shared/types/notification.types';
 import { insertNotification, getNotification, getTwinNotifications } from '../db/notification';
 import { sendToSocket, sendUpdateNotification, sendDeleteNotification, addNotifContent } from '../helpers/notifications.helpers';
 import { NotificationInput, NotificationInputSchema } from '../types/zod/app.zod';
-import { NotifResponse } from '../shared/types/response.types';
+// import { NotifResponse } from '../shared/types/response.types';
 
 /* ======================== FRIENDS ROUTES ======================== */
 
@@ -87,10 +87,10 @@ export async function friendsRoutes(app: FastifyInstance) {
 		if (!friend)
 			return reply.code(404).send({ errorMessage: 'No user found'});
 
-		await addUserFriend(jwtUser.id, friend.id);
 		const relation: FriendModel = await getRelation(jwtUser.id, data.id);
-		if (!relation)
-			return reply.code(404).send({ errorMessage: 'No relation found'});
+		if (relation)
+			return reply.code(404).send({ errorMessage: 'Already friends'});
+		await addUserFriend(jwtUser.id, friend.id);
 
 		// Si l'utilisateur est connecté, envoyer une notification via WebSocket
 		let friendRequestData: NotificationInput = {

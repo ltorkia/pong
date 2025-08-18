@@ -1,7 +1,6 @@
 import { FastifyInstance, FastifyReply } from 'fastify';
-import { JwtPayload } from '../types/jwt.types';
 import { getUser } from '../db/user';
-import { UserPassword } from '../types/user.types';
+import { JwtPayload, UserPassword } from '../types/user.types';
 import { COOKIES_CONST, USER_ONLINE_STATUS } from '../shared/config/constants.config'; // en rouge car dossier local 'shared' != dossier conteneur
 import { insertCode2FAEmail, insertCode2FAQrcode } from '../db/usermaj';
 import nodemailer from 'nodemailer';

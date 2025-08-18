@@ -1,5 +1,5 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
-import { JwtPayload } from '../types/jwt.types';
+import { JwtPayload } from '../types/user.types';
 import { getUserNotifications, getNotification, updateNotification } from '../db/notification';
 import { sendUpdateNotification } from '../helpers/notifications.helpers';
 // import { NotifResponse } from '../shared/types/response.types';

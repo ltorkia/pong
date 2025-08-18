@@ -86,13 +86,14 @@ export class NotifService {
 		for (const notif of notifs) {
 			console.log('On est dans la boucle')
 			if (isValidNotificationType(notif.type)) {
-				this.currentNotif = notif;
 				this.friendId = notif.from;
 				if (isUserOnlineStatus(notif.type)) {
+					console.log('On est dans isUserOnlineStatus', notif.type);
 					await this.handleUserOnlineStatus(notif);
 				}
-				console.log('notiftype', notif.type);
 				if (isFriendRequestAction(notif.type)) {
+					this.currentNotif = notif;
+					console.log('On est dans isFriendRequestAction', notif.type);
 					await this.handleNotification();
 				}
 			}
@@ -244,6 +245,12 @@ export class NotifService {
 		}
 		console.log(result);
 		this.notifs = result;
+
+		// this.currentNotif = this.notifs.find(n => 
+		// 	n.type !== type &&
+		// 	n.from === this.friendId && 
+		// 	n.to === this.currentUser.id
+		// );
 		storageService.setCurrentNotifs(this.notifs);
 		console.log('Notifications rechargées:', this.notifs);
 	}

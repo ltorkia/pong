@@ -1,6 +1,6 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { getUser } from '../db/user';
-import { JwtPayload } from '../types/jwt.types';
+import { JwtPayload } from '../types/user.types';
 import { UserModel } from '../shared/types/user.types'; // en rouge car dossier local 'shared' != dossier conteneur
 
 export async function apiMe(app: FastifyInstance) {

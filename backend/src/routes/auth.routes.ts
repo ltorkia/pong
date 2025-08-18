@@ -5,7 +5,7 @@ import { insertUser, getUser, getUserP, getUser2FA } from '../db/user';
 import { eraseCode2FA } from '../db/usermaj';
 import { ProcessAuth, clearAuthCookies,  GenerateEmailCode, GenerateQRCode  } from '../helpers/auth.helpers';
 import { GetAvatarFromBuffer, bufferizeStream } from '../helpers/image.helpers';
-import { GoogleUserInfo, UserPassword, User2FA, FastifyFileSizeError, AvatarResult } from '../types/user.types';
+import { JwtPayload,GoogleUserInfo, UserPassword, User2FA, FastifyFileSizeError, AvatarResult } from '../types/user.types';
 import { UserModel } from '../shared/types/user.types'; // en rouge car dossier local 'shared' != dossier conteneur
 import { DB_CONST, USER_ONLINE_STATUS } from '../shared/config/constants.config'; // en rouge car dossier local 'shared' != dossier conteneur
 import { Buffer } from 'buffer';
@@ -13,7 +13,6 @@ import { Readable } from 'stream';
 import { promises as fs } from 'fs';
 import * as speakeasy from 'speakeasy';
 import { checkParsing, isParsingError } from '../helpers/types.helpers';
-import { JwtPayload } from '../types/jwt.types';
 import { setOnlineStatus } from '../helpers/notifications.helpers';
 
 
