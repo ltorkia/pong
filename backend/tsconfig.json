@@ -13,6 +13,6 @@
 		"skipLibCheck": true,						// Ignore les erreurs dans les fichiers `.d.ts` des dépendances
 		"types": ["node"]							// Charge les types Node.js pour utiliser des APIs comme `fs`, `path`, etc.
 	},
-	"include": ["src/**/*", "../shared/types/chat.types.ts"],						// Fichiers/dossiers à inclure pour la compilation
+	"include": ["src/**/*", "../shared/types/chat.types.ts", "src/types/zod/app.zod.ts"],						// Fichiers/dossiers à inclure pour la compilation
 	"exclude": ["node_modules", "dist"]				// Dossiers ignorés (ne pas compiler ce qui est déjà généré)
 }

@@ -19,11 +19,14 @@ export class WebSocketService {
 
 		this.webSocket.onmessage = async (event) => {
 			const dataArray = JSON.parse(event.data);
+			console.log('avant isArray')
 			if (Array.isArray(dataArray)) {
+				console.log('dans isArray')
 				const data = dataArray as NotificationModel[];
 				const formatedData = AppNotification.fromJSONArray(data) as AppNotification[];
 				await notifService.handleNotifications(formatedData);
 			}
+			console.log('fin traitement event socket')
 		};
 	}
 

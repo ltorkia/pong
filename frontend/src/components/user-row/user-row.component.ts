@@ -307,7 +307,11 @@ export class UserRowComponent extends BaseComponent {
 	 * @returns Une promesse qui se résout lorsque le processus de demande d'ami est terminé.
 	 */
 	private addFriendClick = async (event: MouseEvent): Promise<void> => {
-		notifService.setRowFriendId(this.user.id);
+		event.preventDefault();
+		if (!this.user) {
+			return;
+		}
+		notifService.setNotifsData(this.user.id);
 		await notifService.handleAddClick();
 		console.log(`Friend request sent to ${this.user.username}`);
 	}
@@ -328,7 +332,7 @@ export class UserRowComponent extends BaseComponent {
 		if (!this.user) {
 			return;
 		}
-		notifService.setRowFriendId(this.user.id);
+		notifService.setNotifsData(this.user.id, FRIEND_REQUEST_ACTIONS.ADD);
 		await notifService.handleAcceptClick();
 		console.log(`Friend request accepted for ${this.user.username}`);
 	}
@@ -349,7 +353,7 @@ export class UserRowComponent extends BaseComponent {
 		if (!this.user) {
 			return;
 		}
-		notifService.setRowFriendId(this.user.id);
+		notifService.setNotifsData(this.user.id, FRIEND_REQUEST_ACTIONS.ACCEPT);
 		await notifService.handleBlockClick();
 		console.log(`Friend ${this.user.username} blocked`);
 	}
@@ -370,7 +374,7 @@ export class UserRowComponent extends BaseComponent {
 		if (!this.user) {
 			return;
 		}
-		notifService.setRowFriendId(this.user.id);
+		notifService.setNotifsData(this.user.id, FRIEND_REQUEST_ACTIONS.BLOCK);
 		await notifService.handleAcceptClick();
 		console.log(`Friend request sent to ${this.user.username}`);
 	}
@@ -391,8 +395,8 @@ export class UserRowComponent extends BaseComponent {
 		if (!this.user) {
 			return;
 		}
-		notifService.setRowFriendId(this.user.id);
-		await notifService.handleDeclineClick();
+		notifService.setNotifsData(this.user.id);
+		await notifService.handleCancelClick();
 		console.log(`Friend request canceled for ${this.user.username}`);
 	}
 

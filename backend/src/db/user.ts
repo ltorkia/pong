@@ -2,14 +2,33 @@ import { getDb } from './index.db';
 import { RegisterInput } from '../types/zod/auth.zod';
 import { searchNewName } from '../helpers/auth.helpers';
 import { UserPassword, User2FA, UserForChangeData } from '../types/user.types';
-import { DB_CONST, ALLOWED_SORT_FIELDS, ALLOWED_SORT_ORDERS } from '../shared/config/constants.config'; // en rouge car dossier local 'shared' != dossier conteneur
-import { UserModel, SafeUserModel, UserBasic, SafeUserBasic, UserSortField, SortOrder, PaginatedUsers, PaginationInfos } from '../shared/types/user.types'; // en rouge car dossier local 'shared' != dossier conteneur
+import { DB_CONST } from '../shared/config/constants.config'; // en rouge car dossier local 'shared' != dossier conteneur
+import { UserModel, SafeUserModel, SafeUserBasic } from '../shared/types/user.types'; // en rouge car dossier local 'shared' != dossier conteneur
 import { snakeToCamel, snakeArrayToCamel } from '../helpers/types.helpers';
-import { FriendModel } from '../shared/types/friend.types';	// en rouge car dossier local 'shared' != dossier conteneur
 import { ChatModel } from '../shared/types/chat.types';
 
-// retourne les infos d un user particulier - userId = le id de l user a afficher
-// a priori ? protegerait contre les insertions sql
+// retourne les infos de tous les users
+export async function getAllUsers() {
+	const db = await getDb();
+	const users = await db.all(`
+		SELECT id, username, avatar 
+		FROM User 
+	`);
+	return snakeArrayToCamel(users) as SafeUserBasic[];
+}
+
+export async function getAllUsersInfos() {
+	const db = await getDb();
+	const users = await db.all(`
+		SELECT id, username, registration, 
+		begin_log, end_log, tournament, avatar, game_played, game_win, 
+		game_loose, time_played, n_friends, status, is_desactivated, register_from 
+		FROM User 
+	`);
+	return snakeArrayToCamel(users) as SafeUserModel[];
+}
+
+// retourne les infos d'un user particulier
 export async function getUser(userId : number | null = null, search : string | null = null) {
 	const db = await getDb(); 
 	const user = await db.get(`
@@ -64,67 +83,20 @@ export async function getUserStats(userId: number): Promise<SafeUserModel> {
 	return snakeToCamel(user) as SafeUserModel;
 }
 
-// retourne les infos de tous les users
-export async function getAllUsers() {
+/* -------------------------------------------------------------------------- */
+/*      REQUÊTES USER POUR SETTINGS AUTHENTIFICATION CÔTE BACK UNIQUEMENT     */
+/* -------------------------------------------------------------------------- */
+
+export async function getUserAllInfo(id: number) {
 	const db = await getDb();
-	const users = await db.all(`
-		SELECT id, username, avatar 
-		FROM User 
-	`);
-	return snakeArrayToCamel(users) as SafeUserBasic[];
-}
-
-export async function getAllUsersInfos() {
-	const db = await getDb();
-	const users = await db.all(`
-		SELECT id, username, registration, 
-		begin_log, end_log, tournament, avatar, game_played, game_win, 
-		game_loose, time_played, n_friends, status, is_desactivated, register_from 
-		FROM User 
-	`);
-	return snakeArrayToCamel(users) as SafeUserModel[];
-}
-
-// Liste des utilisateurs qui permet d'avoir une pagination côté front (pour page Users)
-// avec paramètres optionnels de tri
-export async function getUsersWithPagination(
-	page: number = 1, limit: number = 10, sortBy: UserSortField = 'username', sortOrder: SortOrder = 'ASC'): Promise<PaginatedUsers> {
-	const db = await getDb();
-	const offset = (page - 1) * limit;
-
-	const safeSortBy = ALLOWED_SORT_FIELDS[sortBy] || 'username';
-	const safeSortOrder = ALLOWED_SORT_ORDERS[sortOrder] || 'ASC';
-
-	const users = await db.all(
-		`
-		SELECT id, username, registration, 
-				begin_log, end_log, tournament, avatar,
-				game_played, game_win, game_loose, time_played,
-				n_friends, status, is_desactivated, register_from 
-		FROM User 
-		ORDER BY ${safeSortBy} ${safeSortOrder}
-		LIMIT ? OFFSET ?
-		`, 
-		[limit, offset]);
-	const totalResult = await db.get(
-		`
-		SELECT COUNT(*) as total 
+	const user = await db.get(`
+		SELECT *
 		FROM User
-		`
+		WHERE id = ?
+		`,
+		[id]
 	);
-	const total = totalResult.total
-	const totalPages = Math.ceil(total / limit);
-	return {
-			users: snakeArrayToCamel(users) as SafeUserModel[],
-			pagination: {
-			currentPage: page,
-			totalPages,
-			totalUsers: total,
-			hasNextPage: page < totalPages,
-			hasPreviousPage: page > 1,
-			limit
-		} as PaginationInfos
-	};
+	return snakeToCamel(user) as UserForChangeData;
 }
 
 // retourne les infos de tous les users pour l authentification 
@@ -140,18 +112,6 @@ export async function getUserP(email: string) {
 	return snakeToCamel(user) as UserPassword;
 }
 
-export async function getUserAllInfo(id: number) {
-	const db = await getDb();
-	const user = await db.get(`
-		SELECT *
-		FROM User
-		WHERE id = ?
-		`,
-		[id]
-	);
-	return snakeToCamel(user) as UserForChangeData;
-}
-
 export async function getUser2FA(email: string) {
 	const db = await getDb();
 	const user = await db.get(`
@@ -163,77 +123,11 @@ export async function getUser2FA(email: string) {
 	);
 	return snakeToCamel(user) as User2FA;
 }
-	
-// pour choper les friends, mais implique qu un element chat soit forcement cree des qu on devient ami
-//  -> comment ajouter un ami ? nouvelle page ?
-//  -> version ou on decide d avoir forcement de cree par defaut une donnee avec le client en tant que sender et receveur
-export async function getUserFriends(userId: number): Promise<FriendModel[]> {
-	const db = await getDb();
-	const friends = await db.all(`
-		SELECT u.id, u.username, u.avatar, u.begin_log, u.end_log, 
-		f.requester_id, f.friend_status, f.blocked_by, f.meet_date
-		FROM Friends f
-		JOIN User u ON (
-			(f.user1_id = ? AND f.user2_id = u.id)
-			OR
-			(f.user2_id = ? AND f.user1_id = u.id)
-		)
-		`,
-		[userId, userId]
-	);
-	return snakeArrayToCamel(friends) as FriendModel[];
-}
-		
-export async function getUserGames(userId: number): Promise<SafeUserModel[]> {
-	const db = await getDb();
-	const games = await db.all(`
-		SELECT ug.game_id, ug.status_win, ug.duration
-		FROM User_Game ug
-		WHERE ug.user_id = ?
-		`,
-		[userId]
-	);
 
-	for (const game of games) {
-		const players = await db.all(`
-			SELECT u.id, u.username, u.avatar
-			FROM User_Game ug
-			JOIN User u ON u.id = ug.user_id
-			WHERE ug.game_id = ?
-			AND u.id != ?
-			`,
-			[game.game_id, userId]
-		);
-		game.other_players = players as SafeUserBasic[];
-	}
-	return snakeArrayToCamel(games) as SafeUserModel[];
-}
-		
-export async function getUserChat(userId1: number, userId2: number) {
-	const db = await getDb();
-	const chat = await db.all(`
-		SELECT c.message, c.time_send, c.id, c.sender_id, c.receiver_id
-		FROM Chat c
-		WHERE (sender_id = ? AND receiver_id = ?)
-		OR (sender_id = ? AND receiver_id = ?)
-		ORDER BY c.time_send ASC
-		`,
-		[userId1, userId2, userId2, userId1]
-	);
+/* -------------------------------------------------------------------------- */
+/*                    CRUD / SETTINGS UTILISATEUR COURANT                     */
+/* -------------------------------------------------------------------------- */
 
-	const other_user = await db.get(`
-		SELECT u.id, u.username, u.avatar
-		FROM User u
-		WHERE u.id != ?
-		`,
-		[userId2]
-	);
-	return {
-		messages : snakeArrayToCamel(chat) as ChatModel[],
-		otherUser: snakeToCamel(other_user) as SafeUserBasic 
-	};
-}
-	
 export async function insertUser(user: (RegisterInput | {username: string, email: string}), is_google: (boolean | null)) {
 	try {
 		const db = await getDb();
@@ -331,3 +225,57 @@ export async function getAvatar(id: number)
 // 		`,
 // 	[email]);	
 // }
+
+/* -------------------------------------------------------------------------- */
+/*               QUERIES USER EN LIEN AVEC D'AUTRES TABLES                    */
+/* -------------------------------------------------------------------------- */
+
+export async function getUserGames(userId: number): Promise<SafeUserModel[]> {
+	const db = await getDb();
+	const games = await db.all(`
+		SELECT ug.game_id, ug.status_win, ug.duration
+		FROM User_Game ug
+		WHERE ug.user_id = ?
+		`,
+		[userId]
+	);
+
+	for (const game of games) {
+		const players = await db.all(`
+			SELECT u.id, u.username, u.avatar
+			FROM User_Game ug
+			JOIN User u ON u.id = ug.user_id
+			WHERE ug.game_id = ?
+			AND u.id != ?
+			`,
+			[game.game_id, userId]
+		);
+		game.other_players = players as SafeUserBasic[];
+	}
+	return snakeArrayToCamel(games) as SafeUserModel[];
+}
+		
+export async function getUserChat(userId1: number, userId2: number) {
+	const db = await getDb();
+	const chat = await db.all(`
+		SELECT c.message, c.time_send, c.id, c.sender_id, c.receiver_id
+		FROM Chat c
+		WHERE (sender_id = ? AND receiver_id = ?)
+		OR (sender_id = ? AND receiver_id = ?)
+		ORDER BY c.time_send ASC
+		`,
+		[userId1, userId2, userId2, userId1]
+	);
+
+	const other_user = await db.get(`
+		SELECT u.id, u.username, u.avatar
+		FROM User u
+		WHERE u.id != ?
+		`,
+		[userId2]
+	);
+	return {
+		messages : snakeArrayToCamel(chat) as ChatModel[],
+		otherUser: snakeToCamel(other_user) as SafeUserBasic 
+	};
+}

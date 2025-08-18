@@ -88,7 +88,7 @@ export class DataApi {
 	 *  un tableau d'instances `User` et des informations de pagination.
 	 */
 	public async getUsersByPage(page: number = 1, limit: number = 10): Promise<PaginatedUsers> {
-		const res: Response = await secureFetch(`/api/users/page/${page}/${limit}`, { method: 'GET' });
+		const res: Response = await secureFetch(`/api/search/users/page/${page}/${limit}`, { method: 'GET' });
 		if (!res.ok) {
 			throw new Error('Erreur de l\'API');
 		}
@@ -121,29 +121,6 @@ export class DataApi {
 	public async getOnlineUsers(): Promise<User[]> {
 		const users: User[] = await this.getUsers();
 		return dataService.getOnlineUsers(users) as User[];
-	}
-
-	/**
-	 * Récupère la liste des amis d'un utilisateur.
-	 *
-	 * Envoie une requête GET à la route API `/users/:id/friends` pour récupérer
-	 * les informations des amis de l'utilisateur d'identifiant `id`.
-	 *
-	 * Si la requête réussit, renvoie un tableau d'instances `User` contenant
-	 * les informations des amis de l'utilisateur stockés en base de données,
-	 * sans email (type `Friends`).
-	 * Sinon, lève une erreur.
-	 *
-	 * @param {number} id Identifiant de l'utilisateur pour lequel récupérer la liste des amis.
-	 * @returns {Promise<User[]>} Promesse qui se résout avec un tableau d'instances `User`.
-	 */
-	public async getUserFriends(id: number): Promise<Friend[]> {
-		const res: Response = await secureFetch(`/api/users/${id}/friends`, { method: 'GET' });
-		if (!res.ok) {
-			throw new Error('Erreur de l\'API');
-		}
-		const data: FriendModel[] = await res.json();
-		return Friend.fromJSONArray(data) as Friend[];
 	}
 
 	/**

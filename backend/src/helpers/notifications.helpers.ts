@@ -32,39 +32,35 @@ export function sendToSocket(app: FastifyInstance, data: NotificationModel[]): v
  * 
  * @param {FastifyInstance} app - L'instance de l'application Fastify.
  * @param {NotificationModel} data - Les données de la notification, y compris le type.
- * @returns {Promise<NotifResponse>} Une promesse qui se résout lorsque les notifications sont mises à jour 
+ * @returns {Promise<NotificationModel[] | { errorMessage: string }>} Une promesse qui se résout lorsque les notifications sont mises à jour 
  * et envoyées via WebSockets, ou par un message d'erreur.
  */
-export async function sendUpdateNotification(app: FastifyInstance, data: NotificationModel): Promise<NotifResponse> {
+export async function sendUpdateNotification(app: FastifyInstance, data: NotificationModel): Promise<NotificationModel[] | { errorMessage: string }> {
 
-	// On récupère la notification liée et ses potentiels doublons
-	const notifRes: NotifResponse = await getNotification(data.id);
-	if (!notifRes || notifRes.errorMessage || !notifRes.notif)
-		return { errorMessage: notifRes.errorMessage || 'Notification not found' };
-	const twinNotifRes: NotifResponse = await getTwinNotifications(notifRes.notif);
-	if (!twinNotifRes || twinNotifRes.errorMessage || !twinNotifRes.notifs)
-		return { errorMessage: twinNotifRes.errorMessage };
+	const twinNotifs = await getTwinNotifications(data);
+	if (!twinNotifs || 'errorMessage' in twinNotifs)
+		return { errorMessage: twinNotifs.errorMessage };
 
 	// On met à jour les notifications
-	const twinNotifs = twinNotifRes.notifs;
 	let updatedNotifs: NotificationModel[] = [];
 	let returnedNotif: NotificationModel = data;
 	for (const twinNotif of twinNotifs) {
 		twinNotif.type = data.type;
+		twinNotif.read = 1;
 		const notif: NotificationModel = await addNotifContent(twinNotif);
 		const updatedRes = await updateNotification(notif);
-		if (!updatedRes || updatedRes.errorMessage || !updatedRes.notif) {
+		if (!updatedRes || 'errorMessage' in updatedRes) {
 			return { errorMessage: updatedRes.errorMessage || 'Error inserting notification' };
 		}
-		updatedNotifs.push(updatedRes.notif);
-		if (updatedRes.notif.id == data.id) {
-			returnedNotif = updatedRes.notif;
+		updatedNotifs.push(updatedRes);
+		if (updatedRes.id == data.id) {
+			returnedNotif = updatedRes;
 		}
 	}
 
 	// On envoie les notifications mises à jour
 	sendToSocket(app, updatedNotifs);
-	return { notif: returnedNotif, notifs: updatedNotifs };
+	return updatedNotifs;
 }
 
 /**
@@ -73,34 +69,25 @@ export async function sendUpdateNotification(app: FastifyInstance, data: Notific
  * est en attente, puis les envoie supprimées via WebSockets pour référence.
  * 
  * @param {FastifyInstance} app - L'instance de l'application Fastify.
- * @param {number} jwtUserId - L'ID de l'utilisateur connecté via JWT.
- * @param {number} notifId - L'ID de la notification à supprimer.
+ * @param {NotificationModel[]} data - Les données des notifications.
  * @param {FriendModel} relation - Les données de la relation amicale.
- * @returns {Promise<NotifResponse>} Une promesse qui se résout lorsque les notifications sont supprimées
+ * @returns {Promise<NotificationModel[] | { errorMessage: string }>} Une promesse qui se résout lorsque les notifications sont supprimées
  * et envoyées via WebSockets, ou par un message d'erreur.
  */
-export async function sendDeleteNotification(app: FastifyInstance, jwtUserId: number, notifId: number, relation: FriendModel): Promise<NotifResponse> {
-	const notifRes: NotifResponse = await getNotification(notifId);
-	if (!notifRes || notifRes.errorMessage || !notifRes.notif)
-		return { errorMessage: 'Notification not found'};
-	if (notifRes.notif.from != jwtUserId) {
-		return { errorMessage: 'Forbidden' };
-	}
-	const twinNotifRes: NotifResponse = await getTwinNotifications(notifRes.notif);
-	if (!twinNotifRes || twinNotifRes.errorMessage || !twinNotifRes.notifs)
-		return { errorMessage: twinNotifRes.errorMessage || 'Notification(s) not found'};
-	
-	const twinNotifs = twinNotifRes.notifs;
+export async function sendDeleteNotification(app: FastifyInstance, data: NotificationModel[]): Promise<NotificationModel[] | { errorMessage: string }> {
 	const deletedNotifs: NotificationModel[] = [];
-	for (const notif of twinNotifs) {
-		if (relation.friendStatus === DB_CONST.FRIENDS.STATUS.PENDING) {
-			notif.type = FRIEND_REQUEST_ACTIONS.DELETE;
-			deletedNotifs.push(notif);
-			await deleteNotification(notif.id);
-		}
+	for (const notif of data) {
+		// if (relation.friendStatus === DB_CONST.FRIENDS.STATUS.PENDING) {
+		// 	notif.type = FRIEND_REQUEST_ACTIONS.DELETE;
+		// 	deletedNotifs.push(notif);
+		// 	await deleteNotification(notif.id);
+		// }
+		notif.type = FRIEND_REQUEST_ACTIONS.DELETE;
+		deletedNotifs.push(notif);
+		await deleteNotification(notif.id);
 	}
 	sendToSocket(app, deletedNotifs);
-	return { notifs: deletedNotifs };
+	return deletedNotifs;
 }
 
 /**
@@ -115,6 +102,9 @@ export async function sendDeleteNotification(app: FastifyInstance, jwtUserId: nu
 export async function addNotifContent<T extends NotificationInput | NotificationModel>(notifData: T): Promise<T> {
 	const user = await getUser(notifData.from);
 	let notif = '';
+	if (!notifData.type) {
+		return notifData;
+	}
 	if (Object.values(FRIEND_REQUEST_ACTIONS).includes(notifData.type)) {
 		switch (notifData.type) {
 			case FRIEND_REQUEST_ACTIONS.ADD:

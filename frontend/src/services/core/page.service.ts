@@ -55,6 +55,7 @@ export class PageService {
 		if (this.currentPage.config.components
 			&& COMPONENT_NAMES.NAVBAR in this.currentPage.config.components)
 			await notifService.init(this.currentPage);
+			console.log('Notifications initialisées');
 	}
 
 	/**

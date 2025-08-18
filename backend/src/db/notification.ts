@@ -10,10 +10,10 @@ import { NotifResponse } from '../shared/types/response.types';
  * d'identifiant `id`, en ordre décroissant de date de création.
  *
  * @param {number} id Identifiant de l'utilisateur.
- * @returns {Promise<NotifResponse>} Promesse qui se résout avec un tableau
+ * @returns {Promise<NotificationModel[] | { errorMessage: string }>} Promesse qui se résout avec un tableau
  * d'objets `NotificationModel` ou un message d'erreur.
  */
-export async function getUserNotifications(id: number): Promise<NotifResponse> {
+export async function getUserNotifications(id: number): Promise<NotificationModel[] | { errorMessage: string }> {
 	const db = await getDb();
 	try {
 		const notifs = await db.all(`
@@ -23,7 +23,7 @@ export async function getUserNotifications(id: number): Promise<NotifResponse> {
 			ORDER BY n.created_at DESC
 			`,
 		[id]);
-		return { notifs: snakeArrayToCamel(notifs) as NotificationModel[] };
+		return snakeArrayToCamel(notifs) as NotificationModel[];
 	} catch (error) {
 		return { errorMessage: (error as Error).message };
 	}
@@ -36,10 +36,10 @@ export async function getUserNotifications(id: number): Promise<NotifResponse> {
  * contenant les informations de la notification.
  *
  * @param {number} notifId L'identifiant de la notification à récupérer.
- * @returns {Promise<NotifResponse>} Promesse qui se résout avec l'objet
+ * @returns {Promise<NotificationModel | { errorMessage: string }>} Promesse qui se résout avec l'objet
  * `NotificationModel` ou un message d'erreur.
  */
-export async function getNotification(notifId: number): Promise<NotifResponse> {
+export async function getNotification(notifId: number): Promise<NotificationModel | { errorMessage: string }> {
 	const db = await getDb();
 	try {
 		const notif = await db.get(`
@@ -48,7 +48,7 @@ export async function getNotification(notifId: number): Promise<NotifResponse> {
 			WHERE n.id = ?
 			`,
 		[notifId]);
-		return { notif: snakeToCamel(notif) as NotificationModel };
+		return snakeToCamel(notif) as NotificationModel;
 	} catch (error) {
 		return { errorMessage: (error as Error).message };
 	}
@@ -60,12 +60,12 @@ export async function getNotification(notifId: number): Promise<NotifResponse> {
  * Une notification jumelle est une notification qui a les mêmes expéditeurs et
  * destinataires, ainsi que le même type, que la notification en paramètre.
  *
- * @param {NotificationModel} notifData - La notification qui sert de base pour
+ * @param {NotificationModel | NotificationInput} notifData - La notification qui sert de base pour
  * la recherche des notifications jumelles.
- * @returns {Promise<NotifResponse>} Promesse qui se résout avec un tableau
+ * @returns {Promise<NotificationModel[] | { errorMessage: string }>} Promesse qui se résout avec un tableau
  * d'objets `NotificationModel` ou un message d'erreur.
  */
-export async function getTwinNotifications(notifData: NotificationModel): Promise<NotifResponse> {
+export async function getTwinNotifications(notifData: NotificationModel | NotificationInput): Promise<NotificationModel[] | { errorMessage: string }> {
 	const db = await getDb();
 	try {
 		const notifs = await db.all(`
@@ -75,7 +75,7 @@ export async function getTwinNotifications(notifData: NotificationModel): Promis
 			`,
 			[notifData.from, notifData.to, notifData.type]
 		);
-		return { notifs: snakeArrayToCamel(notifs) as NotificationModel[] };
+		return snakeArrayToCamel(notifs) as NotificationModel[];
 	} catch (error) {
 		return { errorMessage: (error as Error).message };
 	}
@@ -90,10 +90,10 @@ export async function getTwinNotifications(notifData: NotificationModel): Promis
  * Sinon, renvoie un objet avec un code d'état 400 et un message d'erreur.
  *
  * @param {NotificationInput} notifData Les informations de la notification à ajouter.
- * @returns {Promise<NotifResponse>} Promesse qui se résout avec l'objet
+ * @returns {Promise<NotificationModel | { errorMessage: string }>} Promesse qui se résout avec l'objet
  * `NotificationModel` ou un message d'erreur.
  */
-export async function insertNotification(notifData: NotificationInput): Promise<NotifResponse> {
+export async function insertNotification(notifData: NotificationInput): Promise<NotificationModel | { errorMessage: string }> {
 	const db = await getDb();
 	try {
 		if (notifData.from === notifData.to) {
@@ -108,7 +108,7 @@ export async function insertNotification(notifData: NotificationInput): Promise<
 		);
 
 		const insertedNotif = await getNotification(result.lastID!);
-		return { notif: snakeToCamel(insertedNotif) as NotificationModel };
+		return snakeToCamel(insertedNotif) as NotificationModel;
 	} catch (error) {
 		return { errorMessage: (error as Error).message };
 	}
@@ -124,9 +124,9 @@ export async function insertNotification(notifData: NotificationInput): Promise<
  * Sinon, renvoie un objet contenant un message d'erreur.
  * 
  * @param {NotificationModel} notifData - Informations de la notification à mettre à jour.
- * @returns {Promise<NotifResponse>} Promesse qui se résout avec l'objet
+ * @returns {Promise<NotificationModel | { errorMessage: string }>} Promesse qui se résout avec l'objet
  */
-export async function updateNotification(notifData: NotificationModel): Promise<NotifResponse> {
+export async function updateNotification(notifData: NotificationModel): Promise<NotificationModel | { errorMessage: string }> {
 	const db = await getDb();
 	try {
 		const result = await db.run(`
@@ -138,7 +138,7 @@ export async function updateNotification(notifData: NotificationModel): Promise<
 		);
 
 		const updatedNotif = await getNotification(result.lastID!);
-		return { notif: snakeToCamel(updatedNotif) as NotificationModel };
+		return snakeToCamel(updatedNotif) as NotificationModel;
 	} catch (error) {
 		return { errorMessage: (error as Error).message };
 	}

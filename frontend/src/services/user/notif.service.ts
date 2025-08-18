@@ -1,5 +1,5 @@
 import { ROUTE_PATHS } from '../../config/routes.config';
-import { notifApi } from '../../api/index.api';
+import { notifApi, friendApi } from '../../api/index.api';
 import { PageInstance } from '../../types/routes.types';
 import { COMPONENT_NAMES } from '../../config/components.config';
 import { NavbarComponent } from '../../components/navbar/navbar.component';
@@ -11,6 +11,7 @@ import { NotifResponse, FriendResponse } from '../../shared/types/response.types
 import { FRIEND_REQUEST_ACTIONS } from '../../shared/config/constants.config'; // en rouge car dossier local 'shared' != dossier conteneur
 import { isValidNotificationType } from '../../shared/utils/app.utils';
 import { getHTMLElementById } from '../../utils/dom.utils';
+import { FriendRequestAction } from '../../shared/types/notification.types';
 
 // ============================================================================
 // NOTIF SERVICE
@@ -25,14 +26,37 @@ export class NotifService {
 	private notifs: AppNotification[] = [];
 	private notifCount: number = 0;
 	private notifItem: HTMLDivElement | null = null;
+	private userRowToUpdate: boolean = false;
 
 	public currentNotif: AppNotification | null = null;
 	public friendId: number | null = null;
-	public rowFriendId: number | null = null;
 
 	// ===========================================
 	// METHODES PUBLICS
 	// ===========================================
+
+	/**
+	 * Paramètre les données lorsque l'utilisateur clique sur un bouton avec un handler
+	 * de demande d'amitié.
+	 * 
+	 * Cette méthode indique quelle ligne se rapporte l'ami 
+	 * pour lequel les boutons d'amitié doivent être mis à jour.
+	 * 
+	 * @param {number} friendId - L'identifiant de l'ami de la ligne.
+	 * @param {FriendRequestAction} type - Le type de la demande d'amitié.
+	 * @returns {void}
+	 */
+	public setNotifsData(friendId: number, type?: FriendRequestAction, ): void {
+		console.log(`setNotifsData: ${friendId}`);
+		this.friendId = friendId;
+		if (type) {
+			this.currentNotif = this.notifs.find(n => 
+				n.type === type &&
+				n.from === this.friendId && 
+				n.to === this.currentUser.id
+			);
+		} 
+	}
 
 	/**
 	 * Initialise le service de notifications avec la page actuelle.
@@ -59,13 +83,17 @@ export class NotifService {
 	 * @returns {Promise<void>} Une promesse qui est résolue lorsque toutes les notifications ont été traitées.
 	 */
 	public async handleNotifications(notifs: AppNotification[]): Promise<void> {
+		console.log('On est dans handleNotifications')
+		this.userRowToUpdate = true;;
 		for (const notif of notifs) {
-			if (isValidNotificationType()) {
+			console.log('On est dans la boucle')
+			if (isValidNotificationType(notif.type)) {
+				console.log('Notif type valide')
 				this.currentNotif = notif;
 				this.friendId = notif.from;
-				this.rowFriendId = this.friendId;
 				await this.handleNotification();
 			}
+			await this.refreshFriendButtons();
 		}
 	}
 
@@ -90,22 +118,6 @@ export class NotifService {
 	}
 
 	/**
-	 * Définit l'identifiant de l'ami de la ligne utilisée pour mettre à jour les boutons
-	 * de l'utilisateur dans la page de la liste des utilisateurs.
-	 * 
-	 * Cette méthode est utilisée pour indiquer à quelle ligne se rapporte l'ami pour lequel
-	 * les boutons d'amitié doivent être mis à jour.
-	 * 
-	 * @param {number} id - L'identifiant de l'ami de la ligne.
-	 * @returns {void}
-	 */
-	public setRowFriendId(id: number): void {
-		console.log(`setRowFriendId: ${id}`);
-		this.rowFriendId = id;
-		this.friendId = id;
-	}
-
-	/**
 	 * Met à jour le compteur de notifications non lues.
 	 *
 	 * - Si le compteur est égal à zéro, cache le compteur.
@@ -115,6 +127,7 @@ export class NotifService {
 	 */
 	public updateNotifsCounter(): void {
 		this.notifCount = this.getNotifCount();
+		console.log('this.notifCount', this.notifCount);
 		if (this.notifCount === 0) {
 			this.navbarInstance!.notifsCounter.textContent = '0';
 			if (!this.navbarInstance!.notifsCounter.classList.contains('hidden')) {
@@ -140,6 +153,7 @@ export class NotifService {
 	 */
 	private async loadNotifs(): Promise<void> {
 		this.navbarInstance!.notifsWindow.replaceChildren();
+		console.log('On est dans loadNotifs');
 		this.setCurrentNotifs();
 		this.updateNotifsCounter();
 
@@ -171,23 +185,29 @@ export class NotifService {
 	 */
 	private async handleNotification(): Promise<void> {
 		const isLoaded = this.notifs.find((notif) => notif.id === this.currentNotif.id);
-		if (!isLoaded()) {
+		if (!isLoaded) {
 			this.notifs.push(this.currentNotif);
 			storageService.setCurrentNotifs(this.notifs);
+			console.log('this.notifs apres push', this.notifs);
 			this.displayNotif();
 			this.updateNotifsCounter();
 			return;
 		};
 		switch (this.currentNotif.type) {
+			case FRIEND_REQUEST_ACTIONS.ADD:
 			case FRIEND_REQUEST_ACTIONS.DELETE:
 				this.deleteNotif();
 				this.updateNotifsCounter();
+				console.log('this.notifs apres delete', this.notifs);
 				break;
 			default:
 				this.replaceNotif();
+				console.log('this.notifs apres replace', this.notifs);
 				break;
 		}
-		await this.refreshFriendButtons();
+		storageService.setCurrentNotifs(this.notifs);
+		if (this.userRowToUpdate)
+			await this.refreshFriendButtons();
 	}
 
 	/**
@@ -203,8 +223,10 @@ export class NotifService {
 	 * @returns {Promise<void>} Une promesse qui est resolvée lorsque les notifications sont chargées.
 	 */
 	private async setCurrentNotifs(): Promise<void> {
-		if (this.currentUser.notifications) {
+		if (this.currentUser.notifications.length > 0) {
+			console.log("bla");
 			this.notifs = this.currentUser.notifications;
+			console.log(this.notifs);
 			return;
 		}
 		const result: NotifResponse = await notifApi.getUserNotifications();
@@ -212,6 +234,7 @@ export class NotifService {
 			console.error(result.errorMessage);
 			return;
 		}
+		console.log(result);
 		this.notifs = result;
 		storageService.setCurrentNotifs(this.notifs);
 		console.log('Notifications rechargées:', this.notifs);
@@ -244,6 +267,7 @@ export class NotifService {
 	private displayNotif(): void {
 		this.notifItem = this.createNotifElement();
 		this.navbarInstance!.notifsWindow.appendChild(this.notifItem);
+		this.attachListeners();
 	}
 	
 	/**
@@ -283,7 +307,7 @@ export class NotifService {
 	 */
 	private async refreshFriendButtons(userRowInstance?: UserRowComponent): Promise<void> {
 		if (this.currentPage.config.path === ROUTE_PATHS.USERS) {
-			await this.currentPage.updateFriendButtons!(this.rowFriendId!, userRowInstance);
+			await this.currentPage.updateFriendButtons!(this.friendId!, userRowInstance);
 		}
 	}
 
@@ -311,7 +335,6 @@ export class NotifService {
 		}
 		if (this.needButtons()) {
 			this.createNotifButtonsHTML();
-			this.attachListeners();
 		}
 		return notifItem;
 	}
@@ -354,72 +377,67 @@ export class NotifService {
 
 	public handleAddClick = async (): Promise<void> => {
 		console.log("ADDDD Add friend request from user ID:", this.currentUser.id, "to user ID:", this.friendId!);
-		let friendResult: FriendResponse = await friendService.addFriend(this.currentUser.id, this.friendId!);
-		if (friendResult.errorMessage) {
-			console.error(friendResult.errorMessage);
+		let res = await friendApi.addFriend(this.friendId!);
+		if ('errorMessage' in res) {
+			console.error(res.errorMessage);
 			return;
 		}
-		this.currentNotif = friendResult.notif;
 		await this.refreshFriendButtons();
 	}
 
-	public handleAcceptClick = async (): Promise<void> => {
-		console.log("ACCEPPPPPT Accepting friend request from user ID:", this.currentUser.id, "to user ID:", this.friendId!);
-		this.currentNotif.type = FRIEND_REQUEST_ACTIONS.ACCEPT;
-		this.currentNotif.read = 1;
-		let notifResult: NotifResponse = await notifApi.updateNotification(this.currentNotif);
-		if (notifResult.errorMessage) {
-			console.error(notifResult.errorMessage);
-			return;
+	public handleCancelClick = async (): Promise<void> => {
+		console.log("CANCEL CLICK: Cancel friend request from user ID:", this.currentUser.id, "to user ID:", this.friendId!);
+		const data = {
+			id: 0,
+			to: this.friendId
 		}
-		this.currentNotif = notifResult.notif;
-		let friendResult: FriendResponse = await friendService.acceptFriend(this.currentUser.id, this.friendId!);
-		if (friendResult.errorMessage) {
-			console.error(friendResult.errorMessage);
+		let res = await friendApi.removeFriend(this.friendId!, data);
+		if ('errorMessage' in res) {
+			console.error(res.errorMessage);
 			return;
 		}
 		await this.refreshFriendButtons();
-		await this.handleNotifications(friendResult.notifs);
-		this.currentNotif = friendResult.notif;
 	}
 
 	public handleDeclineClick = async (): Promise<void> => {
 		console.log("DECLINE CLICK: Decline friend request from user ID:", this.currentUser.id, "to user ID:", this.friendId!);
-		this.currentNotif.type = FRIEND_REQUEST_ACTIONS.DELETE;
-		this.currentNotif.read = 1;
-		let notifResult: NotifResponse = await notifApi.updateNotification(this.currentNotif);
-		if (notifResult.errorMessage) {
-			console.error(notifResult.errorMessage);
+		let res = await friendApi.removeFriend(this.friendId!, this.currentNotif);
+		if ('errorMessage' in res) {
+			console.error(res.errorMessage);
 			return;
 		}
-		this.currentNotif = notifResult.notif;
-		let friendResult: FriendResponse = await friendService.removeFriend(this.currentUser.id, this.friendId!);
-		if (friendResult.errorMessage) {
-			console.error(friendResult.errorMessage);
+		await this.handleNotifications(res);
+	}
+
+	public handleAcceptClick = async (): Promise<void> => {
+		console.log("ACCEPPPPPT Accepting friend request from user ID:", this.currentUser.id, "to user ID:", this.friendId!);
+		console.log(this.currentNotif);
+		if (this.currentNotif.type !== FRIEND_REQUEST_ACTIONS.ADD) {
+			console.error("Invalid notification type for accepting friend request", this.currentNotif.type);
 			return;
 		}
-		await this.refreshFriendButtons();
-		await this.handleNotifications(friendResult.notifs);
+		this.currentNotif.toType = FRIEND_REQUEST_ACTIONS.ACCEPT;
+		let res = await friendApi.updateFriend(this.friendId!, this.currentNotif);
+		if ('errorMessage' in res) {
+			console.error(res.errorMessage);
+			return;
+		}
+		await this.handleNotifications(res);
 	}
 
 	public handleBlockClick = async (): Promise<void> => {
 		console.log("BLOCKKKKK Blocking friend:", this.friendId!);
-		this.currentNotif.type = FRIEND_REQUEST_ACTIONS.BLOCK;
-		this.currentNotif.read = 1;
-		let notifResult: NotifResponse = await notifApi.updateNotification(this.currentNotif);
-		if (notifResult.errorMessage) {
-			console.error(notifResult.errorMessage);
+		if (this.currentNotif.type !== FRIEND_REQUEST_ACTIONS.ACCEPT) {
+			console.error("Invalid notification type for accepting friend request", this.currentNotif.type);
 			return;
 		}
-		this.currentNotif = notifResult.notif;
-		let friendResult: FriendResponse = await friendService.blockFriend(this.currentUser.id, this.friendId!);
-		if (friendResult.errorMessage) {
-			console.error(friendResult.errorMessage);
+		this.currentNotif.toType = FRIEND_REQUEST_ACTIONS.BLOCK;
+		let res = await friendApi.updateFriend(this.friendId!, this.currentNotif);
+		if ('errorMessage' in res) {
+			console.error(res.errorMessage);
 			return;
 		}
-		await this.refreshFriendButtons();
-		await this.handleNotifications(friendResult.notifs);
-		this.currentNotif = friendResult.notif;
+		await this.handleNotifications(res);
 	}
 
 	// ===========================================

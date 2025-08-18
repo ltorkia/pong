@@ -45,35 +45,35 @@ export function isParsingError(obj: unknown): obj is ParsingError {
 }
 
 export async function checkParsing<T>(schema: ZodSchema<T>, body: unknown): Promise<T | ParsingError> {
-  const result = await schema.safeParseAsync(body); // safeParseAsync recommandé si schema asynchrone
-  if (!result.success) {
-	const error = result.error.errors[0];
-	console.log(error);
-	return {
-	  statusCode: 400,
-	  errorMessage: `${error.message} in ${error.path.join('.')}`,
-	};
-  }
-  return result.data;
+	const result = await schema.safeParseAsync(body); // safeParseAsync recommandé si schema asynchrone
+	if (!result.success) {
+		const error = result.error.errors[0];
+		console.log(error);
+		return {
+		statusCode: 400,
+		errorMessage: `${error.message} in ${error.path.join('.')}`,
+		};
+	}
+	return result.data;
 }
 
-	export async function adaptBodyForPassword(request: FastifyRequest): Promise<Record<string, any> | void>
-	{
-		const body = request.body as Record<string, any>; //c est bon any ?
-				// Renommage explicite pour etre ok avec ts et js
-				if ("curr-password" in body) {
-					body["currPassword"] = body["curr-password"];
-					delete body["curr-password"];
-				}
+export async function adaptBodyForPassword(request: FastifyRequest): Promise<Record<string, any> | void>
+{
+	const body = request.body as Record<string, any>; //c est bon any ?
+		// Renommage explicite pour etre ok avec ts et js
+		if ("curr-password" in body) {
+			body["currPassword"] = body["curr-password"];
+			delete body["curr-password"];
+		}
 
-				if ("new-password" in body) {
-					body["newPassword"] = body["new-password"];
-					delete body["new-password"];
-				}
+		if ("new-password" in body) {
+			body["newPassword"] = body["new-password"];
+			delete body["new-password"];
+		}
 
-				if(body["currPassword"] == '')
-					body["currPassword"] = null;
-				if(body["newPassword"] == '')
-					body["newPassword"] = null;
-		return (body);
-	}
+		if(body["currPassword"] == '')
+			body["currPassword"] = null;
+		if(body["newPassword"] == '')
+			body["newPassword"] = null;
+	return (body);
+}
