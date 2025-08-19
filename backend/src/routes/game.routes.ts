@@ -3,10 +3,11 @@ import { Player } from '../shared/types/game.types'
 import { Game } from '../types/game.types';
 import { generateUniqueID } from '../shared/functions'
 import { MatchMakingReqSchema } from '../types/zod/game.zod';
-import { UserWS } from 'src/types/user.types';
+import { UserWS } from '../types/user.types';
+import {addGame, resultGame } from '../db/game';
 
 export async function gameRoutes(app: FastifyInstance) {
-    app.post('/multiplayer', (request: FastifyRequest, reply: FastifyReply) => {
+    app.post('/multiplayer', async (request: FastifyRequest, reply: FastifyReply) => {
         const matchMakingReq = MatchMakingReqSchema.safeParse(request.body);
 
         if (!matchMakingReq.success)
@@ -23,14 +24,16 @@ export async function gameRoutes(app: FastifyInstance) {
         newPlayer.matchMaking = true;
         const playerTwo = allPlayers.find((p: Player) => p.matchMaking == true && p.ID != newPlayer.ID);
         if (playerTwo) {
-            console.log("player 1 = ", playerTwo.ID, " player 2 = ", newPlayer.ID);
-            // startGame(app, [newPlayer, playerTwo]);
+            // console.log("player 1 = ", playerTwo.ID, " player 2 = ", newPlayer.ID);
+            const gameIDforDB = await addGame(playerTwo.ID, newPlayer.ID);
+            
+            startGame(app, [newPlayer, playerTwo], gameIDforDB!);
         }
         // identifier les players + inserer le jeu dans la db
     });
 };
 
-const startGame = (app: FastifyInstance, players: Player[]) => {
+const startGame = (app: FastifyInstance, players: Player[], gameIDforDB: number) => {
     const { usersWS } = app;
     const { allGames } = app.lobby;
     const gameID = generateUniqueID(allGames);
@@ -51,7 +54,7 @@ const startGame = (app: FastifyInstance, players: Player[]) => {
             player.webSocket = user.WS;
         }
     }
-    const newGame = new Game(2, players);
+    const newGame = new Game(2, players, gameIDforDB);
     allGames.push(newGame);
     newGame.initGame();
 }

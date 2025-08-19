@@ -1,3 +1,4 @@
+import { resultGame } from "src/db/game";
 import { GameData, Player } from "../shared/types/game.types"
 
 const DEG_TO_RAD = Math.PI / 180;
@@ -90,10 +91,12 @@ export class Game {
     private gameStarted: boolean = false;
     private isOver: boolean = false;
     private score: number[] = [];
+    private gameIDforDB: number; // a voir
 
-    constructor(playersCount: number, players: Player[]) {
+    constructor(playersCount: number, players: Player[], gameIDforDB: number) {
         this.playersCount = playersCount;
         this.players = players;
+        this.gameIDforDB = gameIDforDB;
     }
 
     private async gameLoop(): Promise<void> {
@@ -169,7 +172,7 @@ export class Game {
         this.gameLoop();
     }
 
-    public endGame(): void {
+    public async endGame(): Promise<void> {
         console.log("coucou end !");
         this.gameStarted = false;
         this.isOver = true;
@@ -178,7 +181,18 @@ export class Game {
                 player.webSocket.send(JSON.stringify({
                     type: "end",
                 }));
+            // this.score
+            console.log("////////////////////////////////////////////////////////////////////////player = ", player, "score = ", this.score);
         }
+        let winner = this.players[1];
+        let looser = this.players[0];
+        if (this.score[0] < this.score[1])
+        {
+            winner = this.players[0];
+            looser = this.players[1];
+
+        }
+        await resultGame(this.gameIDforDB, winner.ID, looser.ID);
     }
 
     private sendGameUpdate() {
@@ -224,7 +238,7 @@ export class Tournament {
         shuffleArray(this.players);
         let playerIdx = 0;
         for (let i = 0; i < 2; i++) {
-            const newGame = new Game(2, [this.players[playerIdx], this.players[playerIdx + 1]]);
+            const newGame = new Game(2, [this.players[playerIdx], this.players[playerIdx + 1]]); // a changer sa mere
             this.stageOneGames.push(newGame);
             playerIdx += 2;
         }
