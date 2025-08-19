@@ -5,7 +5,7 @@ import bcrypt from 'bcrypt';
 import { JwtPayload } from '../types/jwt.types';
 import { DB_CONST } from '../shared/config/constants.config';
 
-import { getUser, getUserGames, getUserChat, getUserAllInfo } from '../db/user';
+import { getUser, getUserGames, getUserAllInfo } from '../db/user';
 import { getAllUsersInfos } from '../db/user';
 import { UserModel, SafeUserModel } from '../shared/types/user.types';
 
@@ -60,23 +60,23 @@ export async function usersRoutes(app: FastifyInstance) {
 		return games;
 	})
 
-	/* -------------------------------------------------------------------------- */
-	/*             💬 - Recupere l'historique de tchat de 2 utilisateurs          */
-	/* -------------------------------------------------------------------------- */
-	// :id1 et :id2 = id des utilisateurs dans la db dont on cherche les messages envoyes
-	// renvoyes par la db ranges chronologiquement
+	// /* -------------------------------------------------------------------------- */
+	// /*             💬 - Recupere l'historique de tchat de 2 utilisateurs          */
+	// /* -------------------------------------------------------------------------- */
+	// // :id1 et :id2 = id des utilisateurs dans la db dont on cherche les messages envoyes
+	// // renvoyes par la db ranges chronologiquement
 
-	app.get('/:id1/:id2/chat', async(request: FastifyRequest, reply: FastifyReply) => {
-		const { id1 } = request.params as { id1: number };
-		const jwtUser = request.user as JwtPayload;
-		if (id1 !== jwtUser.id)
-			return reply.status(403).send({ errorMessage: 'Forbidden' });
-		const { id2 } = request.params as { id2: number };
-		const chat = await getUserChat(id1, id2);
-		if (!chat)
-			return reply.code(404).send({ errorMessage: 'User not found'});
-		return chat;
-	})
+	// app.get('/:id1/:id2/chat', async(request: FastifyRequest, reply: FastifyReply) => {
+	// 	const { id1 } = request.params as { id1: number };
+	// 	const jwtUser = request.user as JwtPayload;
+	// 	if (id1 !== jwtUser.id)
+	// 		return reply.status(403).send({ errorMessage: 'Forbidden' });
+	// 	const { id2 } = request.params as { id2: number };
+	// 	const chat = await getUserChat(id1, id2);
+	// 	if (!chat)
+	// 		return reply.code(404).send({ errorMessage: 'User not found'});
+	// 	return chat;
+	// })
 
 
 	/* -------------------------------------------------------------------------- */

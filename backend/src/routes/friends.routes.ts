@@ -14,6 +14,7 @@ import { checkParsing, isParsingError } from '../helpers/types.helpers';
 
 import { NotificationModel } from '../shared/types/notification.types';
 import { insertNotification, getNotification, getTwinNotifications } from '../db/notification';
+// import { getUserChat, addMessageToChat } from '../db/friend'; //pour le chat en comm
 import { sendToSocket, sendUpdateNotification, sendDeleteNotification, addNotifContent } from '../helpers/notifications.helpers';
 import { NotificationInput, NotificationInputSchema } from '../types/zod/app.zod';
 import { NotifResponse } from '../shared/types/response.types';
@@ -204,4 +205,55 @@ export async function friendsRoutes(app: FastifyInstance) {
 
 		return reply.code(200).send(deletedNotifs);
 	})
+
+
+
+	// ----------------------- brouillon chat ---------------------------------------------
+	/* -------------------------------------------------------------------------- */
+	/*             💬 - Recupere l'historique de tchat de 2 utilisateurs          */
+	/* -------------------------------------------------------------------------- */
+	// :id1 et :id2 = id des utilisateurs dans la db dont on cherche les messages envoyes
+	// renvoyes par la db ranges chronologiquement
+// 	app.get('/chat/:id1/:id2', async(request: FastifyRequest, reply: FastifyReply) => {
+// 		const { id1 } = request.params as { id1: number };
+// 		const jwtUser = request.user as JwtPayload;
+// 		if (id1 !== jwtUser.id)
+// 			return reply.status(403).send({ errorMessage: 'Forbidden' });
+// 		const { id2 } = request.params as { id2: number };
+// 		const chat = await getUserChat(id1, id2);
+// 		if (!chat)
+// 			return reply.code(404).send({ errorMessage: 'User not found'});
+// 		return chat;
+// 	})
+// 	app.post('/chatadd/:id1/:id2', async(request: FastifyRequest, reply: FastifyReply) => {
+// 		const { id1 } = request.params as { id1: number };
+// 		const jwtUser = request.user as JwtPayload;
+// 		if (id1 !== jwtUser.id)
+// 			return reply.status(403).send({ errorMessage: 'Forbidden' });
+// 		const { id2 } = request.params as { id2: number };		//check si id2 = ami ? -> non car doit recevoir a posteriori si blocke aussi ? 
+// 		const friend = await getRelation(id1, id2) as FriendModel;
+		
+// 		if (friend.friendStatus === 'accepted')
+// 			await addMessageToChat(id1, id2, request.body);
+// 		else 
+// 			// error message blocked ou no friend
+// 		return(reply.status(200).send({friend: id2, message: request.body})); //notif a envoyer 
+// 	})
+
 }
+	
+
+
+
+// export async function addMessageToChat(sender_id: number, receiver_id: number, message: string) {
+// 	const db = await getDb();
+
+// 	await db.run(`
+// 		INSERT INTO Friends (sender_id, receiver_id, message)
+// 		VALUES (?, ?, ?)
+// 		`,
+// 		[sender_id, receiver_id, message]
+// 	);
+// }
+
+// export async function extractMessagesToChat(sender_id: number, receiver_id: number) {

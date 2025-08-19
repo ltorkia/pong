@@ -22,3 +22,11 @@ export interface FriendModel {
 
 export type FriendStatus = 
 	typeof DB_CONST.FRIENDS.STATUS[keyof typeof DB_CONST.FRIENDS.STATUS];
+
+export interface ChatModel {
+	id: number;
+	senderId: number;
+	receiverId: number;
+	timeSend: string;
+	message: string;
+}
