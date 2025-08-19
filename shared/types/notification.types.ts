@@ -7,7 +7,7 @@ export interface NotificationModel {
 	type: NotificationType;
 	toType?: NotificationType;
 	content?: string | null;
-	createdAt: string;
+	createdAt: string | null;
 	read: number;
 };
 

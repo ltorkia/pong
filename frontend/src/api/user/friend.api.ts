@@ -84,22 +84,23 @@ export class FriendApi {
 	 * Si le blocage réussit, renvoie un objet contenant les informations de l'opération.
 	 * Sinon, renvoie un objet contenant un message d'erreur.
 	 * 
-	 * @param {number} friendId - Identifiant de l'ami à bloquer.
 	 * @param {AppNotification} notif - Notification liée à mettre à jour. 
 	 * Contient le type d'action (ACCEPT ou BLOCK).
 	 * @returns {Promise<AppNotification[] | { errorMessage: string }>} Promesse qui se résout avec les informations
 	 * de l'opération ou un message d'erreur.
 	 */
-	public async updateFriend(friendId: number, notif: AppNotification): Promise<AppNotification[] | { errorMessage: string }> {
-		const res: Response = await secureFetch(`/api/friends/${friendId}`, {
+	public async updateFriend(notif: AppNotification): Promise<AppNotification[] | { errorMessage: string }> {
+		console.log('updateFriend dans FriendApi', notif);
+		const res: Response = await secureFetch(`/api/friends/${notif.to}`, {
 			method: 'PUT',
 			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({ data: notif })
+			body: JSON.stringify( notif )
 		});
 		const data: FriendResponse = await res.json();
 		if (!res.ok || 'errorMessage' in data || !data) {
 			return { errorMessage: data.errorMessage || 'Erreur lors de l\'acceptation / le blocage d\'ami' };
 		}
+		console.log(data);
 		return AppNotification.fromJSONArray(data) as AppNotification[];
 	}
 
@@ -116,17 +117,16 @@ export class FriendApi {
 	 * Si la suppression réussit, renvoie un objet contenant les informations de l'opération.
 	 * Sinon, renvoie un objet contenant un message d'erreur.
 	 * 
-	 * @param {number} friendId - Identifiant de l'ami à supprimer.
 	 * @param {Partial<AppNotification>} notif - Notification liée à supprimer.
 	 * @returns {Promise<AppNotification[] | { errorMessage: string }>} Promesse qui se résout avec les informations
 	 * de l'opération ou un message d'erreur.
 	 */
-	public async removeFriend(friendId: number, notif: Partial<AppNotification>): Promise<AppNotification[] | { errorMessage: string }> {
-		console.log(`[${this.constructor.name}] Suppression de l'ami ${friendId}`);
+	public async removeFriend(notif: Partial<AppNotification>): Promise<AppNotification[] | { errorMessage: string }> {
+		console.log(`[${this.constructor.name}] Suppression de l'ami ${notif.to}`);
 		console.log("notif", notif);
 		
 		// Construction de la query param pour l'id de la notif
-		const res: Response = await secureFetch(`/api/friends/${friendId}?id=${notif.id ?? 0}`, {
+		const res: Response = await secureFetch(`/api/friends/${notif.to}?id=${notif.id ?? 0}`, {
 			method: 'DELETE'
 		});
 		const data: FriendResponse = await res.json();

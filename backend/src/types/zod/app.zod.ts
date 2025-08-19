@@ -32,7 +32,7 @@ export const NotificationInputSchema = z.object({
 	]).optional(),
 	content: z.string().optional(),
 	createdAt: z.string().optional(),
-	status: z.number().optional()
+	read: z.number().optional()
 });
 
 export type IdInput = z.infer<typeof IdInputSchema>;

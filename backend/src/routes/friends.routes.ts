@@ -116,14 +116,20 @@ export async function friendsRoutes(app: FastifyInstance) {
 			|| !Number.isInteger(friendId) || friendId <= 0) {
 			return reply.status(403).send({ errorMessage: 'Forbidden' });
 		}
-
+		// request.body.id = Number(request.body.id);
+		// request.body.from = Number(request.body.from);
+		// request.body.to = Number(request.body.to);
+		// request.body.read = Number(request.body.type);
 		const notifDataCheck = await checkParsing(NotificationInputSchema, request.body);
-		if (isParsingError(notifDataCheck))
+		console.log("notifDataCheck", notifDataCheck);
+		if (isParsingError(notifDataCheck)) {
+			console.log('ON EST ICIIIIIII');
 			return reply.status(400).send(notifDataCheck);
+		}
 		const data = notifDataCheck as NotificationInput;
 		if (data.from != jwtUser.id)
 			return reply.status(403).send({ errorMessage: 'Forbidden' });
-
+		console.log('DATAAAA', data);
 		const friend: UserModel = await getUser(data.to);
 		if (!friend)
 			return reply.code(404).send({ errorMessage: 'No user found'});
@@ -181,19 +187,21 @@ export async function friendsRoutes(app: FastifyInstance) {
 		await updateRelationshipDelete(jwtUser.id, friend.id);
 
 		let twinNotifs;
+		let dataNotif;
 		if (notifId) {
 			const notif = await getNotification(notifId);
 			if (!notif || 'errorMessage' in notif) 
 				return reply.code(404).send({ errorMessage: notif.errorMessage || 'Notification not found' });
-			twinNotifs = await getTwinNotifications(notif);
+			dataNotif = notif;
 		} else {
-			let data: NotificationInput = {
+			// pas d'id = on crée un objet NotificationInput “fictif” pour récupérer les twin notifications
+			dataNotif = {
 				from: jwtUser.id,
 				to: friendId,
+				type: FRIEND_REQUEST_ACTIONS.ADD
 			}
-			// pas d'id = on crée un objet NotificationInput “fictif” pour récupérer les twin notifications
-			twinNotifs = await getTwinNotifications({ ...data, type: FRIEND_REQUEST_ACTIONS.ADD });
 		}
+		twinNotifs = await getTwinNotifications(dataNotif);
 
 		if ('errorMessage' in twinNotifs) 
 			return reply.code(404).send({ errorMessage: twinNotifs.errorMessage || 'Notification(s) not found' });

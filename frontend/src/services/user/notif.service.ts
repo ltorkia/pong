@@ -54,7 +54,16 @@ export class NotifService {
 				n.from === this.friendId && 
 				n.to === this.currentUser.id
 			);
-		} 
+		} else {
+			this.currentNotif = {
+				id: 0,
+				type: FRIEND_REQUEST_ACTIONS.ADD,
+				from: this.currentUser.id,
+				to: this.friendId,
+				read: 0,
+				createdAt: '',
+			}
+		}
 	}
 
 	/**
@@ -243,14 +252,7 @@ export class NotifService {
 			console.error(result.errorMessage);
 			return;
 		}
-		console.log(result);
-		this.notifs = result;
-
-		// this.currentNotif = this.notifs.find(n => 
-		// 	n.type !== type &&
-		// 	n.from === this.friendId && 
-		// 	n.to === this.currentUser.id
-		// );
+		this.notifs = result.filter((notif: AppNotification) => !isUserOnlineStatus(notif.type));
 		storageService.setCurrentNotifs(this.notifs);
 		console.log('Notifications rechargées:', this.notifs);
 	}
@@ -332,7 +334,8 @@ export class NotifService {
 	 * @returns {Promise<void>} Une promesse qui se résout lorsque les boutons d'amitié ont été mis à jour.
 	 */
 	private async refreshFriendButtons(userRowInstance?: UserRowComponent): Promise<void> {
-		if (this.currentPage.config.path === ROUTE_PATHS.USERS) {
+		if (this.currentPage.config.path === ROUTE_PATHS.USERS
+			&& isFriendRequestAction(this.currentNotif.type)) {
 			await this.currentPage.updateFriendButtons!(this.friendId!, userRowInstance);
 		}
 	}
@@ -424,11 +427,11 @@ export class NotifService {
 
 	public handleCancelClick = async (): Promise<void> => {
 		console.log("CANCEL CLICK: Cancel friend request from user ID:", this.currentUser.id, "to user ID:", this.friendId!);
-		const data = {
-			id: 0,
-			to: this.friendId
-		}
-		let res = await friendApi.removeFriend(this.friendId!, data);
+		// const data = {
+		// 	id: 0,
+		// 	to: this.friendId
+		// }
+		let res = await friendApi.removeFriend(this.currentNotif);
 		if ('errorMessage' in res) {
 			console.error(res.errorMessage);
 			return;
@@ -438,7 +441,7 @@ export class NotifService {
 
 	public handleDeclineClick = async (): Promise<void> => {
 		console.log("DECLINE CLICK: Decline friend request from user ID:", this.currentUser.id, "to user ID:", this.friendId!);
-		let res = await friendApi.removeFriend(this.friendId!, this.currentNotif);
+		let res = await friendApi.removeFriend(this.currentNotif);
 		if ('errorMessage' in res) {
 			console.error(res.errorMessage);
 			return;
@@ -454,7 +457,7 @@ export class NotifService {
 			return;
 		}
 		this.currentNotif.toType = FRIEND_REQUEST_ACTIONS.ACCEPT;
-		let res = await friendApi.updateFriend(this.friendId!, this.currentNotif);
+		let res = await friendApi.updateFriend(this.currentNotif);
 		if ('errorMessage' in res) {
 			console.error(res.errorMessage);
 			return;
@@ -469,7 +472,7 @@ export class NotifService {
 			return;
 		}
 		this.currentNotif.toType = FRIEND_REQUEST_ACTIONS.BLOCK;
-		let res = await friendApi.updateFriend(this.friendId!, this.currentNotif);
+		let res = await friendApi.updateFriend(this.currentNotif);
 		if ('errorMessage' in res) {
 			console.error(res.errorMessage);
 			return;

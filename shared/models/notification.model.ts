@@ -13,7 +13,7 @@ export class AppNotification {
 		public to: number,
 		public type: NotificationType,
 		public content: string | null,
-		public createdAt: string,
+		public createdAt: string | null,
 		public read: number
 	) {}
 
