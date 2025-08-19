@@ -23,8 +23,10 @@ export async function gameRoutes(app: FastifyInstance) {
         newPlayer.matchMaking = true;
         const playerTwo = allPlayers.find((p: Player) => p.matchMaking == true && p.ID != newPlayer.ID);
         if (playerTwo) {
-            startGame(app, [newPlayer, playerTwo]);
+            console.log("player 1 = ", playerTwo.ID, " player 2 = ", newPlayer.ID);
+            // startGame(app, [newPlayer, playerTwo]);
         }
+        // identifier les players + inserer le jeu dans la db
     });
 };
 
