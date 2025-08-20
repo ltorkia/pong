@@ -37,7 +37,7 @@ import { getDb } from "./index.db";
 // 	);
 // }
     // return snakeToCamel(relation) as FriendModel;
-export async function addGame(userId1: number, userId2: number) {
+export async function addGame(userId1: number, userId2: number): Promise<number> {
     const db = await getDb();
 
     // Insérer le jeu et récupérer son id
@@ -45,7 +45,7 @@ export async function addGame(userId1: number, userId2: number) {
         `INSERT INTO Game (status, n_participants) VALUES ('in_progress', 2)`
     );
 
-    const gameId = result.lastID; // id du jeu inséré
+    const gameId = result.lastID!; // id du jeu inséré
 
     // Insérer les deux joueurs liés au jeu
     await db.run(
@@ -64,27 +64,59 @@ export async function addGame(userId1: number, userId2: number) {
 export async function resultGame(gameId: number, winnerId: number, looserId: number){
     const db = await getDb();
 
-    // const [user1, user2] = userId1 < userId2
-    //     ? [userId1, userId2]
-    //     : [userId2, userId1];
+    // await db.run(`
+    //     UPDATE Game SET status = 'finished', end = CURRENT_TIMESTAMP, winner_id = ? WHERE id = ?;
+
+    //     UPDATE User_Game
+    //     SET status_win = 1,
+    //     SET duration = CAST((strftime('%s', (SELECT end FROM Game WHERE id = ?)) - strftime('%s', (SELECT begin FROM Game WHERE id = ?))) AS INTEGER)
+    //     WHERE game_id = ? AND user_id = ?;
+
+    //     UPDATE User_Game
+    //     SET status_win = 0,
+    //     UPDATE User_Game SET duration = CAST((strftime('%s', (SELECT end FROM Game WHERE id = ?)) 
+    //                - strftime('%s', (SELECT begin FROM Game WHERE id = ?))) AS INTEGER)
+    //     WHERE game_id = ? AND user_id = ?;
+    // `,
+	// 	[winnerId, gameId, gameId, gameId, winnerId, gameId, gameId, gameId, looserId]
+	// );
+    // await db.run(`
+    //     UPDATE Game
+    //     SET status = 'finished',
+    //         end = CURRENT_TIMESTAMP,
+    //         winner_id = ?
+    //     WHERE id = ?;
+
+    //     UPDATE User_Game
+    //     SET status_win = CASE WHEN user_id = ? THEN 1 ELSE 0 END,
+    //         duration = CAST(
+    //             (strftime('%s', (SELECT end FROM Game WHERE id = ?)) - 
+    //             strftime('%s', (SELECT begin FROM Game WHERE id = ?))
+    //             ) AS INTEGER
+    //         )
+    //     WHERE game_id = ?;
+    //     `, 
+    //     [winnerId, gameId, winnerId, gameId, gameId, gameId]);
+    await db.run(`
+        UPDATE Game
+        SET status = 'finished',
+            end = CURRENT_TIMESTAMP,
+            winner_id = ?
+        WHERE id = ?;
+`, [winnerId, gameId]);
 
     await db.run(`
-        UPDATE Game SET status = 'finished', end = CURRENT_TIMESTAMP, winner_id = ? WHERE id = ?;
-
         UPDATE User_Game
-        SET status_win = 1,
-        SET duration = CAST((strftime('%s', (SELECT end FROM Game WHERE id = ?)) - strftime('%s', (SELECT begin FROM Game WHERE id = ?))) AS INTEGER)
-        WHERE game_id = ? AND user_id = ?;
+        SET status_win = CASE WHEN user_id = ? THEN 1 ELSE 0 END,
+            duration = CAST(
+                (strftime('%s', (SELECT end FROM Game WHERE id = ?)) - 
+                strftime('%s', (SELECT begin FROM Game WHERE id = ?))
+                ) AS INTEGER
+            )
+        WHERE game_id = ?;
+        `, 
+ [winnerId, gameId, gameId, gameId]);
 
-        UPDATE User_Game
-        SET status_win = 0,
-        UPDATE User_Game SET duration = CAST((strftime('%s', (SELECT end FROM Game WHERE id = ?)) 
-                   - strftime('%s', (SELECT begin FROM Game WHERE id = ?))) AS INTEGER)
-        WHERE game_id = ? AND user_id = ?;
-    `,
-		[winnerId, gameId, gameId, gameId, winnerId, gameId, gameId, gameId, looserId]
-	);
-    // return snakeToCamel(relation) as FriendModel;
 }
 
 // export async function getResultGame()

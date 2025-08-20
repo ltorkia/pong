@@ -25,15 +25,15 @@ export async function gameRoutes(app: FastifyInstance) {
         const playerTwo = allPlayers.find((p: Player) => p.matchMaking == true && p.ID != newPlayer.ID);
         if (playerTwo) {
             // console.log("player 1 = ", playerTwo.ID, " player 2 = ", newPlayer.ID);
-            const gameIDforDB = await addGame(playerTwo.ID, newPlayer.ID);
+            // const gameIDforDB = await addGame(playerTwo.ID, newPlayer.ID);
             
-            startGame(app, [newPlayer, playerTwo], gameIDforDB!);
+            startGame(app, [newPlayer, playerTwo]);
         }
         // identifier les players + inserer le jeu dans la db
     });
 };
 
-const startGame = (app: FastifyInstance, players: Player[], gameIDforDB: number) => {
+const startGame = async (app: FastifyInstance, players: Player[]) => {
     const { usersWS } = app;
     const { allGames } = app.lobby;
     const gameID = generateUniqueID(allGames);
@@ -54,7 +54,9 @@ const startGame = (app: FastifyInstance, players: Player[], gameIDforDB: number)
             player.webSocket = user.WS;
         }
     }
-    const newGame = new Game(2, players, gameIDforDB);
+    // const gameIDforDB = await addGame(playerTwo.ID, newPlayer.ID);
+    const newGame = new Game(2, players);
+    newGame.gameIDforDB = await addGame(players[0].ID, players[1].ID);
     allGames.push(newGame);
     newGame.initGame();
 }

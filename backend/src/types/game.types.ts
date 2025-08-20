@@ -1,4 +1,4 @@
-import { resultGame } from "src/db/game";
+import { resultGame, addGame } from "../db/game";
 import { GameData, Player } from "../shared/types/game.types"
 
 const DEG_TO_RAD = Math.PI / 180;
@@ -91,12 +91,11 @@ export class Game {
     private gameStarted: boolean = false;
     private isOver: boolean = false;
     private score: number[] = [];
-    private gameIDforDB: number; // a voir
+    public gameIDforDB: number = 0; // a voir
 
-    constructor(playersCount: number, players: Player[], gameIDforDB: number) {
+    constructor(playersCount: number, players: Player[]) {
         this.playersCount = playersCount;
         this.players = players;
-        this.gameIDforDB = gameIDforDB;
     }
 
     private async gameLoop(): Promise<void> {
@@ -234,11 +233,12 @@ export class Tournament {
         this.isStarted = isStarted ?? true;
     }
 
-    public startTournament(): void {
+    public async startTournament(): Promise<void> {
         shuffleArray(this.players);
         let playerIdx = 0;
         for (let i = 0; i < 2; i++) {
             const newGame = new Game(2, [this.players[playerIdx], this.players[playerIdx + 1]]); // a changer sa mere
+            newGame.gameIDforDB = await addGame(this.players[playerIdx].ID, this.players[playerIdx + 1].ID);
             this.stageOneGames.push(newGame);
             playerIdx += 2;
         }
