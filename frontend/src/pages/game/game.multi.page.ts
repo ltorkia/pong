@@ -88,6 +88,11 @@ export class GameMenuMulti extends BasePage {
             console.log(event);
         })
 
+        //  document.addEventListener(" ", (event) => {
+        //         this.sendMatchMakingRequest();
+        //         this.appendWaitText();            
+        //  })
+
         document.addEventListener("keydown", (event) => {
             if (event.key == " ") {
                 this.sendMatchMakingRequest();

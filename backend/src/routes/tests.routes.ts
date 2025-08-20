@@ -98,7 +98,7 @@ export async function testsRoutes(app: FastifyInstance) {
 
 // 		// Insérer Game
 // 		await db.run(`
-// 			INSERT INTO Game (n_participants, begin, end, tournament, status, temporary_result)
+// 			INSERT INTO Game (n_participants, begin, end, tournament, status, looser_result)
 // 			VALUES (?, datetime('now'), ?, ?, ?, ?)`,
 // 			[2, 0, 1, 'in_progress', 0]
 // 		);

@@ -14,20 +14,32 @@ export async function gameRoutes(app: FastifyInstance) {
             return reply.code(400).send({ error: matchMakingReq.error.errors[0].message });
 
         const { allPlayers } = app.lobby;
+        console.log(app.lobby);
+        // while 
+// add function te see if player is already in game or in matchmaking = false + bug au debut avec lobby -> repere pas tout de suite la personne
+        // for (const player in allPlayers)
+        // {
+        //     if (player.matchmaking = false )
 
+        // }
         const newPlayer = allPlayers.find((p: Player) => p.ID == matchMakingReq.data.playerID);
+        console.log("allplayersssss     ----------------------------", allPlayers);
         if (!newPlayer)
             return reply.code(404).send({ error: "Player not found" });
 
         reply.code(200).send("Successfully added to matchmaking");
 
         newPlayer.matchMaking = true;
-        const playerTwo = allPlayers.find((p: Player) => p.matchMaking == true && p.ID != newPlayer.ID);
+        const playerTwo = allPlayers.find((p: Player) => p.matchMaking == false && p.ID != newPlayer.ID);
         if (playerTwo) {
             // console.log("player 1 = ", playerTwo.ID, " player 2 = ", newPlayer.ID);
             // const gameIDforDB = await addGame(playerTwo.ID, newPlayer.ID);
-            
+            playerTwo.matchMaking = true;
             startGame(app, [newPlayer, playerTwo]);
+            const playerIdx1 = allPlayers.findIndex((player: Player) => player.ID == newPlayer.ID);
+            const playerIdx2 = allPlayers.findIndex((player: Player) => player.ID == playerTwo.ID);
+            allPlayers.splice(playerIdx1, 1);
+            allPlayers.splice(playerIdx2, 1);
         }
         // identifier les players + inserer le jeu dans la db
     });
@@ -56,7 +68,7 @@ const startGame = async (app: FastifyInstance, players: Player[]) => {
     }
     // const gameIDforDB = await addGame(playerTwo.ID, newPlayer.ID);
     const newGame = new Game(2, players);
-    newGame.gameIDforDB = await addGame(players[0].ID, players[1].ID);
+    newGame.gameIDforDB = await addGame(players[0].ID, players[1].ID, false);
     allGames.push(newGame);
     newGame.initGame();
 }

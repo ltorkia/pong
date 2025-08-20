@@ -92,6 +92,8 @@ export class Game {
     private isOver: boolean = false;
     private score: number[] = [];
     public gameIDforDB: number = 0; // a voir
+    // private async addGame(userId1: number, userId2: number): Promise<number> ;
+    // private async resultGame(gameId: number, winnerId: number, looserId: number);
 
     constructor(playersCount: number, players: Player[]) {
         this.playersCount = playersCount;
@@ -189,9 +191,10 @@ export class Game {
         {
             winner = this.players[0];
             looser = this.players[1];
-
         }
-        await resultGame(this.gameIDforDB, winner.ID, looser.ID);
+        await resultGame(this.gameIDforDB, winner.ID, looser.ID, this.score);
+        winner.matchMaking = false;
+        looser.matchMaking = false;
     }
 
     private sendGameUpdate() {
@@ -238,7 +241,6 @@ export class Tournament {
         let playerIdx = 0;
         for (let i = 0; i < 2; i++) {
             const newGame = new Game(2, [this.players[playerIdx], this.players[playerIdx + 1]]); // a changer sa mere
-            newGame.gameIDforDB = await addGame(this.players[playerIdx].ID, this.players[playerIdx + 1].ID);
             this.stageOneGames.push(newGame);
             playerIdx += 2;
         }

@@ -58,7 +58,7 @@ CREATE TABLE IF NOT EXISTS Game (
 	end DATETIME,
 	tournament INTEGER DEFAULT 0 CHECK (tournament IN (0, 1)),
 	status TEXT DEFAULT 'waiting' CHECK (status IN ('waiting', 'in_progress', 'cancelled', 'finished')),
-	temporary_result INTEGER DEFAULT 0,
+	looser_result INTEGER DEFAULT 0,
 	winner_id INTEGER,
 	FOREIGN KEY (winner_id) REFERENCES User(id)
 );

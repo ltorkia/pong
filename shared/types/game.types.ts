@@ -7,7 +7,7 @@ export interface GameModel {
     end: string;
     tournament: number;
     status: GameStatus;
-    temporaryResult: number;
+    looserResult: number;
 }
 
 export type GameStatus =
@@ -85,3 +85,15 @@ export interface TournamentInterface {
     players?: Player[];
     games?: GameInterface[];
 }
+
+// export interface GameModel {
+// 	id: number;
+// 	nParticipants: number;
+// 	begin: string;
+// 	end: string;
+// 	tournament: number;
+//     status: string;
+//     looserResult: number;
+//     winnerId: number;
+// }
+

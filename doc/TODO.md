@@ -16,14 +16,16 @@ COMMUN
 - Complexifier mot de passe
 - Faire sockets pour statut online / demandes d'amis
 - Pour chaque route avec userId (ex: `/api/users/${userId}/friends/remove`), faire une verif userId == id du current user avec le token, sinon faille de secu
-- Google sign en remote Pelouse
+- Google sign en remote Pelouse -> voir compte google du serveur pour changer adresse ip
 - Gerer notifs dans bdd
+
 
 FRONT
 
 - Rajouter le nom du user connecté sur la navbar ?
 - Faire page profil (stats globales user) / dashboard (match history, 1vs1, tournois etc)
 - Faire un petit hover sur le bouton/icon previous de register et du modal
+- Rajouter un bouton pour quitter le jeu
 
 - check MAJ package.json :
  @tsparticles/engine         ^3.0.2  →   ^3.8.1

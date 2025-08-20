@@ -5,9 +5,11 @@ import { Tournament } from '../types/game.types';
 import { TournamentLobbyUpdate, StartTournamentSignal, DismantleSignal } from '../shared/types/websocket.types'
 import { UserWS } from '../types/user.types';
 import { findPlayerWebSocket } from '../helpers/query.helpers';
+import { addGame } from '../db/game';
 
 export async function tournamentRoutes(app: FastifyInstance) {
     app.get("/tournaments", async (request: FastifyRequest, reply: FastifyReply) => {
+        console.log("tournament response:", app.lobby.allTournaments);
         return reply.send(app.lobby.allTournaments);
     });
 
@@ -166,11 +168,17 @@ export async function tournamentRoutes(app: FastifyInstance) {
         }
         
         tournament.isStarted = true;
+        // db -> creation du tournoi 
         tournament.startTournament();
 
         const startSignal: StartTournamentSignal = { type: "start_tournament_signal" };
 
         sendToTournamentPlayers(startSignal, tournament, app);
+        // for (const game of tournament.stageOneGames)
+        // {
+        //     game.gameIDforDB = await addGame(game.players[0].ID, game.players[1].ID, true);
+        //     tournament.stageOneGames.initGame();
+        // }
     });
 
     app.post("/dismantle_tournament", async (request: FastifyRequest, reply: FastifyReply) => {
