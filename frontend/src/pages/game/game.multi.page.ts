@@ -1,6 +1,6 @@
 import { BasePage } from '../base/base.page';
 import { RouteConfig } from '../../types/routes.types';
-import { MatchMakingReq } from '../../shared/types/websocket.types'
+import { MatchMakingReq } from '../../shared/types/websocket.types';
 import { MultiPlayerGame } from '../../components/game/MultiplayerGame.component';
 import { webSocketService } from '../../services/user/user.service';
 

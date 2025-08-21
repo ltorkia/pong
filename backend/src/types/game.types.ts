@@ -193,6 +193,7 @@ export class Game {
             looser = this.players[1];
         }
         await resultGame(this.gameIDforDB, winner.ID, looser.ID, this.score);
+        // allPlayers.splice(playerIdx, 1);
         winner.matchMaking = false;
         looser.matchMaking = false;
     }
