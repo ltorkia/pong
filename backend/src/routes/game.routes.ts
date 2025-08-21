@@ -8,20 +8,25 @@ import {addGame, resultGame } from '../db/game';
 
 export async function gameRoutes(app: FastifyInstance) {
     app.post('/multiplayer', async (request: FastifyRequest, reply: FastifyReply) => {
-        const matchMakingReq = MatchMakingReqSchema.safeParse(request.body);
+        const matchMakingReq = MatchMakingReqSchema.safeParse(request.body); //waiting, 
+        console.log("reauest bodyyyyy = ", request.body);
 
         if (!matchMakingReq.success)
             return reply.code(400).send({ error: matchMakingReq.error.errors[0].message });
-
         const { allPlayers } = app.lobby;
         console.log(app.lobby);
         // while 
-// add function te see if player is already in game or in matchmaking = false + bug au debut avec lobby -> repere pas tout de suite la personne
+        // add function te see if player is already in game or in matchmaking = false + bug au debut avec lobby -> repere pas tout de suite la personne
         // for (const player in allPlayers)
         // {
         //     if (player.matchmaking = false )
-
+        
         // }
+        if (!allPlayers.find((p: Player) => p.ID == matchMakingReq.data.playerID))
+        {
+            allPlayers.push(new Player(matchMakingReq.data.playerID));
+            console.log(`ADDED USER ID = ${matchMakingReq.data.playerID}`);
+        }
         const newPlayer = allPlayers.find((p: Player) => p.ID == matchMakingReq.data.playerID);
         console.log("allplayersssss     ----------------------------", allPlayers);
         if (!newPlayer)
@@ -30,18 +35,17 @@ export async function gameRoutes(app: FastifyInstance) {
         reply.code(200).send("Successfully added to matchmaking");
 
         newPlayer.matchMaking = true;
-        const playerTwo = allPlayers.find((p: Player) => p.matchMaking == false && p.ID != newPlayer.ID);
+        const playerTwo = allPlayers.find((p: Player) => p.matchMaking === true && p.ID !== newPlayer.ID);
         if (playerTwo) {
             // console.log("player 1 = ", playerTwo.ID, " player 2 = ", newPlayer.ID);
             // const gameIDforDB = await addGame(playerTwo.ID, newPlayer.ID);
-            playerTwo.matchMaking = true;
+            // playerTwo.matchMaking = false;
             startGame(app, [newPlayer, playerTwo]);
             const playerIdx1 = allPlayers.findIndex((player: Player) => player.ID == newPlayer.ID);
             const playerIdx2 = allPlayers.findIndex((player: Player) => player.ID == playerTwo.ID);
             allPlayers.splice(playerIdx1, 1);
             allPlayers.splice(playerIdx2, 1);
         }
-        // identifier les players + inserer le jeu dans la db
     });
 };
 

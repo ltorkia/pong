@@ -28,15 +28,15 @@ async function start() {
 
     // Instanciation de Fastify
     const app = Fastify({
-        logger: {
-            transport: {
-                target: 'pino-pretty',
-                options: {
-                    translateTime: 'SYS:standard',
-                    ignore: 'pid,hostname',
-                }
-            },
-        },
+        // logger: {
+        //     transport: {
+        //         target: 'pino-pretty',
+        //         options: {
+        //             translateTime: 'SYS:standard',
+        //             ignore: 'pid,hostname',
+        //         }
+        //     },
+        // },
         ignoreTrailingSlash: true,		// ignore les / à la fin des urls
         bodyLimit: 10 * 1024 * 1024,	// 10 Mo pour toutes les requêtes
         connectionTimeout: 120000,		// 2 minutes

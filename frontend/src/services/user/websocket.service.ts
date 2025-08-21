@@ -37,7 +37,10 @@ export class WebSocketService {
 	}
 	
 	constructor() {
-		if (currentService.getCurrentUser())
+		if (currentService.getCurrentUser()) {
+			console.debug("Connecting to socket on constructor")
 			this.openWebSocket();
+
+		}
 	}
 }

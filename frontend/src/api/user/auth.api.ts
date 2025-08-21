@@ -68,6 +68,11 @@ export class AuthApi {
 		if (!res.ok) {
 			return { valid: false };
 		}
+
+		// Si pas de websocket ouvert, on l'ouvre
+		if (!webSocketService.getWebSocket()) {
+			webSocketService.openWebSocket();
+		}
 		
 		return res.json() as Promise<{ valid: boolean }>;
 	}
