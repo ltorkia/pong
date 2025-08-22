@@ -2,7 +2,7 @@
 
 	/* GRID RESPONSIVE */
 	.user-line {
-		@apply w-full grid items-center gap-1;
+		@apply w-full grid items-center gap-8;
 		grid-template-columns: auto auto minmax(12rem, 1fr) minmax(20rem, 2fr) 40px; /* desktop par défaut */
 	}
 	@screen mobile {
@@ -65,15 +65,14 @@
 		@apply bg-white/80;
 	}
 
+	/* BUTTONS */
 	#user-list .user-line:nth-child(odd):not(:first-child) .custom-btn {
 		@apply bg-[#5e8ca5d4] border-gray-800/10 hover:bg-[#5e8ca5];
 	}
-
 	#user-list .user-line:nth-child(even) .custom-btn {
 		@apply bg-[#5e8ca5d4] border-gray-800/10 hover:bg-[#5e8ca5];
 	}
 
-	/* BUTTONS */
 	.user-line button {
 		@apply text-pastel-blue font-normal lowercase px-3 hover:text-blue-500 text-xs md:text-sm;
 	}
@@ -125,6 +124,10 @@
 	}
 	.ingame {
 		@apply bg-yellow-500 drop-shadow-[0_0_6px_#eab308];
+	}
+
+	.log-cell {
+		@apply font-bold text-gray-700 text-xs;
 	}
 
 	.button-cell {

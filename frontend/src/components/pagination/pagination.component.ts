@@ -88,8 +88,10 @@ export class PaginationComponent extends BaseComponent {
 		this.paginationInfoElement.textContent = this.getPaginationStats();
 		this.paginationButtonsContainer.innerHTML = '';
 
-		if (this.paginationInfos.totalPages <= 1)
+		if (this.paginationInfos.totalPages <= 1) {
+			this.paginationButtonsContainer.classList.add('hidden');
 			return;
+		}
 		this.renderPaginationButtons();
 	}
 
@@ -156,7 +158,7 @@ export class PaginationComponent extends BaseComponent {
 
 		// Bouton Précédent
 		if (hasPreviousPage) {
-			this.createPaginationButton('‹ Previous', currentPage - 1, 'prev-btn');
+			this.createPaginationButton('‹ Prev', currentPage - 1, 'prev-btn');
 		}
 
 		// Logique d'affichage des pages
@@ -257,7 +259,7 @@ export class PaginationComponent extends BaseComponent {
 	private createEllipsis(): void {
 		const ellipsis = document.createElement('span');
 		ellipsis.textContent = '...';
-		ellipsis.className = 'px-3 py-1 mx-1 text-gray-500 cursor-default';
+		ellipsis.className = 'default-btn-page';
 		this.paginationButtonsContainer.appendChild(ellipsis);
 	}
 
@@ -268,17 +270,17 @@ export class PaginationComponent extends BaseComponent {
 	 * @returns {string} Les classes CSS à appliquer
 	 */
 	private getButtonClasses(type: string): string {
-		const baseClasses = 'px-3 py-1 mx-1 border rounded transition duration-200';
+		const baseClass = 'default-btn-page';
 		
 		switch (type) {
 			case 'current-page':
-				return `${baseClasses} bg-cyan-700 text-white cursor-default border-cyan-700`;
+				return `${baseClass} active-btn-page`;
 			case 'prev-btn':
 			case 'next-btn':
-				return `${baseClasses} bg-gray-100 hover:bg-cyan-600 hover:text-white hover:border-cyan-600 border-gray-300`;
 			case 'page-btn':
+				return `${baseClass} link-btn-page`;
 			default:
-				return `${baseClasses} bg-white hover:bg-cyan-600 hover:text-white hover:border-cyan-600 border-gray-300`;
+				return `${baseClass}`;
 		}
 	}
 

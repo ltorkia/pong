@@ -1,24 +1,25 @@
 @layer components {
+
+	.pagination-bloc {
+		@apply flex flex-col items-center gap-2 mt-5 cursor-default
+		tablet:flex-row tablet:items-center tablet:gap-0;
+	}
 	
 	/* PAGINATION */
-	.pagination-info {
-		@apply text-sm text-white font-classic mt-5;
+	#pagination-buttons-container {
+		@apply tablet:ml-3;
 	}
-
-	/* .pagination {
-		@apply flex items-center justify-center space-x-2 mt-4;
+	.pagination-style {
+		@apply text-sm text-white font-classic px-3 py-1 
+		border border-white/20 bg-white/10 backdrop-blur-md rounded;
 	}
-
-	.pagination button {
-		@apply btn smaller-btn font-classic px-3 py-1 text-pastel-blue hover:text-blue-700
-		transition duration-200 ease-in-out;
+	.default-btn-page {
+		@apply pagination-style mx-1 border transition duration-200;
 	}
-
-	.pagination .active {
-		@apply bg-blue-500 text-white;
+	 .active-btn-page {
+		@apply bg-[#bfb8fb] text-[#575050] cursor-default;
 	}
-
-	.pagination .disabled {
-		@apply text-gray-400 cursor-not-allowed;
-	} */
+	 .link-btn-page {
+		@apply hover:bg-[#2f27271a] cursor-pointer;
+	}
 }
