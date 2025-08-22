@@ -1,6 +1,7 @@
-import { DB_CONST, IMAGE_CONST } from '../config/constants.config';
+import { DB_CONST, IMAGE_CONST, USER_ONLINE_STATUS } from '../config/constants.config';
 import { User } from '../models/user.model';
 import { AppNotification } from '../models/notification.model';
+import { FriendStatus } from '../types/friend.types';
 
 // ===========================================
 // USER TYPES
@@ -14,7 +15,7 @@ import { AppNotification } from '../models/notification.model';
  * Type d'état d'un utilisateur.
  */
 export type UserStatus = 
-	typeof DB_CONST.USER.STATUS[keyof typeof DB_CONST.USER.STATUS];
+	typeof USER_ONLINE_STATUS[keyof typeof USER_ONLINE_STATUS];
 
 /**
  * Type de méthode d'inscription.
@@ -58,6 +59,7 @@ export interface SafeUserModel {
 	status: UserStatus;
 	isDesactivated: number;
 	notifications?: AppNotification[];
+	friendStatus?: FriendStatus | null;
 }
 
 /**

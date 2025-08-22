@@ -3,6 +3,7 @@ import { ComponentName, ComponentConfig } from './components.types';
 import { PAGE_NAMES, ROUTE_PATHS, TEMPLATE_PATHS } from '../config/routes.config';
 import { UserRowComponent } from '../components/user-row/user-row.component';
 import { AppNotification } from '../shared/models/notification.model';
+import { User } from '../shared/models/user.model';
 
 // ===========================================
 // ROUTES TYPES
@@ -81,6 +82,9 @@ export interface RouteParams {
  * - cleanup: fonction de nettoyage avant de changer de page
  * - getComponentInstance: fonction pour récupérer une instance de composant spécifique
  * - updateFriendButtons: fonction pour mettre à jour les boutons d'amitié
+ * - changeOnlineStatus: fonction pour mettre à jour l'onlineStatus d'un utilisateur
+ * - injectUser: fonction pour injecter un utilisateur dans la liste des utilisateurs
+ * - removeUser: fonction pour supprimer un utilisateur de la liste des utilisateurs
  */
 export interface PageInstance {
 	config: RouteConfig;
@@ -88,6 +92,9 @@ export interface PageInstance {
 	cleanup?: () => Promise<void>;
 	getComponentInstance?<T>(name: string): T | undefined;
 	updateFriendButtons?: (friendId?: number, userRowInstance?: UserRowComponent) => Promise<void>;
+	changeOnlineStatus?: (user: User) => Promise<void>;
+	injectUser?: (user: User) => Promise<void>;
+	removeUser?: (user: User) => Promise<void>;
 }
 
 /**

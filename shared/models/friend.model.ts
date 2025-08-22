@@ -1,6 +1,7 @@
 import { FriendModel, FriendStatus } from '../types/friend.types';	// en rouge car dossier local 'shared' != dossier conteneur
 import { UserStatus } from '../types/user.types';
 import { DB_CONST, USER_ONLINE_STATUS } from '../config/constants.config'; // en rouge car dossier local 'shared' != dossier conteneur
+import { formatRelativeDate } from '../utils/app.utils';
 
 // ===========================================
 // FRIENDS MODEL
@@ -42,9 +43,13 @@ export class Friend {
 	isOnline(): boolean {
 		return this.status === USER_ONLINE_STATUS.ONLINE;
 	}
+	
+	get formattedBeginLog(): string {
+		return formatRelativeDate(this.beginLog);
+	}
 
-	get formattedLastLog(): string {
-		return this.beginLog ? new Date(this.beginLog).toLocaleString() : 'User has never logged in';
+	get formattedEndLog(): string {
+		return formatRelativeDate(this.endLog);
 	}
 	
 	get winRate(): number {

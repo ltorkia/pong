@@ -34,7 +34,9 @@ export class UserRowComponent extends BaseComponent {
 	private avatarImg!: HTMLImageElement;
 	private nameCell!: HTMLElement;
 	private statusCell!: HTMLElement;
+	private friendLogoCell!: HTMLElement;
 	private levelCell!: HTMLElement;
+	private logCell!: HTMLElement;
 	private profilePath!: string;
 	private buttonCell!: HTMLElement;
 	private addFriendButton!: HTMLButtonElement;
@@ -97,7 +99,9 @@ export class UserRowComponent extends BaseComponent {
 		this.avatarImg = getHTMLElementByClass('avatar-img', this.container) as HTMLImageElement;
 		this.nameCell = getHTMLElementByClass('name-cell', this.container) as HTMLElement;
 		this.statusCell = getHTMLElementByClass('status-cell', this.container) as HTMLElement;
+		this.friendLogoCell = getHTMLElementByClass('friend-logo-cell', this.container) as HTMLElement;
 		this.levelCell = getHTMLElementByClass('level-cell', this.container) as HTMLElement;
+		this.logCell = getHTMLElementByClass('log-cell', this.container) as HTMLElement;
 		this.profilePath = `/user/${this.user!.id}`;
 		this.buttonCell = getHTMLElementByClass('button-cell', this.container) as HTMLElement;
 		this.addFriendButton = getHTMLElementByClass('add-friend-button', this.buttonCell) as HTMLButtonElement;
@@ -133,12 +137,20 @@ export class UserRowComponent extends BaseComponent {
 		this.avatarImg.setAttribute('src', userAvatar);
 		this.nameCell.textContent = this.user!.username;
 		this.statusCell.innerHTML = dataService.showStatusLabel(this.user!);
+		const friendLogo = dataService.showFriendLogo(this.user!);
+		if (friendLogo) {
+			this.friendLogoCell.innerHTML = friendLogo;
+		}
 		if (this.levelCell) {
 			if ('winRate' in this.user! && this.user.winRate !== undefined) {
 				this.levelCell.textContent = `Win rate: ${this.user.winRate}%`;
 			} else {
 				this.levelCell.textContent = 'No stats';
 			}
+		}
+		const logDate = dataService.showLogDate(this.user!);
+		if (logDate) {
+			this.logCell.textContent = logDate;
 		}
 		await this.toggleFriendButton();
 	}
@@ -192,8 +204,8 @@ export class UserRowComponent extends BaseComponent {
 				return;
 			}
 			if (friend.friendStatus === DB_CONST.FRIENDS.STATUS.PENDING) {
+				this.removeFriendButton.classList.remove('hidden');
 				if (friend.requesterId === this.currentUser!.id) {
-					this.removeFriendButton.classList.remove('hidden');
 					this.removeFriendButtonContent.textContent = 'Cancel friend request';
 					return;
 				}

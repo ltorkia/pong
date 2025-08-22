@@ -70,3 +70,49 @@ export function isNotificationModel(obj: any): obj is NotificationModel {
 		NOTIFICATION_TYPES.includes(obj.type as NotificationType)
 	);
 }
+
+/**
+ * Formatte une date en une chaîne de caractères relative, en fonction de la
+ * date actuelle. Si la date est nulle, renvoie "User has never logged in".
+ *
+ * Si la date est inférieure à 1 minute, renvoie "just now".
+ * Si la date est inférieure à 1 heure, renvoie "X minute(s) ago".
+ * Si la date est inférieure à 1 jour, renvoie "X heure(s) Y minute(s) ago".
+ * Si la date est inférieure à 15 jours, renvoie "X days ago".
+ * Sinon, renvoie la date au format "DD MMM YYYY" (par exemple, "01 Jan 2022").
+ *
+ * @param {string | null} dateStr - La date à formatter, au format ISO 8601.
+ * @returns {string} La date formatée.
+ */
+export function formatRelativeDate(dateStr: string | null): string {
+	if (!dateStr) 
+		return 'User has never logged in';
+
+	// Forcer l'interprétation en UTC en ajoutant 'Z'
+	const date = new Date(dateStr + 'Z');
+	const now = new Date();
+
+	const diffMs = Math.abs(now.getTime() - date.getTime());
+	const diffMinutes = Math.floor(diffMs / (1000 * 60));
+	const diffHours = Math.floor(diffMinutes / 60);
+	const diffDays = Math.floor(diffHours / 24);
+
+	if (diffMinutes < 1) return 'just now';
+	if (diffMinutes < 60) return `${diffMinutes} minute${diffMinutes > 1 ? 's' : ''} ago`;
+	if (diffHours < 24) {
+		const remainingMinutes = diffMinutes % 60;
+		if (remainingMinutes === 0) {
+			return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+		}
+		return `${diffHours} hour${diffHours > 1 ? 's' : ''} ${remainingMinutes} minute${remainingMinutes > 1 ? 's' : ''} ago`;
+	}
+
+	if (diffDays === 1) return 'yesterday';
+	if (diffDays <= 14) return `${diffDays} days ago`;
+
+	return date.toLocaleDateString('en-GB', {
+		day: '2-digit',
+		month: 'short',
+		year: 'numeric'
+	});
+}

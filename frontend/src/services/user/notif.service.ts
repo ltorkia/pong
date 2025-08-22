@@ -1,5 +1,5 @@
 import { ROUTE_PATHS } from '../../config/routes.config';
-import { notifApi, friendApi } from '../../api/index.api';
+import { notifApi, friendApi, dataApi } from '../../api/index.api';
 import { PageInstance } from '../../types/routes.types';
 import { COMPONENT_NAMES } from '../../config/components.config';
 import { NavbarComponent } from '../../components/navbar/navbar.component';
@@ -8,7 +8,7 @@ import { currentService, storageService } from './user.service';
 import { User } from '../../shared/models/user.model';
 import { AppNotification } from '../../shared/models/notification.model';
 import { NotifResponse } from '../../shared/types/response.types';
-import { FRIEND_REQUEST_ACTIONS } from '../../shared/config/constants.config'; // en rouge car dossier local 'shared' != dossier conteneur
+import { FRIEND_REQUEST_ACTIONS, USER_ONLINE_STATUS } from '../../shared/config/constants.config'; // en rouge car dossier local 'shared' != dossier conteneur
 import { isValidNotificationType, isFriendRequestAction, isUserOnlineStatus } from '../../shared/utils/app.utils';
 import { getHTMLElementById } from '../../utils/dom.utils';
 import { FriendRequestAction } from '../../shared/types/notification.types';
@@ -160,6 +160,20 @@ export class NotifService {
 
 	private async handleUserOnlineStatus(notif: AppNotification): Promise<void> {
 		console.log('On est dans handleUserOnlineStatus');
+		if (this.currentPage.config.path === ROUTE_PATHS.USERS) {
+			this.currentNotif = notif;
+			const user = await dataApi.getUserById(Number(this.currentNotif.from));
+			this.currentPage.injectUser!(user);
+			// this.currentPage.changeOnlineStatus!(user);
+			// switch (this.currentNotif.type) {
+			// 	case USER_ONLINE_STATUS.ONLINE:
+			// 		this.currentPage.injectUser!(user);
+			// 		break;
+			// 	case USER_ONLINE_STATUS.OFFLINE:
+			// 		this.currentPage.removeUser!(user);
+			// 		break;
+			// }
+		}
 	}
 
 	/**

@@ -51,7 +51,7 @@ export function sendToAllSockets(app: FastifyInstance, jwtUserId: number, data: 
  * @param {UserOnlineStatus} status - L'état en ligne (en ligne, absent, etc.) à définir pour l'utilisateur.
  */
 export async function setOnlineStatus(app: FastifyInstance, userId: number, status: UserOnlineStatus) {
-	await majLastlog(userId, USER_ONLINE_STATUS.ONLINE);
+	await majLastlog(userId, status);
 	let notifData: NotificationInput = {
 		type: status,
 		from: userId,
@@ -61,9 +61,7 @@ export async function setOnlineStatus(app: FastifyInstance, userId: number, stat
 		if (userId === userWS.id)
 			continue;
 		notifData.to = userWS.id;
-		console.log('BLAAAAAAA');
 		const notif = await insertNotification(notifData);
-		console.log('NOTIIIIIIF', notif);
 		if (!notif || 'errorMessage' in notif) {
 			console.log(notif.errorMessage);
 			return;

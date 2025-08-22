@@ -1,4 +1,5 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
+import { JwtPayload } from '../types/user.types';
 import { getUsersWithPagination } from '../db/search.db';
 import { PaginatedUsers, SortOrder, UserSortField } from '../shared/types/user.types';
 
@@ -17,8 +18,9 @@ export async function searchRoutes(app: FastifyInstance) {
 		Querystring: { sortBy?: UserSortField; sortOrder?: SortOrder }}>, 
 		reply: FastifyReply): Promise<PaginatedUsers | void> => {
 		try {
+			const jwtUser = request.user as JwtPayload;
 			const { page, limit } = request.params;
-			const { sortBy = 'username', sortOrder = 'ASC' } = request.query;
+			const { sortBy = 'status', sortOrder = 'DESC' } = request.query;
 			const pageNum = parseInt(page);
 			const limitNum = parseInt(limit);
 			if (isNaN(pageNum) || pageNum < 1) {
@@ -27,7 +29,7 @@ export async function searchRoutes(app: FastifyInstance) {
 			if (isNaN(limitNum) || limitNum < 1 || limitNum > 100) {
 				return reply.status(400).send({ error: 'Le paramètre limit doit être entre 1 et 100' });
 			}
-			const result: PaginatedUsers = await getUsersWithPagination(pageNum, limitNum, sortBy, sortOrder);
+			const result: PaginatedUsers = await getUsersWithPagination(jwtUser.id, pageNum, limitNum, sortBy, sortOrder);
 				return result;
 		} catch (error) {
 			console.error('Erreur lors de la récupération des utilisateurs:', error);

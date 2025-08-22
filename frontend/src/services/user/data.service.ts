@@ -4,7 +4,7 @@ import { UserResponse } from '../../shared/types/response.types';
 import { showAlert } from '../../utils/dom.utils';
 import { isValidImage, checkImageExists } from '../../utils/image.utils';
 import { UserStatus } from '../../shared/types/user.types';
-import { DB_CONST, IMAGE_CONST } from '../../shared/config/constants.config'; // en rouge car dossier local 'shared' != dossier conteneur
+import { DB_CONST, IMAGE_CONST, USER_ONLINE_STATUS } from '../../shared/config/constants.config'; // en rouge car dossier local 'shared' != dossier conteneur
 
 // ============================================================================
 // DATA SERVICE
@@ -92,16 +92,57 @@ export class DataService {
 	}
 
 	/**
+	 * Renvoie la date de fin de la dernière session de l'utilisateur sous forme
+	 * de string formatée, si l'utilisateur est hors ligne. Sinon, renvoie
+	 * `undefined`.
+	 * 
+	 * @param {User} user - L'utilisateur dont on veut afficher la date de fin
+	 * de la dernière session.
+	 * @returns {string | undefined} La date de fin de la dernière session de l'utilisateur
+	 * formatée, ou `undefined` si l'utilisateur est en ligne.
+	 */
+	public showLogDate(user: User): string | void {
+		if (!user.isOnline())
+			return `online ${user.formattedEndLog}`;
+	}
+
+	/**
 	 * Convertit un statut en libellé lisible.
 	 * 
 	 * @returns Libellé lisible
 	 */
 	public showStatusLabel(user: User): string {
+		console.log(user.status);
 		switch (user.status) {
-			case 'online': return '<span class="text-green-500">🟢 online </span>';
-			case 'offline': return '<span class="text-red-500">🔴 offline </span>';
-			case 'in-game': return '<span class="text-yellow-500">🟡 in game</span>';
+			case USER_ONLINE_STATUS.ONLINE: 
+				return `<div class="online"></div>`;
+			case USER_ONLINE_STATUS.OFFLINE:
+				return `<div class="offline"></div>`;
+			case USER_ONLINE_STATUS.IN_GAME:
+				return `<div class="ingame"></div>`;
 			default: return 'Unknown';
+		}
+	}
+
+	/**
+	 * Renvoie le libellé correspondant au statut d'ami de l'utilisateur,
+	 * ou `undefined` si l'utilisateur n'est pas un ami.
+	 * 
+	 * @param {User} user - L'utilisateur dont on veut afficher le statut d'ami.
+	 * @returns {string | undefined} Le libell  correspondant au statut d'ami
+	 * de l'utilisateur, ou `undefined` si l'utilisateur n'est pas un ami.
+	 */
+	public showFriendLogo(user: User): string | void {
+		console.log(user, user.friendStatus);
+		if (user.friendStatus) {
+			switch (user.friendStatus) {
+				case DB_CONST.FRIENDS.STATUS.ACCEPTED:
+					return `<i class="fa-solid fa-user-check"></i>`;
+				case DB_CONST.FRIENDS.STATUS.PENDING:
+					return `<i class="fa-solid fa-user-clock"></i>`;
+				case DB_CONST.FRIENDS.STATUS.BLOCKED:
+					return `<i class="fa-solid fa-user-slash"></i>`;
+			}
 		}
 	}
 

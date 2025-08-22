@@ -1,6 +1,8 @@
 import { SafeUserModel, UserModel, PublicUser, UserStatus, RegisterMethod, TwoFaMethod } from '../types/user.types';	// en rouge car dossier local 'shared' != dossier conteneur
 import { AppNotification } from './notification.model';
 import { DB_CONST, USER_ONLINE_STATUS } from '../config/constants.config';
+import { formatRelativeDate } from '../utils/app.utils';
+import { FriendStatus } from '../types/friend.types';	// en rouge car dossier local 'shared' != dossier conteneur
 
 // ===========================================
 // USER MODEL
@@ -38,7 +40,8 @@ export class User {
 		public isDesactivated: number,
 		public registerFrom: RegisterMethod,
 		public active2Fa: TwoFaMethod,
-		public notifications: AppNotification[]
+		public notifications: AppNotification[],
+		public friendStatus: FriendStatus | '',
 	) {}
 
 	// ============================================================================
@@ -57,8 +60,12 @@ export class User {
 		return this.status === USER_ONLINE_STATUS.ONLINE;
 	}
 
-	get formattedLastLog(): string {
-		return this.beginLog ? new Date(this.beginLog).toLocaleString() : 'User has never logged in';
+	get formattedBeginLog(): string {
+		return formatRelativeDate(this.beginLog);
+	}
+
+	get formattedEndLog(): string {
+		return formatRelativeDate(this.endLog);
 	}
 	
 	get winRate(): number {
@@ -181,7 +188,8 @@ export class User {
 			data.isDesactivated ?? 0,
 			data.registerFrom ?? DB_CONST.USER.REGISTER_FROM.LOCAL,
 			data.active2Fa ?? DB_CONST.USER.ACTIVE_2FA.DISABLED,
-			data.notifications ?? []
+			data.notifications ?? [],
+			data.friendStatus ?? '',
 		);
 	}
 
@@ -225,7 +233,8 @@ export class User {
 			0, // isDesactivated à 0 par défaut
 			DB_CONST.USER.REGISTER_FROM.LOCAL, // registerFrom par défaut
 			DB_CONST.USER.ACTIVE_2FA.DISABLED, // active2Fa à disabled par défaut,
-			[] // notifications vides par défaut
+			[], // notifications vides par défaut
+			'' // friendStatus vide par défaut
 		);
 	}
 
