@@ -20,14 +20,14 @@ export class WebSocketService {
 
 		this.webSocket.onmessage = async (event) => {
 			const dataArray = JSON.parse(event.data);
-			console.log('NOTIF RECUEEEE');
+			// console.log('NOTIF RECUEEEE');
 			if (Array.isArray(dataArray) 
 				&& dataArray.every(isNotificationModel)) {
 				const data = dataArray as NotificationModel[];
 				const formatedData = AppNotification.fromJSONArray(data) as AppNotification[];
 				await notifService.handleNotifications(formatedData);
 			}
-			console.log('fin traitement event socket')
+			// console.log('fin traitement event socket')
 		};
 	}
 
@@ -37,10 +37,7 @@ export class WebSocketService {
 	}
 	
 	constructor() {
-		if (currentService.getCurrentUser()) {
-			console.debug("Connecting to socket on constructor")
+		if (currentService.getCurrentUser()) 
 			this.openWebSocket();
-
-		}
 	}
 }

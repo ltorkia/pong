@@ -9,6 +9,11 @@ export class GameMenuMulti extends BasePage {
     private gameStarted: boolean = false;
     private game?: MultiPlayerGame;
     private finalScore: number[] = [];
+    private controlNodesUp!: NodeListOf<HTMLElement>;
+    private controlNodesDown!: NodeListOf<HTMLElement>;
+    private isSearchingGame: boolean = false;
+
+
 
     constructor(config: RouteConfig) {
         super(config);
@@ -63,20 +68,46 @@ export class GameMenuMulti extends BasePage {
         panel.innerText += ` ${this.finalScore[0]} : ${this.finalScore[1]}`;
     }
 
+    private handleKeyDown = (event: KeyboardEvent): void => {
+        // console.log("nIK TA GROOOOOSSSE TEUB de keydown");
+        this.controlNodesDown = document.querySelectorAll(".control");
+        if (event.key == " " && this.isSearchingGame === false) { //TODO : creer un bouton pour lancer le jeu et replay pour sendmatchmaquingrequest pour eviter de le lancer en dehors de la page jeu
+            this.isSearchingGame = true;                
+            this.sendMatchMakingRequest();
+            this.appendWaitText();
+        }
+        for (const node of this.controlNodesDown) {
+            if (node.dataset.key == event.key)
+                node.classList.remove("button-press");
+        }
+    }
+
+    private handleKeyup = (event: KeyboardEvent): void => {
+        // console.log("nIK TA GROOOOOSSSE TEUB de keyup");
+        this.controlNodesUp = document.querySelectorAll(".control");
+        for (const node of this.controlNodesUp) {
+            if (node.dataset.key == event.key)
+                node.classList.remove("button-press");
+        }
+    }
+
     protected attachListeners(): void {
         webSocketService.getWebSocket()!.addEventListener("message", (event) => {
             const msg = JSON.parse(event.data);
             if (msg.type == "start_game") {
                 console.log(`game starts ! id = ${msg.gameID}`);
-                this.initGame(this.currentUser.id, msg.gameID);
+                // this.game!.clearScreen(); //
+                // document.querySelector("endgame-panel")?.remove();
                 this.gameStarted = true;
+                this.initGame(this.currentUser.id, msg.gameID);
             } else if (msg.type == "end" && this.gameStarted) {
                 this.game!.gameStarted = false;
+                this.isSearchingGame = false;
                 console.log("END GAME DETECTED")
                 this.game!.clearScreen();
                 document.querySelector("canvas")?.remove();
-                document.querySelector("#pong-section")!.remove();
-                this.finalScore = this.game!.getScore();
+                // document.querySelector("#pong-section")!.remove(); //pour permettre de voir le jeu si on decide de le relancer direct avec le meme joueur
+                this.finalScore = this.game!.getScore(); //TODO = clean le final score je sais pas ou et le show en haut
                 this.showEndGamePanel();
             } else if (msg.type == "GameData") {
                 this.game!.registerGameData(msg);
@@ -88,29 +119,29 @@ export class GameMenuMulti extends BasePage {
             console.log(event);
         })
 
-        //  document.addEventListener(" ", (event) => {
+        document.addEventListener("keydown", this.handleKeyDown);
+        //     if (event.key == " ") { //TODO : creer un bouton pour lancer le jeu et replay pour sendmatchmaquingrequest pour eviter de le lancer en dehors de la page jeu
         //         this.sendMatchMakingRequest();
-        //         this.appendWaitText();            
-        //  })
-
-        document.addEventListener("keydown", (event) => {
-            if (event.key == " ") {
-                this.sendMatchMakingRequest();
-                this.appendWaitText();
-            }
-            const nodes: NodeListOf<HTMLElement> = document.querySelectorAll(".control");
-            for (const node of nodes) {
-                if (node.dataset.key == event.key)
-                    node.classList.add("button-press");
-            }
-        });
-
-        document.addEventListener("keyup", (event) => {
-            const nodes: NodeListOf<HTMLElement> = document.querySelectorAll(".control");
-            for (const node of nodes) {
-                if (node.dataset.key == event.key)
-                    node.classList.remove("button-press");
-            }
-        });
+        //         this.appendWaitText();
+        //     }
+        //     const nodes: NodeListOf<HTMLElement> = document.querySelectorAll(".control");
+        //     for (const node of nodes) {
+        //         if (node.dataset.key == event.key)
+        //             node.classList.add("button-press");
+        //     }
+        // });
+        document.addEventListener("keyup", this.handleKeyup);
+        // document.addEventListener("keyup", (event) => {
+        //     const nodes: NodeListOf<HTMLElement> = document.querySelectorAll(".control");
+        //     for (const node of nodes) {
+        //         if (node.dataset.key == event.key)
+        //             node.classList.remove("button-press");
+        //     }
+        // });
     }
+
+    protected removeListeners(): void {
+		document.removeEventListener("keydown", this.handleKeyDown);
+		document.removeEventListener("keyup", this.handleKeyup);
+	}
 }

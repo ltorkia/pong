@@ -9,7 +9,7 @@ import {addGame, resultGame } from '../db/game';
 export async function gameRoutes(app: FastifyInstance) {
     app.post('/multiplayer', async (request: FastifyRequest, reply: FastifyReply) => {
         const matchMakingReq = MatchMakingReqSchema.safeParse(request.body); //waiting, 
-        console.log("reauest bodyyyyy = ", request.body);
+        // console.log("reauest bodyyyyy = ", request.body);
 
         if (!matchMakingReq.success)
             return reply.code(400).send({ error: matchMakingReq.error.errors[0].message });
