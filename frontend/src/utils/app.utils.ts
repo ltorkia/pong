@@ -27,6 +27,24 @@ export function checkUserLogged(isPublic: boolean): void {
 }
 
 /**
+ * Formatte une date au format ISO 8601 (par exemple, '2022-01-01T14:30:00.000Z')
+ * en une chaîne de caractères lisible pour un utilisateur français.
+ *
+ * @param {string} dateString - La date à formatter, au format ISO 8601.
+ * @returns {string} La date formatée, au format 'jj/mm/aaaa HH:MM'.
+ */
+export function formatDate(dateString: string): string {
+	const date = new Date(dateString);
+	return date.toLocaleDateString('fr-FR', { 
+		day: 'numeric', 
+		month: 'short', 
+		year: 'numeric',
+		hour: '2-digit',
+		minute: '2-digit'
+	});
+}
+
+/**
  * Wrapper sur la fonction native fetch() qui vérifie si l'utilisateur est connecté
  * avant de lancer la requête. Si la session est expirée ou non autorisée,
  * l'utilisateur est déconnecté et une erreur est levée.

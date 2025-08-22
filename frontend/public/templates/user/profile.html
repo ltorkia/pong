@@ -1,11 +1,140 @@
-			<template id="user-template">
-				<tr class="user-line">
-					<td class="avatar-cell"></td>
-					<td class="name-cell"></td>
-					<td class="level-cell"></td>
-				</tr>
-			</template>
-			
-			<div class="section-box large-box">
-				<div id="profile-section"></div>
+			<div class="section-box mid-box">
+				<div class="profile-container">
+					<!-- Header avec informations principales -->
+					<div class="profile-header">
+						<div id="profile-main-section">
+							<!-- Contenu dynamique injecté ici -->
+						</div>
+					</div>
+
+					<!-- Statistiques -->
+					<div class="section-box">
+						<h2 class="section-title">
+							<svg class="section-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 00-2-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H9z"></path>
+							</svg>
+							Statistiques
+						</h2>
+						<div id="stats-section" class="stats-grid">
+							<!-- Statistiques dynamiques -->
+						</div>
+					</div>
+
+					<!-- Amis -->
+					<div class="section-box">
+						<h2 class="section-title">
+							<svg class="section-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
+							</svg>
+							Amis
+							<span id="friends-count" class="text-sm text-white/60 font-normal">
+								<!-- Nombre d'amis -->
+							</span>
+						</h2>
+						<div id="friends-section" class="friends-grid">
+							<!-- Liste des amis dynamique -->
+						</div>
+					</div>
+
+					<!-- Historique des matchs -->
+					<div class="section-box">
+						<h2 class="section-title">
+							<svg class="section-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+							</svg>
+							Historique des matchs
+						</h2>
+						<div id="match-history-section" class="match-history">
+							<!-- Historique dynamique -->
+						</div>
+					</div>
+				</div>
 			</div>
+
+			<!-- Templates -->
+			<template id="profile-main-template">
+				<div class="profile-avatar-section">
+					<div class="profile-avatar">
+						<!-- Avatar injecté dynamiquement -->
+					</div>
+					<div class="profile-info">
+						<h1 class="profile-username">
+							<!-- Nom d'utilisateur -->
+						</h1>
+						<div class="profile-status">
+							<div class="w-2 h-2 rounded-full"></div>
+							<span class="status-text"><!-- Statut --></span>
+						</div>
+						<div class="profile-actions">
+							<!-- Boutons d'action (conditionnels) -->
+						</div>
+					</div>
+				</div>
+			</template>
+
+			<template id="stat-card-template">
+				<div class="stat-card">
+					<div class="stat-value">
+						<!-- Valeur -->
+					</div>
+					<div class="stat-label">
+						<!-- Label -->
+					</div>
+				</div>
+			</template>
+
+			<template id="friend-card-template">
+				<div class="friend-card">
+					<div class="friend-avatar">
+						<!-- Avatar ami -->
+					</div>
+					<div class="friend-name">
+						<!-- Nom ami -->
+					</div>
+				</div>
+			</template>
+
+			<template id="match-card-template">
+				<div class="match-card">
+					<div class="match-header">
+						<div class="match-result">
+							<!-- Résultat -->
+						</div>
+						<div class="match-date">
+							<!-- Date -->
+						</div>
+					</div>
+					<div class="match-players">
+						<div class="player-info">
+							<div class="player-avatar">
+								<!-- Avatar joueur 1 -->
+							</div>
+							<span class="player-name">
+								<!-- Nom joueur 1 -->
+							</span>
+						</div>
+						<div class="match-score">
+							<!-- Score -->
+						</div>
+						<div class="player-info">
+							<div class="player-avatar">
+								<!-- Avatar joueur 2 -->
+							</div>
+							<span class="player-name">
+								<!-- Nom joueur 2 -->
+							</span>
+						</div>
+					</div>
+				</div>
+			</template>
+
+			<template id="empty-state-template">
+				<div class="empty-state">
+					<svg class="empty-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<!-- Icône vide -->
+					</svg>
+					<p class="empty-text">
+						<!-- Message -->
+					</p>
+				</div>
+			</template>

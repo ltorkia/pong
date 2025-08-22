@@ -1,148 +1,148 @@
 @layer components {
 
-  /* USER LIST */
-  .avatar-img {
-    @apply w-16 h-16 md:w-20 md:h-20 object-cover object-center
-           rounded-full border border-white/65;
-  }
+	/* USER LIST */
+	.avatar-img {
+		@apply w-16 h-16 md:w-20 md:h-20 object-cover object-center
+			rounded-full border border-white/65;
+	}
 
-  #user-list {
-    @apply w-full font-classic text-gray-700 text-sm
-           flex flex-col items-center justify-center;
-  }
+	#user-list {
+		@apply w-full font-classic text-gray-700 text-sm
+			flex flex-col items-center justify-center;
+	}
 
-  #user-list .cell {
-    @apply p-1;
-  }
+	#user-list .cell {
+		@apply p-1;
+	}
 
-  #user-list .user-line:first-child {
-    @apply rounded-t-3xl;
-  }
+	#user-list .user-line:first-child {
+		@apply rounded-t-3xl;
+	}
 
-  #user-list .user-line:last-child {
-    @apply rounded-b-3xl;
-  }
+	#user-list .user-line:last-child {
+		@apply rounded-b-3xl;
+	}
 
-  #user-list .user-line:nth-child(odd) {
-    @apply bg-white/50;
-  }
+	#user-list .user-line:nth-child(odd) {
+		@apply bg-white/50;
+	}
 
-  #user-list .user-line:nth-child(even) {
-    @apply bg-white/80;
-  }
+	#user-list .user-line:nth-child(even) {
+		@apply bg-white/80;
+	}
 
-  /* GRID RESPONSIVE */
-  .user-line {
-    @apply w-full grid items-center gap-1;
+	/* GRID RESPONSIVE */
+	.user-line {
+		@apply w-full grid items-center gap-1;
 
-    grid-template-columns: auto 1fr 1fr auto 40px; /* desktop par défaut */
-  }
+		grid-template-columns: auto 1fr 1fr auto 40px; /* desktop par défaut */
+	}
 
-  @screen mobile {
-    .user-line {
-      @apply grid-cols-[auto_1fr]; /* avatar + name en ligne, le reste empilé */
-      gap: 0.25rem;
-    }
-    .status-cell {
-      @apply top-1 left-0;
-    }
-    .name-cell {
-      @apply max-w-[80px] text-xs;
-    }
-  }
+	@screen mobile {
+		.user-line {
+			@apply grid-cols-[auto_1fr]; /* avatar + name en ligne, le reste empilé */
+			gap: 0.25rem;
+		}
+		.status-cell {
+			@apply top-1 left-0;
+		}
+		.name-cell {
+			@apply max-w-[80px] text-xs;
+		}
+	}
 
-  @screen tablet {
-    .user-line {
-      grid-template-columns: auto 1fr 1fr auto 40px; /* proche du desktop mais réduit */
-      gap: 0.5rem;
-    }
-    .name-cell {
-      @apply max-w-[100px] text-sm;
-    }
-  }
+	@screen tablet {
+		.user-line {
+			grid-template-columns: auto 1fr 1fr auto 40px; /* proche du desktop mais réduit */
+			gap: 0.5rem;
+		}
+		.name-cell {
+			@apply max-w-[100px] text-sm;
+		}
+	}
 
-  @screen desktop {
-    .user-line {
-      grid-template-columns: auto 1fr 1fr auto 40px;
-    }
-  }
+	@screen desktop {
+		.user-line {
+			grid-template-columns: auto 1fr 1fr auto 40px;
+		}
+	}
 
-  @screen wide {
-    .user-line {
-      grid-template-columns: auto 1fr 1fr auto 60px; /* plus d’espace pour les boutons */
-    }
-  }
+	@screen wide {
+		.user-line {
+			grid-template-columns: auto 1fr 1fr auto 60px; /* plus d’espace pour les boutons */
+		}
+	}
 
-  @screen extra-wide {
-    .user-line {
-      grid-template-columns: auto 1fr 1fr auto 80px; /* maximum */
-    }
-  }
+	@screen extra-wide {
+		.user-line {
+			grid-template-columns: auto 1fr 1fr auto 80px; /* maximum */
+		}
+	}
 
-  /* BUTTONS */
-  .user-line button {
-    @apply text-pastel-blue font-normal lowercase px-3 hover:text-blue-500 text-xs md:text-sm;
-  }
+	/* BUTTONS */
+	.user-line button {
+		@apply text-pastel-blue font-normal lowercase px-3 hover:text-blue-500 text-xs md:text-sm;
+	}
 
-  #user-list .user-line:nth-child(odd) button {
-    @apply bg-blue-100;
-  }
+	#user-list .user-line:nth-child(odd) button {
+		@apply bg-blue-100;
+	}
 
-  #user-list .user-line:nth-child(even) button {
-    @apply bg-gray-100;
-  }
+	#user-list .user-line:nth-child(even) button {
+		@apply bg-gray-100;
+	}
 
-  /* CELLS */
-  .user-cell {
-    @apply relative flex flex-row justify-start items-center cursor-pointer;
-  }
+	/* CELLS */
+	.user-cell {
+		@apply relative flex flex-row justify-start items-center cursor-pointer;
+	}
 
-  .user-cell:hover .name-cell {
-    @apply text-blue-200;
-  }
+	.user-cell:hover .name-cell {
+		@apply text-blue-200;
+	}
 
-  .name-cell {
-    @apply font-title text-gray-100
-           border border-white/65 rounded-lg px-2 py-0
-           bg-pastel-blue font-bold
-           bg-gradient-to-r from-blue-500 to-pastel-blue
-           absolute bottom-0 left-1/2 -translate-x-1/2 -translate-y-1 -rotate-3
-           max-w-[100px] leading-normal break-words text-center
-           overflow-hidden text-ellipsis whitespace-nowrap
-           transition duration-300 ease-in-out;
-  }
+	.name-cell {
+		@apply font-title text-gray-100
+			border border-white/65 rounded-lg px-2 py-0
+			bg-pastel-blue font-bold
+			bg-gradient-to-r from-blue-500 to-pastel-blue
+			absolute bottom-0 left-1/2 -translate-x-1/2 -translate-y-1 -rotate-3
+			max-w-[100px] leading-normal break-words text-center
+			overflow-hidden text-ellipsis whitespace-nowrap
+			transition duration-300 ease-in-out;
+	}
 
-  .status-cell {
-    @apply absolute top-3 -left-2
-           transition duration-300 ease-in-out;
-  }
+	.status-cell {
+		@apply absolute top-3 -left-2
+			transition duration-300 ease-in-out;
+	}
 
-  .offline, .online, .ingame {
-    @apply w-3 h-3 rounded-full;
-  }
+	.offline, .online, .ingame {
+		@apply w-3 h-3 rounded-full;
+	}
 
-  .offline {
-    @apply bg-[#696969] drop-shadow-[0_0_6px_#696969];
-  }
-  .online {
-    @apply bg-[#208b47] drop-shadow-[0_0_6px_#7ac396];
-  }
-  .ingame {
-    @apply bg-yellow-500 drop-shadow-[0_0_6px_#eab308];
-  }
+	.offline {
+		@apply bg-[#696969] drop-shadow-[0_0_6px_#696969];
+	}
+	.online {
+		@apply bg-[#208b47] drop-shadow-[0_0_6px_#7ac396];
+	}
+	.ingame {
+		@apply bg-yellow-500 drop-shadow-[0_0_6px_#eab308];
+	}
 
-  .friend-logo-cell i {
-    @apply text-pastel-blue text-2xl;
-  }
+	.friend-logo-cell i {
+		@apply text-pastel-blue text-2xl;
+	}
 
-  /* FRIEND BUTTONS */
-  .remove-friend-button, .add-friend-button, .accept-friend-button,
-  .challenge-button, .unblocked-friend-button, .block-friend-button {
-    @apply btn smaller-btn mt-0 mr-4 text-xs md:text-sm;
-  }
+	/* FRIEND BUTTONS */
+	.remove-friend-button, .add-friend-button, .accept-friend-button,
+	.challenge-button, .unblocked-friend-button, .block-friend-button {
+		@apply btn smaller-btn mt-0 mr-4 text-xs md:text-sm;
+	}
 
-  .remove-friend-button, .unblocked-friend-button {
-    @apply bg-red-500;
-  }
+	.remove-friend-button, .unblocked-friend-button {
+		@apply bg-red-500;
+	}
 
 }
