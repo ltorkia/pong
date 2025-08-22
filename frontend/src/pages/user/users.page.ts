@@ -164,29 +164,13 @@ export class UsersPage extends BasePage {
 			return;
 		}
 		this.userList.replaceChildren();
-		this.injectUser(this.currentUser);
-		const renderPromises: Promise<void>[] = [];
+		await this.injectUser(this.currentUser);
 
 		for (const user of this.users! as User[]) {
 			if (!user.isActive)
 				continue;
-			let tempContainer = document.createElement('div');
-			const rowComponent = new UserRowComponent(this.config, this.userRowConfig!, tempContainer, user);
-			const instanceKey = `${this.userRowConfig!.name}-${user.id}`;
-			this.addToComponentInstances(instanceKey, rowComponent);
-
-			renderPromises.push(
-				rowComponent.render().then(() => {
-					const userLine = tempContainer.querySelector('.user-line');
-					if (userLine) {
-						userLine.id = instanceKey;
-						userLine.classList.add('animate-fade-in-up');
-						this.userList.appendChild(userLine);
-					}
-				})
-			);
+			await this.injectUser(user);
 		}
-		await Promise.all(renderPromises);
 		console.log(`[${this.constructor.name}] Composant '${this.userRowConfig!.name}' généré`);
 	}
 
@@ -236,8 +220,9 @@ export class UsersPage extends BasePage {
 	 * Utilisée lors de la réception d'une notification quand un utilisateur se connecte.
 	 * 
 	 * @param {User} user - L'utilisateur à injecter.
+	 * @returns {Promise<void>} Une promesse qui se résout lorsque le composant utilisateur est injecté.
 	 */
-	public injectUser(user: User): void {
+	public async injectUser(user: User): Promise<void> {
 		let tempContainer = document.createElement('div');
 		const rowComponent = new UserRowComponent(this.config, this.userRowConfig!, tempContainer, user);
 		const instanceKey = `${this.userRowConfig!.name}-${user.id}`;

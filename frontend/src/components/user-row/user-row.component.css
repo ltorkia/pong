@@ -1,9 +1,43 @@
 @layer components {
 
+	/* GRID RESPONSIVE */
+	.user-line {
+		@apply w-full grid items-center gap-1;
+		grid-template-columns: auto auto minmax(12rem, 1fr) minmax(20rem, 2fr) 40px; /* desktop par défaut */
+	}
+	@screen mobile {
+		.user-line {
+			grid-template-columns: auto auto minmax(12rem, 1fr) minmax(20rem, 2fr) 40px; /* proche du desktop mais réduit */
+		}
+	}
+	@screen tablet {
+		.user-line {
+			grid-template-columns: auto auto minmax(12rem, 1fr) minmax(20rem, 2fr) 40px; /* proche du desktop mais réduit */
+		}
+	}
+	@screen desktop {
+		.user-line {
+			grid-template-columns: auto auto minmax(12rem, 1fr) minmax(20rem, 2fr) 40px;
+		}
+	}
+	@screen wide {
+		.user-line {
+			grid-template-columns: auto auto minmax(12rem, 1fr) minmax(20rem, 2fr) 40px; /* plus d’espace pour les boutons */
+		}
+	}
+	@screen extra-wide {
+		.user-line {
+			grid-template-columns: auto auto minmax(12rem, 1fr) minmax(20rem, 2fr) 40px; /* maximum */
+		}
+	}
+
 	/* USER LIST */
+	.avatar-cell {
+		@apply flex-shrink-0;
+	}
 	.avatar-img {
 		@apply w-16 h-16 md:w-20 md:h-20 object-cover object-center
-			rounded-full border border-white/65;
+			rounded-full border border-white/65 flex-shrink-0;
 	}
 
 	#user-list {
@@ -31,52 +65,12 @@
 		@apply bg-white/80;
 	}
 
-	/* GRID RESPONSIVE */
-	.user-line {
-		@apply w-full grid items-center gap-1;
-
-		grid-template-columns: auto 1fr 1fr auto 40px; /* desktop par défaut */
+	#user-list .user-line:nth-child(odd):not(:first-child) .custom-btn {
+		@apply bg-[#5e8ca5d4] border-gray-800/10 hover:bg-[#5e8ca5];
 	}
 
-	@screen mobile {
-		.user-line {
-			@apply grid-cols-[auto_1fr]; /* avatar + name en ligne, le reste empilé */
-			gap: 0.25rem;
-		}
-		.status-cell {
-			@apply top-1 left-0;
-		}
-		.name-cell {
-			@apply max-w-[80px] text-xs;
-		}
-	}
-
-	@screen tablet {
-		.user-line {
-			grid-template-columns: auto 1fr 1fr auto 40px; /* proche du desktop mais réduit */
-			gap: 0.5rem;
-		}
-		.name-cell {
-			@apply max-w-[100px] text-sm;
-		}
-	}
-
-	@screen desktop {
-		.user-line {
-			grid-template-columns: auto 1fr 1fr auto 40px;
-		}
-	}
-
-	@screen wide {
-		.user-line {
-			grid-template-columns: auto 1fr 1fr auto 60px; /* plus d’espace pour les boutons */
-		}
-	}
-
-	@screen extra-wide {
-		.user-line {
-			grid-template-columns: auto 1fr 1fr auto 80px; /* maximum */
-		}
+	#user-list .user-line:nth-child(even) .custom-btn {
+		@apply bg-[#5e8ca5d4] border-gray-800/10 hover:bg-[#5e8ca5];
 	}
 
 	/* BUTTONS */
@@ -103,18 +97,20 @@
 
 	.name-cell {
 		@apply font-title text-gray-100
-			border border-white/65 rounded-lg px-2 py-0
-			bg-pastel-blue font-bold
-			bg-gradient-to-r from-blue-500 to-pastel-blue
-			absolute bottom-0 left-1/2 -translate-x-1/2 -translate-y-1 -rotate-3
-			max-w-[100px] leading-normal break-words text-center
-			overflow-hidden text-ellipsis whitespace-nowrap
-			transition duration-300 ease-in-out;
+		border border-white/65 rounded-lg px-2 py-0
+		bg-pastel-blue font-bold
+		bg-gradient-to-r from-blue-500 to-pastel-blue
+		absolute bottom-0 left-1/2 -translate-x-1/2 -translate-y-1 -rotate-3
+		max-w-[100px] leading-normal break-words text-center
+		overflow-hidden text-ellipsis whitespace-nowrap
+		transition duration-300 ease-in-out;
+
+		/* tablet:max-w-[100px] tablet:text-sm; */
 	}
 
 	.status-cell {
 		@apply absolute top-3 -left-2
-			transition duration-300 ease-in-out;
+		transition duration-300 ease-in-out;
 	}
 
 	.offline, .online, .ingame {
@@ -122,13 +118,17 @@
 	}
 
 	.offline {
-		@apply bg-[#696969] drop-shadow-[0_0_6px_#696969];
+		@apply bg-[#555] drop-shadow-[0_0_6px_#696969];
 	}
 	.online {
 		@apply bg-[#208b47] drop-shadow-[0_0_6px_#7ac396];
 	}
 	.ingame {
 		@apply bg-yellow-500 drop-shadow-[0_0_6px_#eab308];
+	}
+
+	.button-cell {
+		@apply flex items-center justify-end;
 	}
 
 	.friend-logo-cell i {
@@ -138,7 +138,7 @@
 	/* FRIEND BUTTONS */
 	.remove-friend-button, .add-friend-button, .accept-friend-button,
 	.challenge-button, .unblocked-friend-button, .block-friend-button {
-		@apply btn smaller-btn mt-0 mr-4 text-xs md:text-sm;
+		@apply btn smaller-btn mt-0 text-xs md:text-sm;
 	}
 
 	.remove-friend-button, .unblocked-friend-button {

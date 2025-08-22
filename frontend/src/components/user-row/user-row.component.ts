@@ -100,7 +100,7 @@ export class UserRowComponent extends BaseComponent {
 		this.nameCell = getHTMLElementByClass('name-cell', this.container) as HTMLElement;
 		this.statusCell = getHTMLElementByClass('status-cell', this.container) as HTMLElement;
 		this.friendLogoCell = getHTMLElementByClass('friend-logo-cell', this.container) as HTMLElement;
-		this.levelCell = getHTMLElementByClass('level-cell', this.container) as HTMLElement;
+		this.levelCell = getHTMLElementByClass('level-cell .custom-btn', this.container) as HTMLElement;
 		this.logCell = getHTMLElementByClass('log-cell', this.container) as HTMLElement;
 		this.profilePath = `/user/${this.user!.id}`;
 		this.buttonCell = getHTMLElementByClass('button-cell', this.container) as HTMLElement;
@@ -136,29 +136,17 @@ export class UserRowComponent extends BaseComponent {
 		const userAvatar = await dataService.getUserAvatarURL(this.user!);
 		this.avatarImg.setAttribute('src', userAvatar);
 		this.nameCell.textContent = this.user!.username;
-		console.log('BLAAAAA', this.currentUser);
-		if (this.user!.id !== this.currentUser!.id) {
+		if (this.user!.id !== this.currentUser!.id)
 			this.statusCell.innerHTML = dataService.showStatusLabel(this.user!);
-			const friendLogo = dataService.showFriendLogo(this.user!);
-			if (friendLogo) {
-				this.friendLogoCell.innerHTML = friendLogo;
-			}
-		}
-		if ('winRate' in this.user! && this.user.winRate !== undefined) {
-			let content;
-			if (this.user!.id !== this.currentUser!.id)
-				content = `Win rate: ${this.user.winRate}%`;
-			else
-				content = `Your win rate: ${this.user.winRate}%`;
-			this.levelCell.textContent = content;
-		} else {
+		this.friendLogoCell.innerHTML = dataService.showFriendLogo(this.user!);
+		if ('winRate' in this.user! && this.user.winRate !== undefined)
+			this.levelCell.textContent = `win rate: ${this.user.winRate}%`;
+		else
 			this.levelCell.textContent = 'No stats';
-		}
 		if (this.user!.id !== this.currentUser!.id) {
 			const logDate = dataService.showLogDate(this.user!);
-			if (logDate) {
+			if (logDate)
 				this.logCell.textContent = logDate;
-			}
 		}
 		await this.toggleFriendButton();
 	}
@@ -279,25 +267,6 @@ export class UserRowComponent extends BaseComponent {
 		div.classList.add('alert', 'mr-5', 'error-message', 'hidden');
 		this.userline.appendChild(div);
 		return div;
-	}
-
-	/**
-	 * Retourne un modèle de notification pour une action de demande d'ami.
-	 *
-	 * Crée un objet `NotificationModel` contenant les informations nécessaires
-	 * pour une notification liée à une action de demande d'ami. Cet objet
-	 * inclut l'identifiant de l'utilisateur actuel, l'identifiant de l'utilisateur
-	 * cible et le type d'action de la demande d'ami.
-	 *
-	 * @param {FriendRequestAction} type - Le type de l'action de la demande d'ami.
-	 * @returns {NotificationModel} Un objet contenant les informations de la notification.
-	 */
-	private getNotifData(type: FriendRequestAction): NotificationModel {
-		return {
-			from: this.currentUser.id,
-			to: this.user!.id,
-			type: type
-		}
 	}
 
 	// ===========================================

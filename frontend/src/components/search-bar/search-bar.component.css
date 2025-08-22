@@ -10,7 +10,12 @@
 
 	/* Ligne principale de recherche */
 	.search-main {
-		@apply flex flex-row justify-center items-center space-x-3;
+		@apply flex flex-col justify-center items-center gap-0
+		tablet:flex-row tablet:justify-center tablet:items-center tablet:gap-3;
+	}
+
+	.search-buttons {
+		@apply flex flex-row justify-center items-center gap-3;
 	}
 
 	#search-bar input {
@@ -21,14 +26,17 @@
 		@apply cursor-pointer;
 	}
 
-	.search-main button {
-		@apply btn smaller-btn font-classic mt-0 px-4 py-2 text-pastel-blue hover:text-blue-700
-		transition duration-200 ease-in-out;
+	.search-buttons button {
+		@apply btn smaller-btn font-classic px-4 py-2 text-pastel-blue hover:text-blue-700
+		whitespace-nowrap transition duration-200 ease-in-out
+
+		tablet:mt-0;
 	}
 
 	/* Filtres */
 	.filters-container {
-		@apply flex flex-wrap items-center gap-3 mt-5 pt-3 border-t border-white/10;
+		@apply flex flex-wrap items-center gap-2 justify-end mt-5 pt-3 border-t border-white/10
+		tablet:gap-8;
 	}
 
 	.filter-group {
@@ -59,11 +67,6 @@
 	.status-dot {
 		@apply w-2 h-2 rounded-full;
 	}
-
-	.status-online { @apply bg-green-400; }
-	.status-offline { @apply bg-gray-400; }
-	.status-ingame { @apply bg-orange-400; }
-	.status-away { @apply bg-yellow-400; }
 
 	/* Toggle pour afficher/masquer les filtres */
 	.filters-toggle {

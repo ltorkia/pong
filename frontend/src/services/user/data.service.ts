@@ -129,10 +129,10 @@ export class DataService {
 	 * ou `undefined` si l'utilisateur n'est pas un ami.
 	 * 
 	 * @param {User} user - L'utilisateur dont on veut afficher le statut d'ami.
-	 * @returns {string | undefined} Le libellé correspondant au statut d'ami
+	 * @returns {string} Le libellé correspondant au statut d'ami
 	 * de l'utilisateur.
 	 */
-	public showFriendLogo(user: User): string | void {
+	public showFriendLogo(user: User): string {
 		switch (user.friendStatus) {
 			case DB_CONST.FRIENDS.STATUS.ACCEPTED:
 				return `<i class="fa-solid fa-user-check"></i>`;
