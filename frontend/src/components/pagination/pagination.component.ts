@@ -83,14 +83,13 @@ export class PaginationComponent extends BaseComponent {
 	 * @returns {Promise<void>} Une promesse qui se résout lorsque le composant est monté.
 	 */
 	protected async mount(): Promise<void> {
-		if (!this.paginationInfos || !this.paginationParams) return;
-
-		const { totalPages, currentPage, totalUsers } = this.paginationInfos;
-		this.paginationInfoElement.textContent = `Page ${currentPage} / ${totalPages} - ${totalUsers} résultats`;
+		if (!this.paginationInfos || !this.paginationParams)
+			return;
+		this.paginationInfoElement.textContent = this.getPaginationStats();
 		this.paginationButtonsContainer.innerHTML = '';
 
-		if (totalPages <= 1) return;
-
+		if (this.paginationInfos.totalPages <= 1)
+			return;
 		this.renderPaginationButtons();
 	}
 
@@ -111,6 +110,42 @@ export class PaginationComponent extends BaseComponent {
 	 */
 	private async loadTemplateDev(): Promise<void> {
 		await this.loadTemplate(template);
+	}
+
+	/**
+	 * Met à jour le nombre de résultats de la pagination.
+	 *
+	 * Si aucun argument n'est fourni, renvoie le nombre de résultats actuel.
+	 * Sinon, met à jour le nombre de résultats en ajoutant la valeur fournie
+	 * (positive ou négative).
+	 *
+	 * @param {number} update Nombre de résultats à ajouter (positif) ou retirer (négatif).
+	 * @returns {number} Le nombre de résultats mis à jour.
+	 */
+	public setTotalUsers(update: number = 0): number {
+		this.paginationInfos.totalUsers = this.paginationInfos.totalUsers > 0 ? this.paginationInfos.totalUsers : 1;
+		if (this.paginationInfos.incCurrUser) 
+			this.paginationInfos.totalUsers += 1;
+		if (update) 
+			this.paginationInfos.totalUsers += update;
+		return this.paginationInfos.totalUsers;
+	}
+
+	/**
+	 * Renvoie le texte des informations de pagination.
+	 *
+	 * Si la pagination a des résultats, renvoie un texte indiquant le nombre
+	 * de page actuelle, le nombre de page totale et le nombre de résultats.
+	 * Sinon, renvoie un texte indiquant que la pagination est vide.
+	 *
+	 * @returns {string} Le texte des informations de pagination.
+	 */
+	private getPaginationStats(): string {
+		this.setTotalUsers();
+		const str = this.paginationInfos.totalUsers <= 1 ? 'result' : 'results';
+		if (this.paginationInfos.totalPages > 0)
+			return `Page ${this.paginationInfos.currentPage} / ${this.paginationInfos.totalPages} - ${this.paginationInfos.totalUsers} ${str}`;;
+		return `No ${str} found.`;
 	}
 
 	/**

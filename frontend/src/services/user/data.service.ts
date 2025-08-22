@@ -129,20 +129,19 @@ export class DataService {
 	 * ou `undefined` si l'utilisateur n'est pas un ami.
 	 * 
 	 * @param {User} user - L'utilisateur dont on veut afficher le statut d'ami.
-	 * @returns {string | undefined} Le libell  correspondant au statut d'ami
-	 * de l'utilisateur, ou `undefined` si l'utilisateur n'est pas un ami.
+	 * @returns {string | undefined} Le libellé correspondant au statut d'ami
+	 * de l'utilisateur.
 	 */
 	public showFriendLogo(user: User): string | void {
-		console.log(user, user.friendStatus);
-		if (user.friendStatus) {
-			switch (user.friendStatus) {
-				case DB_CONST.FRIENDS.STATUS.ACCEPTED:
-					return `<i class="fa-solid fa-user-check"></i>`;
-				case DB_CONST.FRIENDS.STATUS.PENDING:
-					return `<i class="fa-solid fa-user-clock"></i>`;
-				case DB_CONST.FRIENDS.STATUS.BLOCKED:
-					return `<i class="fa-solid fa-user-slash"></i>`;
-			}
+		switch (user.friendStatus) {
+			case DB_CONST.FRIENDS.STATUS.ACCEPTED:
+				return `<i class="fa-solid fa-user-check"></i>`;
+			case DB_CONST.FRIENDS.STATUS.PENDING:
+				return `<i class="fa-solid fa-user-clock"></i>`;
+			case DB_CONST.FRIENDS.STATUS.BLOCKED:
+				return `<i class="fa-solid fa-user-slash"></i>`;
+			default: 
+				return `<i class="fa-solid fa-minus"></i>`;
 		}
 	}
 

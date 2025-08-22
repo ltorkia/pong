@@ -86,7 +86,7 @@ export function isNotificationModel(obj: any): obj is NotificationModel {
  */
 export function formatRelativeDate(dateStr: string | null): string {
 	if (!dateStr) 
-		return 'User has never logged in';
+		return 'never';
 
 	// Forcer l'interprétation en UTC en ajoutant 'Z'
 	const date = new Date(dateStr + 'Z');

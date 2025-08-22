@@ -5,6 +5,7 @@ import { BaseComponent } from '../base/base.component';
 import { RouteConfig } from '../../types/routes.types';
 import { ComponentConfig } from '../../types/components.types';
 import { getHTMLElementById, getHTMLElementByTagName, toggleClass } from '../../utils/dom.utils';
+import { SearchParams } from '../../shared/types/user.types';
 
 // ===========================================
 // SEARCH BAR COMPONENT
@@ -17,9 +18,10 @@ export class SearchBarComponent extends BaseComponent {
 	private searchButton!: HTMLButtonElement;
 	private searchInput!: HTMLInputElement;
 	private statusFilter!: HTMLSelectElement;
-	private levelFilter!: HTMLSelectElement;
+	// private levelFilter!: HTMLSelectElement;
 	private friendsOnly!: HTMLInputElement;
 	private resetFilters!: HTMLButtonElement;
+	private isResetSearch: boolean = false;
 
 	/**
 	 * Constructeur du composant de la barre de recherche.
@@ -71,7 +73,7 @@ export class SearchBarComponent extends BaseComponent {
 		this.searchButton = getHTMLElementById('search-button', this.container) as HTMLButtonElement;
 		this.searchInput = getHTMLElementById('search-input', this.container) as HTMLInputElement;
 		this.statusFilter = getHTMLElementById('status-filter', this.container) as HTMLSelectElement;
-		this.levelFilter = getHTMLElementById('level-filter', this.container) as HTMLSelectElement;
+		// this.levelFilter = getHTMLElementById('level-filter', this.container) as HTMLSelectElement;
 		this.friendsOnly = getHTMLElementById('friends-only', this.container) as HTMLInputElement;
 		this.resetFilters = getHTMLElementById('reset-filters', this.container) as HTMLButtonElement;
 	}
@@ -90,6 +92,7 @@ export class SearchBarComponent extends BaseComponent {
 		[this.friendsOnly].forEach(checkbox => {
 			checkbox.addEventListener('change', this.performSearch);
 		});
+		this.statusFilter.addEventListener('change', this.performSearch);
 		this.resetFilters.addEventListener('click', this.handleResetOnClick);
 		this.searchButton.addEventListener('click', this.performSearch);
 		this.searchInput.addEventListener('keypress', this.handleSearchInputKeypress);
@@ -103,6 +106,7 @@ export class SearchBarComponent extends BaseComponent {
 		[this.friendsOnly].forEach(checkbox => {
 			checkbox.removeEventListener('change', this.performSearch);	
 		})
+		this.statusFilter.removeEventListener('change', this.performSearch);
 		this.resetFilters.removeEventListener('click', this.handleResetOnClick);
 		this.searchButton.removeEventListener('click', this.performSearch);
 		this.searchInput.removeEventListener('keypress', this.handleSearchInputKeypress);
@@ -139,17 +143,26 @@ export class SearchBarComponent extends BaseComponent {
 
 	private performSearch = async (event: Event): Promise<void> => {
 		event.preventDefault();
-		const searchTerm = this.searchInput.value;
-		const status = this.statusFilter.value;
-		const level = this.levelFilter.value;
-		const friendsChecked = this.friendsOnly.checked;
 
-		console.log('Recherche avec les paramètres:', {
-			searchTerm,
-			status,
-			level,
-			friendsOnly: friendsChecked
-		});
+		const target = event.currentTarget as HTMLElement;
+		this.isResetSearch = 
+			target === this.statusFilter || 
+			target === this.resetFilters || 
+			target === this.searchInput ||
+			target === this.searchButton ||
+			target === this.friendsOnly;
+
+		if (!this.isResetSearch && !this.searchInput.value 
+			&& !this.statusFilter.value && !this.friendsOnly.checked)
+			return;
+		const params: SearchParams = {
+			searchTerm: this.searchInput.value,
+			status: this.statusFilter.value,
+			friendsOnly: this.friendsOnly.checked
+		};
+		this.container.dispatchEvent(
+			new CustomEvent('search', { detail: params })
+		);
 	}
 
 	private handleSearchInputKeypress = async (event: KeyboardEvent): Promise<void> => {
@@ -160,9 +173,11 @@ export class SearchBarComponent extends BaseComponent {
 
 	private handleResetOnClick = async (event: MouseEvent): Promise<void> => {
 		event.preventDefault();
+		if (!this.searchInput.value && !this.statusFilter.value && !this.friendsOnly.checked)
+			return;
 		this.searchInput.value = '';
 		this.statusFilter.value = '';
-		this.levelFilter.value = '';
+		// this.levelFilter.value = '';
 		this.friendsOnly.checked = false;
 		this.performSearch(event);
 	}

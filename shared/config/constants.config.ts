@@ -1,4 +1,4 @@
-import { UserSortField, SortOrder } from "../types/user.types";
+// import { UserSortField, SortOrder } from "../types/user.types";
 import { NotificationType } from "../types/notification.types";
 
 // ===========================================
@@ -132,21 +132,27 @@ export const NOTIFICATION_TYPES: NotificationType[] = [
  * pour les requêtes utilisateurs.
  */
 
-export const ALLOWED_SORT_FIELDS: Record<UserSortField, string> = {
-	id: 'id',
-	username: 'username',
-	registration: 'registration',
-	game_played: 'game_played',
-	game_win: 'game_win',
-	game_loose: 'game_loose',
-	time_played: 'time_played',
-	n_friends: 'n_friends',
-	status: 'status',
-	is_deleted: 'is_deleted',
-	register_from: 'register_from'
-};
-export const ALLOWED_SEARCH_FIELDS: Record<UserSortField, string> = ALLOWED_SORT_FIELDS;
-export const ALLOWED_SORT_ORDERS: Record<SortOrder, string> = {
-	ASC: 'ASC',
-	DESC: 'DESC'
-};
+export enum UserSortFieldEnum {
+	id = 'id',
+	username = 'username',
+	registration = 'registration',
+	game_played = 'game_played',
+	game_win = 'game_win',
+	game_loose = 'game_loose',
+	time_played = 'time_played',
+	n_friends = 'n_friends',
+	status = 'status',
+	is_deleted = 'is_deleted',
+	register_from = 'register_from',
+}
+
+export enum SortOrderEnum {
+	ASC = 'ASC',
+	DESC = 'DESC',
+}
+
+export const USER_FILTERS = {
+	STATUS: Object.values(USER_ONLINE_STATUS),
+	LEVEL: { MIN: 0, MAX: 100 },
+	FRIENDS_ONLY: ['true', 'false']
+} as const;

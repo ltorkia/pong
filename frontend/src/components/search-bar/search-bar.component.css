@@ -15,6 +15,10 @@
 
 	#search-bar input {
 		@apply flex-1 w-full text-gray-700;
+	}	
+	
+	#search-bar select, .friend-info, .friend-info input, .friend-info label {
+		@apply cursor-pointer;
 	}
 
 	.search-main button {

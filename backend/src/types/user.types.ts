@@ -1,4 +1,4 @@
-import { RegisterMethod, TwoFaMethod, UserSortField, SortOrder } from '../shared/types/user.types';	// en rouge car dossier local 'shared' != dossier conteneur
+import { RegisterMethod, TwoFaMethod } from '../shared/types/user.types';	// en rouge car dossier local 'shared' != dossier conteneur
 
 export interface JwtPayload {
 	id: number;

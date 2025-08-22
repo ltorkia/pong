@@ -9,7 +9,7 @@ import { getHTMLElementById, getHTMLElementByClass } from '../../utils/dom.utils
 import { RouteConfig } from '../../types/routes.types';
 import { COMPONENT_NAMES, HTML_COMPONENT_CONTAINERS } from '../../config/components.config';
 import { ComponentConfig, ComponentName, PaginationParams } from '../../types/components.types';
-import { SafeUserModel, PaginatedUsers, PaginationInfos } from '../../shared/types/user.types';
+import { SafeUserModel, PaginatedUsers, PaginationInfos, SearchParams } from '../../shared/types/user.types';
 import { USER_ONLINE_STATUS } from '../../shared/config/constants.config';
 
 // ===========================================
@@ -85,6 +85,7 @@ export class UsersPage extends BasePage {
 	protected async loadSpecificComponents(): Promise<void> {
 		await this.injectSearchBar();
 		await this.injectUserList();
+		this.paginationInfos.incCurrUser = true;
 		await this.injectPagination();
 	}
 
@@ -123,6 +124,17 @@ export class UsersPage extends BasePage {
 		const searchBarComponent = new SearchBarComponent(this.config, this.searchBarConfig!, this.searchBar);
 		await searchBarComponent.render();
 		console.log(`[${this.constructor.name}] Composant '${this.searchBarConfig!.name}' généré`);
+		
+		searchBarComponent.container.addEventListener('search', async (event: Event) => {
+		const params = (event as CustomEvent).detail;
+			console.log(params);
+			await this.injectUserList(params);
+			if (!params.searchTerm && !params.status && !params.friendsOnly)
+				this.paginationInfos.incCurrUser = true;
+			else
+				this.paginationInfos.incCurrUser = false;
+			await this.injectPagination();
+		});
 	}
 
 	/**
@@ -135,13 +147,17 @@ export class UsersPage extends BasePage {
 	 * avec l'ID de la ligne comme clé. L'ID de chaque ligne est incrémenté en ajoutant 
 	 * l'index de la boucle à la clé de l'instance de composant.
 	 * 
-	 * @throws {Error} Lance une erreur si la configuration du composant user-row est invalide.
+	 * @param {SearchParams} [params] Paramètres de recherche.
 	 * @returns {Promise<void>} Une promesse qui se résout lorsque tous les composants utilisateur 
 	 * sont injectés dans le DOM.
 	 */
-	private async injectUserList(): Promise<void> {
+	private async injectUserList(params?: SearchParams): Promise<void> {
 
-		const req: PaginatedUsers = await dataApi.getUsersByPage(this.currentPage);
+		let searchParams: SearchParams = {};
+		if (params)
+			searchParams = params;
+			
+		const req: PaginatedUsers = await dataApi.getUsersByPage(searchParams, this.currentPage);
 		this.users = req.users;
 		this.paginationInfos = req.pagination;
 		if (!this.users || !this.paginationInfos) {
@@ -238,11 +254,10 @@ export class UsersPage extends BasePage {
 
 				if (user.status === USER_ONLINE_STATUS.ONLINE) {
 					const currentUserLine = this.userList.querySelector(`#${this.userRowConfig!.name}-${this.currentUser!.id}`);
-					if (currentUserLine) {
+					if (currentUserLine)
 						currentUserLine.insertAdjacentElement('afterend', userLine);
-					} else {
+					else
 						this.userList.prepend(userLine);
-					}
 				} else {
 					this.userList.appendChild(userLine);
 				}

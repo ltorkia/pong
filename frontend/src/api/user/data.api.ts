@@ -1,12 +1,13 @@
 import { User } from '../../shared/models/user.model';
 import { Game } from '../../shared/models/game.model';
-import { Friend } from '../../shared/models/friend.model';
+// import { Friend } from '../../shared/models/friend.model';
 import { SafeUserModel, PaginatedUsers } from '../../shared/types/user.types';	// en rouge car dossier local 'shared' != dossier conteneur
-import { FriendModel } from '../../shared/types/friend.types';	// en rouge car dossier local 'shared' != dossier conteneur
+// import { FriendModel } from '../../shared/types/friend.types';	// en rouge car dossier local 'shared' != dossier conteneur
 import { GameModel } from '../../shared/types/game.types';	// en rouge car dossier local 'shared' != dossier conteneur
 import { dataService, currentService } from '../../services/index.service';
 import { secureFetch } from '../../utils/app.utils';
 import { UserResponse } from '../../shared/types/response.types';
+import { SearchParams } from '../../shared/types/search.types';
 
 // ===========================================
 // DATA API
@@ -82,13 +83,21 @@ export class DataApi {
 	 * ainsi que des informations de pagination.
 	 * Sinon, lève une erreur.
 	 *
+	 * @param {SearchParams} params Paramètres de recherche.
 	 * @param {number} page Numéro de la page à récupérer.
 	 * @param {number} limit Nombre d'utilisateurs à récupérer.
 	 * @returns {Promise<PaginatedUsers>} Promesse qui se résout avec un objet contenant
 	 *  un tableau d'instances `User` et des informations de pagination.
 	 */
-	public async getUsersByPage(page: number = 1, limit: number = 10): Promise<PaginatedUsers> {
-		const res: Response = await secureFetch(`/api/search/users/page/${page}/${limit}`, { method: 'GET' });
+	public async getUsersByPage(params: SearchParams = {}, page: number = 1, limit: number = 10): Promise<PaginatedUsers> {  
+		const query = new URLSearchParams();
+		if (params.searchTerm) query.append("searchTerm", params.searchTerm);
+		if (params.status) query.append("status", params.status);
+		if (params.level) query.append("level", params.level);
+		if (params.friendsOnly !== undefined) query.append("friendsOnly", String(params.friendsOnly));
+		const url = `/api/search/users/page/${page}/${limit}?${query.toString()}`;
+
+		const res: Response = await secureFetch(url, { method: "GET" });
 		if (!res.ok) {
 			throw new Error('Erreur de l\'API');
 		}

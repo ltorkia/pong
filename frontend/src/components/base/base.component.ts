@@ -22,7 +22,7 @@ import { loadTemplate } from '../../utils/dom.utils';
 export abstract class BaseComponent {
 	protected routeConfig: RouteConfig;
 	public componentConfig: ComponentConfig;
-	protected container: HTMLElement;
+	public container: HTMLElement;
 	protected templatePath: string;
 	protected currentUser: User | null = null;
 

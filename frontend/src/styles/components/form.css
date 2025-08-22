@@ -24,6 +24,9 @@
 		@apply border border-gray-300 rounded px-3 py-1 focus:outline-none focus:ring focus:ring-blue-300
 		text-black font-classic text-sm w-full;
 	}
+	.field-box input:valid, .field-box select:valid {
+		@apply border-gray-300;
+	}
 	.important-field {
 		@apply font-bold text-red-300 text-base;
 	}

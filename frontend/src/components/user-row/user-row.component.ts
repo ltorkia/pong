@@ -136,21 +136,29 @@ export class UserRowComponent extends BaseComponent {
 		const userAvatar = await dataService.getUserAvatarURL(this.user!);
 		this.avatarImg.setAttribute('src', userAvatar);
 		this.nameCell.textContent = this.user!.username;
-		this.statusCell.innerHTML = dataService.showStatusLabel(this.user!);
-		const friendLogo = dataService.showFriendLogo(this.user!);
-		if (friendLogo) {
-			this.friendLogoCell.innerHTML = friendLogo;
-		}
-		if (this.levelCell) {
-			if ('winRate' in this.user! && this.user.winRate !== undefined) {
-				this.levelCell.textContent = `Win rate: ${this.user.winRate}%`;
-			} else {
-				this.levelCell.textContent = 'No stats';
+		console.log('BLAAAAA', this.currentUser);
+		if (this.user!.id !== this.currentUser!.id) {
+			this.statusCell.innerHTML = dataService.showStatusLabel(this.user!);
+			const friendLogo = dataService.showFriendLogo(this.user!);
+			if (friendLogo) {
+				this.friendLogoCell.innerHTML = friendLogo;
 			}
 		}
-		const logDate = dataService.showLogDate(this.user!);
-		if (logDate) {
-			this.logCell.textContent = logDate;
+		if ('winRate' in this.user! && this.user.winRate !== undefined) {
+			let content;
+			if (this.user!.id !== this.currentUser!.id)
+				content = `Win rate: ${this.user.winRate}%`;
+			else
+				content = `Your win rate: ${this.user.winRate}%`;
+			this.levelCell.textContent = content;
+		} else {
+			this.levelCell.textContent = 'No stats';
+		}
+		if (this.user!.id !== this.currentUser!.id) {
+			const logDate = dataService.showLogDate(this.user!);
+			if (logDate) {
+				this.logCell.textContent = logDate;
+			}
 		}
 		await this.toggleFriendButton();
 	}

@@ -1,4 +1,4 @@
-import { DB_CONST, IMAGE_CONST, USER_ONLINE_STATUS } from '../config/constants.config';
+import { DB_CONST, IMAGE_CONST, USER_ONLINE_STATUS, UserSortFieldEnum, SortOrderEnum } from '../config/constants.config';
 import { User } from '../models/user.model';
 import { AppNotification } from '../models/notification.model';
 import { FriendStatus } from '../types/friend.types';
@@ -127,11 +127,25 @@ export interface PaginationInfos {
 	hasNextPage: boolean;
 	hasPreviousPage: boolean;
 	limit: number;
+	incCurrUser?: boolean;
 }
 export interface PaginatedUsers {
 	users: SafeUserModel[] | User[];
 	pagination: PaginationInfos;
 }
-export type SortOrder = 'ASC' | 'DESC';
-export type UserSortField = 'id' | 'username' | 'registration' | 'game_played' | 'game_win' | 'game_loose' | 'time_played' | 'n_friends' | 'status' | 'is_deleted' | 'register_from';
-export type UserSearchField = UserSortField;
+
+/**
+ * Types pour les paramètres de recherche.
+ */
+export interface SearchParams {
+	searchTerm?: string;
+	status?: UserStatus;
+	level?: number;
+	friendsOnly?: boolean;
+}
+export interface UsersPageParams {
+	page: string;
+	limit: string;
+}
+export type UserSortField = keyof typeof UserSortFieldEnum; // "id" | "username" | ... | "register_from"
+export type SortOrder = keyof typeof SortOrderEnum; // "ASC" | "DESC"
