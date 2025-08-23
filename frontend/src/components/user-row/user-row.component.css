@@ -2,32 +2,42 @@
 
 	/* GRID RESPONSIVE */
 	.user-line {
-		@apply w-full grid items-center gap-8 pr-2;
-		grid-template-columns: auto auto minmax(12rem, 1fr) minmax(20rem, 2fr) 40px; /* desktop par défaut */
+		@apply w-[20rem] grid items-center gap-1 pr-2
+		tablet:gap-2 desktop:gap-3 wide:gap-6 extra-wide:gap-6
+		tablet:w-[44rem] desktop:w-full;
+		grid-template-columns: auto auto .5fr;
+		grid-auto-flow: row;
 	}
-	@screen mobile {
-		.user-line {
-			grid-template-columns: auto auto minmax(12rem, 1fr) minmax(20rem, 2fr) 40px; /* proche du desktop mais réduit */
-		}
+	.user-line > .user-cell, .user-line > .level-cell, .user-line > .button-cell {
+		grid-column: 1 / -1;
+		justify-self: center;
 	}
+	.user-line > .level-cell {
+		grid-row: 2;
+	}
+	.user-line > .button-cell {
+		grid-row: 3;
+	}
+
 	@screen tablet {
 		.user-line {
-			grid-template-columns: auto auto minmax(12rem, 1fr) minmax(20rem, 2fr) 40px; /* proche du desktop mais réduit */
+			grid-template-columns: auto auto 1fr 40px;
+			/* grid-template-areas: "col1 col2 col3 col4"; */
+		}
+		.user-line > .user-cell, .user-line > .button-cell, .user-line > .level-cell {
+			grid-column: auto;
+			grid-row: auto;
+			justify-self: auto;
 		}
 	}
 	@screen desktop {
 		.user-line {
-			grid-template-columns: auto auto minmax(12rem, 1fr) minmax(20rem, 2fr) 40px;
+			grid-template-columns: auto auto minmax(20rem, 1fr) 40px;
 		}
 	}
 	@screen wide {
 		.user-line {
-			grid-template-columns: auto auto minmax(12rem, 1fr) minmax(20rem, 2fr) 40px; /* plus d’espace pour les boutons */
-		}
-	}
-	@screen extra-wide {
-		.user-line {
-			grid-template-columns: auto auto minmax(12rem, 1fr) minmax(20rem, 2fr) 40px; /* maximum */
+			grid-template-columns: auto auto minmax(12rem, 1fr) minmax(20rem, 2fr) 40px;
 		}
 	}
 
@@ -71,18 +81,19 @@
 		@apply flex flex-row items-center justify-center gap-3;
 	}
 	.custom-btn {
-		@apply btn min-w-min w-56 h-10
+		@apply btn min-w-0 w-56 h-10
 		text-[.7rem] rounded flex items-center justify-center;
 	}
 	.profile-button {
-		@apply custom-btn w-10 text-3xl cursor-pointer 
-		text-[#b0bfbf] font-light bg-pastel-blue/80;
-	}
-	.profile-button {
-		@apply hover:bg-pastel-blue/90;
+		@apply custom-btn w-14 text-3xl cursor-pointer 
+		text-[#b0bfbf] font-light bg-pastel-blue/80
+		hover:bg-pastel-blue/90
+		tablet:w-auto;
 	}
 	.winrate-cell {
-		@apply custom-btn;
+		@apply custom-btn px-2 w-36
+		wide:px-6
+		wide:w-40 extra-wide:w-56;
 	}
 
 	.user-line:nth-child(odd):not(:first-child) .winrate-cell {
@@ -106,7 +117,8 @@
 
 	/* CELLS */
 	.user-cell {
-		@apply relative flex flex-row justify-start items-center;
+		@apply relative flex flex-row justify-center items-center cursor-default mt-5
+		tablet:justify-start tablet:mt-0 tablet:ml-4;
 	}
 
 	.user-cell:hover .name-cell {
@@ -146,15 +158,18 @@
 	}
 
 	.log-cell {
-		@apply font-bold text-gray-700 text-xs;
+		@apply font-bold text-gray-700 text-xs hidden
+		wide:block;
 	}
 
 	.button-cell {
-		@apply flex items-center justify-end gap-3;
+		@apply flex items-center justify-end gap-3 mb-5
+		tablet:mb-0;
 	}
 
 	.friend-logo-cell i {
-		@apply text-pastel-blue text-2xl;
+		@apply text-pastel-blue text-2xl hidden
+		tablet:block;
 	}
 
 	/* FRIEND BUTTONS */
