@@ -198,7 +198,7 @@ export class ParticlesService {
 					detectRetina: true,
 					emitters: [
 						{
-							autoPlay: true,
+							autoPlay: false,
 							fill: true,
 							life: {
 								wait: false
