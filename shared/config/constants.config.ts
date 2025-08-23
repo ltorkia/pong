@@ -104,17 +104,16 @@ export const USER_ONLINE_STATUS = {
 /**
  * Définit les actions pouvant être effectuées sur une demande d'ami.
  * Utilisées dans les notifications.
- * 
- * - `SEND` : Envoyer une demande d'ami à un autre utilisateur.
- * - `ACCEPT` : Accepter une demande d'ami reçue.
- * - `DELETE` : Supprimer une demande d'ami.
- * - `BLOCK` : Bloquer un utilisateur.
  */
 export const FRIEND_REQUEST_ACTIONS = {
 	ADD: 'add',
 	ACCEPT: 'accept',
+	DECLINE: 'decline',
 	DELETE: 'delete',
 	BLOCK: 'block',
+	UNBLOCK: 'unblock',
+	UNFRIEND: 'unfriend',
+	CANCEL: 'cancel',
 } as const;
 
 

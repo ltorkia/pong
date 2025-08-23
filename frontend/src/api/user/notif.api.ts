@@ -88,4 +88,26 @@ export class NotifApi {
 		}
 		return AppNotification.fromJSONArray(data) as AppNotification;
 	}
+
+	/**
+	 * Supprime une notification par son identifiant.
+	 *
+	 * Envoie une requête DELETE à la route API `/api/notifs/:notifId` pour supprimer
+	 * la notification d'identifiant `notifId` de l'utilisateur courant.
+	 *
+	 * Si la suppression réussit, renvoie un objet contenant les informations de l'opération.
+	 * Sinon, renvoie un objet contenant un message d'erreur.
+	 *
+	 * @param {number} notifId - Identifiant de la notification à supprimer.
+	 * @returns {Promise<BasicResponse | { errorMessage: string }>} Promesse qui se résout avec les informations
+	 * de l'opération ou un message d'erreur.
+	 */
+	public async deleteNotification(notifId: number): Promise<BasicResponse | { errorMessage: string }> {
+		const res = await secureFetch(`/api/notifs/${notifId}`, { method: 'DELETE' });
+		const data = await res.json();
+		if (!res.ok || 'errorMessage' in data || !data) {
+			return { errorMessage: data.errorMessage || 'Erreur lors de la suppression de la notif' };
+		}
+		return data as BasicResponse;
+	}
 }

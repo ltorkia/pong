@@ -9,13 +9,14 @@ import { getRelation, getUserFriends, getAllRelations } from '../db/friend'
 import { addUserFriend, updateRelationshipConfirmed, updateRelationshipBlocked, updateRelationshipDelete } from '../db/friend'
 import { FriendResponse } from '../shared/types/response.types';
 
-import { IdInputSchema, IdInput } from '../types/zod/app.zod';
+import { IdInputSchema, IdInput, FriendActionInputSchema, FriendActionInput } from '../types/zod/app.zod';
 import { checkParsing, isParsingError } from '../helpers/types.helpers';
+import { isFriendRequestValid, isValidRequester } from '../helpers/friend.helpers';
 
 // import { NotificationModel } from '../shared/types/notification.types';
-import { insertNotification, getNotification, getTwinNotifications } from '../db/notification';
-import { sendToSocket, sendUpdateNotification, sendDeleteNotification, addNotifContent } from '../helpers/notifications.helpers';
-import { NotificationInput, NotificationInputSchema } from '../types/zod/app.zod';
+// import { insertNotification, getNotification, getTwinNotifications } from '../db/notification';
+// import { sendToSocket, sendUpdateNotification, sendDeleteNotification, addNotifContent } from '../helpers/notifications.helpers';
+// import { NotificationInput, NotificationInputSchema } from '../types/zod/app.zod';
 // import { NotifResponse } from '../shared/types/response.types';
 
 /* ======================== FRIENDS ROUTES ======================== */
@@ -75,14 +76,13 @@ export async function friendsRoutes(app: FastifyInstance) {
 	/* -------------------------------------------------------------------------- */
 
 	app.post('/', async(request: FastifyRequest, reply: FastifyReply): Promise<FriendResponse> => {
-		
 		const jwtUser = request.user as JwtPayload;
 		const userdataCheck = await checkParsing(IdInputSchema, request.body);
 		if (isParsingError(userdataCheck)) {
 			return reply.status(400).send(userdataCheck);
 		}
-		let data = userdataCheck as IdInput;
 
+		let data = userdataCheck as IdInput;
 		const friend: UserModel = await getUser(Number(data.id));
 		if (!friend)
 			return reply.code(404).send({ errorMessage: 'No user found'});
@@ -90,22 +90,9 @@ export async function friendsRoutes(app: FastifyInstance) {
 		const relation: FriendModel = await getRelation(jwtUser.id, data.id);
 		if (relation)
 			return reply.code(404).send({ errorMessage: 'Already friends'});
-		await addUserFriend(jwtUser.id, friend.id);
 
-		// Si l'utilisateur est connecté, envoyer une notification via WebSocket
-		let friendRequestData: NotificationInput = {
-			type: FRIEND_REQUEST_ACTIONS.ADD,
-			from: jwtUser.id,
-			to: friend.id
-		};
-		const notifData: NotificationInput = await addNotifContent(friendRequestData);
-		const notif = await insertNotification(notifData);
-		if (!notif || "errorMessage" in notif) {
-			return reply.code(500).send({ errorMessage: notif.errorMessage || 'Error inserting notification'});
-		}
-		
-		sendToSocket(app, [notif]);
-		return reply.code(200).send( notif );
+		await addUserFriend(jwtUser.id, friend.id);
+		return reply.code(200).send({ message: 'Friend request sent' });
 	})
 
 	app.put('/:friendId', async(request: FastifyRequest, reply: FastifyReply): Promise<FriendResponse> => {
@@ -116,48 +103,34 @@ export async function friendsRoutes(app: FastifyInstance) {
 			|| !Number.isInteger(friendId) || friendId <= 0) {
 			return reply.status(403).send({ errorMessage: 'Forbidden' });
 		}
-		
-		const notifDataCheck = await checkParsing(NotificationInputSchema, request.body);
-		console.log("notifDataCheck", notifDataCheck);
-		if (isParsingError(notifDataCheck)) {
-			console.log('ON EST ICIIIIIII');
-			return reply.status(400).send(notifDataCheck);
+
+		const friendDataCheck = await checkParsing(FriendActionInputSchema, request.body);
+		if (isParsingError(friendDataCheck)) {
+			return reply.status(400).send(friendDataCheck);
 		}
-		const data = notifDataCheck as NotificationInput;
-		if (data.from != jwtUser.id)
-			return reply.status(403).send({ errorMessage: 'Forbidden' });
-		console.log('DATAAAA', data);
-		const friend: UserModel = await getUser(data.to);
-		if (!friend)
-			return reply.code(404).send({ errorMessage: 'No user found'});
-		let relation: FriendModel = await getRelation(jwtUser.id, data.to);
+		const data = friendDataCheck as FriendActionInput;
+		let relation: FriendModel = await getRelation(jwtUser.id, friendId);
 		if (!relation)
 			return reply.code(404).send({ errorMessage: 'No relation found'});
-		const notif = await getNotification(data.id!);
-		if (!notif || 'errorMessage' in notif)
-			return reply.code(404).send({ errorMessage: notif.errorMessage || 'Notification not found'});
-		
-		if (notif.from != jwtUser.id) {
+		if (!isFriendRequestValid(data, relation.friendStatus)) {
 			return reply.status(403).send({ errorMessage: 'Forbidden' });
 		}
-		notif.type = data.toType!;
-		switch (notif.type) {
+		if (!isValidRequester(data, relation, jwtUser.id)) {
+			return reply.status(403).send({ errorMessage: 'Forbidden' });
+		}
+
+		switch (data) {
 
 			// On met à jour le lien d'amitié en base de données
 			case FRIEND_REQUEST_ACTIONS.ACCEPT:
-				relation = await updateRelationshipConfirmed(notif.from, notif.to);
+			case FRIEND_REQUEST_ACTIONS.UNBLOCK:
+				relation = await updateRelationshipConfirmed(friendId, jwtUser.id);
 				break;
 			case FRIEND_REQUEST_ACTIONS.BLOCK:
-				relation = await updateRelationshipBlocked(notif.from, notif.to);
+				relation = await updateRelationshipBlocked(friendId, jwtUser.id);
 				break;
 		}
-
-		// On met à jour la notification en base de données et on la renvoie à l'utilisateur concerné
-		const updatedNotifs = await sendUpdateNotification(app, notif);
-		if ('errorMessage' in updatedNotifs)
-			return reply.code(500).send({ errorMessage: updatedNotifs.errorMessage });
-
-		return reply.code(200).send(updatedNotifs);
+		return reply.code(200).send({ message: 'Relation updated' });
 	})
 
 	app.delete('/:friendId', async(request: FastifyRequest, reply: FastifyReply): Promise<FriendResponse> => {
@@ -167,46 +140,25 @@ export async function friendsRoutes(app: FastifyInstance) {
 		if (!Number.isInteger(friendId) || friendId <= 0) {
 			return reply.status(403).send({ errorMessage: 'Forbidden' });
 		}
-		
-		let notifId = 0;
-		const parsedQuery = IdInputSchema.safeParse({ id: Number((request.query as any).id) });
-		if (parsedQuery.success) {
-			notifId = parsedQuery.data.id;
-		}
 
-		const friend: UserModel = await getUser(friendId);
-		if (!friend)
-			return reply.code(404).send({ errorMessage: 'No user found'});
+		const queryAction = (request.query as { action?: string })?.action;
+		const actionCheck = FriendActionInputSchema.safeParse(queryAction);
+		if (!actionCheck.success) {
+			return reply.status(400).send({ errorMessage: 'Invalid action' });
+		}
+		const action = actionCheck.data as FriendActionInput;
+
 		let relation: FriendModel = await getRelation(jwtUser.id, friendId);
 		if (!relation)
 			return reply.code(404).send({ errorMessage: 'No relation found'});
-
-		await updateRelationshipDelete(jwtUser.id, friend.id);
-
-		let twinNotifs;
-		let dataNotif;
-		if (notifId) {
-			const notif = await getNotification(notifId);
-			if (!notif || 'errorMessage' in notif) 
-				return reply.code(404).send({ errorMessage: notif.errorMessage || 'Notification not found' });
-			dataNotif = notif;
-		} else {
-			// pas d'id = on crée un objet NotificationInput “fictif” pour récupérer les twin notifications
-			dataNotif = {
-				from: jwtUser.id,
-				to: friendId,
-				type: FRIEND_REQUEST_ACTIONS.ADD
-			}
+		if (!isFriendRequestValid(action, relation.friendStatus)) {
+			return reply.status(403).send({ errorMessage: 'Forbidden' });
 		}
-		twinNotifs = await getTwinNotifications(dataNotif);
+		if (!isValidRequester(action, relation, jwtUser.id)) {
+			return reply.status(403).send({ errorMessage: 'Forbidden' });
+		}
 
-		if ('errorMessage' in twinNotifs) 
-			return reply.code(404).send({ errorMessage: twinNotifs.errorMessage || 'Notification(s) not found' });
-
-		const deletedNotifs = await sendDeleteNotification(app, twinNotifs);
-		if ('errorMessage' in deletedNotifs) 
-			return reply.code(500).send({ errorMessage: deletedNotifs.errorMessage });
-
-		return reply.code(200).send(deletedNotifs);
+		await updateRelationshipDelete(jwtUser.id, friendId);
+		return reply.code(200).send({  message: 'Relation deleted' });
 	})
 }

@@ -30,7 +30,6 @@ import { FriendRequestAction } from '../../../../shared/types/notification.types
 export class UserRowComponent extends BaseComponent {
 	protected user?: User | null = null;
 	public userline!: HTMLDivElement;
-	private userCell!: HTMLAnchorElement;
 	private avatarImg!: HTMLImageElement;
 	private nameCell!: HTMLElement;
 	private statusCell!: HTMLElement;
@@ -98,7 +97,6 @@ export class UserRowComponent extends BaseComponent {
 	 */
 	protected async beforeMount(): Promise<void> {
 		this.userline = getHTMLElementByClass('user-line', this.container) as HTMLDivElement;
-		this.userCell = getHTMLElementByClass('user-cell', this.container) as HTMLAnchorElement;
 		this.avatarImg = getHTMLElementByClass('avatar-img', this.container) as HTMLImageElement;
 		this.nameCell = getHTMLElementByClass('name-cell', this.container) as HTMLElement;
 		this.statusCell = getHTMLElementByClass('status-cell', this.container) as HTMLElement;
@@ -167,8 +165,8 @@ export class UserRowComponent extends BaseComponent {
 		this.addFriendButton.addEventListener('click', this.addFriendClick);
 		this.cancelFriendButton.addEventListener('click', this.cancelFriendRequestClick);
 		this.acceptFriendButton.addEventListener('click', this.acceptFriendClick);
-		this.declineFriendButton.addEventListener('click', this.cancelFriendRequestClick);
-		this.unfriendButton.addEventListener('click', this.cancelFriendRequestClick);
+		this.declineFriendButton.addEventListener('click', this.declineFriendClick);
+		this.unfriendButton.addEventListener('click', this.unfriendClick);
 		this.blockFriendButton.addEventListener('click', this.blockFriendClick);
 		this.unblockFriendButton.addEventListener('click', this.unblockFriendClick);
 		// this.challengeButton.addEventListener('click', this.challengeClick);
@@ -182,8 +180,8 @@ export class UserRowComponent extends BaseComponent {
 		this.addFriendButton.removeEventListener('click', this.addFriendClick);
 		this.cancelFriendButton.removeEventListener('click', this.cancelFriendRequestClick);
 		this.acceptFriendButton.removeEventListener('click', this.acceptFriendClick);
-		this.declineFriendButton.removeEventListener('click', this.cancelFriendRequestClick);
-		this.unfriendButton.removeEventListener('click', this.cancelFriendRequestClick);
+		this.declineFriendButton.removeEventListener('click', this.declineFriendClick);
+		this.unfriendButton.removeEventListener('click', this.unfriendClick);
 		this.blockFriendButton.removeEventListener('click', this.blockFriendClick);
 		this.unblockFriendButton.removeEventListener('click', this.unblockFriendClick);
 		// this.challengeButton.removeEventListener('click', this.challengeClick);
@@ -287,118 +285,85 @@ export class UserRowComponent extends BaseComponent {
 	// LISTENER HANDLERS
 	// ===========================================
 
-	/**
-	 * Listener sur le bloc avatar/username pour rediriger vers le profil.
-	 * 
-	 * @param {MouseEvent} event L'événement de clic.
-	 * @returns {Promise<void>} Une promesse qui se resout apres la redirection.
-	 */
 	private handleProfileClick = async (event: MouseEvent): Promise<void> => {
 		event.preventDefault();
 		await router.navigate(this.profilePath);
 	};
 
-	/**
-	 * Gère l'événement de clic pour l'ajout d'un ami.
-	 * 
-	 * Empêche le comportement par défaut de l'événement, vérifie si l'utilisateur cible existe,
-	 * envoie une demande d'ami via l'API, et affiche une alerte en cas d'erreur.
-	 * Si la demande réussit, rafraîchit les boutons d'amis via le service de notification
-	 * et log l'action dans la console.
-	 * 
-	 * @param event - L'événement souris déclenché par le clic sur le bouton d'ajout d'ami.
-	 * @returns Une promesse qui se résout lorsque le processus de demande d'ami est terminé.
-	 */
 	private addFriendClick = async (event: MouseEvent): Promise<void> => {
 		event.preventDefault();
 		if (!this.user) {
 			return;
 		}
-		notifService.setNotifsData(this.user.id);
+		console.log("FRIEND A AJOUTER", this.user.id);
+		// notifService.setNotifsData(this.user.id);
+		notifService.setFriendId(this.user.id);
 		await notifService.handleAddClick();
 		console.log(`Friend request sent to ${this.user.username}`);
 	}
 
-	/**
-	 * Gère l'événement de clic pour accepter une demande d'ami.
-	 *
-	 * Empêche le comportement par défaut de l'événement, vérifie si l'utilisateur cible existe,
-	 * envoie une requête pour accepter l'ami via l'API, et affiche une alerte en cas d'erreur.
-	 * Si la demande réussit, rafraîchit les boutons d'amis via le service de notification
-	 * et log l'action dans la console.
-	 *
-	 * @param event - L'événement souris déclenché par le clic sur le bouton d'acceptation.
-	 * @returns Une promesse qui se résout lorsque la demande d'ami a été traitée.
-	 */
 	private acceptFriendClick = async (event: MouseEvent): Promise<void> => {
 		event.preventDefault();
 		if (!this.user) {
 			return;
 		}
-		notifService.setNotifsData(this.user.id, FRIEND_REQUEST_ACTIONS.ADD);
+		// notifService.setNotifsData(this.user.id, FRIEND_REQUEST_ACTIONS.ADD);
+		notifService.setFriendId(this.user.id);
 		await notifService.handleAcceptClick();
 		console.log(`Friend request accepted for ${this.user.username}`);
 	}
 
-	/**
-	 * Gère l'événement de clic pour bloquer un ami.
-	 * 
-	 * Empêche le comportement par défaut de l'événement, vérifie si l'utilisateur cible existe,
-	 * envoie une requête pour bloquer l'ami via l'API, et affiche une alerte en cas d'erreur.
-	 * Si la demande réussit, rafraîchit les boutons d'amis via le service de notification
-	 * et log l'action dans la console.
-	 *
-	 * @param event - L'événement souris déclenché par le clic sur le bouton de blocage.
-	 * @returns Une promesse qui se résout lorsque l'opération de blocage est terminée.
-	 */
+	private declineFriendClick = async (event: MouseEvent): Promise<void> => {
+		event.preventDefault();
+		if (!this.user) {
+			return;
+		}
+		// notifService.setNotifsData(this.user.id, FRIEND_REQUEST_ACTIONS.BLOCK);
+		notifService.setFriendId(this.user.id);
+		await notifService.handleDeclineClick();
+		console.log(`Friend request sent to ${this.user.username}`);
+	}
+
 	private blockFriendClick = async (event: MouseEvent): Promise<void> => {
 		event.preventDefault();
 		if (!this.user) {
 			return;
 		}
-		notifService.setNotifsData(this.user.id, FRIEND_REQUEST_ACTIONS.ACCEPT);
+		// notifService.setNotifsData(this.user.id, FRIEND_REQUEST_ACTIONS.ACCEPT);
+		notifService.setFriendId(this.user.id);
 		await notifService.handleBlockClick();
 		console.log(`Friend ${this.user.username} blocked`);
 	}
 
-	/**
-	 * Gère l'événement de clic pour débloquer un ami.
-	 *
-	 * Empêche le comportement par défaut de l'événement, vérifie si l'utilisateur cible existe,
-	 * envoie une requête pour débloquer l'ami via l'API, et affiche une alerte en cas d'erreur.
-	 * Si la demande réussit, rafraîchit les boutons d'amis via le service de notification
-	 * et log l'action dans la console.
-	 *
-	 * @param event - L'événement souris déclenché par le clic sur le bouton de déblocage.
-	 * @returns Une promesse qui se résout lorsque l'opération de déblocage est terminée.
-	 */
 	private unblockFriendClick = async (event: MouseEvent): Promise<void> => {
 		event.preventDefault();
 		if (!this.user) {
 			return;
 		}
-		notifService.setNotifsData(this.user.id, FRIEND_REQUEST_ACTIONS.BLOCK);
-		await notifService.handleAcceptClick();
-		console.log(`Friend request sent to ${this.user.username}`);
+		// notifService.setNotifsData(this.user.id, FRIEND_REQUEST_ACTIONS.ACCEPT);
+		notifService.setFriendId(this.user.id);
+		await notifService.handleUnblockClick();
+		console.log(`Friend ${this.user.username} unblocked`);
 	}
 
-	/**
-	 * Gère l'annulation d'une demande d'ami lors du clic sur le bouton correspondant.
-	 * 
-	 * Empêche le comportement par défaut de l'événement, vérifie si l'utilisateur cible existe,
-	 * et tente de supprimer la demande d'ami via l'API. En cas d'erreur, affiche une alerte
-	 * avec le message d'erreur. En cas de succès, met à jour l'interface utilisateur
-	 * en rafraîchissant les boutons d'amis et log l'annulation dans la console.
-	 * 
-	 * @param event - L'événement souris déclenché par le clic sur le bouton d'annulation de la demande d'ami.
-	 * @returns Une promesse qui se résout lorsque l'opération est terminée.
-	 */
+	private unfriendClick = async (event: MouseEvent): Promise<void> => {
+		event.preventDefault();
+		if (!this.user) {
+			return;
+		}
+		// notifService.setNotifsData(this.user.id, FRIEND_REQUEST_ACTIONS.ACCEPT);
+		notifService.setFriendId(this.user.id);
+		await notifService.handleUnfriendClick();
+		console.log(`Friend ${this.user.username} unfriended`);
+	}
+
 	private cancelFriendRequestClick = async (event: MouseEvent): Promise<void> => {
 		event.preventDefault();
 		if (!this.user) {
 			return;
 		}
-		notifService.setNotifsData(this.user.id);
+		// notifService.setNotifsData(this.user.id);
+		notifService.setFriendId(this.user.id);
 		await notifService.handleCancelClick();
 		console.log(`Friend request canceled for ${this.user.username}`);
 	}

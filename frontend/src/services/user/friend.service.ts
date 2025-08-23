@@ -2,10 +2,10 @@ import { Friend } from '../../shared/models/friend.model';
 import { friendApi } from '../../api/index.api';
 import { currentService } from '../../services/index.service';
 import { UserStatus } from '../../shared/types/user.types';
-import { AppNotification } from '../../shared/models/notification.model';
-import { FriendModel } from '../../shared/types/friend.types';	// en rouge car dossier local 'shared' != dossier conteneur
-import { secureFetch } from '../../utils/app.utils';
-import { FriendResponse } from '../../shared/types/response.types';
+// import { AppNotification } from '../../shared/models/notification.model';
+// import { FriendModel } from '../../shared/types/friend.types';	// en rouge car dossier local 'shared' != dossier conteneur
+// import { secureFetch } from '../../utils/app.utils';
+// import { FriendResponse } from '../../shared/types/response.types';
 
 // ============================================================================
 // FRIEND SERVICE

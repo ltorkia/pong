@@ -35,6 +35,15 @@ export class NotifService {
 	// ===========================================
 
 	/**
+	 * Paramètre l'ID de l'ami courant.
+	 *
+	 * @param {number} friendId - ID de l'ami courant.
+	 */
+	public setFriendId(friendId: number): void {
+		this.friendId = friendId;
+	}
+
+	/**
 	 * Paramètre les données lorsque l'utilisateur clique sur un bouton avec un handler
 	 * de demande d'amitié.
 	 * 
@@ -348,8 +357,7 @@ export class NotifService {
 	 * @returns {Promise<void>} Une promesse qui se résout lorsque les boutons d'amitié ont été mis à jour.
 	 */
 	private async refreshFriendButtons(userRowInstance?: UserRowComponent): Promise<void> {
-		if (this.currentPage.config.path === ROUTE_PATHS.USERS
-			&& isFriendRequestAction(this.currentNotif.type)) {
+		if (this.currentPage.config.path === ROUTE_PATHS.USERS) {
 			await this.currentPage.updateFriendButtons!(this.friendId!, userRowInstance);
 		}
 	}
@@ -425,12 +433,51 @@ export class NotifService {
 		}
 	}
 
+	/**
+	 * Accepte une demande d'amitié, bloque et débloque un ami.
+	 *
+	 * Envoie une requête PUT à l'API pour mettre à jour l'état de la demande d'amitié.
+	 * Si la mise à jour réussit, met à jour les boutons d'amitié correspondant à l'utilisateur
+	 * qui a envoyé la demande d'amitié.
+	 * Sinon, affiche un message d'erreur.
+	 *
+	 * @param {FriendRequestAction} action - Action à réaliser sur la demande d'amitié.
+	 * @returns {Promise<void>}
+	 */
+	public async handleUpdate(action: FriendRequestAction): Promise<void> {
+		let res = await friendApi.updateFriend(this.friendId!, action);
+		if ('errorMessage' in res) {
+			console.error(res.errorMessage);
+			return;
+		}
+		await this.refreshFriendButtons();
+	}
+
+	/**
+	 * Supprime un ami de l'utilisateur courant.
+	 *
+	 * Envoie une requête DELETE à l'API pour supprimer l'ami de l'utilisateur courant.
+	 * Si la suppression réussit, met à jour les boutons d'amitié correspondant
+	 * à l'utilisateur qui a envoyé la demande d'amitié.
+	 * Sinon, affiche un message d'erreur.
+	 * 
+	 * @param {FriendRequestAction} action - Action à-REALISER sur la demande d'amitié.
+	 * @returns {Promise<void>}
+	 */
+	public async handleDelete(action: FriendRequestAction): Promise<void> {
+		let res = await friendApi.removeFriend(this.friendId!, action);
+		if ('errorMessage' in res) {
+			console.error(res.errorMessage);
+			return;
+		}
+		await this.refreshFriendButtons();
+	}
+
 	// ===========================================
 	// LISTENERS
 	// ===========================================
 
 	public handleAddClick = async (): Promise<void> => {
-		console.log("ADDDD Add friend request from user ID:", this.currentUser.id, "to user ID:", this.friendId!);
 		let res = await friendApi.addFriend(this.friendId!);
 		if ('errorMessage' in res) {
 			console.error(res.errorMessage);
@@ -440,58 +487,28 @@ export class NotifService {
 	}
 
 	public handleCancelClick = async (): Promise<void> => {
-		console.log("CANCEL CLICK: Cancel friend request from user ID:", this.currentUser.id, "to user ID:", this.friendId!);
-		// const data = {
-		// 	id: 0,
-		// 	to: this.friendId
-		// }
-		let res = await friendApi.removeFriend(this.currentNotif);
-		if ('errorMessage' in res) {
-			console.error(res.errorMessage);
-			return;
-		}
-		await this.refreshFriendButtons();
+		await this.handleDelete(FRIEND_REQUEST_ACTIONS.CANCEL);
 	}
 
 	public handleDeclineClick = async (): Promise<void> => {
-		console.log("DECLINE CLICK: Decline friend request from user ID:", this.currentUser.id, "to user ID:", this.friendId!);
-		let res = await friendApi.removeFriend(this.currentNotif);
-		if ('errorMessage' in res) {
-			console.error(res.errorMessage);
-			return;
-		}
-		await this.handleNotifications(res);
+		await this.handleDelete(FRIEND_REQUEST_ACTIONS.DECLINE);
 	}
 
 	public handleAcceptClick = async (): Promise<void> => {
-		console.log("ACCEPPPPPT Accepting friend request from user ID:", this.currentUser.id, "to user ID:", this.friendId!);
-		console.log(this.currentNotif);
-		if (this.currentNotif.type !== FRIEND_REQUEST_ACTIONS.ADD) {
-			console.error("Invalid notification type for accepting friend request", this.currentNotif.type);
-			return;
-		}
-		this.currentNotif.toType = FRIEND_REQUEST_ACTIONS.ACCEPT;
-		let res = await friendApi.updateFriend(this.currentNotif);
-		if ('errorMessage' in res) {
-			console.error(res.errorMessage);
-			return;
-		}
-		await this.handleNotifications(res);
+		await this.handleUpdate(FRIEND_REQUEST_ACTIONS.ACCEPT);
+		await this.refreshFriendButtons();
 	}
 
 	public handleBlockClick = async (): Promise<void> => {
-		console.log("BLOCKKKKK Blocking friend:", this.friendId!);
-		if (this.currentNotif.type !== FRIEND_REQUEST_ACTIONS.ACCEPT) {
-			console.error("Invalid notification type for accepting friend request", this.currentNotif.type);
-			return;
-		}
-		this.currentNotif.toType = FRIEND_REQUEST_ACTIONS.BLOCK;
-		let res = await friendApi.updateFriend(this.currentNotif);
-		if ('errorMessage' in res) {
-			console.error(res.errorMessage);
-			return;
-		}
-		await this.handleNotifications(res);
+		await this.handleUpdate(FRIEND_REQUEST_ACTIONS.BLOCK);
+	}
+
+	public handleUnblockClick = async (): Promise<void> => {
+		await this.handleUpdate(FRIEND_REQUEST_ACTIONS.UNBLOCK);
+	}
+
+	public handleUnfriendClick = async (): Promise<void> => {
+		await this.handleDelete(FRIEND_REQUEST_ACTIONS.UNFRIEND);
 	}
 
 	// ===========================================

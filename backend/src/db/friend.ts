@@ -40,24 +40,17 @@ export async function getUserFriends(userId: number): Promise<FriendModel[]> {
  */
 export async function getRelation(userId1: number, userId2: number): Promise<FriendModel> {
 	const db = await getDb();
-
-	const [user1, user2] = 
-		userId1 < userId2 
-			? [userId1, userId2] 
-			: [userId2, userId1];
-
 	const relation = await db.get(`
 		SELECT u.id, u.username, u.avatar, u.begin_log, u.end_log, 
-		f.requester_id, f.friend_status, f.blocked_by, f.meet_date
+			f.requester_id, f.friend_status, f.blocked_by, f.meet_date
 		FROM Friends f
-		JOIN User u ON 
-		( 
-			(f.user1_id = ? AND f.user2_id = u.id) 
-			OR 
-			(f.user2_id = ? AND f.user1_id = u.id) 
+		JOIN User u ON (
+			(f.user1_id = u.id OR f.user2_id = u.id)
+			AND u.id != ?
 		)
-		`, [user1, user2]
-	);
+		WHERE (f.user1_id = ? AND f.user2_id = ?)
+		OR (f.user1_id = ? AND f.user2_id = ?)
+	`, [userId1, userId1, userId2, userId2, userId1]);
 	return snakeToCamel(relation) as FriendModel;
 }
 
@@ -75,12 +68,6 @@ export async function getRelation(userId1: number, userId2: number): Promise<Fri
  */
 export async function getUserFriendStats(userId1: number, userId2: number): Promise<FriendModel> {
 	const db = await getDb();
-
-	const [user1, user2] = 
-		userId1 < userId2 
-			? [userId1, userId2] 
-			: [userId2, userId1];
-
 	const stats = await db.get(`
 		SELECT 
 			u.id, u.username, u.avatar, u.registration, u.begin_log, u.end_log, 
@@ -98,16 +85,16 @@ export async function getUserFriendStats(userId1: number, userId2: number): Prom
 			MAX(ut.round_reached) AS last_round_reached
 
 		FROM Friends f
-		JOIN User u ON 
-		( 
-			(f.user1_id = ? AND f.user2_id = u.id) 
-			OR 
-			(f.user2_id = ? AND f.user1_id = u.id) 
+		JOIN User u ON (
+			(u.id = f.user1_id OR u.id = f.user2_id)
+			AND u.id != ?
 		)
 		LEFT JOIN User_Game ug ON ug.user_id = u.id
 		LEFT JOIN User_Tournament ut ON ut.user_id = u.id
+		WHERE (f.user1_id = ? AND f.user2_id = ?)
+			OR (f.user1_id = ? AND f.user2_id = ?)
 		GROUP BY u.id
-	`, [user1, user2]);
+	`, [userId1, userId1, userId2, userId2, userId1]);
 
 	return snakeToCamel(stats) as FriendModel;
 }

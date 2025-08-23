@@ -190,12 +190,12 @@
 
 	/* FRIEND BUTTONS */
 	.unfriend-button, .decline-friend-button, .add-friend-button, .accept-friend-button,
-	.challenge-button, .unblocked-friend-button, .block-friend-button, .cancel-friend-button {
+	.challenge-button, .unblock-friend-button, .block-friend-button, .cancel-friend-button {
 		@apply btn smaller-btn mt-0 text-xs md:text-sm;
 	}
 
-	.decline-friend-button, .unblocked-friend-button {
-		@apply bg-red-500;
+	.user-line .button-cell button.block-friend-button {
+		@apply min-w-0 w-[3rem];
 	}
 
 }

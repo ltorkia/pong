@@ -1,6 +1,7 @@
 import { Friend } from '../../shared/models/friend.model';
 import { AppNotification } from '../../shared/models/notification.model';
 import { FriendModel } from '../../shared/types/friend.types';	// en rouge car dossier local 'shared' != dossier conteneur
+import { FriendRequestAction } from '../../shared/types/notification.types';
 import { secureFetch } from '../../utils/app.utils';
 import { FriendResponse } from '../../shared/types/response.types';
 
@@ -45,30 +46,30 @@ export class FriendApi {
 	// ===========================================
 
 	/**
-	 * Ajoute un ami à l'utilisateur spécifié.
-	 * 
-	 * Envoie une requête POST à la route API `/users/:userId/friends/add` pour ajouter
-	 * un utilisateur ami d'identifiant `friendId` à l'utilisateur d'identifiant `userId`.
-	 * 
-	 * Si l'ajout réussit, renvoie un objet contenant les informations de l'opération.
+	 * Ajoute un ami à un utilisateur.
+	 *
+	 * Envoie une requête POST à la route API `/api/friends` pour ajouter
+	 * l'utilisateur d'identifiant `friendId` comme ami de l'utilisateur courant.
+	 *
+	 * Si la requête réussit, renvoie un objet contenant les informations de l'ami
+	 * stockées en base de données, sans email (type `FriendResponse`).
 	 * Sinon, renvoie un objet contenant un message d'erreur.
-	 * 
-	 * @param {number} friendId - Identifiant de l'ami à ajouter.
-	 * @returns {Promise<AppNotification[] | { errorMessage: string }>} Promesse qui se résout avec les informations
-	 * de l'opération ou un message d'erreur.
+	 *
+	 * @param {number} friendId Identifiant de l'utilisateur à ajouter comme ami.
+	 * @returns {Promise<FriendResponse>} Promesse qui se résout
+	 * avec un objet FriendResponse contenant les informations de l'ami ou un message d'erreur.
 	 */
-	public async addFriend(friendId: number): Promise<AppNotification[] | { errorMessage: string }> {
+	public async addFriend(friendId: number): Promise<FriendResponse> {
 		const res: Response = await secureFetch(`/api/friends`, {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({ id: friendId })
 		});
 		const data: FriendResponse = await res.json();
-		if (!res.ok || 'errorMessage' in data || !data) {
+		if (!res.ok || 'errorMessage' in data) {
 			return { errorMessage: data.errorMessage || 'Erreur lors de l\'ajout d\'ami' };
 		}
-		console.log(data);
-		return AppNotification.fromJSON(data) as AppNotification[];
+		return data;
 	}
 
 	// ===========================================
@@ -76,32 +77,32 @@ export class FriendApi {
 	// ===========================================
 
 	/**
-	 * Bloque ou accepte un ami.
-	 * 
-	 * Envoie une requête PUT à la route API `/api/friends/:friendId` pour bloquer
-	 * l'ami d'identifiant `friendId` par l'utilisateur courant.
-	 * 
-	 * Si le blocage réussit, renvoie un objet contenant les informations de l'opération.
+	 * Met à jour l'état d'une demande d'ami.
+	 *
+	 * Envoie une requête PUT à la route API `/api/friends/:friendId` pour mettre
+	 * à jour l'état de la demande d'ami d'identifiant `friendId` avec l'action
+	 * spécifiée dans `action`.
+	 *
+	 * Si la mise à jour réussit, renvoie un objet contenant les informations de
+	 * l'opération.
 	 * Sinon, renvoie un objet contenant un message d'erreur.
-	 * 
-	 * @param {AppNotification} notif - Notification liée à mettre à jour. 
-	 * Contient le type d'action (ACCEPT ou BLOCK).
-	 * @returns {Promise<AppNotification[] | { errorMessage: string }>} Promesse qui se résout avec les informations
-	 * de l'opération ou un message d'erreur.
+	 *
+	 * @param {number} friendId - Identifiant de la demande d'ami à mettre à jour.
+	 * @param {FriendRequestAction} action - Action à réaliser sur la demande d'ami.
+	 * @returns {Promise<FriendResponse>} Promesse qui se résout avec un objet
+	 * contenant les informations de l'opération ou un message d'erreur.
 	 */
-	public async updateFriend(notif: AppNotification): Promise<AppNotification[] | { errorMessage: string }> {
-		console.log('updateFriend dans FriendApi', notif);
-		const res: Response = await secureFetch(`/api/friends/${notif.to}`, {
+	public async updateFriend(friendId: number, action: FriendRequestAction): Promise<FriendResponse> {
+		const res: Response = await secureFetch(`/api/friends/${friendId}`, {
 			method: 'PUT',
 			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify( notif )
+			body: JSON.stringify( action )
 		});
 		const data: FriendResponse = await res.json();
-		if (!res.ok || 'errorMessage' in data || !data) {
+		if (!res.ok || 'errorMessage' in data) {
 			return { errorMessage: data.errorMessage || 'Erreur lors de l\'acceptation / le blocage d\'ami' };
 		}
-		console.log(data);
-		return AppNotification.fromJSONArray(data) as AppNotification[];
+		return data;
 	}
 
 	// ===========================================
@@ -109,7 +110,7 @@ export class FriendApi {
 	// ===========================================
 
 	/**
-	 * Supprime un ami de l'utilisateur.
+	 * Supprime un ami de l'utilisateur courant.
 	 * 
 	 * Envoie une requête DELETE à la route API `/api/friends/:friendId` pour supprimer
 	 * l'ami d'identifiant `friendId` de l'utilisateur courant.
@@ -117,24 +118,19 @@ export class FriendApi {
 	 * Si la suppression réussit, renvoie un objet contenant les informations de l'opération.
 	 * Sinon, renvoie un objet contenant un message d'erreur.
 	 * 
-	 * @param {Partial<AppNotification>} notif - Notification liée à supprimer.
-	 * @returns {Promise<AppNotification[] | { errorMessage: string }>} Promesse qui se résout avec les informations
-	 * de l'opération ou un message d'erreur.
+	 * @param {number} friendId - Identifiant de l'ami à supprimer.
+	 * @param {FriendRequestAction} action - Action à réaliser sur la demande d'ami (cancel, decline...).
+	 * @returns {Promise<FriendResponse>} Promesse qui se résout avec un objet
+	 * contenant les informations de l'opération ou un message d'erreur.
 	 */
-	public async removeFriend(notif: Partial<AppNotification>): Promise<AppNotification[] | { errorMessage: string }> {
-		console.log(`[${this.constructor.name}] Suppression de l'ami ${notif.to}`);
-		console.log("notif", notif);
-		
-		// Construction de la query param pour l'id de la notif
-		const res: Response = await secureFetch(`/api/friends/${notif.to}?id=${notif.id ?? 0}`, {
+	public async removeFriend(friendId: number, action: FriendRequestAction): Promise<FriendResponse> {
+		const res: Response = await secureFetch(`/api/friends/${friendId}?action=${action}`, {
 			method: 'DELETE'
 		});
 		const data: FriendResponse = await res.json();
-		if (!res.ok || 'errorMessage' in data || notif.id && notif.id > 0 && !data) {
+		if (!res.ok || 'errorMessage' in data) {
 			return { errorMessage: data.errorMessage || 'Erreur lors de l\'acceptation d\'ami' };
 		}
-		if (data)
-			return AppNotification.fromJSONArray(data) as AppNotification[];
-		return [] as AppNotification[];
+		return data;
 	}
 }
