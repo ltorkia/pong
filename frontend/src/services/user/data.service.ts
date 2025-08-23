@@ -1,4 +1,5 @@
 import { User } from '../../shared/models/user.model';
+import { Friend } from '../../shared/models/friend.model';
 import { dataApi } from '../../api/index.api';
 import { UserResponse } from '../../shared/types/response.types';
 import { showAlert } from '../../utils/dom.utils';
@@ -115,11 +116,11 @@ export class DataService {
 		console.log(user.status);
 		switch (user.status) {
 			case USER_ONLINE_STATUS.ONLINE: 
-				return `<div class="online"></div>`;
+				return `<div class="online" title="online"></div>`;
 			case USER_ONLINE_STATUS.OFFLINE:
-				return `<div class="offline"></div>`;
+				return `<div class="offline" title="offline"></div>`;
 			case USER_ONLINE_STATUS.IN_GAME:
-				return `<div class="ingame"></div>`;
+				return `<div class="ingame" title="in game"></div>`;
 			default: return 'Unknown';
 		}
 	}
@@ -128,18 +129,19 @@ export class DataService {
 	 * Renvoie le libellé correspondant au statut d'ami de l'utilisateur,
 	 * ou `undefined` si l'utilisateur n'est pas un ami.
 	 * 
-	 * @param {User} user - L'utilisateur dont on veut afficher le statut d'ami.
+	 * @param {User | Friend} user - L'utilisateur dont on veut afficher le statut d'ami.
 	 * @returns {string} Le libellé correspondant au statut d'ami
 	 * de l'utilisateur.
 	 */
-	public showFriendLogo(user: User): string {
+	public showFriendLogo(user: User | Friend): string {
+		console.log(user.friendStatus);
 		switch (user.friendStatus) {
 			case DB_CONST.FRIENDS.STATUS.ACCEPTED:
-				return `<i class="fa-solid fa-user-check"></i>`;
+				return `<i class="fa-solid fa-user-check" title="Friend !"></i>`;
 			case DB_CONST.FRIENDS.STATUS.PENDING:
-				return `<i class="fa-solid fa-user-clock"></i>`;
+				return `<i class="fa-solid fa-user-clock" title="Pending resquest..."></i>`;
 			case DB_CONST.FRIENDS.STATUS.BLOCKED:
-				return `<i class="fa-solid fa-user-slash"></i>`;
+				return `<i class="fa-solid fa-user-slash" title="Blocked !"></i>`;
 			default: 
 				return `<i class="fa-solid fa-minus"></i>`;
 		}

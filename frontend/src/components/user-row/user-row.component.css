@@ -2,7 +2,7 @@
 
 	/* GRID RESPONSIVE */
 	.user-line {
-		@apply w-full grid items-center gap-8;
+		@apply w-full grid items-center gap-8 pr-2;
 		grid-template-columns: auto auto minmax(12rem, 1fr) minmax(20rem, 2fr) 40px; /* desktop par défaut */
 	}
 	@screen mobile {
@@ -66,28 +66,47 @@
 	}
 
 	/* BUTTONS */
-	#user-list .user-line:nth-child(odd):not(:first-child) .custom-btn {
+
+	.level-cell {
+		@apply flex flex-row items-center justify-center gap-3;
+	}
+	.custom-btn {
+		@apply btn min-w-min w-56 h-10
+		text-[.7rem] rounded flex items-center justify-center;
+	}
+	.profile-button {
+		@apply custom-btn w-10 text-3xl cursor-pointer 
+		text-[#b0bfbf] font-light bg-pastel-blue/80;
+	}
+	.profile-button {
+		@apply hover:bg-pastel-blue/90;
+	}
+	.winrate-cell {
+		@apply custom-btn;
+	}
+
+	.user-line:nth-child(odd):not(:first-child) .winrate-cell {
 		@apply bg-[#5e8ca5d4] border-gray-800/10 hover:bg-[#5e8ca5];
 	}
-	#user-list .user-line:nth-child(even) .custom-btn {
+	.user-line:nth-child(even) .winrate-cell {
 		@apply bg-[#5e8ca5d4] border-gray-800/10 hover:bg-[#5e8ca5];
 	}
 
-	.user-line button {
-		@apply text-pastel-blue font-normal lowercase px-3 hover:text-blue-500 text-xs md:text-sm;
-	}
-
-	#user-list .user-line:nth-child(odd) button {
+	.user-line:nth-child(odd) .button-cell button {
 		@apply bg-blue-100;
 	}
 
-	#user-list .user-line:nth-child(even) button {
+	.user-line:nth-child(even) .button-cell button {
 		@apply bg-gray-100;
+	}
+
+	.user-line .button-cell button {
+		@apply text-pastel-blue font-normal lowercase px-3 hover:text-blue-500 text-xs;
 	}
 
 	/* CELLS */
 	.user-cell {
-		@apply relative flex flex-row justify-start items-center cursor-pointer;
+		@apply relative flex flex-row justify-start items-center;
 	}
 
 	.user-cell:hover .name-cell {
@@ -131,7 +150,7 @@
 	}
 
 	.button-cell {
-		@apply flex items-center justify-end;
+		@apply flex items-center justify-end gap-3;
 	}
 
 	.friend-logo-cell i {
@@ -139,12 +158,12 @@
 	}
 
 	/* FRIEND BUTTONS */
-	.remove-friend-button, .add-friend-button, .accept-friend-button,
-	.challenge-button, .unblocked-friend-button, .block-friend-button {
+	.unfriend-button, .decline-friend-button, .add-friend-button, .accept-friend-button,
+	.challenge-button, .unblocked-friend-button, .block-friend-button, .cancel-friend-button {
 		@apply btn smaller-btn mt-0 text-xs md:text-sm;
 	}
 
-	.remove-friend-button, .unblocked-friend-button {
+	.decline-friend-button, .unblocked-friend-button {
 		@apply bg-red-500;
 	}
 

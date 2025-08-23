@@ -36,15 +36,18 @@ export class UserRowComponent extends BaseComponent {
 	private statusCell!: HTMLElement;
 	private friendLogoCell!: HTMLElement;
 	private levelCell!: HTMLElement;
+	private winrate!: HTMLElement;
+	private profileButton!: HTMLElement;
 	private logCell!: HTMLElement;
 	private profilePath!: string;
 	private buttonCell!: HTMLElement;
 	private addFriendButton!: HTMLButtonElement;
+	private cancelFriendButton!: HTMLButtonElement;
 	private acceptFriendButton!: HTMLButtonElement;
-	private removeFriendButton!: HTMLButtonElement;
-	private removeFriendButtonContent!: HTMLSpanElement;
+	private declineFriendButton!: HTMLButtonElement;
 	private blockFriendButton!: HTMLButtonElement;
 	private unblockFriendButton!: HTMLButtonElement;
+	private unfriendButton!: HTMLButtonElement;
 	private challengeButton!: HTMLButtonElement;
 
 	/**
@@ -100,14 +103,17 @@ export class UserRowComponent extends BaseComponent {
 		this.nameCell = getHTMLElementByClass('name-cell', this.container) as HTMLElement;
 		this.statusCell = getHTMLElementByClass('status-cell', this.container) as HTMLElement;
 		this.friendLogoCell = getHTMLElementByClass('friend-logo-cell', this.container) as HTMLElement;
-		this.levelCell = getHTMLElementByClass('level-cell .custom-btn', this.container) as HTMLElement;
+		this.levelCell = getHTMLElementByClass('level-cell', this.container) as HTMLElement;
+		this.winrate = getHTMLElementByClass('winrate-cell', this.levelCell) as HTMLElement;
+		this.profileButton = getHTMLElementByClass('profile-button', this.levelCell) as HTMLElement;
 		this.logCell = getHTMLElementByClass('log-cell', this.container) as HTMLElement;
 		this.profilePath = `/user/${this.user!.id}`;
 		this.buttonCell = getHTMLElementByClass('button-cell', this.container) as HTMLElement;
 		this.addFriendButton = getHTMLElementByClass('add-friend-button', this.buttonCell) as HTMLButtonElement;
+		this.cancelFriendButton = getHTMLElementByClass('cancel-friend-button', this.buttonCell) as HTMLButtonElement;
 		this.acceptFriendButton = getHTMLElementByClass('accept-friend-button', this.buttonCell) as HTMLButtonElement;
-		this.removeFriendButton = getHTMLElementByClass('remove-friend-button', this.buttonCell) as HTMLButtonElement;
-		this.removeFriendButtonContent = getHTMLElementByTagName('span', this.removeFriendButton) as HTMLSpanElement;
+		this.declineFriendButton = getHTMLElementByClass('decline-friend-button', this.buttonCell) as HTMLButtonElement;
+		this.unfriendButton = getHTMLElementByClass('unfriend-button', this.buttonCell) as HTMLButtonElement;
 		this.blockFriendButton = getHTMLElementByClass('block-friend-button', this.buttonCell) as HTMLButtonElement;
 		this.unblockFriendButton = getHTMLElementByClass('unblock-friend-button', this.buttonCell) as HTMLButtonElement;
 		this.challengeButton = getHTMLElementByClass('challenge-button', this.buttonCell) as HTMLButtonElement;
@@ -126,10 +132,10 @@ export class UserRowComponent extends BaseComponent {
 	protected async mount(): Promise<void> {
 		this.createAlertSpace();
 		if (this.user!.id === this.currentUser!.id) {
-			this.userCell.setAttribute('title', 'Your profile');
+			this.profileButton.setAttribute('title', 'Your profile');
 			this.avatarImg.setAttribute('alt', 'Your avatar');
 		} else {
-			this.userCell.setAttribute('title', `${this.user!.username}'s profile`);
+			this.profileButton.setAttribute('title', `${this.user!.username}'s profile`);
 			this.avatarImg.setAttribute('alt', `${this.user!.username}'s avatar`);
 		}
 		this.avatarImg.setAttribute('loading', 'lazy');
@@ -140,9 +146,9 @@ export class UserRowComponent extends BaseComponent {
 			this.statusCell.innerHTML = dataService.showStatusLabel(this.user!);
 		this.friendLogoCell.innerHTML = dataService.showFriendLogo(this.user!);
 		if ('winRate' in this.user! && this.user.winRate !== undefined)
-			this.levelCell.textContent = `win rate: ${this.user.winRate}%`;
+			this.winrate.textContent = `win rate: ${this.user.winRate}%`;
 		else
-			this.levelCell.textContent = 'No stats';
+			this.winrate.textContent = 'No stats';
 		if (this.user!.id !== this.currentUser!.id) {
 			const logDate = dataService.showLogDate(this.user!);
 			if (logDate)
@@ -157,10 +163,12 @@ export class UserRowComponent extends BaseComponent {
 	 * - Attribue un listener au bloc avatar/username pour rediriger vers le profil.
 	 */
 	protected attachListeners(): void {
-		this.userCell.addEventListener('click', this.handleUsercellClick);
+		this.profileButton.addEventListener('click', this.handleProfileClick);
 		this.addFriendButton.addEventListener('click', this.addFriendClick);
+		this.cancelFriendButton.addEventListener('click', this.cancelFriendRequestClick);
 		this.acceptFriendButton.addEventListener('click', this.acceptFriendClick);
-		this.removeFriendButton.addEventListener('click', this.cancelFriendRequestClick);
+		this.declineFriendButton.addEventListener('click', this.cancelFriendRequestClick);
+		this.unfriendButton.addEventListener('click', this.cancelFriendRequestClick);
 		this.blockFriendButton.addEventListener('click', this.blockFriendClick);
 		this.unblockFriendButton.addEventListener('click', this.unblockFriendClick);
 		// this.challengeButton.addEventListener('click', this.challengeClick);
@@ -170,11 +178,13 @@ export class UserRowComponent extends BaseComponent {
 	 * Enlève les listeners.
 	 */
 	protected removeListeners(): void {
-		this.userCell.removeEventListener('click', this.handleUsercellClick);
+		this.profileButton.removeEventListener('click', this.handleProfileClick);
 		this.addFriendButton.removeEventListener('click', this.addFriendClick);
-		this.acceptFriendButton.removeEventListener('click', notifService.handleAcceptClick);
-		this.removeFriendButton.removeEventListener('click', this.cancelFriendRequestClick);
-		this.blockFriendButton.removeEventListener('click', notifService.handleDeclineClick);
+		this.cancelFriendButton.removeEventListener('click', this.cancelFriendRequestClick);
+		this.acceptFriendButton.removeEventListener('click', this.acceptFriendClick);
+		this.declineFriendButton.removeEventListener('click', this.cancelFriendRequestClick);
+		this.unfriendButton.removeEventListener('click', this.cancelFriendRequestClick);
+		this.blockFriendButton.removeEventListener('click', this.blockFriendClick);
 		this.unblockFriendButton.removeEventListener('click', this.unblockFriendClick);
 		// this.challengeButton.removeEventListener('click', this.challengeClick);
 	}
@@ -196,22 +206,24 @@ export class UserRowComponent extends BaseComponent {
 			this.hideAllButtons();
 			const friend = await friendService.isFriendWithCurrentUser(this.user!.id);
 			if (!friend) {
+				this.friendLogoCell.innerHTML = dataService.showFriendLogo(this.user!);
 				this.addFriendButton.classList.remove('hidden');
 				return;
 			}
+			this.friendLogoCell.innerHTML = dataService.showFriendLogo(friend);
+
 			if (friend.friendStatus === DB_CONST.FRIENDS.STATUS.PENDING) {
-				this.removeFriendButton.classList.remove('hidden');
 				if (friend.requesterId === this.currentUser!.id) {
-					this.removeFriendButtonContent.textContent = 'Cancel friend request';
+					this.cancelFriendButton.classList.remove('hidden');
 					return;
 				}
 				this.acceptFriendButton.classList.remove('hidden');
+				this.declineFriendButton.classList.remove('hidden');
 			}
 			if (friend.friendStatus === DB_CONST.FRIENDS.STATUS.ACCEPTED) {
 				this.challengeButton.classList.remove('hidden');
 				this.blockFriendButton.classList.remove('hidden');
-				this.removeFriendButton.classList.remove('hidden');
-				this.removeFriendButtonContent.textContent = 'Unfriend';
+				this.unfriendButton.classList.remove('hidden');
 			}
 			if (friend.friendStatus === DB_CONST.FRIENDS.STATUS.BLOCKED) {
 				if (friend.blockedBy === this.currentUser!.id) {
@@ -251,10 +263,12 @@ export class UserRowComponent extends BaseComponent {
 	private hideAllButtons() {
 		this.challengeButton.classList.add('hidden');
 		this.addFriendButton.classList.add('hidden');
+		this.cancelFriendButton.classList.add('hidden');
 		this.acceptFriendButton.classList.add('hidden');
-		this.removeFriendButton.classList.add('hidden');
+		this.declineFriendButton.classList.add('hidden');
 		this.blockFriendButton.classList.add('hidden');
 		this.unblockFriendButton.classList.add('hidden');
+		this.unfriendButton.classList.add('hidden');
 	}
 
 	/**
@@ -279,7 +293,7 @@ export class UserRowComponent extends BaseComponent {
 	 * @param {MouseEvent} event L'événement de clic.
 	 * @returns {Promise<void>} Une promesse qui se resout apres la redirection.
 	 */
-	private handleUsercellClick = async (event: MouseEvent): Promise<void> => {
+	private handleProfileClick = async (event: MouseEvent): Promise<void> => {
 		event.preventDefault();
 		await router.navigate(this.profilePath);
 	};
