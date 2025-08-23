@@ -2,9 +2,9 @@
 
 	/* GRID RESPONSIVE */
 	.user-line {
-		@apply w-[20rem] grid items-center gap-1 pr-2
+		@apply w-[20rem] grid items-center gap-1
 		tablet:gap-2 desktop:gap-3 wide:gap-6 extra-wide:gap-6
-		tablet:w-[44rem] desktop:w-full;
+		tablet:pr-2 tablet:py-2 tablet:w-[44rem] desktop:w-full;
 		grid-template-columns: auto auto .5fr;
 		grid-auto-flow: row;
 	}
@@ -22,7 +22,6 @@
 	@screen tablet {
 		.user-line {
 			grid-template-columns: auto auto 1fr 40px;
-			/* grid-template-areas: "col1 col2 col3 col4"; */
 		}
 		.user-line > .user-cell, .user-line > .button-cell, .user-line > .level-cell {
 			grid-column: auto;
@@ -46,13 +45,14 @@
 		@apply flex-shrink-0;
 	}
 	.avatar-img {
-		@apply w-16 h-16 md:w-20 md:h-20 object-cover object-center
-			rounded-full border border-white/65 flex-shrink-0;
+		@apply w-20 h-20 md:w-20 md:h-20 object-cover object-center
+		rounded-full border border-white/65 flex-shrink-0 float-left
+		tablet:w-16 tablet:h-16 tablet:float-none;
 	}
 
 	#user-list {
 		@apply w-full font-classic text-gray-700 text-sm
-			flex flex-col items-center justify-center;
+		flex flex-col items-center justify-center;
 	}
 
 	#user-list .cell {
@@ -67,12 +67,17 @@
 		@apply rounded-b-3xl;
 	}
 
-	#user-list .user-line:nth-child(odd) {
+	#user-list .user-line {
 		@apply bg-white/50;
 	}
-
-	#user-list .user-line:nth-child(even) {
-		@apply bg-white/80;
+	#user-list .user-line:not(:last-child, .line-offline) {
+		@apply border-b border-b-white/40;
+	}
+	#user-list .user-line.line-offline {
+		@apply bg-[#acc0dda8];
+	}
+	#user-list .user-line.line-offline:not(:last-child) {
+		@apply border-b border-b-white/20;
 	}
 
 	/* BUTTONS */
@@ -84,30 +89,41 @@
 		@apply btn min-w-0 w-56 h-10
 		text-[.7rem] rounded flex items-center justify-center;
 	}
-	.profile-button {
-		@apply custom-btn w-14 text-3xl cursor-pointer 
-		text-[#b0bfbf] font-light bg-pastel-blue/80
-		hover:bg-pastel-blue/90
+	#user-list .user-line .profile-button {
+		@apply custom-btn w-14 text-3xl cursor-pointer
+		text-[#b0bfbf] font-light bg-pastel-blue/90 shadow-none
+		hover:bg-pastel-blue/100 hover:shadow-none
 		tablet:w-auto;
 	}
-	.winrate-cell {
+	#user-list .user-line .winrate-cell {
 		@apply custom-btn px-2 w-36
 		wide:px-6
 		wide:w-40 extra-wide:w-56;
 	}
 
-	.user-line:nth-child(odd):not(:first-child) .winrate-cell {
-		@apply bg-[#5e8ca5d4] border-gray-800/10 hover:bg-[#5e8ca5];
+	#user-list .user-line:first-child .profile-button,
+	#user-list .user-line:first-child .winrate-cell {
+		@apply border-white/30;
 	}
-	.user-line:nth-child(even) .winrate-cell {
-		@apply bg-[#5e8ca5d4] border-gray-800/10 hover:bg-[#5e8ca5];
+	#user-list .user-line.line-offline .winrate-cell {
+		@apply border-white/40;
+	}
+	#user-list .user-line:not(:first-child) .winrate-cell {
+		@apply bg-[#5e8ca5];
+	}
+	#user-list .user-line .winrate-cell {
+		@apply shadow-none hover:shadow-none;
+	}
+	#user-list .user-line:not(:first-child, .line-offline) .winrate-cell,
+	#user-list .user-line:not(:first-child) .profile-button {
+		@apply border-white/50;
 	}
 
-	.user-line:nth-child(odd) .button-cell button {
+	.user-line.line-offline .button-cell button {
 		@apply bg-blue-100;
 	}
 
-	.user-line:nth-child(even) .button-cell button {
+	.user-line:not(:first-child, .line-offline) .button-cell button {
 		@apply bg-gray-100;
 	}
 
@@ -117,7 +133,7 @@
 
 	/* CELLS */
 	.user-cell {
-		@apply relative flex flex-row justify-center items-center cursor-default mt-5
+		@apply relative flex flex-row justify-center items-center cursor-default mt-3
 		tablet:justify-start tablet:mt-0 tablet:ml-4;
 	}
 
@@ -163,7 +179,7 @@
 	}
 
 	.button-cell {
-		@apply flex items-center justify-end gap-3 mb-5
+		@apply flex items-center justify-end gap-3 mb-3
 		tablet:mb-0;
 	}
 

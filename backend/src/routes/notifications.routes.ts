@@ -3,7 +3,9 @@ import { JwtPayload } from '../types/user.types';
 import { getUserNotifications, getNotification, updateNotification } from '../db/notification';
 import { sendUpdateNotification } from '../helpers/notifications.helpers';
 // import { NotifResponse } from '../shared/types/response.types';
+import { NotificationInput, NotificationInputSchema } from '../types/zod/app.zod';
 import type { NotificationModel } from '../shared/types/notification.types';
+import { isParsingError, checkParsing } from '../helpers/types.helpers';
 
 /* ======================== NOTIFICATIONS ROUTES ======================== */
 
@@ -45,6 +47,40 @@ export async function notificationsRoutes(app: FastifyInstance) {
 			return reply.status(500).send({ errorMessage: 'Error server' });
 		}
 	});
+
+	// app.post('/', async(request: FastifyRequest, reply: FastifyReply) => {
+		
+	// 	const jwtUser = request.user as JwtPayload;
+	// 	const notifdataCheck = await checkParsing(NotificationInputSchema, request.body);
+	// 	if (isParsingError(notifdataCheck)) {
+	// 		return reply.status(400).send(notifdataCheck);
+	// 	}
+	// 	let data = notifdataCheck as NotificationInput;
+
+	// 	const friend: UserModel = await getUser(Number(data.id));
+	// 	if (!friend)
+	// 		return reply.code(404).send({ errorMessage: 'No user found'});
+
+	// 	const relation: FriendModel = await getRelation(jwtUser.id, data.id);
+	// 	if (relation)
+	// 		return reply.code(404).send({ errorMessage: 'Already friends'});
+	// 	await addUserFriend(jwtUser.id, friend.id);
+
+	// 	// Si l'utilisateur est connecté, envoyer une notification via WebSocket
+	// 	let friendRequestData: NotificationInput = {
+	// 		type: FRIEND_REQUEST_ACTIONS.ADD,
+	// 		from: jwtUser.id,
+	// 		to: friend.id
+	// 	};
+	// 	const notifData: NotificationInput = await addNotifContent(friendRequestData);
+	// 	const notif = await insertNotification(notifData);
+	// 	if (!notif || "errorMessage" in notif) {
+	// 		return reply.code(500).send({ errorMessage: notif.errorMessage || 'Error inserting notification'});
+	// 	}
+		
+	// 	sendToSocket(app, [notif]);
+	// 	return reply.code(200).send( notif );
+	// })
 
 	// --- Marque une notification comme lue ---
 	app.put('/update', async (request: FastifyRequest, reply: FastifyReply) => {

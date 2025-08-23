@@ -116,10 +116,7 @@ export async function friendsRoutes(app: FastifyInstance) {
 			|| !Number.isInteger(friendId) || friendId <= 0) {
 			return reply.status(403).send({ errorMessage: 'Forbidden' });
 		}
-		// request.body.id = Number(request.body.id);
-		// request.body.from = Number(request.body.from);
-		// request.body.to = Number(request.body.to);
-		// request.body.read = Number(request.body.type);
+		
 		const notifDataCheck = await checkParsing(NotificationInputSchema, request.body);
 		console.log("notifDataCheck", notifDataCheck);
 		if (isParsingError(notifDataCheck)) {
