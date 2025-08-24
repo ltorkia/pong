@@ -1,12 +1,13 @@
 import { RouteConfig } from '../../types/routes.types';
+import { router } from '../../router/router';
 import { User } from '../../shared/models/user.model';
-import { currentService, dataService, notifService } from '../../services/index.service';
+import { currentService, dataService } from '../../services/index.service';
 import { checkUserLogged } from '../../utils/app.utils'; 
 import { BaseComponent } from '../../components/base/base.component';
 import { NavbarComponent } from '../../components/navbar/navbar.component';
 import { ComponentName, ComponentConfig } from '../../types/components.types';
 import { loadTemplate, getContainerApp, getHTMLElementById } from '../../utils/dom.utils';
-import { APP_ID } from '../../config/routes.config';
+import { APP_ID, DEFAULT_ROUTE } from '../../config/routes.config';
 import { COMPONENT_NAMES } from '../../config/components.config';
 import { LOADING_PAGE_ERR } from '../../config/messages.config';
 
@@ -76,8 +77,10 @@ export abstract class BasePage {
 	public async render(): Promise<void> {
 		try {
 			console.log(`[${this.constructor.name}] Début du rendu...`);
-
-			await this.preRenderCheck();
+			if (!await this.preRenderCheck()) {
+				await router.redirect(DEFAULT_ROUTE);
+				return;
+			};
 			await this.loadTemplate();
 			await this.beforeMount();
 			await this.loadPersistentComponents();
@@ -102,13 +105,14 @@ export abstract class BasePage {
 	 * Les sous-classes peuvent réutiliser cette méthode et ajouter leurs propres checks.
 	 * Pour garder aussi celui-ci, ajouter super.preRenderCheck();
 	 * 
-	 * @returns {Promise<void>} Une promesse qui se résout lorsque les checks sont terminées.
+	 * @returns {Promise<boolean>} Une promesse qui se résout lorsque les checks sont terminées et validés.
 	 */
-	protected async preRenderCheck(): Promise<void> {
-		checkUserLogged(this.config.isPublic);
-		if (this.currentUser) {
+	protected async preRenderCheck(): Promise<boolean> {
+		if (!checkUserLogged(this.config.isPublic))
+			return false;
+		if (this.currentUser)
 			this.currentUserAvatarURL = await dataService.getUserAvatarURL(this.currentUser);
-		}
+		return true;
 	}
 
 	/**

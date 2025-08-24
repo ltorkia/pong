@@ -6,10 +6,9 @@ import { authService } from '../../services/index.service';
 import { animationService } from '../../services/index.service';
 import { RouteConfig } from '../../types/routes.types';
 import { ComponentConfig } from '../../types/components.types';
-import { getHTMLElementByClass, toggleClass } from '../../utils/dom.utils';
+import { getHTMLElementByClass } from '../../utils/dom.utils';
 import { getHTMLElementById, getHTMLAnchorElement, getHTMLElementByTagName } from '../../utils/dom.utils';
 import { ROUTE_PATHS, PROFILE_HTML_ANCHOR } from '../../config/routes.config';
-import { notifApi } from '../../api/index.api';
 import { DB_CONST } from '../../shared/config/constants.config';
 import { notifService } from '../../services/index.service';
 
@@ -68,11 +67,13 @@ export class NavbarComponent extends BaseComponent {
 	 * Exécute les vérifications de base de la classe parente (`BaseComponent`).
 	 * Charge le template HTML du composant en mode développement via `loadTemplateDev()`.
 	 *
-	 * @returns {Promise<void>} Une promesse qui se résout lorsque les vérifications sont terminées.
+	 * @returns {Promise<boolean>} Une promesse qui se résout lorsque les vérifications sont terminées.
 	 */
-	protected async preRenderCheck(): Promise<void> {
-		super.preRenderCheck();
+	protected async preRenderCheck(): Promise<boolean> {
+		if (!super.preRenderCheck())
+			return false;
 		await this.loadTemplateDev();
+		return true;
 	}
 
 	/**

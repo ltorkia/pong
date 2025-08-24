@@ -1,4 +1,5 @@
-@layer components {
+/* @layer components { */
+
 	.modal {
 		@apply fixed inset-0 w-full h-full
 		bg-black bg-opacity-50 flex items-center justify-center z-[1000]
@@ -17,4 +18,4 @@
 	.modal-content .page-title {
 		@apply desktop:text-2xl animate-none;
 	}
-}
+/* } */

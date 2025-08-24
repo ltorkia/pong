@@ -118,6 +118,7 @@ export class User {
 			timePlayed: this.timePlayed,
 			nFriends: this.nFriends,
 			status: this.status,
+			registerFrom: this.registerFrom,
 			isDesactivated: this.isDesactivated
 		};
 	}
@@ -231,7 +232,7 @@ export class User {
 			0,
 			data.status ?? USER_ONLINE_STATUS.OFFLINE,
 			0, // isDesactivated à 0 par défaut
-			DB_CONST.USER.REGISTER_FROM.LOCAL, // registerFrom par défaut
+			data.registerFrom ?? DB_CONST.USER.REGISTER_FROM.LOCAL, // registerFrom par défaut
 			DB_CONST.USER.ACTIVE_2FA.DISABLED, // active2Fa à disabled par défaut,
 			[], // notifications vides par défaut
 			'' // friendStatus vide par défaut

@@ -61,6 +61,22 @@ export class SettingsPage extends BasePage {
 	// ===========================================
 
 	/**
+	 * Procède aux vérifications nécessaires avant le montage de la page.
+	 * Exécute les vérifications de base de la classe parente (`BasePage`).
+	 *
+	 * @returns {Promise<boolean>} Une promesse qui se résout lorsque les vérifications sont terminées.
+	 */
+	protected async preRenderCheck(): Promise<boolean> {
+		if (!super.preRenderCheck())
+			return false;
+		if (this.currentUser!.registerFrom === DB_CONST.USER.REGISTER_FROM.GOOGLE) {
+			console.error('La page des paramètres est inaccessible depuis un compte Google.');
+			return false;
+		}
+		return true;
+	}
+
+	/**
 	 * Récupère les éléments HTML de la page d'accueil avant de la monter.
 	 * 
 	 * @returns {Promise<void>} Une promesse qui se résout lorsque les éléments HTML ont été stockés.

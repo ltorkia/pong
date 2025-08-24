@@ -1,4 +1,6 @@
 import { User } from '../../shared/models/user.model';
+import { router } from '../../router/router';
+import { DEFAULT_ROUTE } from '../../config/routes.config';
 import { currentService } from '../../services/index.service';
 import { checkUserLogged } from '../../utils/app.utils'; 
 import { RouteConfig } from '../../types/routes.types';
@@ -72,7 +74,10 @@ export abstract class BaseComponent {
 	 * @returns {Promise<void>} Une promesse qui se résout lorsque le composant est entièrement rendu.
 	 */
 	public async render(): Promise<void> {
-		this.preRenderCheck();
+		if (!await this.preRenderCheck()) {
+			await router.redirect(DEFAULT_ROUTE);
+			return;
+		};
 		await this.loadTemplate();
 		await this.beforeMount();
 		await this.mount();
@@ -90,9 +95,13 @@ export abstract class BaseComponent {
 	 * Si l'utilisateur n'est pas trouvé, une erreur est levée.
 	 * Les sous-classes peuvent réutiliser cette méthode et ajouter leurs propres checks.
 	 * Pour garder aussi celui-ci, ajouter super.preRenderCheck();
+	 * 
+	 * @returns {Promise<boolean>} Une promesse qui se résout lorsque les checks sont terminées et validés.
 	 */
-	protected async preRenderCheck(): Promise<void> {
-		checkUserLogged(this.componentConfig.isPublic);
+	protected async preRenderCheck(): Promise<boolean> {
+		if (!checkUserLogged(this.componentConfig.isPublic))
+			return false;
+		return true;
 	}
 
 	/**

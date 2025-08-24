@@ -92,7 +92,7 @@ export class CurrentService {
 		}
 		Object.assign(this.currentUser, updates);
 		storageService.setCurrentUser(this.currentUser);
-		console.log(`[${this.constructor.name}] Utilisateur courant mis à jour`);
+		console.log(`[${this.constructor.name}] Utilisateur courant mis à jour:`, this.currentUser);
 		return this.currentUser;
 	}
 

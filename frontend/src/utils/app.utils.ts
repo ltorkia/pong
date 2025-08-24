@@ -18,12 +18,15 @@ import { currentService } from '../services/index.service';
  * Si l'utilisateur n'est pas trouvé, une erreur est levée.
  * 
  * @param {boolean} isPublic La configuration du composant à charger.
+ * @returns {boolean} Retourne true si l'utilisateur est authentifié, false sinon.
  */
-export function checkUserLogged(isPublic: boolean): void {
+export function checkUserLogged(isPublic: boolean): boolean {
 	const currentUser = currentService.getCurrentUser();
 	if (!isPublic && !currentUser) {
-		throw new Error(`La récupération du user a échoué`);
+		console.error(`La récupération du user a échoué`);
+		return false;
 	}
+	return true;
 }
 
 /**

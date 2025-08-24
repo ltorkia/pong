@@ -70,21 +70,22 @@ export class UserRowComponent extends BaseComponent {
 	// ===========================================
 
 	/**
-	 * Vérifie les préconditions avant le rendu du composant de ligne d'utilisateur.
+	 * Procède aux vérifications nécessaires avant le montage du composant.
 	 *
-	 * Cette méthode surcharge `preRenderCheck` de BaseComponent pour effectuer
-	 * des vérifications spécifiques au composant de ligne d'utilisateur.
-	 * Elle charge le template en mode développement et s'assure qu'un utilisateur
-	 * est fourni. Si aucun utilisateur n'est fourni, une erreur est levée.
+	 * Exécute les vérifications de base de la classe parente (`BaseComponent`).
+	 * Charge le template HTML du composant en mode développement via `loadTemplateDev()`.
 	 *
-	 * @throws {Error} Lance une erreur si aucun utilisateur n'est fourni.
+	 * @returns {Promise<boolean>} Une promesse qui se résout lorsque les vérifications sont terminées.
 	 */
-	protected async preRenderCheck(): Promise<void> {
-		super.preRenderCheck();
+	protected async preRenderCheck(): Promise<boolean> {
+		if (!super.preRenderCheck())
+			return false;
 		await this.loadTemplateDev();
 		if (!this.user) {
-			throw new Error('Aucun utilisateur fourni');
+			console.error('Aucun utilisateur fourni pour le composant de ligne d\'utilisateur');
+			return false;
 		}
+		return true;
 	}
 
 	/**

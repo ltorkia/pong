@@ -42,17 +42,18 @@ export class SearchBarComponent extends BaseComponent {
 	// ===========================================
 
 	/**
-	 * Vérifie les préconditions avant le rendu du composant de ligne d'utilisateur.
+	 * Procède aux vérifications nécessaires avant le montage du composant.
 	 *
-	 * Cette méthode surcharge `preRenderCheck` de BaseComponent pour effectuer
-	 * des vérifications spécifiques au composant de la barre de recherche.
-	 * Elle charge le template en mode développement.
+	 * Exécute les vérifications de base de la classe parente (`BaseComponent`).
+	 * Charge le template HTML du composant en mode développement via `loadTemplateDev()`.
 	 *
-	 * @throws {Error} Lance une erreur si aucun utilisateur n'est fourni.
+	 * @returns {Promise<boolean>} Une promesse qui se résout lorsque les vérifications sont terminées.
 	 */
-	protected async preRenderCheck(): Promise<void> {
-		super.preRenderCheck();
+	protected async preRenderCheck(): Promise<boolean> {
+		if (!super.preRenderCheck())
+			return false;
 		await this.loadTemplateDev();
+		return true;
 	}
 
 	/**

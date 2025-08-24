@@ -57,6 +57,7 @@ export interface SafeUserModel {
 	timePlayed: number;
 	nFriends: number;
 	status: UserStatus;
+	registerFrom: RegisterMethod;
 	isDesactivated: number;
 	notifications?: AppNotification[];
 	friendStatus?: FriendStatus | null;
@@ -71,7 +72,6 @@ export interface SafeUserModel {
  */
 export interface UserModel extends SafeUserModel {
 	email: string;
-	registerFrom: RegisterMethod;
 	active2Fa: TwoFaMethod;
 }
 
