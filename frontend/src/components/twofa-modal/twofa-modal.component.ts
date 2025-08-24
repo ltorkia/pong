@@ -58,11 +58,13 @@ export class TwofaModalComponent extends BaseComponent {
 	 * Exécute les vérifications de base de la classe parente (`BaseComponent`).
 	 * Charge le template HTML du composant en mode développement via `loadTemplateDev()`.
 	 *
-	 * @returns {Promise<void>} Une promesse qui se résout lorsque les vérifications sont terminées.
+	 * @returns {Promise<boolean>} Une promesse qui se résout lorsque les vérifications sont terminées.
 	 */
-	protected async preRenderCheck(): Promise<void> {
-		super.preRenderCheck();
+	protected async preRenderCheck(): Promise<boolean> {
+		if (!super.preRenderCheck())
+			return false;
 		await this.loadTemplateDev();
+		return true;
 	}
 
 	/**
@@ -217,29 +219,6 @@ export class TwofaModalComponent extends BaseComponent {
 	private async loadTemplateDev(): Promise<void> {
 		await this.loadTemplate(template);
 	}
-
-	// /**
-	//  * Transition du modal à l'entrée.
-	//  * 
-	//  * @returns {Promise<void>} Une promesse qui se résout lorsque la transition est terminée.
-	//  */
-	// private async modalTransitionIn(): Promise<void> {
-	// 	this.container.classList.remove('hidden');
-	// 	await new Promise(requestAnimationFrame);
-	// 	this.container.classList.add('modal-active');
-	// 	await new Promise(resolve => setTimeout(resolve, 100));
-	// }
-
-	// /**
-	//  * Transition du modal en sortie.
-	//  * 
-	//  * @returns {Promise<void>} Une promesse qui se résout lorsque la transition est terminée.
-	//  */
-	// private async modalTransitionOut(): Promise<void> {
-	// 	this.container.classList.remove('modal-active');
-	// 	await new Promise(resolve => setTimeout(resolve, 100));
-	// 	this.container.classList.add('hidden');
-	// }
 
 	/**
 	 * Prépare les données utilisateur à envoyer selon la page d'origine.
