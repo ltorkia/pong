@@ -11,7 +11,6 @@ import { DB_CONST, FRIEND_REQUEST_ACTIONS } from '../shared/config/constants.con
  * @returns {boolean} - true si l'action est valide, false sinon
  */
 export function isFriendRequestValid(action: FriendRequestAction, friendStatus: FriendStatus): boolean {
-	console.log('BLIIIIIIIIIIIIII');
 	switch (action) {
 		case FRIEND_REQUEST_ACTIONS.ACCEPT:
 		case FRIEND_REQUEST_ACTIONS.DECLINE:
@@ -39,7 +38,6 @@ export function isFriendRequestValid(action: FriendRequestAction, friendStatus: 
  * @returns {boolean} - true si l'utilisateur est autorisé, false sinon
  */
 export function isValidRequester(action: FriendRequestAction, relation: FriendModel, currUserId: number): boolean {
-	console.log('BLAAAAAAAAA');
 	switch (action) {
 		case FRIEND_REQUEST_ACTIONS.ACCEPT:
 		case FRIEND_REQUEST_ACTIONS.DECLINE:

@@ -234,8 +234,8 @@ export class UsersPage extends BasePage {
 				if (user.id === this.currentUser!.id) {
 					(userLine as HTMLElement).style.backgroundColor = '#5e8ca591';
 				}
-				userLine.classList.add('animate-fade-in-up');
 				this.removeUser(user);
+				userLine.classList.add('animate-fade-in-up');
 
 				if (user.status === USER_ONLINE_STATUS.ONLINE) {
 					const currentUserLine = this.userList.querySelector(`#${this.userRowConfig!.name}-${this.currentUser!.id}`);
@@ -264,6 +264,7 @@ export class UsersPage extends BasePage {
 	public removeUser(user: User): void {
 		const userLine = document.getElementById(`${this.userRowConfig!.name}-${user.id}`);
 		if (userLine) {
+			userLine.classList.add('animate-fade-in-down');
 			userLine.remove();
 		}
 	}

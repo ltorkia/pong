@@ -222,15 +222,66 @@ export class NavbarComponent extends BaseComponent {
 	}
 
 	/**
-	 * Bascule le menu burger pour la navigation mobile.
+	 * Met à jour l'icône du burger menu.
 	 * 
-	 * Fait basculer l'icône entre le symbole 'bars' et 'x'.
-	 * Fait basculer la visibilité du menu de la navbar.
+	 * Si le menu est ouvert, remplace l'icône "fa-bars" par "fa-xmark"
+	 * et ajoute la classe "text-blue-300".
+	 * 
+	 * Si le menu est fermé, remplace l'icône "fa-xmark" par "fa-bars"
+	 * et supprime la classe "text-blue-300".
 	 */
-	private toggleDropdown(): void {
-		toggleClass(this.icon, 'fa-bars', 'fa-xmark', 'text-blue-300');
-		toggleClass(this.navbarMenu, 'show', 'hide');
-	};
+	private updateBurgerIcon(): void {
+		if (this.navbarMenu.classList.contains('show')) {
+			this.icon.classList.remove('fa-bars');
+			this.icon.classList.add('fa-xmark', 'text-blue-300');
+		} else {
+			this.icon.classList.remove('fa-xmark', 'text-blue-300');
+			this.icon.classList.add('fa-bars');
+		}
+	}
+
+	/**
+	 * Handler pour basculer la visibilité d'un élément.
+	 * 
+	 * Identifie les autres éléments à fermer (navbar, notifs, chat)
+	 * et les ferme si l'élément sélectionné s'ouvre.
+	 * 
+	 * @param {HTMLElement} element L'élément à basculer.
+	 */
+	private toggleWindow(element: HTMLElement): void {
+		const otherElements = [this.notifsWindow, this.chatWindow, this.navbarMenu]
+			.filter(elem => elem !== element);
+		
+		if (element.classList.contains('hide')) {
+			element.classList.remove('hide');
+			element.classList.add('show');
+			
+			otherElements.forEach(otherElem => {
+				if (otherElem.classList.contains('show')) {
+					otherElem.classList.remove('show');
+					otherElem.classList.add('hide');
+				}
+			});
+		} else {
+			element.classList.remove('show');
+			element.classList.add('hide');
+		}
+		
+		this.updateBurgerIcon();
+	}
+
+	/**
+	 * Ferme toutes les fenêtres de la navbar (menu, notifs, chat).
+	 */
+	private closeAllWindows(): void {
+		[this.navbarMenu, this.notifsWindow, this.chatWindow].forEach(window => {
+			if (!window.classList.contains('hide')) {
+				window.classList.remove('show');
+				window.classList.add('hide');
+			}
+		});
+		this.updateBurgerIcon();
+	}
 
 	// ===========================================
 	// LISTENER HANDLERS
@@ -240,16 +291,13 @@ export class NavbarComponent extends BaseComponent {
 	 * Listener sur le logo de la navbar.
 	 * 
 	 * Gère le clic sur le logo de la navbar pour rediriger vers la page d'accueil.
-	 * Empêche le menu burger de s'ouvrir si tablet ou mobile.
 	 * 
 	 * @param {MouseEvent} event L'événement de clic.
 	 */
 	private handleHomeLogoClick = (event: MouseEvent): void => {
 		event.preventDefault();
 		this.homeLink.click();
-		if (window.innerWidth < 1024 && this.navbarMenu.classList.contains('show')) {
-			this.toggleDropdown();
-		}
+		this.closeAllWindows();
 	};
 
 	/**
@@ -262,22 +310,29 @@ export class NavbarComponent extends BaseComponent {
 	 * @param {MouseEvent} event L'événement de clic.
 	 */
 	private handleBurgerClick = (event: MouseEvent): void => {
-		this.toggleDropdown();
+		this.toggleWindow(this.navbarMenu);
 	}
 
 	/**
 	 * Handler qui gère le clic sur un lien de la navbar en mode tablet/mobile.
 	 * 
-	 * Si on est sur un petit écran (moins de 1024px), on ferme le menu déroulant.
-	 * 
 	 * @param {MouseEvent} event L'événement de clic.
 	 */
 	private handleNavLinkClick = (event: MouseEvent): void => {
-		if (window.innerWidth < 1024) {
-			this.toggleDropdown();
-		}
+		this.closeAllWindows();
 	};
 
+	/**
+	 * Bascule la visibilité de la fenêtre des notifications.
+	 *
+	 * Handler qui gère le clic sur le bouton des notifications.
+	 * La méthode toggleWindow est appelée pour afficher ou masquer la fenêtre.
+	 * Si la fenêtre est affichée, toutes les notifications sont rendues visibles
+	 * et le compteur de notifications est mis à jour.
+	 * 
+	 * @param {MouseEvent} event L'événement de clic.
+	 * @returns {Promise<void>} Une promesse qui se résout lorsque la fenêtre est basculée.
+	 */
 	private toggleNotifsMenu = async (event: MouseEvent): Promise<void> => {
 		const allNotifs = this.notifsWindow.querySelectorAll('.notif-item');
 		const defaultNotif = this.notifsWindow.querySelector('.default-notif');
@@ -285,14 +340,14 @@ export class NavbarComponent extends BaseComponent {
 			defaultNotif.remove();
 		}
 		const allNewNotifs = this.notifsWindow.querySelectorAll('.new-notif');
-		toggleClass(this.notifsWindow, 'flex', 'hidden');
-		if (this.notifsWindow.classList.contains('hidden') 
+		this.toggleWindow(this.notifsWindow);
+		if (this.notifsWindow.classList.contains('hide') 
 			&& allNewNotifs && allNewNotifs.length > 0) {
 			notifService.updateNotifsCounter();
 			for (const notif of allNewNotifs) {
 				notif.classList.remove('new-notif');
-				// const notifId = Number(notif.id.replace("notif-", ""));
-				await notifService.markAsRead(Number(notif.id));
+				const notifId = Number(notif.id.replace("notif-", ""));
+				await notifService.markAsRead(notifId);
 			}
 		}
 	}
@@ -303,7 +358,7 @@ export class NavbarComponent extends BaseComponent {
 	 * Alterne entre les classes "show" et "hide" pour afficher ou masquer la fenêtre de chat.
 	 */
 	private toggleChatWindow = async (event: MouseEvent): Promise<void> => {
-		toggleClass(this.chatWindow, 'flex', 'hidden');
+		this.toggleWindow(this.chatWindow);
 	}
 
 	/**

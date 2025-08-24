@@ -1,18 +1,20 @@
-.modal {
-	@apply fixed inset-0 w-full h-full
-	bg-black bg-opacity-50 flex items-center justify-center z-[1000]
-	transition-transform duration-200 ease-in-out;
-	transform-origin: center center;
-}
-.modal-active {
-	@apply opacity-100;
-}
-.modal-content {
-	@apply bg-white p-8 rounded-lg shadow-lg w-[90%] max-w-[400px];
-}
-.modal-content .bloc-title {
-	@apply mb-0;
-}
-.modal-content .page-title {
-	@apply desktop:text-2xl animate-none;
+@layer components {
+	.modal {
+		@apply fixed inset-0 w-full h-full
+		bg-black bg-opacity-50 flex items-center justify-center z-[1000]
+		transition-transform duration-200 ease-in-out;
+		transform-origin: center center;
+	}
+	.modal-active {
+		@apply opacity-100;
+	}
+	.modal-content {
+		@apply bg-white p-8 rounded-lg shadow-lg w-[90%] max-w-[400px];
+	}
+	.modal-content .bloc-title {
+		@apply mb-0;
+	}
+	.modal-content .page-title {
+		@apply desktop:text-2xl animate-none;
+	}
 }

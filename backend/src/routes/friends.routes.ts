@@ -13,11 +13,7 @@ import { IdInputSchema, IdInput, FriendActionInputSchema, FriendActionInput } fr
 import { checkParsing, isParsingError } from '../helpers/types.helpers';
 import { isFriendRequestValid, isValidRequester } from '../helpers/friend.helpers';
 
-// import { NotificationModel } from '../shared/types/notification.types';
-// import { insertNotification, getNotification, getTwinNotifications } from '../db/notification';
-// import { sendToSocket, sendUpdateNotification, sendDeleteNotification, addNotifContent } from '../helpers/notifications.helpers';
-// import { NotificationInput, NotificationInputSchema } from '../types/zod/app.zod';
-// import { NotifResponse } from '../shared/types/response.types';
+import { getNotifsInRelation } from '../db/friend';
 
 /* ======================== FRIENDS ROUTES ======================== */
 
@@ -70,6 +66,31 @@ export async function friendsRoutes(app: FastifyInstance) {
 			return reply.code(404).send({ errorMessage : 'No user found'});
 		return reply.status(200).send({ user: friend });
 	})
+	/* -------------------------------------------------------------------------- */
+	/* Récupère les notifications échangées entre l'utilisateur courant et un ami */
+	/* -------------------------------------------------------------------------- */	
+
+	app.get('/:userId/:friendId/notifs', async (request: FastifyRequest, reply: FastifyReply) => {
+		let { userId, friendId } = request.params as { userId: number; friendId: number };
+		userId = Number(userId), friendId = Number(friendId);
+		const jwtUser = request.user as JwtPayload;
+		if (userId != jwtUser.id)
+			return reply.status(403).send({ errorMessage: 'Forbidden' });
+
+		try {
+			const notifsRelation = await getNotifsInRelation(jwtUser.id, friendId);
+			if (!notifsRelation) {
+				return reply.code(404).send({ errorMessage: 'Relation not found' });
+			}
+			if (notifsRelation.friend.id !== friendId && notifsRelation.friend.id !== jwtUser.id) {
+				return reply.code(403).send({ errorMessage: 'Forbidden' });
+			}
+			return reply.code(200).send(notifsRelation);
+		} catch (err) {
+			request.log.error(err);
+			return reply.status(500).send({ errorMessage: 'Server error' });
+		}
+	});
 	
 	/* -------------------------------------------------------------------------- */
 	/*                                   CRUD                                     */

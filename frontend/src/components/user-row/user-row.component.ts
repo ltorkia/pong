@@ -296,7 +296,6 @@ export class UserRowComponent extends BaseComponent {
 			return;
 		}
 		console.log("FRIEND A AJOUTER", this.user.id);
-		// notifService.setNotifsData(this.user.id);
 		notifService.setFriendId(this.user.id);
 		await notifService.handleAddClick();
 		console.log(`Friend request sent to ${this.user.username}`);

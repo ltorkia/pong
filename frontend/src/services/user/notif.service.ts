@@ -6,12 +6,13 @@ import { NavbarComponent } from '../../components/navbar/navbar.component';
 import { UserRowComponent } from '../../components/user-row/user-row.component';
 import { currentService, storageService } from './user.service';
 import { User } from '../../shared/models/user.model';
+import { Friend } from '../../shared/models/friend.model';
 import { AppNotification } from '../../shared/models/notification.model';
 import { NotifResponse } from '../../shared/types/response.types';
 import { FRIEND_REQUEST_ACTIONS, USER_ONLINE_STATUS } from '../../shared/config/constants.config'; // en rouge car dossier local 'shared' != dossier conteneur
 import { isValidNotificationType, isFriendRequestAction, isUserOnlineStatus } from '../../shared/utils/app.utils';
-import { getHTMLElementById } from '../../utils/dom.utils';
-import { FriendRequestAction } from '../../shared/types/notification.types';
+import { getHTMLElementById, getHTMLElementByClass } from '../../utils/dom.utils';
+import { FriendRequestAction, NotificationModel, NotificationType } from '../../shared/types/notification.types';
 
 // ============================================================================
 // NOTIF SERVICE
@@ -23,9 +24,14 @@ export class NotifService {
 	private currentUser: User | null = null;
 	private currentPage!: PageInstance;
 	private navbarInstance!: NavbarComponent | undefined;
+
 	private notifs: AppNotification[] = [];
 	private notifCount: number = 0;
 	private notifItem: HTMLDivElement | null = null;
+
+	private relationNotifs: AppNotification[] | null = null;
+	private relationFriend: Friend | null = null;
+	private notifData: NotificationModel | null = null;
 
 	public currentNotif: AppNotification | null = null;
 	public friendId: number | null = null;
@@ -131,12 +137,14 @@ export class NotifService {
 	 */
 	public async markAsRead(id: number): Promise<void> {
 		this.setCurrentNotif(id);
+		console.log('this.currentNotif', this.currentNotif);
 		this.currentNotif.read = 1;
 		const updatedRes = await notifApi.updateNotification(this.currentNotif);
-		if (updatedRes.errorMessage) {
+		if ('errorMessage' in updatedRes) {
 			console.error(updatedRes.errorMessage);
 		}
-		this.currentNotif = updatedRes.notif;
+		console.log(updatedRes);
+		await this.handleNotifications(updatedRes);
 	}
 
 	/**
@@ -148,7 +156,7 @@ export class NotifService {
 	 * @returns {void}
 	 */
 	public updateNotifsCounter(): void {
-		this.notifCount = this.getNotifCount();
+		this.notifCount = this.getNewNotifCount();
 		console.log('this.notifCount', this.notifCount);
 		if (this.notifCount === 0) {
 			this.navbarInstance!.notifsCounter.textContent = '0';
@@ -173,15 +181,6 @@ export class NotifService {
 			this.currentNotif = notif;
 			const user = await dataApi.getUserById(Number(this.currentNotif.from));
 			this.currentPage.injectUser!(user);
-			// this.currentPage.changeOnlineStatus!(user);
-			// switch (this.currentNotif.type) {
-			// 	case USER_ONLINE_STATUS.ONLINE:
-			// 		this.currentPage.injectUser!(user);
-			// 		break;
-			// 	case USER_ONLINE_STATUS.OFFLINE:
-			// 		this.currentPage.removeUser!(user);
-			// 		break;
-			// }
 		}
 	}
 
@@ -194,11 +193,11 @@ export class NotifService {
 	private async loadNotifs(): Promise<void> {
 		this.navbarInstance!.notifsWindow.replaceChildren();
 		console.log('On est dans loadNotifs');
-		this.setCurrentNotifs();
-		this.updateNotifsCounter();
+		await this.setCurrentNotifs();
 
 		// Si il n'y a pas de notifications, affiche un message par défaut
-		if (this.notifCount === 0) {
+		if (this.notifs.length === 0) {
+			console.log('Pas de notifications');
 			this.displayDefaultNotif();
 			return;
 		}
@@ -237,7 +236,6 @@ export class NotifService {
 		switch (this.currentNotif.type) {
 			case FRIEND_REQUEST_ACTIONS.ADD:
 			case FRIEND_REQUEST_ACTIONS.DELETE:
-				this.notifs.splice(notifIndex, 1);
 				this.deleteNotif();
 				this.updateNotifsCounter();
 				console.log('this.notifs apres delete', this.notifs);
@@ -292,12 +290,20 @@ export class NotifService {
 	 * notification sont chargées.
 	 */
 	private async setCurrentNotif(id: number): Promise<void> {
+		if (this.notifs && this.notifs.length > 0) {
+			this.currentNotif = this.notifs.find((notif) => notif.id === id);
+			console.log(this.currentNotif);
+			return;
+		}
+
 		const result: NotifResponse = await notifApi.getNotificationById(id);
 		if (result.errorMessage) {
 			console.error(result.errorMessage);
 			return;
 		}
+		console.log(result);
 		this.currentNotif = result;
+		console.log('BLA BLANotification rechargée:', this.currentNotif);
 	}
 
 	/**
@@ -309,13 +315,15 @@ export class NotifService {
 	 * en utilisant `this.attachListeners()`.
 	 */
 	private displayNotif(): void {
+		console.log('On est dans displayNotif');
 		this.removeDefaultNotif();
 		this.notifItem = this.createNotifElement();
 		if (this.needButtons()) {
 			console.log('BLOUUUULJQSFHNSL/DHF');
 			this.notifItem.innerHTML += this.createNotifButtonsHTML();
 		}
-		this.navbarInstance!.notifsWindow.appendChild(this.notifItem);
+		this.notifItem.classList.add('animate-fade-in-up');
+		this.navbarInstance!.notifsWindow.prepend(this.notifItem);
 		this.notifItem = getHTMLElementById(`notif-${this.currentNotif.id}`, this.navbarInstance!.notifsWindow) as HTMLDivElement;
 		this.attachListeners();
 	}
@@ -335,17 +343,36 @@ export class NotifService {
 	}
 
 	/**
-	 * Supprime la notification actuelle de la fenêtre des notifications dans la barre de navigation.
+	 * Supprime la notification correspondante à l'ID `notifId` de la liste des notifications et
+	 * la retire de la fenêtre des notifications de la barre de navigation.
+	 *
+	 * Si `notifId` est omis, la notification courante est supprimée.
+	 *
+	 * @param {number} [notifId] - Identifiant de la notification à supprimer. Si omis, la notification courante est supprimée.
 	 */
-	private deleteNotif(): void {
-		this.displayDefaultNotif();
-		this.notifItem = getHTMLElementById(`notif-${this.currentNotif.id}`, this.navbarInstance!.notifsWindow) as HTMLDivElement;
+	private deleteNotif(notifId?: number): void {
+		const id = notifId ?? this.currentNotif.id;
+		const notifIndex = this.notifs.findIndex((notif) => notif.id === id);
+		if (notifIndex === -1) {
+			console.warn(`[${this.constructor.name}] Aucune notification à supprimer`);
+			return;
+		}
+		this.notifs.splice(notifIndex, 1);
+		storageService.setCurrentNotifs(this.notifs);
+
+		this.notifItem = this.navbarInstance!.notifsWindow.querySelector<HTMLDivElement>(`#notif-${this.currentNotif.id}`);
 		if (!this.notifItem) {
 			console.warn(`[${this.constructor.name}] Aucune notification à supprimer`);
 			return;
 		}
+		this.removeListeners();
+		this.notifItem.classList.add('animate-fade-in-down');
 		this.notifItem.remove();
+		this.displayDefaultNotif();
+		this.updateNotifsCounter();
+		console.log('ON EST ARRIVE AU BOUT DE LA FONCTION');
 	}
+	
 	/**
 	 * Met à jour les boutons d'amitié pour la page des utilisateurs si elle est affichée.
 	 *
@@ -373,13 +400,17 @@ export class NotifService {
 	 * @returns {HTMLDivElement} L'élément HTML représentant la notification.
 	 */
 	private createNotifElement(): HTMLDivElement {
-		const notifItem = document.createElement('div');
+		const notifItem: HTMLDivElement = document.createElement('div');
 		notifItem.classList.add('notif-item');
 		notifItem.id = `notif-${this.currentNotif.id}`;
 		notifItem.innerHTML = `<span>${this.currentNotif.content}</span>` || '';
 		if (this.currentNotif.read === 0) {
 			notifItem.classList.add('new-notif');
 		}
+		const delBtn: HTMLDivElement = document.createElement('div');
+		delBtn.classList.add('notif-del');
+		delBtn.innerHTML = '<i class="fa-solid fa-xmark"></i>';
+		notifItem.appendChild(delBtn);
 		return notifItem;
 	}
 
@@ -391,12 +422,12 @@ export class NotifService {
 	 * "No notification yet", puis l'ajoute à la fenêtre de notifications.
 	 */
 	private displayDefaultNotif() {
-		if (this.getNotifCount() > 0)
+		if (this.notifs.length > 0)
 			return;
 		const notifItem = document.createElement('div');
-		notifItem.classList.add('default-notif');
+		notifItem.classList.add('default-notif', 'animate-fade-in-up');
 		notifItem.textContent = 'No notification yet.';
-		this.navbarInstance!.notifsWindow.appendChild(notifItem);
+		this.navbarInstance!.notifsWindow.prepend(notifItem);
 	}
 
 	/**
@@ -407,9 +438,10 @@ export class NotifService {
 	 * de notifications et l'enlève du DOM en utilisant la méthode `remove()`.
 	 */
 	private removeDefaultNotif() {
-		if (this.getNotifCount() > 0) {
+		if (this.notifs.length > 0) {
 			const notifItem = this.navbarInstance!.notifsWindow.querySelector('.default-notif');
 			if (notifItem) {
+				notifItem.classList.add('animate-fade-in-down');
 				notifItem.remove();
 			}
 		}
@@ -431,6 +463,26 @@ export class NotifService {
 		if (declineBtn) {
 			declineBtn.addEventListener('click', this.handleDeclineClick);
 		}
+		const delBtn = this.notifItem!.querySelector('div.notif-del');
+		if (delBtn) {
+			const notifId = this.currentNotif.id;
+			delBtn.addEventListener('click', () => this.deleteNotif(notifId));
+		}
+	}
+
+	private removeListeners(): void {
+		const acceptBtn = this.notifItem!.querySelector('button[data-action="accept"]');
+		if (acceptBtn) {
+			acceptBtn.removeEventListener('click', this.handleAcceptClick);
+		}
+		const declineBtn = this.notifItem!.querySelector('button[data-action="decline"]');
+		if (declineBtn) {
+			declineBtn.removeEventListener('click', this.handleDeclineClick);
+		}
+		const delBtn = this.notifItem!.querySelector('div.notif-del');
+		if (delBtn) {
+			delBtn.removeEventListener('click', () => this.deleteNotif());
+		}
 	}
 
 	/**
@@ -451,6 +503,7 @@ export class NotifService {
 			return;
 		}
 		await this.refreshFriendButtons();
+		await this.setRelationship();
 	}
 
 	/**
@@ -471,11 +524,20 @@ export class NotifService {
 			return;
 		}
 		await this.refreshFriendButtons();
+		await this.setRelationship();
 	}
 
 	// ===========================================
 	// LISTENERS
 	// ===========================================
+
+	public setNotifData(type: NotificationType): void {
+		this.notifData = {
+			type: type,
+			to: this.friendId!,
+			from: this.currentUser!.id,
+		}
+	}
 
 	public handleAddClick = async (): Promise<void> => {
 		let res = await friendApi.addFriend(this.friendId!);
@@ -484,36 +546,83 @@ export class NotifService {
 			return;
 		}
 		await this.refreshFriendButtons();
+		await this.setRelationship();
+		this.setNotifData(FRIEND_REQUEST_ACTIONS.ADD);
+		console.log(this.relationFriend);
+		console.log(this.relationNotifs);
+		console.log(this.notifData);
+		await notifApi.addNotification(this.notifData);
 	}
 
 	public handleCancelClick = async (): Promise<void> => {
-		await this.handleDelete(FRIEND_REQUEST_ACTIONS.CANCEL);
+		const type: NotificationType = FRIEND_REQUEST_ACTIONS.CANCEL;
+		this.setNotifData(type);
+		await this.handleDelete(type);
+		// await notifApi.deleteNotification(this.notifData);
 	}
 
 	public handleDeclineClick = async (): Promise<void> => {
-		await this.handleDelete(FRIEND_REQUEST_ACTIONS.DECLINE);
+		const type: NotificationType = FRIEND_REQUEST_ACTIONS.DECLINE;
+		this.setNotifData(type);
+		await this.handleDelete(type);
+		await notifApi.updateNotification(this.notifData);
 	}
 
 	public handleAcceptClick = async (): Promise<void> => {
-		await this.handleUpdate(FRIEND_REQUEST_ACTIONS.ACCEPT);
-		await this.refreshFriendButtons();
+		const type: NotificationType = FRIEND_REQUEST_ACTIONS.ACCEPT;
+		this.setNotifData(type);
+		await this.handleUpdate(type);
+		await notifApi.updateNotification(this.notifData);
 	}
 
 	public handleBlockClick = async (): Promise<void> => {
-		await this.handleUpdate(FRIEND_REQUEST_ACTIONS.BLOCK);
+		const type: NotificationType = FRIEND_REQUEST_ACTIONS.BLOCK;
+		this.setNotifData(type);
+		await this.handleUpdate(type);
+		await notifApi.updateNotification(this.notifData);
 	}
 
 	public handleUnblockClick = async (): Promise<void> => {
-		await this.handleUpdate(FRIEND_REQUEST_ACTIONS.UNBLOCK);
+		const type: NotificationType = FRIEND_REQUEST_ACTIONS.UNBLOCK;
+		this.setNotifData(type);
+		await this.handleUpdate(type);
+		await notifApi.updateNotification(this.notifData);
 	}
 
 	public handleUnfriendClick = async (): Promise<void> => {
-		await this.handleDelete(FRIEND_REQUEST_ACTIONS.UNFRIEND);
+		const type: NotificationType = FRIEND_REQUEST_ACTIONS.UNFRIEND;
+		this.setNotifData(type);
+		await this.handleDelete(type);
+		// await notifApi.updateNotification(this.notifData);
 	}
 
 	// ===========================================
 	// UTILS
 	// ===========================================
+
+	private getNotifItem(): HTMLDivElement | null {
+		return this.navbarInstance!.notifsWindow.querySelector('.notif-item');
+	}
+	private async setRelationship(): Promise<void> {
+		try {
+			const result = await friendApi.getNotifsRelation(this.currentUser.id, this.friendId!);
+
+			if ('errorMessage' in result) {
+				console.error("Erreur setRelationship:", result.errorMessage);
+				this.relationFriend = null;
+				this.relationNotifs = [];
+				return;
+			}
+
+			// Stockage dans les propriétés de la classe
+			this.relationFriend = result.friend;
+			this.relationNotifs = result.notifications;
+		} catch (err) {
+			console.error("Exception setRelationship:", err);
+			this.relationFriend = null;
+			this.relationNotifs = [];
+		}
+	}
 
 	/**
 	 * Retourne le nombre de notifications non lues.
@@ -522,7 +631,7 @@ export class NotifService {
 	 *
 	 * @return {number} Le nombre de notifications non lues.
 	 */
-	private getNotifCount(): number {
+	private getNewNotifCount(): number {
 		return this.notifs.filter(n => n.read === 0).length;
 	}
 

@@ -3,6 +3,7 @@
 	:root {
 		--navbar-height: theme(height.navbar); /* = 62px */
 		--footer-height: theme(height.footer); /* = 34px */
+		--nav-and-footer-height: calc(theme(height.navbar) + theme(height.footer));
 
 		--p: theme(spacing.p);
 		--p-tablet: theme(spacing.p-tablet);
@@ -10,16 +11,19 @@
 		--p-wide: theme(spacing.p-wide);
 		--p-extra-wide: theme(spacing.p-extra-wide);
 
-		--minus: calc(theme(height.navbar) + theme(height.footer) + theme(spacing.p) + theme(spacing.p));
-		--minus-tablet: calc(theme(height.navbar) + theme(height.footer) + theme(spacing.p-tablet) + theme(spacing.p-tablet));
-		--minus-desktop: calc(theme(height.navbar) + theme(height.footer) + theme(spacing.p-desktop) + theme(spacing.p-desktop));
-		--minus-wide: calc(theme(height.navbar) + theme(height.footer) + theme(spacing.p-wide) + theme(spacing.p-wide));
-		--minus-extra-wide: calc(theme(height.navbar) + theme(height.footer) + theme(spacing.p-extra-wide) + theme(spacing.p-extra-wide));
+		--minus: calc(var(--nav-and-footer-height) + theme(spacing.p) + theme(spacing.p));
+		--minus-tablet: calc(var(--nav-and-footer-height) + theme(spacing.p-tablet) + theme(spacing.p-tablet));
+		--minus-desktop: calc(var(--nav-and-footer-height) + theme(spacing.p-desktop) + theme(spacing.p-desktop));
+		--minus-wide: calc(var(--nav-and-footer-height) + theme(spacing.p-wide) + theme(spacing.p-wide));
+		--minus-extra-wide: calc(var(--nav-and-footer-height) + theme(spacing.p-extra-wide) + theme(spacing.p-extra-wide));
 
 		--h: calc(100vh - var(--minus));
 		--h-tablet: calc(100vh - var(--minus-tablet));
 		--h-desktop: calc(100vh - var(--minus-desktop));
 		--h-wide: calc(100vh - var(--minus-wide));
 		--h-extra-wide: calc(100vh - var(--minus-extra-wide));
+
+		--h-window-notifs-mobile: calc(100vh - var(--nav-and-footer-height));
+		--h-window-notifs-desktop: calc(50vh - var(--nav-and-footer-height));
 	}
 }

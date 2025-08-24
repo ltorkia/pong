@@ -1,6 +1,7 @@
 import { getDb } from './index.db';
 import { snakeToCamel, snakeArrayToCamel } from '../helpers/types.helpers';
 import { FriendModel } from '../shared/types/friend.types';	// en rouge car dossier local 'shared' != dossier conteneur
+import { NotificationModel } from '../shared/types/notification.types';
 
 export async function getAllRelations() {
 	const db = await getDb();
@@ -97,6 +98,84 @@ export async function getUserFriendStats(userId1: number, userId2: number): Prom
 	`, [userId1, userId1, userId2, userId2, userId1]);
 
 	return snakeToCamel(stats) as FriendModel;
+}
+
+/**
+ * Renvoie les notifications ainsi que les informations sur la relation amicale
+ * entre les utilisateurs d'identifiants `userId1` et `userId2`.
+ *
+ * Fait une requête SQL pour récupérer la relation d'amitié entre les deux
+ * utilisateurs, ainsi que les notifications liées à cette relation.
+ *
+ * @param {number} userId1 Identifiant de l'utilisateur 1.
+ * @param {number} userId2 Identifiant de l'utilisateur 2.
+ * @returns {Promise<{ friend: Partial<FriendModel>, notifications: NotificationModel[] }>} Promesse qui se résout avec un objet
+ * contenant les informations de la relation d'amitié (`Partial<FriendModel>`) et
+ * les notifications associées (`NotificationModel[]`).
+ */
+export async function getNotifsInRelation(userId1: number, userId2: number): Promise<{ friend: Partial<FriendModel>, notifications: NotificationModel[] }> {
+	const db = await getDb();
+
+	const result: any[] = await db.all(`
+		SELECT 
+			-- NOTIFS
+			n.id as notif_id, n."from", n."to", n.type,
+			n.created_at, n.content, n.read,
+			f.requester_id, f.friend_status, f.blocked_by, f.meet_date,
+			u.id, u.username, u.status
+
+		FROM Friends f
+		JOIN User u 
+			ON ( (f.user1_id = u.id OR f.user2_id = u.id) AND u.id != ? )
+		LEFT JOIN Notif n
+			ON (
+				(n."from" = ? AND n."to" = ?)
+					OR 
+				(n."from" = ? AND n."to" = ?)
+			)
+		WHERE (f.user1_id = ? AND f.user2_id = ?)
+		   OR (f.user1_id = ? AND f.user2_id = ?)
+		ORDER BY n.created_at DESC
+	`, [
+		userId1, userId1, userId2, userId2, userId1,
+		userId1, userId2, userId2, userId1
+	]);
+
+	if (!result || result.length === 0)
+		throw new Error("Relation not found");
+
+	// Relation = infos de l'autre user + friend_status
+	const relationRow = result[0];
+	const friendObj = snakeToCamel({
+		id: relationRow.id,
+		username: relationRow.username,
+		requesterId: relationRow.requester_id,
+		friendStatus: relationRow.friend_status,
+		blockedBy: relationRow.blocked_by,
+		meetDate: relationRow.meet_date,
+		status: relationRow.status
+	});
+
+	if (!friendObj)
+		throw new Error("Erreur lors de la conversion friend");
+	const friend: Partial<FriendModel> = friendObj;
+
+	// Notifications = tableau
+	const notifications = snakeArrayToCamel(
+	result
+		.filter(r => r.notif_id != null)
+		.map(r => ({
+			id: r.notif_id,
+			from: r.from,
+			to: r.to,
+			type: r.type,
+			createdAt: r.created_at,
+			content: r.content,
+			read: r.read
+		}))
+	) as NotificationModel[];
+
+	return { notifications, friend };
 }
 
 /**

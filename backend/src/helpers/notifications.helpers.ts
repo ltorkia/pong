@@ -86,7 +86,7 @@ export async function sendUpdateNotification(app: FastifyInstance, data: Notific
 
 	const twinNotifs = await getTwinNotifications(data);
 	if (!twinNotifs || 'errorMessage' in twinNotifs)
-		return { errorMessage: twinNotifs.errorMessage };
+		return { errorMessage: twinNotifs?.errorMessage || "No twin notifications found" };
 
 	// On met à jour les notifications
 	let updatedNotifs: NotificationModel[] = [];
@@ -96,7 +96,7 @@ export async function sendUpdateNotification(app: FastifyInstance, data: Notific
 		const notif: NotificationModel = await addNotifContent(twinNotif);
 		const updatedRes = await updateNotification(notif);
 		if (!updatedRes || 'errorMessage' in updatedRes) {
-			return { errorMessage: updatedRes.errorMessage || 'Error inserting notification' };
+			return { errorMessage: updatedRes?.errorMessage || 'Error inserting notification' };
 		}
 		updatedNotifs.push(updatedRes);
 	}

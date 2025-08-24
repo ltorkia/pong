@@ -20,7 +20,7 @@ export async function getUserNotifications(id: number): Promise<NotificationMode
 			SELECT n.id, n."from", n."to", n.type, n.content, n.created_at, n.read
 			FROM Notif n
 			WHERE n."to" = ?
-			ORDER BY n.created_at DESC
+			ORDER BY n.created_at ASC
 			`,
 		[id]);
 		return snakeArrayToCamel(notifs) as NotificationModel[];
@@ -129,15 +129,15 @@ export async function insertNotification(notifData: NotificationInput): Promise<
 export async function updateNotification(notifData: NotificationModel): Promise<NotificationModel | { errorMessage: string }> {
 	const db = await getDb();
 	try {
-		const result = await db.run(`
+		await db.run(`
 			UPDATE Notif
-			SET type = ?, content = ?, status = ?
+			SET type = ?, content = ?, read = ?
 			WHERE (id = ?)
 			`,
 			[notifData.type, notifData.content, notifData.read, notifData.id]
 		);
 
-		const updatedNotif = await getNotification(result.lastID!);
+		const updatedNotif = await getNotification(notifData.id!);
 		return snakeToCamel(updatedNotif) as NotificationModel;
 	} catch (error) {
 		return { errorMessage: (error as Error).message };

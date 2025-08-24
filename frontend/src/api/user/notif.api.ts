@@ -1,4 +1,5 @@
 import { AppNotification } from '../../shared/models/notification.model';
+import { NotificationModel } from '../../shared/types/notification.types';
 import { BasicResponse, NotifResponse } from '../../shared/types/response.types';
 import { secureFetch } from '../../utils/app.utils';
 
@@ -64,6 +65,32 @@ export class NotifApi {
 	// ===========================================
 
 	/**
+	 * Ajoute une notification à un utilisateur.
+	 *
+	 * Envoie une requête POST à la route API `/api/notifs` pour ajouter
+	 * la notification `notifData` à l'utilisateur courant.
+	 *
+	 * Si la requête réussit, renvoie un objet contenant les informations de l'opération.
+	 * Sinon, renvoie un objet contenant un message d'erreur.
+	 *
+	 * @param {NotificationModel} notifData - Les informations de la notification à ajouter.
+	 * @returns {Promise<NotifResponse | { errorMessage: string }>} Promesse qui se résout avec les informations
+	 * de l'opération ou un message d'erreur.
+	 */
+	public async addNotification(notifData: NotificationModel): Promise<NotifResponse | { errorMessage: string }> {
+		const res = await secureFetch(`/api/notifs`, {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify( notifData )
+		});
+		const data = await res.json();
+		if (!res.ok || 'errorMessage' in data || !data) {
+			return { errorMessage: data.errorMessage || 'Erreur lors de l\'ajout de la notif' };
+		}
+		return AppNotification.fromJSON(data) as AppNotification;
+	}
+
+	/**
 	 * Met à jour une notification.
 	 *
 	 * Envoie une requête PUT à la route API `/api/notifs/update` pour mettre à jour
@@ -77,7 +104,7 @@ export class NotifApi {
 	 * de l'opération ou un message d'erreur.
 	 */
 	public async updateNotification(notifData: AppNotification): Promise<AppNotification | { errorMessage: string }> {
-		const res = await secureFetch(`/api/notifs/update`, {
+		const res = await secureFetch(`/api/notifs`, {
 			method: 'PUT',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({ notifData })

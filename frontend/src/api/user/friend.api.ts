@@ -41,6 +41,37 @@ export class FriendApi {
 		return Friend.fromJSONArray(data) as Friend[];
 	}
 
+	/**
+	 * Récupère toutes les notifications échangées entre l'utilisateur courant et un ami.
+	 *
+	 * Envoie une requête GET à la route API `/api/notifs/:userId/:friendId/notifs` pour récupérer
+	 * la relation d'amitié et les notifications associées.
+	 *
+	 * Si la requête réussit, renvoie un objet contenant l'instance `Friend` et un tableau
+	 * d'instances `AppNotification`. Sinon, renvoie un objet avec une clé `errorMessage`.
+	 *
+	 * @param {number} userId Identifiant de l'utilisateur courant (doit matcher le JWT côté serveur).
+	 * @param {number} friendId Identifiant de l'ami avec qui récupérer les notifications.
+	 * @returns {Promise<{ Friend; AppNotification[] } | { errorMessage: string }>}
+	 */
+	public async getNotifsRelation(userId: number, friendId: number): Promise<{ friend: Friend; notifications: AppNotification[] } | { errorMessage: string }> {
+		try {
+			const res: Response = await secureFetch(`/api/friends/${userId}/${friendId}/notifs`, {
+				method: "GET"
+			});
+			const data = await res.json();
+			if (!res.ok || 'errorMessage' in data || !data) {
+				return { errorMessage: data.errorMessage || data.message || "Erreur inconnue" };
+			}
+			const friend = Friend.fromJSON(data.friend) as Friend;
+			const notifications = AppNotification.fromJSONArray(data.notifications) as AppNotification[];
+			return { friend, notifications };
+		} catch (err) {
+			console.error("Erreur dans getNotifsRelation:", err);
+			return { errorMessage: "Erreur réseau ou serveur" };
+		}
+	}
+
 	// ===========================================
 	// FRIEND ADD REQUEST - DATABASE ADD
 	// ===========================================
