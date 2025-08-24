@@ -27,6 +27,7 @@ export abstract class BaseComponent {
 	public container: HTMLElement;
 	protected templatePath: string;
 	protected currentUser: User | null = null;
+	protected removeListenersFlag: boolean = true;
 
 	/**
 	 * Constructeur de la classe BaseComponent.
@@ -75,6 +76,7 @@ export abstract class BaseComponent {
 	 */
 	public async render(): Promise<void> {
 		if (!await this.preRenderCheck()) {
+			this.removeListenersFlag = false;
 			await router.redirect(DEFAULT_ROUTE);
 			return;
 		};
@@ -149,7 +151,8 @@ export abstract class BaseComponent {
 				this.componentConfig.destroy = false;
 				this.componentConfig.instance = undefined;
 			}
-			this.removeListeners();
+			if (this.removeListenersFlag)
+				this.removeListeners();
 			this.container.replaceChildren();
 			console.log(`[${this.constructor.name}] Container #${this.componentConfig.containerId} nettoyé`);
 		}

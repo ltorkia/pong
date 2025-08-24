@@ -26,6 +26,7 @@ export abstract class BasePage {
 	protected templatePath: string;
 	protected components?: Partial<Record<ComponentName, ComponentConfig>>;
 	protected componentInstances: Record<ComponentName | string, BaseComponent> = {};
+	protected removeListenersFlag: boolean = true;
 
 	/**
 	 * Constructeur de la classe de base des pages.
@@ -78,6 +79,7 @@ export abstract class BasePage {
 		try {
 			console.log(`[${this.constructor.name}] Début du rendu...`);
 			if (!await this.preRenderCheck()) {
+				this.removeListenersFlag = false;
 				await router.redirect(DEFAULT_ROUTE);
 				return;
 			};
@@ -283,7 +285,8 @@ export abstract class BasePage {
 	public async cleanup(): Promise<void> {
 		console.log(`[${this.constructor.name}] Nettoyage...`);
 		this.cleanupComponents();
-		this.removeListeners();
+		if (this.removeListenersFlag)
+			this.removeListeners();
 		this.container.replaceChildren();
 		console.log(`[${this.constructor.name}] Container principal #${APP_ID} nettoyé`);
 		console.log(`[${this.constructor.name}] Nettoyage terminé`);
