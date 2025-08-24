@@ -1,8 +1,6 @@
 import { User } from '../../shared/models/user.model';
 import { Game } from '../../shared/models/game.model';
-// import { Friend } from '../../shared/models/friend.model';
 import { SafeUserModel, PaginatedUsers } from '../../shared/types/user.types';	// en rouge car dossier local 'shared' != dossier conteneur
-// import { FriendModel } from '../../shared/types/friend.types';	// en rouge car dossier local 'shared' != dossier conteneur
 import { GameModel } from '../../shared/types/game.types';	// en rouge car dossier local 'shared' != dossier conteneur
 import { dataService, currentService } from '../../services/index.service';
 import { secureFetch } from '../../utils/app.utils';
@@ -93,7 +91,7 @@ export class DataApi {
 		const query = new URLSearchParams();
 		if (params.searchTerm) query.append("searchTerm", params.searchTerm);
 		if (params.status) query.append("status", params.status);
-		if (params.level) query.append("level", params.level);
+		// if (params.level) query.append("level", params.level);
 		if (params.friendsOnly !== undefined) query.append("friendsOnly", String(params.friendsOnly));
 		const url = `/api/search/users/page/${page}/${limit}?${query.toString()}`;
 

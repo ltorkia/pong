@@ -3,7 +3,6 @@ import { JwtPayload } from '../types/user.types';
 import { getUserNotifications, getNotification, insertNotification, deleteNotification } from '../db/notification';
 import { sendUpdateNotification, addNotifContent, sendToSocket } from '../helpers/notifications.helpers';
 import { NotificationInput, NotificationInputSchema } from '../types/zod/app.zod';
-import type { NotificationModel } from '../shared/types/notification.types';
 import { UserModel } from '../shared/types/user.types';
 import { getUser } from '../db/user';
 import { isParsingError, checkParsing } from '../helpers/types.helpers';
@@ -24,7 +23,6 @@ export async function notificationsRoutes(app: FastifyInstance) {
 					return reply.code(403).send({ errorMessage: 'Forbidden' });
 				}
 			}
-			console.log(notifs);
 			return reply.code(200).send({ notifs });
 		} catch (err) {
 			return reply.code(500).send({ errorMessage: 'Erreur serveur' });
@@ -65,7 +63,8 @@ export async function notificationsRoutes(app: FastifyInstance) {
 		if (!user)
 			return reply.code(404).send({ errorMessage: 'No user found'});
 
-		const notifData: NotificationInput = await addNotifContent(data);
+		let notifData: NotificationInput = await addNotifContent(data);
+		notifData.read = data.read ?? 0;
 		const notif = await insertNotification(notifData);
 		if (!notif || "errorMessage" in notif) {
 			return reply.code(500).send({ errorMessage: notif.errorMessage || 'Error inserting notification'});
@@ -77,10 +76,8 @@ export async function notificationsRoutes(app: FastifyInstance) {
 	// --- Marque une notification comme lue ---
 	app.put('/', async (request: FastifyRequest, reply: FastifyReply) => {
 		const jwtUser = request.user as JwtPayload;
-		let { notifData } = request.body as { notifData: NotificationModel };
 
-		// Validation notifId
-		const notifId = Number(notifData.id);
+		let notifId = Number(request.body);
 		if (isNaN(notifId) || notifId <= 0) {
 			return reply.code(400).send({ errorMessage: 'notifId missing or invalid' });
 		}
@@ -89,7 +86,7 @@ export async function notificationsRoutes(app: FastifyInstance) {
 		let notif = await getNotification(notifId);
 		if (!notif || 'errorMessage' in notif)
 			return reply.code(404).send({ errorMessage: 'Notification not found'});
-		if (notif.to != jwtUser.id) {
+		if (![notif.from, notif.to].includes(jwtUser.id)) {
 			return reply.code(403).send({ errorMessage: 'Forbidden' });
 		}
 		
@@ -97,17 +94,16 @@ export async function notificationsRoutes(app: FastifyInstance) {
 		const updatedNotifs = await sendUpdateNotification(app, notif);
 		if (!updatedNotifs || 'errorMessage' in updatedNotifs)
 			return reply.code(500).send({ errorMessage: updatedNotifs?.errorMessage || "Unknown error updating notification" });
-
-		return reply.code(200).send( updatedNotifs );
+		
+		notif.read = 1;
+		return reply.code(200).send( notif );
 	});
 
 	// --- Supprime une notification ---
-	app.delete('/', async (request: FastifyRequest, reply: FastifyReply) => {
+	app.delete('/:notifId', async (request: FastifyRequest, reply: FastifyReply) => {
 		const jwtUser = request.user as JwtPayload;
-		let { notifData } = request.body as { notifData: NotificationModel };
-
-		// Validation notifId
-		const notifId = Number(notifData.id);
+		let { notifId } = request.params as { notifId: number };
+		notifId = Number(notifId);
 		if (isNaN(notifId) || notifId <= 0) {
 			return reply.code(400).send({ errorMessage: 'notifId missing or invalid' });
 		}

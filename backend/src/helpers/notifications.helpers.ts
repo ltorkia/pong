@@ -1,16 +1,13 @@
 import { FastifyInstance } from 'fastify';
 import { UserWS } from '../types/user.types';
 import { NotificationModel, UserOnlineStatus } from '../shared/types/notification.types';
-import { FRIEND_REQUEST_ACTIONS, USER_ONLINE_STATUS } from '../shared/config/constants.config';
+import { FRIEND_REQUEST_ACTIONS } from '../shared/config/constants.config';
 import { getUser } from '../db/user';
 import { NotificationInput } from '../types/zod/app.zod';
 import { getTwinNotifications, updateNotification, deleteNotification } from '../db/notification';
 import { isValidNotificationType } from '../shared/utils/app.utils';
 import { insertNotification } from '../db/notification';
 import { majLastlog } from '../db/usermaj';
-// import { NotifResponse } from '../shared/types/response.types';
-// import { FriendModel } from '../shared/types/friend.types';
-// import { DB_CONST } from '../shared/config/constants.config';
 
 /**
  * Envoie un message à un utilisateur connecté via WebSockets.
@@ -62,10 +59,8 @@ export async function setOnlineStatus(app: FastifyInstance, userId: number, stat
 			continue;
 		notifData.to = userWS.id;
 		const notif = await insertNotification(notifData);
-		if (!notif || 'errorMessage' in notif) {
-			console.log(notif.errorMessage);
+		if (!notif || 'errorMessage' in notif)
 			return;
-		}
 		console.log("→ Envoi WS vers", userWS.id, ":", JSON.stringify([notif]));
 		userWS.WS.send(JSON.stringify([notif]));
 	}
@@ -91,18 +86,13 @@ export async function sendUpdateNotification(app: FastifyInstance, data: Notific
 	// On met à jour les notifications
 	let updatedNotifs: NotificationModel[] = [];
 	for (const twinNotif of twinNotifs) {
-		twinNotif.type = data.type;
 		twinNotif.read = 1;
-		const notif: NotificationModel = await addNotifContent(twinNotif);
-		const updatedRes = await updateNotification(notif);
+		const updatedRes = await updateNotification(twinNotif);
 		if (!updatedRes || 'errorMessage' in updatedRes) {
-			return { errorMessage: updatedRes?.errorMessage || 'Error inserting notification' };
+			return { errorMessage: updatedRes?.errorMessage || 'Error updating notification' };
 		}
 		updatedNotifs.push(updatedRes);
 	}
-
-	// On envoie les notifications mises à jour
-	sendToSocket(app, updatedNotifs);
 	return updatedNotifs;
 }
 
@@ -123,7 +113,6 @@ export async function sendDeleteNotification(app: FastifyInstance, data: Notific
 		deletedNotifs.push(notif);
 		await deleteNotification(notif.id);
 	}
-	sendToSocket(app, deletedNotifs);
 	return deletedNotifs;
 }
 
@@ -157,7 +146,11 @@ export async function addNotifContent<T extends NotificationInput | Notification
 		// 	break;
 		// case FRIEND_REQUEST_ACTIONS.BLOCK:
 		// 	break;
+		default:
+			notifData.content = '';
+			return notifData;
 	}
 	notifData.content = `${user.username} ${notif}`;
 	return notifData;
 }
+

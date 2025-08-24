@@ -32,7 +32,6 @@ export class NotifApi {
 		if (!res.ok || 'errorMessage' in data || !data) {
 			return { errorMessage: data.errorMessage || data.message || 'Erreur inconnue' };
 		}
-		console.log(data);
 		return AppNotification.fromJSONArray(data.notifs) as AppNotification[];
 	}
 
@@ -56,7 +55,6 @@ export class NotifApi {
 		if (!res.ok || 'errorMessage' in data || !data) {
 			return { errorMessage: data.errorMessage || data.message || 'Erreur inconnue' };
 		}
-		console.log(data);
 		return AppNotification.fromJSON(data) as AppNotification;
 	}
 
@@ -99,21 +97,21 @@ export class NotifApi {
 	 * Si la requête réussit, renvoie un objet contenant les informations de l'opération.
 	 * Sinon, renvoie un objet contenant un message d'erreur.
 	 *
-	 * @param {AppNotification} notifData - Les informations de la notification à mettre à jour.
+	 * @param {number} notifId - L'identifiant de la notification à mettre à jour comme lue.
 	 * @returns {Promise<AppNotification | { errorMessage: string }>} Promesse qui se résout avec les informations
 	 * de l'opération ou un message d'erreur.
 	 */
-	public async updateNotification(notifData: AppNotification): Promise<AppNotification | { errorMessage: string }> {
+	public async updateNotification(notifId: number): Promise<AppNotification | { errorMessage: string }> {
 		const res = await secureFetch(`/api/notifs`, {
 			method: 'PUT',
 			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({ notifData })
+			body: JSON.stringify( notifId )
 		});
 		const data = await res.json();
 		if (!res.ok || 'errorMessage' in data || !data) {
 			return { errorMessage: data.errorMessage || 'Erreur lors de la mise à jour de la notif' };
 		}
-		return AppNotification.fromJSONArray(data) as AppNotification;
+		return AppNotification.fromJSON(data) as AppNotification;
 	}
 
 	/**

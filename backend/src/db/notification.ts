@@ -3,6 +3,7 @@ import { NotificationModel } from '../shared/types/notification.types';	// en ro
 import { NotificationInput } from '../types/zod/app.zod';
 import { snakeToCamel, snakeArrayToCamel } from '../helpers/types.helpers';
 import { NotifResponse } from '../shared/types/response.types';
+
 /**
  * Renvoie la liste des notifications de l'utilisateur d'identifiant `id`.
  *
@@ -101,13 +102,15 @@ export async function insertNotification(notifData: NotificationInput): Promise<
 		}
 		const result = await db.run(
 			`
-			INSERT INTO Notif ("from", "to", type, content)
-			VALUES (?, ?, ?, ?)
+			INSERT INTO Notif ("from", "to", type, content, read)
+			VALUES (?, ?, ?, ?, ?)
 			`,
-			[notifData.from, notifData.to, notifData.type, notifData.content]
+			[notifData.from, notifData.to, notifData.type, notifData.content, notifData.read]
 		);
-
 		const insertedNotif = await getNotification(result.lastID!);
+		if (!insertedNotif || "errorMessage" in insertedNotif) {
+			return { errorMessage: "Impossible de récupérer la notif insérée" };
+		}
 		return snakeToCamel(insertedNotif) as NotificationModel;
 	} catch (error) {
 		return { errorMessage: (error as Error).message };

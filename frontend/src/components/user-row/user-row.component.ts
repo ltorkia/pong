@@ -6,11 +6,9 @@ import { RouteConfig } from '../../types/routes.types';
 import { router } from '../../router/router';
 import { ComponentConfig } from '../../types/components.types';
 import { dataService, notifService, friendService } from '../../services/index.service';
-import { getHTMLElementByClass, getHTMLElementByTagName, showAlert } from '../../utils/dom.utils';
-import { DB_CONST, FRIEND_REQUEST_ACTIONS } from '../../shared/config/constants.config';
+import { getHTMLElementByClass } from '../../utils/dom.utils';
+import { DB_CONST } from '../../shared/config/constants.config';
 import { User } from '../../shared/models/user.model';
-import { NotificationModel } from '../../shared/types/notification.types';
-import { FriendRequestAction } from '../../../../shared/types/notification.types';
 
 // ===========================================
 // USER ROW COMPONENT
@@ -201,11 +199,11 @@ export class UserRowComponent extends BaseComponent {
 	 * @returns {Promise<void>} Une promesse qui se résout lorsque l'affichage des boutons est terminé.
 	 */
 	public async toggleFriendButton(): Promise<void> {
-		if (this.user!.id !== this.currentUser!.id) {
+		if (this.user && this.user.id !== this.currentUser!.id || !this.user) {
 			this.hideAllButtons();
-			const friend = await friendService.isFriendWithCurrentUser(this.user!.id);
+			const friend = await friendService.isFriendWithCurrentUser(this.user.id);
 			if (!friend) {
-				this.friendLogoCell.innerHTML = dataService.showFriendLogo(this.user!);
+				this.friendLogoCell.innerHTML = `<i class="fa-solid fa-minus"></i>`;
 				this.addFriendButton.classList.remove('hidden');
 				return;
 			}
@@ -296,7 +294,6 @@ export class UserRowComponent extends BaseComponent {
 		if (!this.user) {
 			return;
 		}
-		console.log("FRIEND A AJOUTER", this.user.id);
 		notifService.setFriendId(this.user.id);
 		await notifService.handleAddClick();
 		console.log(`Friend request sent to ${this.user.username}`);
@@ -307,7 +304,6 @@ export class UserRowComponent extends BaseComponent {
 		if (!this.user) {
 			return;
 		}
-		// notifService.setNotifsData(this.user.id, FRIEND_REQUEST_ACTIONS.ADD);
 		notifService.setFriendId(this.user.id);
 		await notifService.handleAcceptClick();
 		console.log(`Friend request accepted for ${this.user.username}`);
@@ -318,7 +314,6 @@ export class UserRowComponent extends BaseComponent {
 		if (!this.user) {
 			return;
 		}
-		// notifService.setNotifsData(this.user.id, FRIEND_REQUEST_ACTIONS.BLOCK);
 		notifService.setFriendId(this.user.id);
 		await notifService.handleDeclineClick();
 		console.log(`Friend request sent to ${this.user.username}`);
@@ -329,7 +324,6 @@ export class UserRowComponent extends BaseComponent {
 		if (!this.user) {
 			return;
 		}
-		// notifService.setNotifsData(this.user.id, FRIEND_REQUEST_ACTIONS.ACCEPT);
 		notifService.setFriendId(this.user.id);
 		await notifService.handleBlockClick();
 		console.log(`Friend ${this.user.username} blocked`);
@@ -340,7 +334,6 @@ export class UserRowComponent extends BaseComponent {
 		if (!this.user) {
 			return;
 		}
-		// notifService.setNotifsData(this.user.id, FRIEND_REQUEST_ACTIONS.ACCEPT);
 		notifService.setFriendId(this.user.id);
 		await notifService.handleUnblockClick();
 		console.log(`Friend ${this.user.username} unblocked`);
@@ -351,7 +344,6 @@ export class UserRowComponent extends BaseComponent {
 		if (!this.user) {
 			return;
 		}
-		// notifService.setNotifsData(this.user.id, FRIEND_REQUEST_ACTIONS.ACCEPT);
 		notifService.setFriendId(this.user.id);
 		await notifService.handleUnfriendClick();
 		console.log(`Friend ${this.user.username} unfriended`);
@@ -362,7 +354,6 @@ export class UserRowComponent extends BaseComponent {
 		if (!this.user) {
 			return;
 		}
-		// notifService.setNotifsData(this.user.id);
 		notifService.setFriendId(this.user.id);
 		await notifService.handleCancelClick();
 		console.log(`Friend request canceled for ${this.user.username}`);

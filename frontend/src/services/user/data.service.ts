@@ -113,7 +113,6 @@ export class DataService {
 	 * @returns Libellé lisible
 	 */
 	public showStatusLabel(user: User): string {
-		console.log(user.status);
 		switch (user.status) {
 			case USER_ONLINE_STATUS.ONLINE: 
 				return `<div class="online" title="online"></div>`;
@@ -134,7 +133,6 @@ export class DataService {
 	 * de l'utilisateur.
 	 */
 	public showFriendLogo(user: User | Friend): string {
-		console.log(user.friendStatus);
 		switch (user.friendStatus) {
 			case DB_CONST.FRIENDS.STATUS.ACCEPTED:
 				return `<i class="fa-solid fa-user-check" title="Friend !"></i>`;

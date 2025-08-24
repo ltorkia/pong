@@ -5,7 +5,6 @@ export interface NotificationModel {
 	from: number;
 	to: number;
 	type: NotificationType;
-	toType?: NotificationType;
 	content?: string | null;
 	createdAt: string | null;
 	read: number;

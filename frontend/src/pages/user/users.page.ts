@@ -127,7 +127,6 @@ export class UsersPage extends BasePage {
 		
 		searchBarComponent.container.addEventListener('search', async (event: Event) => {
 		const params = (event as CustomEvent).detail;
-			console.log(params);
 			await this.injectUserList(params);
 			if (!params.searchTerm && !params.status && !params.friendsOnly)
 				this.paginationInfos.incCurrUser = true;
@@ -264,7 +263,7 @@ export class UsersPage extends BasePage {
 	public removeUser(user: User): void {
 		const userLine = document.getElementById(`${this.userRowConfig!.name}-${user.id}`);
 		if (userLine) {
-			userLine.classList.add('animate-fade-in-down');
+			userLine.classList.add('animate-fade-out-down');
 			userLine.remove();
 		}
 	}
@@ -279,10 +278,8 @@ export class UsersPage extends BasePage {
 	 */
 	public changeOnlineStatus(user: User): void {
 		const userRow = document.getElementById(`${this.userRowConfig!.name}-${user.id}`);
-		console.log(userRow);
 		if (userRow) {
 			const statusCell = getHTMLElementByClass('status-cell', userRow) as HTMLElement;
-			console.log(statusCell);
 			statusCell.innerHTML = dataService.showStatusLabel(user);
 		}
 	}
@@ -309,6 +306,10 @@ export class UsersPage extends BasePage {
 		if (!userRowInstance) {
 			const key = `${COMPONENT_NAMES.USER_ROW}-${friendId}`;
 			userRowInstance = this.getComponentInstance!<UserRowComponent>(key);
+		}
+		if (!(userRowInstance as UserRowComponent).userline) {
+			console.log(`[${this.constructor.name}] No userline for user id ${friendId}`);
+			return;
 		}
 		await (userRowInstance as UserRowComponent).toggleFriendButton();
 	}

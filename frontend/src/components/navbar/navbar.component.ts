@@ -2,8 +2,7 @@
 import template from './navbar.component.html?raw';
 
 import { BaseComponent } from '../base/base.component';
-import { authService } from '../../services/index.service';
-import { animationService } from '../../services/index.service';
+import { animationService, authService } from '../../services/index.service';
 import { RouteConfig } from '../../types/routes.types';
 import { ComponentConfig } from '../../types/components.types';
 import { getHTMLElementByClass } from '../../utils/dom.utils';
@@ -250,26 +249,48 @@ export class NavbarComponent extends BaseComponent {
 	 * @param {HTMLElement} element L'élément à basculer.
 	 */
 	private toggleWindow(element: HTMLElement): void {
-		const otherElements = [this.notifsWindow, this.chatWindow, this.navbarMenu]
-			.filter(elem => elem !== element);
+		const otherElements: any[] = [this.notifsWindow, this.chatWindow, this.navbarMenu]
+			.filter(elm => elm !== element);
 		
-		if (element.classList.contains('hide')) {
-			element.classList.remove('hide');
-			element.classList.add('show');
-			
-			otherElements.forEach(otherElem => {
-				if (otherElem.classList.contains('show')) {
-					otherElem.classList.remove('show');
-					otherElem.classList.add('hide');
+		const isOpening = element.classList.contains('hide');
+		if (isOpening) {
+			otherElements.forEach(elm => {
+				if (elm.classList.contains('show')) {
+					elm.classList.remove('show');
+					elm.classList.add('hide');
+					if (elm === this.notifsWindow) 
+						elm.classList.remove('scrolled');
 				}
 			});
+			element.classList.remove('hide');
+			if (element === this.notifsWindow) {
+				this.notifsWindow.classList.remove('scrolled');
+				this.notifsWindow.addEventListener('transitionend', this.onNotifsTransitionEnd, { once: true });
+			}
+			element.classList.add('show');
 		} else {
 			element.classList.remove('show');
 			element.classList.add('hide');
+			if (element === this.notifsWindow)
+				this.notifsWindow.classList.remove('scrolled');
 		}
-		
 		this.updateBurgerIcon();
 	}
+
+	/**
+	 * Handler pour la transition de la fenêtre des notifications.
+	 * Ajoute le scroll uniquement si la fenêtre est toujours ouverte.
+	 * (empêche l'apparition de la barre de scroll pendant la transition)
+	 * 
+	 * @param {TransitionEvent} ev L'objet de transition.
+	 */
+	private onNotifsTransitionEnd = (ev: TransitionEvent) => {
+		if (ev.propertyName !== 'max-height') 
+			return;
+		if (this.notifsWindow.classList.contains('show')) {
+			this.notifsWindow.classList.add('scrolled');
+		}
+	};
 
 	/**
 	 * Ferme toutes les fenêtres de la navbar (menu, notifs, chat).
@@ -344,12 +365,12 @@ export class NavbarComponent extends BaseComponent {
 		this.toggleWindow(this.notifsWindow);
 		if (this.notifsWindow.classList.contains('hide') 
 			&& allNewNotifs && allNewNotifs.length > 0) {
-			notifService.updateNotifsCounter();
 			for (const notif of allNewNotifs) {
 				notif.classList.remove('new-notif');
 				const notifId = Number(notif.id.replace("notif-", ""));
 				await notifService.markAsRead(notifId);
 			}
+			notifService.updateNotifsCounter();
 		}
 	}
 

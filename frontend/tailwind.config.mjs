@@ -135,9 +135,17 @@ export default {
 					'0%': { opacity: '0', transform: 'translateY(10px)' },
 					'100%': { opacity: '1', transform: 'translateY(0)' },
 				},
+				fadeOutDown: {
+					'0%': { opacity: '1', transform: 'translateY(-10px)' },
+					'100%': { opacity: '0', transform: 'translateY(0)' },
+				},
 				fadeInDown: {
 					'0%': { opacity: '0', transform: 'translateY(-10px)' },
 					'100%': { opacity: '1', transform: 'translateY(0)' },
+				},
+				fadeOutUp: {
+					'0%': { opacity: '1', transform: 'translateY(10px)' },
+					'100%': { opacity: '0', transform: 'translateY(0)' },
 				},
 			},
 			/**
@@ -151,7 +159,9 @@ export default {
 				'letter-float-4': 'letterFloat 4s ease-in-out infinite 0.6s',
 				'logo-appear': 'logoAppear 1s ease-out',
         		'fade-in-up': 'fadeInUp 0.2s ease-out',
+				'fade-out-down': 'fadeOutDown 0.3s ease-out',
         		'fade-in-down': 'fadeInDown 0.3s ease-out',
+				'fade-out-up': 'fadeOutUp 0.3s ease-out',
 			}
 		},
 	},

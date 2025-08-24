@@ -32,7 +32,7 @@ export class PaginationComponent extends BaseComponent {
 	 * @param {ComponentConfig} componentConfig La configuration du composant.
 	 * @param {HTMLElement} container L'élément HTML qui sera utilisé comme conteneur pour le composant.
 	 * @param {User | null} user L'utilisateur à afficher dans le composant (facultatif).
-	 * @param {PaginationInfos | null} paginationInfos Informations de pagination (facultatif).
+	 * @param {PaginationParams} paginationParams Paramètres de pagination (facultatif).
 	 */
 	constructor(routeConfig: RouteConfig, componentConfig: ComponentConfig, container: HTMLElement, user?: User | null, paginationParams?: PaginationParams) {
 		super(routeConfig, componentConfig, container);
@@ -145,7 +145,7 @@ export class PaginationComponent extends BaseComponent {
 	 */
 	private getPaginationStats(): string {
 		this.setTotalUsers();
-		const str = this.paginationInfos.totalUsers <= 1 ? 'result' : 'results';
+		const str = this.paginationInfos.totalUsers <= 1 ? 'user' : 'users';
 		if (this.paginationInfos.totalPages > 0)
 			return `Page ${this.paginationInfos.currentPage} / ${this.paginationInfos.totalPages} - ${this.paginationInfos.totalUsers} ${str}`;;
 		return `No ${str} found.`;

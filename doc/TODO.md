@@ -2,24 +2,17 @@ TODO / problèmes rencontrés / questions / pense-bête
 
 BACK
 
-- QR code
-- Faire un autre majLastlog() à mettre dans route logout pour mettre le status à offline et le timestamp de déconnexion
-- Formater les dates (le fuseau horaire ne semble pas bon dans beginLog et registration)
-- Proposer de switch entre compte google et local
-- Gerer proxy pour avatars Google
-- Faire route pour get tournois
+- Proposer de switch entre compte google et local ?
+- Avatars google qui merdent à la premiere connexion parfois (erreur dans console et avatar par defaut apparait)
+- Google sign en remote bug à résoudre
 
 
 COMMUN
 
-- Ajuster conf nginx prod pour websockets
 - Si on a le time faire le switch compte Google -> compte local dans settings ?
-- Reutiliser systeme code 2FA pour "Mot de passe oublie"
-- Complexifier mot de passe
-- Faire sockets pour statut online / demandes d'amis
-- Pour chaque route avec userId (ex: `/api/users/${userId}/friends/remove`), faire une verif userId == id du current user avec le token, sinon faille de secu
+- Reutiliser systeme code 2FA pour "Mot de passe oublie" ?
+- Complexifier mot de passe ?
 - Google sign en remote Pelouse
-- Gerer notifs dans bdd
 
 FRONT
 

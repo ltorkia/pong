@@ -13,8 +13,6 @@ import { IdInputSchema, IdInput, FriendActionInputSchema, FriendActionInput } fr
 import { checkParsing, isParsingError } from '../helpers/types.helpers';
 import { isFriendRequestValid, isValidRequester } from '../helpers/friend.helpers';
 
-import { getNotifsInRelation } from '../db/friend';
-
 /* ======================== FRIENDS ROUTES ======================== */
 
 export async function friendsRoutes(app: FastifyInstance) {
@@ -66,31 +64,6 @@ export async function friendsRoutes(app: FastifyInstance) {
 			return reply.code(404).send({ errorMessage : 'No user found'});
 		return reply.status(200).send({ user: friend });
 	})
-	/* -------------------------------------------------------------------------- */
-	/* Récupère les notifications échangées entre l'utilisateur courant et un ami */
-	/* -------------------------------------------------------------------------- */	
-
-	app.get('/:userId/:friendId/notifs', async (request: FastifyRequest, reply: FastifyReply) => {
-		let { userId, friendId } = request.params as { userId: number; friendId: number };
-		userId = Number(userId), friendId = Number(friendId);
-		const jwtUser = request.user as JwtPayload;
-		if (userId != jwtUser.id)
-			return reply.status(403).send({ errorMessage: 'Forbidden' });
-
-		try {
-			const notifsRelation = await getNotifsInRelation(jwtUser.id, friendId);
-			if (!notifsRelation) {
-				return reply.code(404).send({ errorMessage: 'Relation not found' });
-			}
-			if (notifsRelation.friend.id !== friendId && notifsRelation.friend.id !== jwtUser.id) {
-				return reply.code(403).send({ errorMessage: 'Forbidden' });
-			}
-			return reply.code(200).send(notifsRelation);
-		} catch (err) {
-			request.log.error(err);
-			return reply.status(500).send({ errorMessage: 'Server error' });
-		}
-	});
 	
 	/* -------------------------------------------------------------------------- */
 	/*                                   CRUD                                     */
@@ -99,9 +72,8 @@ export async function friendsRoutes(app: FastifyInstance) {
 	app.post('/', async(request: FastifyRequest, reply: FastifyReply): Promise<FriendResponse> => {
 		const jwtUser = request.user as JwtPayload;
 		const userdataCheck = await checkParsing(IdInputSchema, request.body);
-		if (isParsingError(userdataCheck)) {
+		if (isParsingError(userdataCheck))
 			return reply.status(400).send(userdataCheck);
-		}
 
 		let data = userdataCheck as IdInput;
 		const friend: UserModel = await getUser(Number(data.id));
@@ -121,28 +93,23 @@ export async function friendsRoutes(app: FastifyInstance) {
 		let { friendId } = request.params as { friendId: number };
 		friendId = Number(friendId);
 		if (!Number.isInteger(friendId) || friendId <= 0
-			|| !Number.isInteger(friendId) || friendId <= 0) {
+			|| !Number.isInteger(friendId) || friendId <= 0)
 			return reply.status(403).send({ errorMessage: 'Forbidden' });
-		}
 
 		const friendDataCheck = await checkParsing(FriendActionInputSchema, request.body);
-		if (isParsingError(friendDataCheck)) {
+		if (isParsingError(friendDataCheck))
 			return reply.status(400).send(friendDataCheck);
-		}
+
 		const data = friendDataCheck as FriendActionInput;
 		let relation: FriendModel = await getRelation(jwtUser.id, friendId);
 		if (!relation)
 			return reply.code(404).send({ errorMessage: 'No relation found'});
-		if (!isFriendRequestValid(data, relation.friendStatus)) {
+		if (!isFriendRequestValid(data, relation.friendStatus))
 			return reply.status(403).send({ errorMessage: 'Forbidden' });
-		}
-		if (!isValidRequester(data, relation, jwtUser.id)) {
+		if (!isValidRequester(data, relation, jwtUser.id))
 			return reply.status(403).send({ errorMessage: 'Forbidden' });
-		}
 
 		switch (data) {
-
-			// On met à jour le lien d'amitié en base de données
 			case FRIEND_REQUEST_ACTIONS.ACCEPT:
 			case FRIEND_REQUEST_ACTIONS.UNBLOCK:
 				relation = await updateRelationshipConfirmed(friendId, jwtUser.id);
@@ -158,26 +125,22 @@ export async function friendsRoutes(app: FastifyInstance) {
 		const jwtUser = request.user as JwtPayload;
 		let { friendId } = request.params as { friendId: number };
 		friendId = Number(friendId);
-		if (!Number.isInteger(friendId) || friendId <= 0) {
+		if (!Number.isInteger(friendId) || friendId <= 0)
 			return reply.status(403).send({ errorMessage: 'Forbidden' });
-		}
 
 		const queryAction = (request.query as { action?: string })?.action;
 		const actionCheck = FriendActionInputSchema.safeParse(queryAction);
-		if (!actionCheck.success) {
+		if (!actionCheck.success)
 			return reply.status(400).send({ errorMessage: 'Invalid action' });
-		}
-		const action = actionCheck.data as FriendActionInput;
 
+		const action = actionCheck.data as FriendActionInput;
 		let relation: FriendModel = await getRelation(jwtUser.id, friendId);
 		if (!relation)
 			return reply.code(404).send({ errorMessage: 'No relation found'});
-		if (!isFriendRequestValid(action, relation.friendStatus)) {
+		if (!isFriendRequestValid(action, relation.friendStatus))
 			return reply.status(403).send({ errorMessage: 'Forbidden' });
-		}
-		if (!isValidRequester(action, relation, jwtUser.id)) {
+		if (!isValidRequester(action, relation, jwtUser.id))
 			return reply.status(403).send({ errorMessage: 'Forbidden' });
-		}
 
 		await updateRelationshipDelete(jwtUser.id, friendId);
 		return reply.code(200).send({  message: 'Relation deleted' });

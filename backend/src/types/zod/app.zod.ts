@@ -30,10 +30,6 @@ export const NotificationInputSchema = z.object({
 		FriendActionInputSchema,
 		UsertatusSchema
 	]).optional(),
-	toType: z.union([
-		FriendActionInputSchema,
-		UsertatusSchema
-	]).optional(),
 	content: z.string().optional(),
 	createdAt: z.string().optional(),
 	read: z.number().optional()

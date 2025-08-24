@@ -20,14 +20,13 @@ export class WebSocketService {
 
 		this.webSocket.onmessage = async (event) => {
 			const dataArray = JSON.parse(event.data);
-			console.log('NOTIF RECUEEEE');
 			if (Array.isArray(dataArray) 
 				&& dataArray.every(isNotificationModel)) {
 				const data = dataArray as NotificationModel[];
 				const formatedData = AppNotification.fromJSONArray(data) as AppNotification[];
+				console.log('Notification reçue:', formatedData);
 				await notifService.handleNotifications(formatedData);
 			}
-			console.log('fin traitement event socket')
 		};
 	}
 

@@ -6,12 +6,11 @@ import { NavbarComponent } from '../../components/navbar/navbar.component';
 import { UserRowComponent } from '../../components/user-row/user-row.component';
 import { currentService, storageService } from './user.service';
 import { User } from '../../shared/models/user.model';
-import { Friend } from '../../shared/models/friend.model';
 import { AppNotification } from '../../shared/models/notification.model';
 import { NotifResponse } from '../../shared/types/response.types';
-import { FRIEND_REQUEST_ACTIONS, USER_ONLINE_STATUS } from '../../shared/config/constants.config'; // en rouge car dossier local 'shared' != dossier conteneur
+import { FRIEND_REQUEST_ACTIONS } from '../../shared/config/constants.config'; // en rouge car dossier local 'shared' != dossier conteneur
 import { isValidNotificationType, isFriendRequestAction, isUserOnlineStatus } from '../../shared/utils/app.utils';
-import { getHTMLElementById, getHTMLElementByClass } from '../../utils/dom.utils';
+import { getHTMLElementById } from '../../utils/dom.utils';
 import { FriendRequestAction, NotificationModel, NotificationType } from '../../shared/types/notification.types';
 
 // ============================================================================
@@ -26,60 +25,18 @@ export class NotifService {
 	private navbarInstance!: NavbarComponent | undefined;
 
 	private notifs: AppNotification[] = [];
+	private notifData: NotificationModel | null = null;
 	private notifCount: number = 0;
 	private notifItem: HTMLDivElement | null = null;
-
-	private relationNotifs: AppNotification[] | null = null;
-	private relationFriend: Friend | null = null;
-	private notifData: NotificationModel | null = null;
+	private notifDeleteHandlers: Map<number, EventListener> = new Map();
 
 	public currentNotif: AppNotification | null = null;
+	public notifFromCurrentFlag: boolean = false;
 	public friendId: number | null = null;
 
 	// ===========================================
 	// METHODES PUBLICS
 	// ===========================================
-
-	/**
-	 * Paramètre l'ID de l'ami courant.
-	 *
-	 * @param {number} friendId - ID de l'ami courant.
-	 */
-	public setFriendId(friendId: number): void {
-		this.friendId = friendId;
-	}
-
-	/**
-	 * Paramètre les données lorsque l'utilisateur clique sur un bouton avec un handler
-	 * de demande d'amitié.
-	 * 
-	 * Cette méthode indique quelle ligne se rapporte l'ami 
-	 * pour lequel les boutons d'amitié doivent être mis à jour.
-	 * 
-	 * @param {number} friendId - L'identifiant de l'ami de la ligne.
-	 * @param {FriendRequestAction} type - Le type de la demande d'amitié.
-	 * @returns {void}
-	 */
-	public setNotifsData(friendId: number, type?: FriendRequestAction, ): void {
-		console.log(`setNotifsData: ${friendId}`);
-		this.friendId = friendId;
-		if (type) {
-			this.currentNotif = this.notifs.find(n => 
-				n.type === type &&
-				n.from === this.friendId && 
-				n.to === this.currentUser.id
-			);
-		} else {
-			this.currentNotif = {
-				id: 0,
-				type: FRIEND_REQUEST_ACTIONS.ADD,
-				from: this.currentUser.id,
-				to: this.friendId,
-				read: 0,
-				createdAt: '',
-			}
-		}
-	}
 
 	/**
 	 * Initialise le service de notifications avec la page actuelle.
@@ -98,6 +55,15 @@ export class NotifService {
 	}
 
 	/**
+	 * Paramètre l'ID de l'ami courant.
+	 *
+	 * @param {number} friendId - ID de l'ami courant.
+	 */
+	public setFriendId(friendId: number): void {
+		this.friendId = friendId;
+	}
+
+	/**
 	 * Gère une liste de notifications en les traitant en fonction de leur type.
 	 * 
 	 * Parcourt chaque notification de la liste et appelle `handleNotification` si le type de la notification est valide.
@@ -106,22 +72,19 @@ export class NotifService {
 	 * @returns {Promise<void>} Une promesse qui est résolue lorsque toutes les notifications ont été traitées.
 	 */
 	public async handleNotifications(notifs: AppNotification[]): Promise<void> {
-		console.log('On est dans handleNotifications')
 		for (const notif of notifs) {
-			console.log('On est dans la boucle')
 			if (isValidNotificationType(notif.type)) {
 				this.friendId = notif.from;
 				if (isUserOnlineStatus(notif.type)) {
-					console.log('On est dans isUserOnlineStatus', notif.type);
 					await this.handleUserOnlineStatus(notif);
 				}
 				if (isFriendRequestAction(notif.type)) {
 					this.currentNotif = notif;
-					console.log('On est dans isFriendRequestAction', notif.type);
 					await this.handleNotification();
 				}
 			}
 		}
+		this.updateNotifsCounter();
 		this.refreshFriendButtons();
 	}
 
@@ -136,15 +99,12 @@ export class NotifService {
 	 * @returns {Promise<void>} Une promesse qui se résout une fois la notification marquée comme lue.
 	 */
 	public async markAsRead(id: number): Promise<void> {
-		this.setCurrentNotif(id);
-		console.log('this.currentNotif', this.currentNotif);
-		this.currentNotif.read = 1;
-		const updatedRes = await notifApi.updateNotification(this.currentNotif);
+		const updatedRes = await notifApi.updateNotification(id);
 		if ('errorMessage' in updatedRes) {
 			console.error(updatedRes.errorMessage);
 		}
-		console.log(updatedRes);
-		await this.handleNotifications(updatedRes);
+		const index = this.notifs.findIndex((notif) => notif.id === id);
+		this.notifs[index] = updatedRes;
 	}
 
 	/**
@@ -157,7 +117,6 @@ export class NotifService {
 	 */
 	public updateNotifsCounter(): void {
 		this.notifCount = this.getNewNotifCount();
-		console.log('this.notifCount', this.notifCount);
 		if (this.notifCount === 0) {
 			this.navbarInstance!.notifsCounter.textContent = '0';
 			if (!this.navbarInstance!.notifsCounter.classList.contains('hidden')) {
@@ -176,11 +135,12 @@ export class NotifService {
 	// ===========================================
 
 	private async handleUserOnlineStatus(notif: AppNotification): Promise<void> {
-		console.log('On est dans handleUserOnlineStatus');
 		if (this.currentPage.config.path === ROUTE_PATHS.USERS) {
 			this.currentNotif = notif;
 			const user = await dataApi.getUserById(Number(this.currentNotif.from));
-			this.currentPage.injectUser!(user);
+			if (!user)
+				return;
+			await this.currentPage.injectUser!(user);
 		}
 	}
 
@@ -192,12 +152,10 @@ export class NotifService {
 	 */
 	private async loadNotifs(): Promise<void> {
 		this.navbarInstance!.notifsWindow.replaceChildren();
-		console.log('On est dans loadNotifs');
 		await this.setCurrentNotifs();
 
 		// Si il n'y a pas de notifications, affiche un message par défaut
 		if (this.notifs.length === 0) {
-			console.log('Pas de notifications');
 			this.displayDefaultNotif();
 			return;
 		}
@@ -223,30 +181,13 @@ export class NotifService {
 	 * @returns {Promise<void>} Une promesse qui est résolue lorsque la notification est traitée.
 	 */
 	private async handleNotification(): Promise<void> {
-		console.log('On est dans handleNotification');
 		const notifIndex = this.notifs.findIndex((notif) => notif.id === this.currentNotif.id);
 		if (notifIndex === -1) {
 			this.notifs.push(this.currentNotif);
 			storageService.setCurrentNotifs(this.notifs);
-			console.log('this.notifs apres push', this.notifs);
-			this.updateNotifsCounter();
 			this.displayNotif();
-			return;
+			await this.deleteAllNotifsFromUser(this.currentNotif.from, this.currentNotif.id);
 		};
-		switch (this.currentNotif.type) {
-			case FRIEND_REQUEST_ACTIONS.ADD:
-			case FRIEND_REQUEST_ACTIONS.DELETE:
-				this.deleteNotif();
-				this.updateNotifsCounter();
-				console.log('this.notifs apres delete', this.notifs);
-				break;
-			default:
-				this.notifs[notifIndex] = this.currentNotif;
-				this.replaceNotif();
-				console.log('this.notifs apres replace', this.notifs);
-				break;
-		}
-		storageService.setCurrentNotifs(this.notifs);
 	}
 
 	/**
@@ -263,9 +204,7 @@ export class NotifService {
 	 */
 	private async setCurrentNotifs(): Promise<void> {
 		if (this.currentUser.notifications.length > 0) {
-			console.log("bla");
 			this.notifs = this.currentUser.notifications;
-			console.log(this.notifs);
 			return;
 		}
 		const result: NotifResponse = await notifApi.getUserNotifications();
@@ -273,37 +212,11 @@ export class NotifService {
 			console.error(result.errorMessage);
 			return;
 		}
-		this.notifs = result.filter((notif: AppNotification) => !isUserOnlineStatus(notif.type));
+		this.notifs = result.filter((notif: AppNotification) => 
+			!isUserOnlineStatus(notif.type) &&
+        	notif.content != null && notif.content !== '');
 		storageService.setCurrentNotifs(this.notifs);
 		console.log('Notifications rechargées:', this.notifs);
-	}
-
-	/**
-	 * Charge les informations d'une notification en fonction de son identifiant.
-	 *
-	 * Cette méthode envoie une requête à l'API pour récupérer les informations de la
-	 * notification d'identifiant `id`. Si la requête réussit, les informations sont
-	 * stockées dans `this.currentNotif`.
-	 *
-	 * @param {number} id - Identifiant de la notification à charger.
-	 * @returns {Promise<void>} Une promesse qui se résout lorsque les informations de la
-	 * notification sont chargées.
-	 */
-	private async setCurrentNotif(id: number): Promise<void> {
-		if (this.notifs && this.notifs.length > 0) {
-			this.currentNotif = this.notifs.find((notif) => notif.id === id);
-			console.log(this.currentNotif);
-			return;
-		}
-
-		const result: NotifResponse = await notifApi.getNotificationById(id);
-		if (result.errorMessage) {
-			console.error(result.errorMessage);
-			return;
-		}
-		console.log(result);
-		this.currentNotif = result;
-		console.log('BLA BLANotification rechargée:', this.currentNotif);
 	}
 
 	/**
@@ -315,11 +228,11 @@ export class NotifService {
 	 * en utilisant `this.attachListeners()`.
 	 */
 	private displayNotif(): void {
-		console.log('On est dans displayNotif');
+		if (!this.currentNotif.content)
+			return;
 		this.removeDefaultNotif();
 		this.notifItem = this.createNotifElement();
 		if (this.needButtons()) {
-			console.log('BLOUUUULJQSFHNSL/DHF');
 			this.notifItem.innerHTML += this.createNotifButtonsHTML();
 		}
 		this.notifItem.classList.add('animate-fade-in-up');
@@ -327,52 +240,71 @@ export class NotifService {
 		this.notifItem = getHTMLElementById(`notif-${this.currentNotif.id}`, this.navbarInstance!.notifsWindow) as HTMLDivElement;
 		this.attachListeners();
 	}
-	
-	/**
-	 * Remplace l'élément HTML de la notification par un nouvel élément HTML généré à partir de la
-	 * notification courante.
-	 */
-	private replaceNotif(): void {
-		this.notifItem = getHTMLElementById(`notif-${this.currentNotif.id}`, this.navbarInstance!.notifsWindow) as HTMLDivElement;
-		if (!this.notifItem) {
-			console.warn(`[${this.constructor.name}] Aucune notification à mettre à jour`);
-			return;
-		}
-		const newNotifItem = this.createNotifElement();
-		this.notifItem.replaceWith(newNotifItem);
-	}
 
 	/**
-	 * Supprime la notification correspondante à l'ID `notifId` de la liste des notifications et
-	 * la retire de la fenêtre des notifications de la barre de navigation.
+	 * Supprime une notification de la liste des notifications de l'utilisateur courant.
 	 *
-	 * Si `notifId` est omis, la notification courante est supprimée.
+	 * Si l'identifiant de la notification est fourni, la méthode supprime la notification
+	 * correspondante. Sinon, la méthode supprime la notification courante.
 	 *
-	 * @param {number} [notifId] - Identifiant de la notification à supprimer. Si omis, la notification courante est supprimée.
+	 * La méthode supprime également l'élément HTML de la notification de la fenêtre des
+	 * notifications et met à jour le compteur de notifications.
+	 *
+	 * @param {number} [notifId] - Identifiant de la notification à supprimer.
+	 * @returns {Promise<void>} Une promesse qui se résout lorsque la notification est supprimée.
 	 */
-	private deleteNotif(notifId?: number): void {
+	private async deleteNotif(notifId?: number): Promise<void> {
 		const id = notifId ?? this.currentNotif.id;
 		const notifIndex = this.notifs.findIndex((notif) => notif.id === id);
 		if (notifIndex === -1) {
 			console.warn(`[${this.constructor.name}] Aucune notification à supprimer`);
 			return;
 		}
-		this.notifs.splice(notifIndex, 1);
-		storageService.setCurrentNotifs(this.notifs);
 
-		this.notifItem = this.navbarInstance!.notifsWindow.querySelector<HTMLDivElement>(`#notif-${this.currentNotif.id}`);
+		this.notifItem = this.navbarInstance!.notifsWindow.querySelector<HTMLDivElement>(`#notif-${id}`);
 		if (!this.notifItem) {
 			console.warn(`[${this.constructor.name}] Aucune notification à supprimer`);
 			return;
 		}
-		this.removeListeners();
-		this.notifItem.classList.add('animate-fade-in-down');
-		this.notifItem.remove();
+
+		await notifApi.deleteNotification(id);
+		this.notifs.splice(notifIndex, 1);
+		storageService.setCurrentNotifs(this.notifs);
 		this.displayDefaultNotif();
-		this.updateNotifsCounter();
-		console.log('ON EST ARRIVE AU BOUT DE LA FONCTION');
+
+		this.removeListeners(id);
+		this.notifItem.classList.remove('animate-fade-in-up');
+		this.notifItem.classList.add('animate-fade-out-down');
+		
+		this.notifItem.addEventListener('animationend', () => {
+			this.notifItem?.remove();
+			this.navbarInstance!.notifsWindow.classList.add('scrolled');
+			this.updateNotifsCounter();
+		}, { once: true });
 	}
-	
+
+	/**
+	 * Supprime toutes les notifications envoyées par l'utilisateur d'identifiant `userId`.
+	 *
+	 * @param {number} userId - Identifiant de l'utilisateur qui a envoyé les notifications.
+	 * @param {number} notifId - Identifiant de la notification courante à garder.
+	 * @returns {Promise<void>} Une promesse qui se résout lorsque les notifications sont supprimées.
+	 */
+	private async deleteAllNotifsFromUser(userId: number, notifId?: number): Promise<void> {
+		let notifs;
+		if (notifId)
+			notifs = this.notifs.filter((notif) => notif.from == userId && notif.id != notifId 
+				&& notif.content !== null && notif.content !== '');
+		else
+			notifs = this.notifs.filter((notif) => notif.from == userId 
+				&& notif.content !== null && notif.content !== '');
+
+		if (notifs.length === 0)
+			return;
+		for (const notif of notifs)
+			await this.deleteNotif(notif.id);
+	}
+
 	/**
 	 * Met à jour les boutons d'amitié pour la page des utilisateurs si elle est affichée.
 	 *
@@ -422,7 +354,9 @@ export class NotifService {
 	 * "No notification yet", puis l'ajoute à la fenêtre de notifications.
 	 */
 	private displayDefaultNotif() {
-		if (this.notifs.length > 0)
+		const displayedNotifsLength = this.getDisplayedNotifsCount();
+		const defaultItem = this.navbarInstance!.notifsWindow.querySelector('.default-notif');
+		if (displayedNotifsLength > 0 || defaultItem)
 			return;
 		const notifItem = document.createElement('div');
 		notifItem.classList.add('default-notif', 'animate-fade-in-up');
@@ -438,11 +372,12 @@ export class NotifService {
 	 * de notifications et l'enlève du DOM en utilisant la méthode `remove()`.
 	 */
 	private removeDefaultNotif() {
-		if (this.notifs.length > 0) {
-			const notifItem = this.navbarInstance!.notifsWindow.querySelector('.default-notif');
-			if (notifItem) {
-				notifItem.classList.add('animate-fade-in-down');
-				notifItem.remove();
+		const displayedNotifsLength = this.getDisplayedNotifsCount();
+		const defaultItem = this.navbarInstance!.notifsWindow.querySelector('.default-notif');
+		if (displayedNotifsLength > 0 || defaultItem) {
+			if (defaultItem) {
+				defaultItem.classList.add('animate-fade-out-down');
+				defaultItem.remove();
 			}
 		}
 	}
@@ -466,11 +401,39 @@ export class NotifService {
 		const delBtn = this.notifItem!.querySelector('div.notif-del');
 		if (delBtn) {
 			const notifId = this.currentNotif.id;
-			delBtn.addEventListener('click', () => this.deleteNotif(notifId));
+			this.attachDeleteListener(notifId, delBtn as HTMLElement);
 		}
 	}
 
-	private removeListeners(): void {
+	/**
+	 * Ajoute un listener pour gérer le clic sur le bouton de suppression
+	 * d'une notification.
+	 *
+	 * Lorsque le bouton est cliqué, la méthode `deleteNotif` est appelée
+	 * avec l'identifiant de la notification en paramètre.
+	 * Le listener est stocké dans l'objet `notifDeleteHandlers` pour
+	 * être enlevé plus tard.
+	 *
+	 * @param {number} notifId - Identifiant de la notification pour laquelle
+	 * ajouter le listener.
+	 * @param {HTMLElement} delBtn - Bouton de suppression de la notification.
+	 */
+	private attachDeleteListener(notifId: number, delBtn: HTMLElement) {
+		const handler = async () => this.deleteNotif(notifId);
+		delBtn.addEventListener('click', handler);
+		this.notifDeleteHandlers.set(notifId, handler);
+	}
+
+	/**
+	 * Enlève les listeners ajoutés par `attachListeners` pour une notification spécifique.
+	 *
+	 * Cette méthode est appelée lorsque la notification est supprimée ou remplacée.
+	 * Elle enlève les listeners de clic sur les boutons 'accept', 'decline' et 'delete'
+	 * de la notification correspondante.
+	 *
+	 * @param {number} notifId - Identifiant de la notification pour laquelle enlever les listeners.
+	 */
+	private removeListeners(notifId: number): void {
 		const acceptBtn = this.notifItem!.querySelector('button[data-action="accept"]');
 		if (acceptBtn) {
 			acceptBtn.removeEventListener('click', this.handleAcceptClick);
@@ -481,7 +444,10 @@ export class NotifService {
 		}
 		const delBtn = this.notifItem!.querySelector('div.notif-del');
 		if (delBtn) {
-			delBtn.removeEventListener('click', () => this.deleteNotif());
+			const handler = this.notifDeleteHandlers.get(notifId);
+			if (handler)
+				delBtn.removeEventListener('click', handler);
+			this.notifDeleteHandlers.delete(notifId);
 		}
 	}
 
@@ -503,7 +469,9 @@ export class NotifService {
 			return;
 		}
 		await this.refreshFriendButtons();
-		await this.setRelationship();
+		await this.deleteAllNotifsFromUser(this.notifData.to);
+		this.displayDefaultNotif();
+		await notifApi.addNotification(this.notifData);
 	}
 
 	/**
@@ -524,20 +492,14 @@ export class NotifService {
 			return;
 		}
 		await this.refreshFriendButtons();
-		await this.setRelationship();
+		await this.deleteAllNotifsFromUser(this.notifData.to);
+		this.displayDefaultNotif();
+		await notifApi.addNotification(this.notifData);
 	}
 
 	// ===========================================
 	// LISTENERS
 	// ===========================================
-
-	public setNotifData(type: NotificationType): void {
-		this.notifData = {
-			type: type,
-			to: this.friendId!,
-			from: this.currentUser!.id,
-		}
-	}
 
 	public handleAddClick = async (): Promise<void> => {
 		let res = await friendApi.addFriend(this.friendId!);
@@ -546,82 +508,64 @@ export class NotifService {
 			return;
 		}
 		await this.refreshFriendButtons();
-		await this.setRelationship();
 		this.setNotifData(FRIEND_REQUEST_ACTIONS.ADD);
-		console.log(this.relationFriend);
-		console.log(this.relationNotifs);
-		console.log(this.notifData);
 		await notifApi.addNotification(this.notifData);
 	}
 
 	public handleCancelClick = async (): Promise<void> => {
 		const type: NotificationType = FRIEND_REQUEST_ACTIONS.CANCEL;
-		this.setNotifData(type);
+		this.setNotifData(type, 1);
 		await this.handleDelete(type);
-		// await notifApi.deleteNotification(this.notifData);
 	}
 
 	public handleDeclineClick = async (): Promise<void> => {
 		const type: NotificationType = FRIEND_REQUEST_ACTIONS.DECLINE;
-		this.setNotifData(type);
+		this.setNotifData(type, 1);
 		await this.handleDelete(type);
-		await notifApi.updateNotification(this.notifData);
 	}
 
 	public handleAcceptClick = async (): Promise<void> => {
 		const type: NotificationType = FRIEND_REQUEST_ACTIONS.ACCEPT;
 		this.setNotifData(type);
 		await this.handleUpdate(type);
-		await notifApi.updateNotification(this.notifData);
 	}
 
 	public handleBlockClick = async (): Promise<void> => {
 		const type: NotificationType = FRIEND_REQUEST_ACTIONS.BLOCK;
-		this.setNotifData(type);
+		this.setNotifData(type, 1);
 		await this.handleUpdate(type);
-		await notifApi.updateNotification(this.notifData);
 	}
 
 	public handleUnblockClick = async (): Promise<void> => {
 		const type: NotificationType = FRIEND_REQUEST_ACTIONS.UNBLOCK;
-		this.setNotifData(type);
+		this.setNotifData(type, 1);
 		await this.handleUpdate(type);
-		await notifApi.updateNotification(this.notifData);
 	}
 
 	public handleUnfriendClick = async (): Promise<void> => {
 		const type: NotificationType = FRIEND_REQUEST_ACTIONS.UNFRIEND;
-		this.setNotifData(type);
+		this.setNotifData(type, 1);
 		await this.handleDelete(type);
-		// await notifApi.updateNotification(this.notifData);
 	}
 
 	// ===========================================
 	// UTILS
 	// ===========================================
 
-	private getNotifItem(): HTMLDivElement | null {
-		return this.navbarInstance!.notifsWindow.querySelector('.notif-item');
-	}
-	private async setRelationship(): Promise<void> {
-		try {
-			const result = await friendApi.getNotifsRelation(this.currentUser.id, this.friendId!);
-
-			if ('errorMessage' in result) {
-				console.error("Erreur setRelationship:", result.errorMessage);
-				this.relationFriend = null;
-				this.relationNotifs = [];
-				return;
-			}
-
-			// Stockage dans les propriétés de la classe
-			this.relationFriend = result.friend;
-			this.relationNotifs = result.notifications;
-		} catch (err) {
-			console.error("Exception setRelationship:", err);
-			this.relationFriend = null;
-			this.relationNotifs = [];
-		}
+	/**
+	 * Définit les informations de la notification qui sera envoyée à l'utilisateur qui
+	 * a envoyé la demande d'amitié.
+	 *
+	 * @param {NotificationType} type - Type de la notification.
+	 * @param {number} [read = 0] - Statut de lecture de la notification.
+	 */
+	public setNotifData(type: NotificationType, read: number = 0): void {
+		this.notifData = {
+			type: type,
+			to: this.friendId!,
+			from: this.currentUser!.id,
+			read: read
+		};
 	}
 
 	/**
@@ -633,6 +577,15 @@ export class NotifService {
 	 */
 	private getNewNotifCount(): number {
 		return this.notifs.filter(n => n.read === 0).length;
+	}
+
+	/**
+	 * Retourne le tableau des notifications qui ont un contenu non vide.
+	 *
+	 * @return {number} Le nombre de notifications non affichées.
+	 */
+	private getDisplayedNotifsCount(): number {
+		return this.notifs.filter(n => n.content !== '' && n.content !== null).length;
 	}
 
 	/**
