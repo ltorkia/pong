@@ -1,15 +1,23 @@
 import { BasePage } from '../base/base.page';
 import { RouteConfig } from '../../types/routes.types';
-// import { PositionObj, PlayerObj, GameData } from '../shared/types/game.types'
+import { MatchMakingReq } from '../../shared/types/websocket.types';
 import { MultiPlayerGame } from '../../components/game/MultiplayerGame.component';
+import { webSocketService } from '../../services/user/user.service';
 
 export class GameMenuMulti extends BasePage {
-    private webSocket!: WebSocket;
+    private webSocket!: WebSocket | undefined;
     private gameStarted: boolean = false;
     private game?: MultiPlayerGame;
+    private finalScore: number[] = [];
+    private controlNodesUp!: NodeListOf<HTMLElement>;
+    private controlNodesDown!: NodeListOf<HTMLElement>;
+    private isSearchingGame: boolean = false;
+
+
 
     constructor(config: RouteConfig) {
         super(config);
+        this.webSocket = webSocketService.getWebSocket();
     }
 
     protected insertNetworkError(): void {
@@ -28,70 +36,112 @@ export class GameMenuMulti extends BasePage {
         }
     }
 
-    protected initLobby(): void {
-        document.addEventListener("keydown", (event) => {
-            if (event.key == " " && !this.game?.getGameStarted()) {
-                this.webSocket.send(JSON.stringify({
-                    type: "ready",
-                }))
-                this.appendWaitText();
-            }
-            const nodes: NodeListOf<HTMLElement> = document.querySelectorAll(".control");
-            for (const node of nodes) {
-                if (node.dataset.key == event.key)
-                    node.classList.add("button-press");
-            }
+    private async sendMatchMakingRequest(): Promise<void> {
+        const matchMakingReq: MatchMakingReq = {
+            type: "matchmaking_request",
+            playerID: this.currentUser.id,
         }
-        );
-        document.addEventListener("keyup", (event) => {
-            const nodes: NodeListOf<HTMLElement> = document.querySelectorAll(".control");
-            for (const node of nodes) {
-                if (node.dataset.key == event.key)
-                    node.classList.remove("button-press");
-            }
+        const res = await fetch("/api/game/multiplayer", {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(matchMakingReq),
+            credentials: 'include',
         });
+        if (!res.ok) {
+            const error = await res.json();
+            console.error(error.error);
+            return;
+        }
     }
 
     private initGame(playerID: number, gameID: number): void {
         const allChildren = document.getElementById("pong-section");
         while (allChildren?.firstChild)
             allChildren.firstChild.remove();
-        this.game = new MultiPlayerGame(2, this.webSocket, playerID, gameID);
+        this.game = new MultiPlayerGame(2, playerID, gameID);
         this.game.initGame();
     }
 
-    protected async mount(): Promise<void> {
-        this.openWebSocket();
+    private showEndGamePanel(): void {
+        const panel = document.getElementById("endgame-panel")!;
+        panel.classList.remove("hidden");
+        panel.innerText += ` ${this.finalScore[0]} : ${this.finalScore[1]}`;
+    }
+
+    private handleKeyDown = (event: KeyboardEvent): void => {
+        // console.log("nIK TA GROOOOOSSSE TEUB de keydown");
+        this.controlNodesDown = document.querySelectorAll(".control");
+        if (event.key == " " && this.isSearchingGame === false) { //TODO : creer un bouton pour lancer le jeu et replay pour sendmatchmaquingrequest pour eviter de le lancer en dehors de la page jeu
+            this.isSearchingGame = true;                
+            this.sendMatchMakingRequest();
+            this.appendWaitText();
+        }
+        for (const node of this.controlNodesDown) {
+            if (node.dataset.key == event.key)
+                node.classList.remove("button-press");
+        }
+    }
+
+    private handleKeyup = (event: KeyboardEvent): void => {
+        // console.log("nIK TA GROOOOOSSSE TEUB de keyup");
+        this.controlNodesUp = document.querySelectorAll(".control");
+        for (const node of this.controlNodesUp) {
+            if (node.dataset.key == event.key)
+                node.classList.remove("button-press");
+        }
     }
 
     protected attachListeners(): void {
-        this.webSocket?.addEventListener("message", (event) => {
+        webSocketService.getWebSocket()!.addEventListener("message", (event) => {
             const msg = JSON.parse(event.data);
-            if (msg.type == "start") {
+            if (msg.type == "start_game") {
                 console.log(`game starts ! id = ${msg.gameID}`);
-                this.initGame(msg.playerID, msg.gameID);
-            } else if (msg.type == "end") {
+                // this.game!.clearScreen(); //
+                // document.querySelector("endgame-panel")?.remove();
+                this.gameStarted = true;
+                this.initGame(this.currentUser.id, msg.gameID);
+            } else if (msg.type == "end" && this.gameStarted) {
+                this.game!.gameStarted = false;
+                this.isSearchingGame = false;
                 console.log("END GAME DETECTED")
                 this.game!.clearScreen();
                 document.querySelector("canvas")?.remove();
-                this.initLobby();
+                // document.querySelector("#pong-section")!.remove(); //pour permettre de voir le jeu si on decide de le relancer direct avec le meme joueur
+                this.finalScore = this.game!.getScore(); //TODO = clean le final score je sais pas ou et le show en haut
+                this.showEndGamePanel();
             } else if (msg.type == "GameData") {
-                this.game!.setAllPositions(msg);
+                this.game!.registerGameData(msg);
+                this.game!.setScore(msg.score);
             } else if (msg.type == "msg")
                 console.log(msg.msg);
         })
         this.webSocket?.addEventListener("error", (event) => {
             console.log(event);
         })
+
+        document.addEventListener("keydown", this.handleKeyDown);
+        //     if (event.key == " ") { //TODO : creer un bouton pour lancer le jeu et replay pour sendmatchmaquingrequest pour eviter de le lancer en dehors de la page jeu
+        //         this.sendMatchMakingRequest();
+        //         this.appendWaitText();
+        //     }
+        //     const nodes: NodeListOf<HTMLElement> = document.querySelectorAll(".control");
+        //     for (const node of nodes) {
+        //         if (node.dataset.key == event.key)
+        //             node.classList.add("button-press");
+        //     }
+        // });
+        document.addEventListener("keyup", this.handleKeyup);
+        // document.addEventListener("keyup", (event) => {
+        //     const nodes: NodeListOf<HTMLElement> = document.querySelectorAll(".control");
+        //     for (const node of nodes) {
+        //         if (node.dataset.key == event.key)
+        //             node.classList.remove("button-press");
+        //     }
+        // });
     }
 
-    private openWebSocket(): void {
-        this.webSocket = new WebSocket(`${location.origin}/api/ws/multiplayer`);
-        this.webSocket.onopen = (event) => this.initLobby();
-        this.webSocket.onerror = (event) => {
-            this.insertNetworkError();
-            if (this.webSocket != null)
-                this.webSocket.close();
-        }
-    }
+    protected removeListeners(): void {
+		document.removeEventListener("keydown", this.handleKeyDown);
+		document.removeEventListener("keyup", this.handleKeyup);
+	}
 }

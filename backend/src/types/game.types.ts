@@ -1,6 +1,5 @@
-import { generateUniqueID } from "../shared/functions";
-import { GameData, Player, Tournament } from "../shared/types/game.types"
-import { FastifyInstance } from "fastify";
+import { resultGame, addGame } from "../db/game";
+import { GameData, Player } from "../shared/types/game.types"
 
 const DEG_TO_RAD = Math.PI / 180;
 
@@ -9,6 +8,15 @@ const MAX_SCORE = 3;
 const clamp = (val: number, min: number, max: number) => { return Math.min(Math.max(val, min), max) };
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+const shuffleArray = (array: any[]) => {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        const temp = array[i];
+        array[i] = array[j];
+        array[j] = temp;
+    }
+}
 
 export class Ball {
     public x: number;
@@ -24,8 +32,15 @@ export class Ball {
     verticalCollision() {
         this.vAngle = (360 - this.vAngle) % 360;
     }
-    horizontalCollision() {
-        this.vAngle = (180 - this.vAngle + 360) % 360;
+    horizontalCollision(players: Player[]) {
+        if ((this.isGoingLeft() && this.y < players[0].pos.y / 2 && players[0].inputDown) ||
+            (this.isGoingRight() && this.y < players[1].pos.y / 2 && players[1].inputDown) ||
+            (this.isGoingLeft() && this.y > players[0].pos.y / 2 && players[0].inputUp) ||
+            (this.isGoingRight() && this.y > players[1].pos.y / 2 && players[1].inputUp))
+            this.vAngle = (180 + this.vAngle + 360) % 360;
+        else
+            this.vAngle = (180 - this.vAngle + 360) % 360;
+
     }
     isGoingRight() {
         return ((this.vAngle >= 0 && this.vAngle < 90) || (this.vAngle >= 270 && this.vAngle <= 360));
@@ -43,7 +58,7 @@ export class Ball {
         this.x = 0;
         this.y = 0;
         this.vAngle = 60;
-        this.vSpeed = 0.01;
+        this.vSpeed = 0.02;
         this.radius = 0.03;
     }
     public checkPlayerCollision(players: Player[]): boolean {
@@ -63,20 +78,24 @@ export class Ball {
         this.x = 0;
         this.y = 0;
         this.vAngle = 60;
-        this.vSpeed = 0.01;
+        this.vSpeed = 0.02;
         this.radius = 0.03;
     }
 };
 
-export class GameInstance {
+export class Game {
+    private duration: number = 0;
     private players: Player[] = [];
     private ball = new Ball();
     private playersCount: number = 0;
     private gameStarted: boolean = false;
+    private isOver: boolean = false;
     private score: number[] = [];
+    public gameIDforDB: number = 0; // a voir
+    // private async addGame(userId1: number, userId2: number): Promise<number> ;
+    // private async resultGame(gameId: number, winnerId: number, looserId: number);
 
     constructor(playersCount: number, players: Player[]) {
-        // const inputs: string[] = ["w", "s", "ArrowUp", "ArrowDown"];
         this.playersCount = playersCount;
         this.players = players;
     }
@@ -88,12 +107,13 @@ export class GameInstance {
         let frame = 0;
         while (this.gameStarted == true) {
             this.ball.move();
-            for (const player of this.players)
+            for (const player of this.players) {
                 player.move();
+                // console.log(player.pos.x, player.pos.y);
+            }
             const collision: boolean = this.ball.checkPlayerCollision(this.players);
             if (collision && (this.ball.isGoingRight() || this.ball.isGoingLeft())) {
-                // console.log("HORIZONTAL");
-                this.ball.horizontalCollision();
+                this.ball.horizontalCollision(this.players);
             }
             else if (collision && (this.ball.isGoingUp() || this.ball.isGoingDown())) {
                 // console.log("VERTICAL");
@@ -107,14 +127,16 @@ export class GameInstance {
             if (this.ball.x + this.ball.radius / 2 <= -1 || this.ball.x + this.ball.radius / 2 >= 1)
                 return (this.checkScore());
             const now = Date.now();
-            if (now - then < fps)
+            if (now - then < fps) {
+                console.log(`i did sleep at frame ${frame}`);
                 await sleep(fps - (now - then));
+            }
+            frame++;
             this.sendGameUpdate();
             then = Date.now();
         }
         console.log("EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEND");
         console.log("GAME ENDEED");
-        this.endGame();
     };
 
     private initSizePos(): void {
@@ -134,7 +156,6 @@ export class GameInstance {
             if (score == 3)
                 return (this.endGame())
         });
-        console.log(this.ball.vSpeed);
         this.initRound();
     }
 
@@ -152,22 +173,37 @@ export class GameInstance {
         this.gameLoop();
     }
 
-    public endGame(): void {
+    public async endGame(): Promise<void> {
+        console.log("coucou end !");
         this.gameStarted = false;
-    //     for (const player of this.players) {
-    //         if (player.webSocket)
-    //             player.webSocket.send(JSON.stringify({
-    //                 type: "end",
-    //             }));
-    //     }
+        this.isOver = true;
+        for (const player of this.players) {
+            if (player.webSocket)
+                player.webSocket.send(JSON.stringify({
+                    type: "end",
+                }));
+            // this.score
+            console.log("////////////////////////////////////////////////////////////////////////player = ", player, "score = ", this.score);
+        }
+        let winner = this.players[1];
+        let looser = this.players[0];
+        if (this.score[0] < this.score[1])
+        {
+            winner = this.players[0];
+            looser = this.players[1];
+        }
+        await resultGame(this.gameIDforDB, winner.ID, looser.ID, this.score);
+        // allPlayers.splice(playerIdx, 1);
+        winner.matchMaking = false;
+        looser.matchMaking = false;
     }
 
     private sendGameUpdate() {
-        const gameUpdate = new GameData(this.players, this.ball);
-        // for (const player of this.players) {
-            // if (player.webSocket)
-                // player.webSocket.send(JSON.stringify(gameUpdate));
-        // }
+        const gameUpdate = new GameData(this.players, this.ball, this.score);
+        for (const player of this.players) {
+            if (player.webSocket)
+                player.webSocket.send(JSON.stringify(gameUpdate));
+        }
     };
 
     public registerInput(playerID: number, key: string, status: boolean): void {
@@ -182,22 +218,38 @@ export class GameInstance {
     public setGameStarted(started: boolean) { this.gameStarted = started };
 };
 
-export class Lobby {
-    public allPlayers: Player[] = [];
-    public games: Game[] = [];
-    public allTournaments: Tournament[] = [];
+export class Tournament {
+    public name: string;
+    public alias?: string;
+    public maxPlayers: number;
+    public ID?: number;
+    public masterPlayerID?: number;
+    public isStarted?: boolean;
+    public players: Player[] = [];
+    public stageOneGames: Game[] = [];
+    public stageTwoGames: Game[] = [];
+
+    constructor(name: string, maxPlayers: number, ID?: number, masterPlayerID?: number, isStarted?: boolean) {
+        this.name = name;
+        this.maxPlayers = maxPlayers;
+        this.ID = ID ?? 0;
+        this.masterPlayerID = masterPlayerID ?? 0;
+        this.isStarted = isStarted ?? true;
+    }
+
+    public async startTournament(): Promise<void> {
+        shuffleArray(this.players);
+        let playerIdx = 0;
+        for (let i = 0; i < 2; i++) {
+            const newGame = new Game(2, [this.players[playerIdx], this.players[playerIdx + 1]]); // a changer sa mere
+            this.stageOneGames.push(newGame);
+            playerIdx += 2;
+        }
+    }
 }
 
-export class Game {
-    ID: number;
-    players: Player[];
-    duration: number;
-    instance: GameInstance;
-
-    constructor(ID: number, duration: number, gameInstance: GameInstance, players: Player[]) {
-        this.ID = ID;
-        this.duration = duration;
-        this.instance = gameInstance;
-        this.players = players;
-    }
+export class Lobby {
+    public allPlayers: Player[] = [];
+    public allGames: Game[] = [];
+    public allTournaments: Tournament[] = [];
 }

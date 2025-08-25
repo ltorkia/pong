@@ -77,8 +77,8 @@ export class SessionService {
 	private async restoreUser(): Promise<User | null> {
 		// Essayer localStorage d'abord
 		try {
-			const user = await currentService.restoreUser(); // CORRECTION: await ajouté
-			if (user && user.id) { // CORRECTION: vérifier l'ID
+			const user = await currentService.restoreUser();
+			if (user && user.id) {
 				console.log(`[${this.constructor.name}] Utilisateur localStorage trouvé, validation serveur en cours...`);
 				const validatedUser = await this.validateAndReturn(user);
 				if (validatedUser) {

@@ -14,7 +14,7 @@ export class Game {
 		public end: string,
 		public tournament: number,
 		public status: GameStatus,
-		public temporaryResult: number
+		public looserResult: number
 	) {}
 
 	// ============================================================================
@@ -29,7 +29,7 @@ export class Game {
 			end: this.end,
 			tournament: this.tournament,
 			status: this.status,
-			temporaryResult: this.temporaryResult
+			looserResult: this.looserResult
 		};
 	}
 
@@ -50,7 +50,7 @@ export class Game {
 			data.end ?? '',
 			data.tournament ?? 0,
 			data.status ?? DB_CONST.GAME.STATUS.WAITING,
-			data.temporaryResult ?? 0
+			data.looserResult ?? 0
 		);
 	}
 

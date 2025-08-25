@@ -15,6 +15,7 @@ import { GameMenuMulti } from '../pages/game/game.multi.page';
 import { GameMenuTournament } from '../pages/game/tournament/game.tournament.menu.page';
 import { GameTournamentLobby } from '../pages/game/tournament/game.tournament.lobby.page';
 import { GameTournamentList } from '../pages/game/tournament/game.tournament.list.page';
+import { GameTournamentOverview } from '../pages/game/tournament/game.tournament.overview.page';
 
 // ===========================================
 // ROUTES CONFIG
@@ -61,7 +62,8 @@ export const PAGE_NAMES = {
 	GAME_TOURNAMENT: 'Tournament',
 	GAME_TOURNAMENT_LIST: "Tournament List",
 	GAME_TOURNAMENT_REGISTER: 'Tournament Register',
-    GAME_TOURNAMENT_LOBBY: 'Tournament Lobby',
+	GAME_TOURNAMENT_LOBBY: 'Tournament Lobby',
+	GAME_TOURNAMENT_OVERVIEW: 'Tournament Overview',
 	BOIDS: 'Boids',
 	USERS: 'Users',
 	PROFILE: 'Profile',
@@ -83,7 +85,8 @@ export const ROUTE_PATHS = {
 	GAME_MULTI: '/game/multi',
 	GAME_TOURNAMENT: '/game/tournament',
 	GAME_TOURNAMENT_LIST: "/game/tournaments",
-	GAME_TOURNAMENT_LOBBY: '/game/tournaments/:id',
+	GAME_TOURNAMENT_LOBBY: '/game/tournaments/:id/lobby',
+	GAME_TOURNAMENT_OVERVIEW: '/game/tournaments/:id/overview',
 	BOIDS: '/game/boids',
 	USERS: '/users',
 	PROFILE: '/user/:id',
@@ -107,6 +110,7 @@ export const TEMPLATE_PATHS = {
 	GAME_TOURNAMENT: '/templates/game/tournament.html',
 	GAME_TOURNAMENT_LIST: '/templates/game/tournament_list.html',
 	GAME_TOURNAMENT_LOBBY: '/templates/game/tournament_lobby.html',
+	GAME_TOURNAMENT_OVERVIEW: '/templates/game/tournament_overview.html',
 	BOIDS: '/templates/game/boids.html',
 	USERS: '/templates/user/users.html',
 	PROFILE: '/templates/user/profile.html',
@@ -219,11 +223,22 @@ export const routesConfig: RouteConfig[] = [
 		isPublic: false,
 		enableParticles: true
 	},
-		{
+	{
 		path: ROUTE_PATHS.GAME_TOURNAMENT_LIST,
 		name: PAGE_NAMES.GAME_TOURNAMENT_LIST,
 		pageConstructor: GameTournamentList,
 		templatePath: TEMPLATE_PATHS.GAME_TOURNAMENT_LIST,
+		components: {
+			[COMPONENT_NAMES.NAVBAR]: getComponentConfig(COMPONENT_NAMES.NAVBAR)
+		},
+		isPublic: false,
+		enableParticles: true
+	},
+	{
+		path: ROUTE_PATHS.GAME_TOURNAMENT_OVERVIEW,
+		name: PAGE_NAMES.GAME_TOURNAMENT_OVERVIEW,
+		pageConstructor: GameTournamentOverview,
+		templatePath: TEMPLATE_PATHS.GAME_TOURNAMENT_OVERVIEW,
 		components: {
 			[COMPONENT_NAMES.NAVBAR]: getComponentConfig(COMPONENT_NAMES.NAVBAR)
 		},

@@ -53,12 +53,12 @@ CREATE TABLE IF NOT EXISTS Friends (
 -- Game -> donnees propre au jeu
 CREATE TABLE IF NOT EXISTS Game (
 	id INTEGER PRIMARY KEY AUTOINCREMENT,
-	n_participants INTEGER NOT NULL,
+	n_participants INTEGER NOT NULL DEFAULT 2,
 	begin DATETIME DEFAULT CURRENT_TIMESTAMP,
 	end DATETIME,
 	tournament INTEGER DEFAULT 0 CHECK (tournament IN (0, 1)),
 	status TEXT DEFAULT 'waiting' CHECK (status IN ('waiting', 'in_progress', 'cancelled', 'finished')),
-	temporary_result INTEGER DEFAULT 0,
+	looser_result INTEGER DEFAULT 0,
 	winner_id INTEGER,
 	FOREIGN KEY (winner_id) REFERENCES User(id)
 );
@@ -67,7 +67,7 @@ CREATE TABLE IF NOT EXISTS Game (
 CREATE TABLE IF NOT EXISTS User_Game (
 	game_id INTEGER NOT NULL,												-- necessaire pour ensuite faire les foreign key et relier les tables entre elles
 	user_id INTEGER NOT NULL,
-	status_win INTEGER DEFAULT 0 CHECK (status_win IN (0, 1)),				-- 0 = perdu 1 = gagne (pas de NULL car on ne peut pas avoir un jeu sans resultat)
+	status_win INTEGER DEFAULT NULL CHECK (status_win IN (0, 1)),			-- 0 = perdu 1 = gagne (pas de NULL car on ne peut pas avoir un jeu sans resultat)
 	duration INTEGER DEFAULT 0,												-- Duree du jeu (pas en DATETIME car DATETIME = une date + heure))
 	FOREIGN KEY (game_id) REFERENCES Game(id) ON DELETE CASCADE,			-- ON DELETE CASCADE: si le jeu est supprime on supprime le resultat du jeu
 	FOREIGN KEY (user_id) REFERENCES User(id),								-- pas de DELETE CASCADE ici pour garder les stats du user (pour ses partenaires par exemple)
@@ -77,7 +77,7 @@ CREATE TABLE IF NOT EXISTS User_Game (
 -- Tournament -> donnees propres au tournoi
 CREATE TABLE IF NOT EXISTS Tournament ( 
 	id INTEGER PRIMARY KEY AUTOINCREMENT,
-	n_participants INTEGER NOT NULL,
+	n_participants INTEGER NOT NULL DEFAULT 4,
 	n_round INTEGER NOT NULL,
 	started_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 	ended_at DATETIME DEFAULT CURRENT_TIMESTAMP,

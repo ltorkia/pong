@@ -308,7 +308,8 @@ export class UsersPage extends BasePage {
 			const key = `${COMPONENT_NAMES.USER_ROW}-${friendId}`;
 			userRowInstance = this.getComponentInstance!<UserRowComponent>(key);
 		}
-		if (!(userRowInstance as UserRowComponent).userline) {
+		const userComponent = userRowInstance as UserRowComponent;
+		if (!userComponent || !userComponent.userline) {
 			console.log(`[${this.constructor.name}] No userline for user id ${friendId}`);
 			return;
 		}

@@ -8,7 +8,6 @@ export class WebSocketService {
 	private connectionPromise: Promise<void> | null = null;
 	private isConnecting: boolean = false;
 
-	
 	/**
 	 * Renvoie l'objet WebSocket ou undefined s'il n'est pas connecté.
 	 * @returns WebSocket | undefined
@@ -50,7 +49,7 @@ export class WebSocketService {
 				// Timeout pour éviter les blocages
 				const timeout = setTimeout(() => {
 					reject(new Error("WebSocket connection timeout"));
-				}, 10000); // 10 secondes
+				}, 10000);
 
 				this.webSocket.onopen = () => {
 					clearTimeout(timeout);

@@ -36,7 +36,12 @@ export const NotificationInputSchema = z.object({
 	read: z.number().optional()
 });
 
+export const MessageInputSchema = z.object({
+	message: z.string(),
+});
+
 export type IdInput = z.infer<typeof IdInputSchema>;
 export type UserStatus = z.infer<typeof UsertatusSchema>;
 export type FriendActionInput = z.infer<typeof FriendActionInputSchema>;
 export type NotificationInput = z.infer<typeof NotificationInputSchema>;
+export type MessageInput = z.infer<typeof MessageInputSchema>;

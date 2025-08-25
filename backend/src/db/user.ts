@@ -5,7 +5,7 @@ import { UserPassword, User2FA, UserForChangeData } from '../types/user.types';
 import { DB_CONST } from '../shared/config/constants.config'; // en rouge car dossier local 'shared' != dossier conteneur
 import { UserModel, SafeUserModel, SafeUserBasic } from '../shared/types/user.types'; // en rouge car dossier local 'shared' != dossier conteneur
 import { snakeToCamel, snakeArrayToCamel } from '../helpers/types.helpers';
-import { ChatModel } from '../shared/types/chat.types';
+// import { ChatModel } from '../shared/types/friend.types';
 
 // retourne les infos de tous les users
 export async function getAllUsers() {
@@ -179,17 +179,6 @@ export async function insertUser(user: (RegisterInput | {username: string, email
 	}	
 }
 
-// export async function insertAvatar(avatar: string, username: string)
-// {
-//        const db = await getDb();
-//        await db.run(`
-//                UPDATE User
-//                SET avatar = ?
-//                WHERE (username = ?)
-//                `,
-//        [avatar, username]);
-// }
-
 export async function getAvatar(id: number)
 {
        const db = await getDb();
@@ -202,42 +191,6 @@ export async function getAvatar(id: number)
        return avatar;
 }
 		
-// export async function majLastlog(username: string)
-// {
-// 	const db = await getDb();
-// 	await db.run(`
-// 		UPDATE User
-// 		SET begin_log = datetime('now')
-// 		WHERE (username = ?)
-// 		`,
-// 	[username]);
-// }
-
-// export async function insertCode2FA(email: string, code: string): Promise<{statusCode: number, message: string}>
-// {
-// 	const db = await getDb();
-// 	const end_time = Date.now() + 5 * 60 * 1000;
-// 	console.log(code, end_time);
-// 	await db.run(`
-// 		UPDATE User
-// 		SET code_2FA = ?, code_2FA_expire_at = ?
-// 		WHERE (email = ?)
-// 		`,
-// 	[code, end_time , email]);
-// 	return {statusCode : 201, message : 'code 2FA inserted'};
-// }
-
-// export async function eraseCode2FA(email: string)
-// {
-// 	const db = await getDb();
-// 	await db.run(`
-// 		UPDATE User
-// 		SET code_2FA = NULL, code_2FA_expire_at = NULL
-// 		WHERE (email = ?)
-// 		`,
-// 	[email]);	
-// }
-
 /* -------------------------------------------------------------------------- */
 /*               QUERIES USER EN LIEN AVEC D'AUTRES TABLES                    */
 /* -------------------------------------------------------------------------- */
@@ -267,27 +220,27 @@ export async function getUserGames(userId: number): Promise<SafeUserModel[]> {
 	return snakeArrayToCamel(games) as SafeUserModel[];
 }
 		
-export async function getUserChat(userId1: number, userId2: number) {
-	const db = await getDb();
-	const chat = await db.all(`
-		SELECT c.message, c.time_send, c.id, c.sender_id, c.receiver_id
-		FROM Chat c
-		WHERE (sender_id = ? AND receiver_id = ?)
-		OR (sender_id = ? AND receiver_id = ?)
-		ORDER BY c.time_send ASC
-		`,
-		[userId1, userId2, userId2, userId1]
-	);
+// export async function getUserChat(userId1: number, userId2: number) {
+// 	const db = await getDb();
+// 	const chat = await db.all(`
+// 		SELECT c.message, c.time_send, c.id, c.sender_id, c.receiver_id
+// 		FROM Chat c
+// 		WHERE (sender_id = ? AND receiver_id = ?)
+// 		OR (sender_id = ? AND receiver_id = ?)
+// 		ORDER BY c.time_send ASC
+// 		`,
+// 		[userId1, userId2, userId2, userId1]
+// 	);
 
-	const other_user = await db.get(`
-		SELECT u.id, u.username, u.avatar
-		FROM User u
-		WHERE u.id != ?
-		`,
-		[userId2]
-	);
-	return {
-		messages : snakeArrayToCamel(chat) as ChatModel[],
-		otherUser: snakeToCamel(other_user) as SafeUserBasic 
-	};
-}
+// 	const other_user = await db.get(`
+// 		SELECT u.id, u.username, u.avatar
+// 		FROM User u
+// 		WHERE u.id != ?
+// 		`,
+// 		[userId2]
+// 	);
+// 	return {
+// 		messages : snakeArrayToCamel(chat) as ChatModel[],
+// 		otherUser: snakeToCamel(other_user) as SafeUserBasic 
+// 	};
+// }

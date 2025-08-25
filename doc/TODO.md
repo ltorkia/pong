@@ -20,6 +20,7 @@ FRONT
 - Faire page profil (stats globales user) / dashboard (match history, 1vs1, tournois etc)
 - Faire un petit hover sur le bouton/icon previous de register et du modal
 - Pourquoi pas besoin de mettre @layer components dans le css de modal ??
+- Rajouter un bouton pour quitter le jeu
 
 - check MAJ package.json :
  @tsparticles/engine         ^3.0.2  →   ^3.8.1
