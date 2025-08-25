@@ -51,7 +51,7 @@ export class ProfilePage extends BasePage {
             gamePlayed: 60,
             gameWin: 42,
             gameLoose: 18,
-            timePlayed: 7200, // en secondes
+            timePlayed: 7200, 
             tournamentsPlayed: 8,
             tournamentScore: 320,
             tournamentWins: 15,
@@ -201,7 +201,6 @@ export class ProfilePage extends BasePage {
 		img.src = await dataService.getUserAvatarURL(this.user!);
 		img.alt = `${this.user!.username}'s avatar`;
 		img.addEventListener('load', () => {
-			// Animation d'apparition une fois l'image chargée
 			img.style.opacity = '1';
 		});
 		img.style.opacity = '0';
@@ -218,16 +217,16 @@ export class ProfilePage extends BasePage {
 		const statusText = status.querySelector('.status-text') as HTMLElement;
 		
 		// TODO: Implémenter la logique pour récupérer le statut en ligne
-		const isOnline = this.user!.isOnline || false; // Ajuster selon votre modèle User
+		const isOnline = this.user!.isOnline || false;
 		
 		if (isOnline) {
 			status.classList.add('online');
 			statusDot.classList.add('bg-green-400');
-			statusText.textContent = 'En ligne';
+			statusText.textContent = 'online';
 		} else {
 			status.classList.add('offline');
 			statusDot.classList.add('bg-gray-400');
-			statusText.textContent = 'Hors ligne';
+			statusText.textContent = 'offline';
 		}
 	}
 
@@ -248,11 +247,11 @@ export class ProfilePage extends BasePage {
 		
 		if (this.isFriend) {
 			friendButton.className += ' btn-remove-friend';
-			friendButton.textContent = 'Retirer des amis';
+			friendButton.textContent = 'Remove';
 			friendButton.setAttribute('data-action', 'remove-friend');
 		} else {
 			friendButton.className += ' btn-add-friend';
-			friendButton.textContent = 'Ajouter en ami';
+			friendButton.textContent = 'Add friend';
 			friendButton.setAttribute('data-action', 'add-friend');
 		}
 
@@ -275,13 +274,13 @@ export class ProfilePage extends BasePage {
 		const winRate = totalGames > 0 ? Math.round((this.userStats.wins / totalGames) * 100) : 0;
 
 		const stats = [
-			{ value: this.userStats.wins || 0, label: 'Victoires' },
-			{ value: this.userStats.losses || 0, label: 'Défaites' },
+			{ value: this.userStats.wins || 0, label: 'Victories' },
+			{ value: this.userStats.losses || 0, label: 'Losses' },
 			{ value: `${winRate}%`, label: 'Win Rate' },
-			{ value: totalGames, label: 'Matchs Joués' }
+			{ value: totalGames, label: 'Game playes' }
 		];
 
-		// TODO: Ajouter d'autres stats selon vos besoins (niveau, rang, etc.)
+		// TODO: Ajouter d'autres stats (niveau, rang...)
 		if (this.userStats.level) {
 			stats.push({ value: this.userStats.level, label: 'Niveau' });
 		}
@@ -392,7 +391,7 @@ export class ProfilePage extends BasePage {
 		if (this.matchHistory.length > 10) {
 			const viewMoreButton = document.createElement('button');
 			viewMoreButton.className = 'w-full mt-4 py-3 bg-white/5 hover:bg-white/10 rounded-lg border border-white/20 text-white/70 hover:text-white transition-all duration-200';
-			viewMoreButton.textContent = `Voir ${this.matchHistory.length - 10} matchs de plus`;
+			viewMoreButton.textContent = `See ${this.matchHistory.length - 10} more matchs`;
 			viewMoreButton.addEventListener('click', () => {
 				// TODO: Implémenter l'affichage de tous les matchs
 				console.log('Charger plus de matchs');
@@ -417,7 +416,7 @@ export class ProfilePage extends BasePage {
 		
 		// Résultat
 		result.classList.add(isWin ? 'win' : 'loss');
-		result.textContent = isWin ? 'VICTOIRE' : 'DÉFAITE';
+		result.textContent = isWin ? 'VICTORY' : 'GAME OVER';
 
 		// Date formatée
 		date.textContent = formatDate(match.createdAt || match.date);
@@ -457,10 +456,10 @@ export class ProfilePage extends BasePage {
 
 		if (type === 'friends') {
 			icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>';
-			text.textContent = 'Aucun ami pour le moment';
+			text.textContent = 'No friends';
 		} else {
 			icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>';
-			text.textContent = 'Aucun match joué';
+			text.textContent = 'No match';
 		}
 
 		section.appendChild(clone);
@@ -537,11 +536,11 @@ export class ProfilePage extends BasePage {
 		
 		if (this.isFriend) {
 			button.className += ' btn-remove-friend';
-			button.textContent = 'Retirer des amis';
+			button.textContent = 'Remove';
 			button.setAttribute('data-action', 'remove-friend');
 		} else {
 			button.className += ' btn-add-friend';
-			button.textContent = 'Ajouter en ami';
+			button.textContent = 'add friend';
 			button.setAttribute('data-action', 'add-friend');
 		}
 	}

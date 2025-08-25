@@ -13,12 +13,12 @@
 	}
 
 	.section {
-		@apply mb-[35px] p-5 tablet:p-[25px] bg-white/10 rounded-[15px] 
+		@apply mb-[35px] p-5 tablet:p-[25px] bg-white/20 rounded-[15px] 
 		border border-white/10 transition-[transform,box-shadow] duration-300 ease-[ease];
 	}
 
 	.section h2 {
-		@apply w-full border-b border-b-black/20 pb-3
+		@apply w-full border-b border-b-black/20 pb-3 tracking-wide
 		text-xl text-[#183e46] tracking-wide uppercase mb-[15px] flex items-center font-semibold;
 	}
 
