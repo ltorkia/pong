@@ -46,6 +46,7 @@ export class UserRowComponent extends BaseComponent {
 	private unblockFriendButton!: HTMLButtonElement;
 	private unfriendButton!: HTMLButtonElement;
 	private challengeButton!: HTMLButtonElement;
+	private buttons: HTMLButtonElement[] = [];
 
 	/**
 	 * Constructeur du composant de ligne d'utilisateur.
@@ -114,6 +115,17 @@ export class UserRowComponent extends BaseComponent {
 		this.blockFriendButton = getHTMLElementByClass('block-friend-button', this.buttonCell) as HTMLButtonElement;
 		this.unblockFriendButton = getHTMLElementByClass('unblock-friend-button', this.buttonCell) as HTMLButtonElement;
 		this.challengeButton = getHTMLElementByClass('challenge-button', this.buttonCell) as HTMLButtonElement;
+
+		this.buttons = [
+			this.challengeButton,
+			this.addFriendButton,
+			this.cancelFriendButton,
+			this.acceptFriendButton,
+			this.declineFriendButton,
+			this.blockFriendButton,
+			this.unblockFriendButton,
+			this.unfriendButton
+		];
 	}
 
 	/**
@@ -151,7 +163,20 @@ export class UserRowComponent extends BaseComponent {
 			if (logDate)
 				this.logCell.textContent = logDate;
 		}
+		this.setButtonDataAttribut();
 		await this.toggleFriendButton();
+	}
+
+	/**
+	 * Attribue l'attribut data-friend-id à chaque bouton de la ligne utilisateur,
+	 * ce qui permettra de récupérer l'ID de l'utilisateur associé au bouton
+	 * lors de l'appel d'une fonction listener.
+	 */
+	private setButtonDataAttribut() {
+		this.buttons.forEach(btn => {
+			const element = btn as HTMLButtonElement;
+			element.setAttribute("data-friend-id", this.user.id.toString());
+		});
 	}
 
 	/**
@@ -258,14 +283,7 @@ export class UserRowComponent extends BaseComponent {
 	 * ou pour empêcher les interactions utilisateur avec ces boutons dans certaines conditions.
 	 */
 	private hideAllButtons() {
-		this.challengeButton.classList.add('hidden');
-		this.addFriendButton.classList.add('hidden');
-		this.cancelFriendButton.classList.add('hidden');
-		this.acceptFriendButton.classList.add('hidden');
-		this.declineFriendButton.classList.add('hidden');
-		this.blockFriendButton.classList.add('hidden');
-		this.unblockFriendButton.classList.add('hidden');
-		this.unfriendButton.classList.add('hidden');
+		this.buttons.forEach(btn => btn.classList.add('hidden'));
 	}
 
 	/**
@@ -284,82 +302,63 @@ export class UserRowComponent extends BaseComponent {
 	// LISTENER HANDLERS
 	// ===========================================
 
-	private handleProfileClick = async (event: MouseEvent): Promise<void> => {
+	private handleProfileClick = async (event: Event): Promise<void> => {
 		event.preventDefault();
 		await router.navigate(this.profilePath);
 	};
 
-	private addFriendClick = async (event: MouseEvent): Promise<void> => {
+	private addFriendClick = async (event: Event): Promise<void> => {
 		event.preventDefault();
-		if (!this.user) {
-			return;
-		}
-		notifService.setFriendId(this.user.id);
-		await notifService.handleAddClick();
+		await notifService.handleAddClick(event);
 		console.log(`Friend request sent to ${this.user.username}`);
 	}
 
-	private acceptFriendClick = async (event: MouseEvent): Promise<void> => {
+	private acceptFriendClick = async (event: Event): Promise<void> => {
 		event.preventDefault();
-		if (!this.user) {
-			return;
-		}
-		notifService.setFriendId(this.user.id);
-		await notifService.handleAcceptClick();
+		await notifService.handleAcceptClick(event);
 		console.log(`Friend request accepted for ${this.user.username}`);
 	}
 
-	private declineFriendClick = async (event: MouseEvent): Promise<void> => {
+	private declineFriendClick = async (event: Event): Promise<void> => {
 		event.preventDefault();
-		if (!this.user) {
-			return;
-		}
-		notifService.setFriendId(this.user.id);
-		await notifService.handleDeclineClick();
+		await notifService.handleDeclineClick(event);
 		console.log(`Friend request sent to ${this.user.username}`);
 	}
 
-	private blockFriendClick = async (event: MouseEvent): Promise<void> => {
+	private blockFriendClick = async (event: Event): Promise<void> => {
 		event.preventDefault();
-		if (!this.user) {
-			return;
-		}
-		notifService.setFriendId(this.user.id);
-		await notifService.handleBlockClick();
+		await notifService.handleBlockClick(event);
 		console.log(`Friend ${this.user.username} blocked`);
 	}
 
-	private unblockFriendClick = async (event: MouseEvent): Promise<void> => {
+	private unblockFriendClick = async (event: Event): Promise<void> => {
 		event.preventDefault();
-		if (!this.user) {
-			return;
-		}
-		notifService.setFriendId(this.user.id);
-		await notifService.handleUnblockClick();
+		await notifService.handleUnblockClick(event);
 		console.log(`Friend ${this.user.username} unblocked`);
 	}
 
-	private unfriendClick = async (event: MouseEvent): Promise<void> => {
+	private unfriendClick = async (event: Event): Promise<void> => {
 		event.preventDefault();
-		if (!this.user) {
-			return;
-		}
-		notifService.setFriendId(this.user.id);
-		await notifService.handleUnfriendClick();
+		await notifService.handleUnfriendClick(event);
 		console.log(`Friend ${this.user.username} unfriended`);
 	}
 
-	private cancelFriendRequestClick = async (event: MouseEvent): Promise<void> => {
+	private cancelFriendRequestClick = async (event: Event): Promise<void> => {
 		event.preventDefault();
-		if (!this.user) {
-			return;
-		}
-		notifService.setFriendId(this.user.id);
-		await notifService.handleCancelClick();
+		await notifService.handleCancelClick(event);
 		console.log(`Friend request canceled for ${this.user.username}`);
 	}
 
-	// private challengeClick = async (event: MouseEvent): Promise<void> => {
+	/**
+	 * CHALLENGER UN AMI -
+	 * FRIEND_REQUEST_ACTIONS.INVITE sera une constante utilisée durant le processus.
+	 * L'ébauche ci-dessous date un peu. Il faudrait plutôt s'inspirer des méthodes ci-dessus :
+	 * chacune appelle une méthode de notifService (qu'il faudra créer dans notre cas).
+	 * C'est dans notifService qu'on gère à la fois les relations et les notifs en db 
+	 * via les boutons cliquables de la liste des utilisateurs (ici même), et du centre de notifications.
+	 */
+
+	// private challengeClick = async (event: Event): Promise<void> => {
 	// 	event.preventDefault();
 	// 	if (!this.user) {
 	// 		return;

@@ -55,15 +55,6 @@ export class NotifService {
 	}
 
 	/**
-	 * Paramètre l'ID de l'ami courant.
-	 *
-	 * @param {number} friendId - ID de l'ami courant.
-	 */
-	public setFriendId(friendId: number): void {
-		this.friendId = friendId;
-	}
-
-	/**
 	 * Gère une liste de notifications en les traitant en fonction de leur type.
 	 * 
 	 * Parcourt chaque notification de la liste et appelle `handleNotification` si le type de la notification est valide.
@@ -340,6 +331,8 @@ export class NotifService {
 			notifItem.classList.add('new-notif');
 		}
 		const delBtn: HTMLDivElement = document.createElement('div');
+
+      	(delBtn as HTMLDivElement).setAttribute("data-friend-id", this.currentNotif.from.toString());
 		delBtn.classList.add('notif-del');
 		delBtn.innerHTML = '<i class="fa-solid fa-xmark"></i>';
 		notifItem.appendChild(delBtn);
@@ -392,11 +385,11 @@ export class NotifService {
 	private attachListeners(): void {
 		const acceptBtn = this.notifItem!.querySelector('button[data-action="accept"]');
 		if (acceptBtn) {
-			acceptBtn.addEventListener('click', this.handleAcceptClick);
+			acceptBtn.addEventListener('click', this.handleAcceptClick as (ev: Event) => void);
 		}
 		const declineBtn = this.notifItem!.querySelector('button[data-action="decline"]');
 		if (declineBtn) {
-			declineBtn.addEventListener('click', this.handleDeclineClick);
+			declineBtn.addEventListener('click', this.handleDeclineClick as (ev: Event) => void);
 		}
 		const delBtn = this.notifItem!.querySelector('div.notif-del');
 		if (delBtn) {
@@ -436,11 +429,11 @@ export class NotifService {
 	private removeListeners(notifId: number): void {
 		const acceptBtn = this.notifItem!.querySelector('button[data-action="accept"]');
 		if (acceptBtn) {
-			acceptBtn.removeEventListener('click', this.handleAcceptClick);
+			acceptBtn.removeEventListener('click', this.handleAcceptClick as (ev: Event) => void);
 		}
 		const declineBtn = this.notifItem!.querySelector('button[data-action="decline"]');
 		if (declineBtn) {
-			declineBtn.removeEventListener('click', this.handleDeclineClick);
+			declineBtn.removeEventListener('click', this.handleDeclineClick as (ev: Event) => void);
 		}
 		const delBtn = this.notifItem!.querySelector('div.notif-del');
 		if (delBtn) {
@@ -501,7 +494,9 @@ export class NotifService {
 	// LISTENERS
 	// ===========================================
 
-	public handleAddClick = async (): Promise<void> => {
+	public handleAddClick = async (event: Event): Promise<void> => {
+  		const target = event.currentTarget as HTMLElement;
+		this.setFriendId(target);
 		let res = await friendApi.addFriend(this.friendId!);
 		if ('errorMessage' in res) {
 			console.error(res.errorMessage);
@@ -512,38 +507,50 @@ export class NotifService {
 		await notifApi.addNotification(this.notifData);
 	}
 
-	public handleCancelClick = async (): Promise<void> => {
+	public handleCancelClick = async (event: Event): Promise<void> => {
 		const type: NotificationType = FRIEND_REQUEST_ACTIONS.CANCEL;
+  		const target = event.currentTarget as HTMLElement;
+		this.setFriendId(target);
 		this.setNotifData(type, 1);
 		await this.handleDelete(type);
 	}
 
-	public handleDeclineClick = async (): Promise<void> => {
+	public handleDeclineClick = async (event: Event): Promise<void> => {
 		const type: NotificationType = FRIEND_REQUEST_ACTIONS.DECLINE;
+  		const target = event.currentTarget as HTMLElement;
+		this.setFriendId(target);
 		this.setNotifData(type, 1);
 		await this.handleDelete(type);
 	}
 
-	public handleAcceptClick = async (): Promise<void> => {
+	public handleAcceptClick = async (event: Event): Promise<void> => {
 		const type: NotificationType = FRIEND_REQUEST_ACTIONS.ACCEPT;
+  		const target = event.currentTarget as HTMLElement;
+		this.setFriendId(target);
 		this.setNotifData(type);
 		await this.handleUpdate(type);
 	}
 
-	public handleBlockClick = async (): Promise<void> => {
+	public handleBlockClick = async (event: Event): Promise<void> => {
 		const type: NotificationType = FRIEND_REQUEST_ACTIONS.BLOCK;
+  		const target = event.currentTarget as HTMLElement;
+		this.setFriendId(target);
 		this.setNotifData(type, 1);
 		await this.handleUpdate(type);
 	}
 
-	public handleUnblockClick = async (): Promise<void> => {
+	public handleUnblockClick = async (event: Event): Promise<void> => {
 		const type: NotificationType = FRIEND_REQUEST_ACTIONS.UNBLOCK;
+  		const target = event.currentTarget as HTMLElement;
+		this.setFriendId(target);
 		this.setNotifData(type, 1);
 		await this.handleUpdate(type);
 	}
 
-	public handleUnfriendClick = async (): Promise<void> => {
+	public handleUnfriendClick = async (event: Event): Promise<void> => {
 		const type: NotificationType = FRIEND_REQUEST_ACTIONS.UNFRIEND;
+		const target = event.currentTarget as HTMLElement;
+		this.setFriendId(target);
 		this.setNotifData(type, 1);
 		await this.handleDelete(type);
 	}
@@ -559,13 +566,30 @@ export class NotifService {
 	 * @param {NotificationType} type - Type de la notification.
 	 * @param {number} [read = 0] - Statut de lecture de la notification.
 	 */
-	public setNotifData(type: NotificationType, read: number = 0): void {
+	private setNotifData(type: NotificationType, read: number = 0): void {
+		if (!this.friendId) {
+			return;
+		}
 		this.notifData = {
 			type: type,
-			to: this.friendId!,
+			to: this.friendId,
 			from: this.currentUser!.id,
 			read: read
 		};
+	}
+
+	/**
+	 * Définit l'identifiant de l'ami en fonction du bouton cliqué.
+	 *
+	 * @param {HTMLElement} target - Bouton cliqué.
+	 */
+	private setFriendId(target: HTMLElement): void { 
+		const friendId = target.getAttribute("data-friend-id");
+		if (!friendId) {
+			console.error("Pas de friendId sur le bouton");
+			return;
+		}
+		this.friendId = Number(friendId);
 	}
 
 	/**
@@ -597,6 +621,7 @@ export class NotifService {
 	private needButtons(): boolean {
 		const buttonCases = [
 			FRIEND_REQUEST_ACTIONS.ADD,
+			FRIEND_REQUEST_ACTIONS.INVITE
 		]
 		return Object.values(buttonCases).includes(this.currentNotif.type);
 	}
@@ -607,6 +632,7 @@ export class NotifService {
 	 * Les boutons sont affichés en fonction de l'action de la notification.
 	 * Si la notification est une demande d'amitié, les boutons "Accept" et "Decline"
 	 * sont affichés.
+	 * Si la notification est une invitation, le bouton "Play" est affiché.
 	 * 
 	 * @returns {string} Le HTML des boutons d'actions.
 	 */
@@ -615,14 +641,22 @@ export class NotifService {
 		switch (this.currentNotif.type) {
 			case FRIEND_REQUEST_ACTIONS.ADD:
 				html += `
-					<button class="btn smaller-btn" data-action="accept" data-to="${this.currentNotif.to}" data-from="${this.currentNotif.from}">
+					<button class="btn smaller-btn" data-action="accept" data-friend-id="${this.currentNotif.from}">
 						Accept
 					</button>
-					<button class="btn smaller-btn" data-action="decline" data-to="${this.currentNotif.to}" data-from="${this.currentNotif.from}">
+					<button class="btn smaller-btn" data-action="decline" data-friend-id="${this.currentNotif.from}">
 						Decline
 					</button>
 				`;
 				break;
+			case FRIEND_REQUEST_ACTIONS.INVITE:
+				html += `
+					<button class="btn smaller-btn" data-action="invite" data-friend-id="${this.currentNotif.from}">
+						Play
+					</button>
+				`;
+				break;
+			default:
 		}
 		html += `</div>`;
 		return html;

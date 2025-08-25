@@ -114,6 +114,7 @@ export const FRIEND_REQUEST_ACTIONS = {
 	UNBLOCK: 'unblock',
 	UNFRIEND: 'unfriend',
 	CANCEL: 'cancel',
+	INVITE: 'invite',
 } as const;
 
 

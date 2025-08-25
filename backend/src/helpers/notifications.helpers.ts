@@ -142,6 +142,8 @@ export async function addNotifContent<T extends NotificationInput | Notification
 		case FRIEND_REQUEST_ACTIONS.ACCEPT:
 			notif = `has accepted your friend request.`;
 			break;
+		case FRIEND_REQUEST_ACTIONS.INVITE:
+			notif = `has invited you to a game.`;
 		// case FRIEND_REQUEST_ACTIONS.DELETE:
 		// 	break;
 		// case FRIEND_REQUEST_ACTIONS.BLOCK:

@@ -226,6 +226,7 @@ export class UsersPage extends BasePage {
 		const rowComponent = new UserRowComponent(this.config, this.userRowConfig!, tempContainer, user);
 		const instanceKey = `${this.userRowConfig!.name}-${user.id}`;
 		this.addToComponentInstances(instanceKey, rowComponent);
+
 		rowComponent.render().then(() => {
 			const userLine = tempContainer.querySelector('.user-line');
 			if (userLine) {

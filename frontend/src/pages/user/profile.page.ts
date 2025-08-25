@@ -41,7 +41,7 @@ export class ProfilePage extends BasePage {
 		return {
 			id: 1,
 			username: "LEE",
-			avatar: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%23667eea'/%3E%3Ctext x='50' y='55' text-anchor='middle' fill='white' font-size='20' font-weight='bold'%3ELEE%3C/text%3E%3C/svg%3E",
+			avatar: this.currentUserAvatarURL,
 			isOnline: true,
 			wins: 42,
 			losses: 18,
@@ -58,22 +58,22 @@ export class ProfilePage extends BasePage {
             tournamentLosses: 8,
             lastRoundReached: 4,
 			friends: [
-				{ id: 2, username: "BLA", avatar: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%23f093fb'/%3E%3Ctext x='50' y='55' text-anchor='middle' fill='white' font-size='18' font-weight='bold'%3EBLA%3C/text%3E%3C/svg%3E" },
-				{ id: 3, username: "SILVER", avatar: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%23c0c0c0'/%3E%3Ctext x='50' y='55' text-anchor='middle' fill='white' font-size='14' font-weight='bold'%3ESILV%3C/text%3E%3C/svg%3E" }
+				{ id: 2, username: "BLA", avatar: this.currentUserAvatarURL },
+				{ id: 3, username: "SILVER", avatar: this.currentUserAvatarURL }
 			],
 			matchHistory: [
 				{
 					id: 1,
-					player1: { username: "LEE", avatar: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%23667eea'/%3E%3Ctext x='50' y='55' text-anchor='middle' fill='white' font-size='20' font-weight='bold'%3ELEE%3C/text%3E%3C/svg%3E" },
-					player2: { username: "BLA", avatar: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%23f093fb'/%3E%3Ctext x='50' y='55' text-anchor='middle' fill='white' font-size='18' font-weight='bold'%3EBLA%3C/text%3E%3C/svg%3E" },
+					player1: { username: "LEE", avatar: this.currentUserAvatarURL },
+					player2: { username: "BLA", avatar: this.currentUserAvatarURL },
 					score: "11 - 8",
 					winner: "LEE",
 					date: "2025-01-15T14:30:00Z"
 				},
 				{
 					id: 2,
-					player1: { username: "LEE", avatar: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%23667eea'/%3E%3Ctext x='50' y='55' text-anchor='middle' fill='white' font-size='20' font-weight='bold'%3ELEE%3C/text%3E%3C/svg%3E" },
-					player2: { username: "SILVER", avatar: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%23c0c0c0'/%3E%3Ctext x='50' y='55' text-anchor='middle' fill='white' font-size='14' font-weight='bold'%3ESILV%3C/text%3E%3C/svg%3E" },
+					player1: { username: "LEE", avatar: this.currentUserAvatarURL },
+					player2: { username: "SILVER", avatar: this.currentUserAvatarURL },
 					score: "7 - 11",
 					winner: "SILVER",
 					date: "2025-01-14T19:45:00Z"
