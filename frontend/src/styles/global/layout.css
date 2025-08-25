@@ -57,4 +57,7 @@
 		wide:h-[--h-wide]
 		extra-wide:h-[--h-extra-wide];
 	}
+	.mid-full-box {
+		@apply large-box rounded-2xl max-w-[800px];
+	}
 }

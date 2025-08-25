@@ -9,11 +9,11 @@
   		"doc": "typedoc --tsconfig tsconfig.json --out docs --entryPointStrategy expand src"
 	},
 	"dependencies": {
-		"socket.io-client": "^4.8.1",
     	"animate.css": "^4.1.1",
 		"tsparticles": "^3.0.2",
 		"@tsparticles/engine": "^3.0.2",
-  		"qrcode": "^1.5.3"
+  		"qrcode": "^1.5.3",
+		"chart.js": "^4.5.0" 
 	},
 	"devDependencies": {
 		"@types/node": "^22.15.24",

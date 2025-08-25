@@ -21,11 +21,11 @@
 @import './pages/settings.css';
 @import './pages/game_local.css';
 @import './pages/profile.css';
+@import './pages/dashboard.css';
 
 @import './utilities/custom.css';
 
 @import 'animate.css';
-
 
 @tailwind base;
 @tailwind components;
