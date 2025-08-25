@@ -36,9 +36,13 @@ export class GameMenuMulti extends BasePage {
         }
     }
 
-    private async sendMatchMakingRequest(): Promise<void> {
+    private async sendMatchMakingRequest(confirm : boolean): Promise<void> {
+        let message = "matchmaking_request";
+        if (confirm === false)
+            message = "no_matchmaking_request";
+            
         const matchMakingReq: MatchMakingReq = {
-            type: "matchmaking_request",
+            type: message,
             playerID: this.currentUser!.id,
         }
         const res = await fetch("/api/game/multiplayer", {
@@ -65,15 +69,14 @@ export class GameMenuMulti extends BasePage {
     private showEndGamePanel(): void {
         const panel = document.getElementById("endgame-panel")!;
         panel.classList.remove("hidden");
-        panel.innerText += ` ${this.finalScore[0]} : ${this.finalScore[1]}`;
+        panel.innerText = `Result = ${this.finalScore[0]} : ${this.finalScore[1]}`;
     }
 
     private handleKeyDown = (event: KeyboardEvent): void => {
-        // console.log("nIK TA GROOOOOSSSE TEUB de keydown");
         this.controlNodesDown = document.querySelectorAll(".control");
         if (event.key == " " && this.isSearchingGame === false) { //TODO : creer un bouton pour lancer le jeu et replay pour sendmatchmaquingrequest pour eviter de le lancer en dehors de la page jeu
             this.isSearchingGame = true;                
-            this.sendMatchMakingRequest();
+            this.sendMatchMakingRequest(true);
             this.appendWaitText();
         }
         for (const node of this.controlNodesDown) {
@@ -83,7 +86,6 @@ export class GameMenuMulti extends BasePage {
     }
 
     private handleKeyup = (event: KeyboardEvent): void => {
-        // console.log("nIK TA GROOOOOSSSE TEUB de keyup");
         this.controlNodesUp = document.querySelectorAll(".control");
         for (const node of this.controlNodesUp) {
             if (node.dataset.key == event.key)
@@ -94,6 +96,7 @@ export class GameMenuMulti extends BasePage {
     protected attachListeners(): void {
         webSocketService.getWebSocket()!.addEventListener("message", (event) => {
             const msg = JSON.parse(event.data);
+            // console.log("@@@@@@@@@@@@@@@@@@@@@@msg = ", msg);
             if (msg.type == "start_game") {
                 console.log(`game starts ! id = ${msg.gameID}`);
                 // this.game!.clearScreen(); //
@@ -103,6 +106,7 @@ export class GameMenuMulti extends BasePage {
             } else if (msg.type == "end" && this.gameStarted) {
                 this.game!.gameStarted = false;
                 this.isSearchingGame = false;
+                this.game!.setScore(msg.score);
                 console.log("END GAME DETECTED")
                 this.game!.clearScreen();
                 document.querySelector("canvas")?.remove();
@@ -111,6 +115,7 @@ export class GameMenuMulti extends BasePage {
                 this.showEndGamePanel();
             } else if (msg.type == "GameData") {
                 this.game!.registerGameData(msg);
+                console.log("oooooook", msg.score);
                 this.game!.setScore(msg.score);
             } else if (msg.type == "msg")
                 console.log(msg.msg);
@@ -118,30 +123,18 @@ export class GameMenuMulti extends BasePage {
         this.webSocket?.addEventListener("error", (event) => {
             console.log(event);
         })
-
         document.addEventListener("keydown", this.handleKeyDown);
-        //     if (event.key == " ") { //TODO : creer un bouton pour lancer le jeu et replay pour sendmatchmaquingrequest pour eviter de le lancer en dehors de la page jeu
-        //         this.sendMatchMakingRequest();
-        //         this.appendWaitText();
-        //     }
-        //     const nodes: NodeListOf<HTMLElement> = document.querySelectorAll(".control");
-        //     for (const node of nodes) {
-        //         if (node.dataset.key == event.key)
-        //             node.classList.add("button-press");
-        //     }
-        // });
         document.addEventListener("keyup", this.handleKeyup);
-        // document.addEventListener("keyup", (event) => {
-        //     const nodes: NodeListOf<HTMLElement> = document.querySelectorAll(".control");
-        //     for (const node of nodes) {
-        //         if (node.dataset.key == event.key)
-        //             node.classList.remove("button-press");
-        //     }
-        // });
     }
 
     protected removeListeners(): void {
 		document.removeEventListener("keydown", this.handleKeyDown);
 		document.removeEventListener("keyup", this.handleKeyup);
+        this.sendMatchMakingRequest(false);
+        console.log("@@@@@@@@@@@@@@@@@@@ romove");
+
 	}
 }
+
+// TODO = gerer les parties interrompues en cours de jeu -> ajout du score des 2 utilisateurs + check
+// TODO = affichage result -> le remettre au milieu ? 

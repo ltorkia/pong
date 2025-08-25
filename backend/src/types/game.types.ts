@@ -156,6 +156,7 @@ export class Game {
             if (score == 3)
                 return (this.endGame())
         });
+        // console.log("iiiciiiiiii", this.score);
         this.initRound();
     }
 
@@ -181,8 +182,8 @@ export class Game {
             if (player.webSocket)
                 player.webSocket.send(JSON.stringify({
                     type: "end",
+                    score: this.score
                 }));
-            // this.score
             console.log("////////////////////////////////////////////////////////////////////////player = ", player, "score = ", this.score);
         }
         let winner = this.players[1];
