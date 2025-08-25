@@ -1,5 +1,5 @@
-import { GameInterface, TournamentInterface } from "../../../shared/types/game.types";
-import { Player } from "../../../shared/types/game.types";
+import { GameInterface, TournamentInterface } from "../shared/types/game.types";
+import { Player } from "../shared/types/game.types";
 
 export class Tournament implements TournamentInterface {
     name: string;

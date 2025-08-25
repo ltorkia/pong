@@ -5,7 +5,7 @@ import { BaseComponent } from '../base/base.component';
 import { RouteConfig } from '../../types/routes.types';
 import { ComponentConfig } from '../../types/components.types';
 import { getHTMLElementById, getHTMLElementByTagName, toggleClass } from '../../utils/dom.utils';
-import { SearchParams } from '../../shared/types/user.types';
+import { SearchParams, UserStatus } from '../../shared/types/user.types';
 
 // ===========================================
 // SEARCH BAR COMPONENT
@@ -158,7 +158,7 @@ export class SearchBarComponent extends BaseComponent {
 			return;
 		const params: SearchParams = {
 			searchTerm: this.searchInput.value,
-			status: this.statusFilter.value,
+			status: this.statusFilter.value as UserStatus,
 			friendsOnly: this.friendsOnly.checked
 		};
 		this.container.dispatchEvent(

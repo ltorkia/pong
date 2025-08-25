@@ -1,6 +1,7 @@
 import { User } from '../../shared/models/user.model';
 import { SafeUserModel } from '../../shared/types/user.types';	// en rouge car dossier local 'shared' != dossier conteneur
-import { Notification } from '../../shared/models/notification.model';
+import { AppNotification } from '../../shared/models/notification.model';
+import { NotificationModel } from '../../shared/types/notification.types';
 
 // ===========================================
 // STORAGE SERVICE
@@ -35,11 +36,12 @@ export class StorageService {
 	 * - Sérialise les notifications en un tableau de JSON.
 	 * - Enregistre les données sérialisées dans le localStorage sous le nom "notifs".
 	 * 
-	 * @param {Notification[]} notifications Les notifications à définir comme notifications courantes.
+	 * @param {AppNotification[]} notifications Les notifications à définir comme notifications courantes.
 	 */
-	public setCurrentNotifs(notifications: Notification[]) {
-		this.storedUser.notifications = notifications.map(n => n.toJSON());
-		localStorage.setItem('notifs', JSON.stringify(this.storedUser.notifications));
+	public setCurrentNotifs(notifications: AppNotification[]) {
+		const rawData: NotificationModel[] = notifications.map(n => n.toJSON());
+		this.storedUser!.notifications = rawData as unknown as AppNotification[];
+		localStorage.setItem('notifs', JSON.stringify(rawData));
 	}
 
 	/**

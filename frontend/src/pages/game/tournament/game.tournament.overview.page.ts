@@ -3,9 +3,10 @@ import { RouteConfig } from '../../../types/routes.types';
 import { Game, Tournament } from '../../../types/game.types';
 import { TournamentService } from '../../../api/game/game.api';
 import { router } from '../../../router/router';
-import { UserModel } from '../../../../../shared/types/user.types';
+import { UserModel } from '../../../shared/types/user.types';
 import { DataService } from '../../../services/user/data.service';
-import { Player } from '../../../../../shared/types/game.types';
+import { Player } from '../../../shared/types/game.types';
+import { User } from '../../../shared/models/user.model';
 
 const MAX_PLAYERS = 16;
 const MIN_PLAYERS = 4;
@@ -80,10 +81,10 @@ export class GameTournamentOverview extends BasePage {
     private async displayWinner(): Promise<void> {
         const playerPastille = this.pastilleHTML?.cloneNode(true) as HTMLElement;
         if (this.winner) {
-            const user = this.users.find((u: UserModel) => u.id == this.winner.ID)
+            const user = this.users!.find((u: UserModel) => u.id == this.winner!.ID)
             playerPastille.querySelector("#pastille-name")!.textContent = user!.username;
             const img = playerPastille.querySelector("#user-avatar") as HTMLImageElement;
-            img.src = await this.dataApi.getUserAvatarURL(user);
+            img.src = await this.dataApi.getUserAvatarURL(user as User);
         } else {
             playerPastille.textContent = "?";
         }
@@ -104,7 +105,7 @@ export class GameTournamentOverview extends BasePage {
                     playerPastille.querySelector("#pastille-name")!.textContent = user!.username;
                     playerPastille.dataset.id = user?.id.toString();
                     const img = playerPastille.querySelector("#user-avatar") as HTMLImageElement;
-                    img.src = await this.dataApi.getUserAvatarURL(user);
+                    img.src = await this.dataApi.getUserAvatarURL(user! as User);
                 } else {
                     playerPastille.textContent = "?";
                 }

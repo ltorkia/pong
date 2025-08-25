@@ -84,7 +84,7 @@ export class FriendService {
 	public searchFriendByFriendname(friends: Friend[], searchTerm: string): Friend[] {
 		const term = searchTerm.toLowerCase();
 		return friends.filter(friend => 
-			friend.Friendname.toLowerCase().includes(term)
+			friend.username.toLowerCase().includes(term)
 		);
 	}
 

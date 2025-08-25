@@ -140,7 +140,7 @@ export class GameTournamentList extends BasePage {
             tournamentItem.querySelector("#players")!.textContent = `${tournament.players!.length} / ${tournament.maxPlayers}`;
             if (tournament.players?.length == tournament.maxPlayers)
                 tournamentItem.querySelector("#status")!.classList.add("text-red");
-            if (tournament.masterPlayerID == this.currentUser.id) {
+            if (tournament.masterPlayerID == this.currentUser!.id) {
                 const cancelBtn = tournamentItem.querySelector("#cancel-tournament");
                 cancelBtn?.classList.remove("hidden");
                 cancelBtn?.addEventListener("click", (event) => {
@@ -150,7 +150,7 @@ export class GameTournamentList extends BasePage {
             }
             tournamentList!.append(tournamentItem);
             tournamentItem.addEventListener("click", async () => {
-                // await TournamentService.joinTournament(this.currentUser.id, tournament.ID);
+                // await TournamentService.joinTournament(this.currentUser!.id, tournament.ID);
                 await router.navigate(`/game/tournaments/:${tournament.ID}/lobby`);
             });
         }
@@ -175,7 +175,7 @@ export class GameTournamentList extends BasePage {
             name: tournamentName,
             maxPlayers: this.playersNb,
             ID: generateUniqueID(this.allTournaments),
-            masterPlayerID: currentService.getCurrentUser().id,
+            masterPlayerID: currentService.getCurrentUser()!.id,
             isStarted: false,
         };
         try {
@@ -242,7 +242,7 @@ export class GameTournamentList extends BasePage {
 
         document.getElementById("yes-btn")!.addEventListener("click", async (event) => {
             const cancelDialogOverlay = document.getElementById("cancel-dialog-overlay")!;
-            await TournamentService.sendDismantleRequest(this.currentUser.id, this.tournamentToCancel);
+            await TournamentService.sendDismantleRequest(this.currentUser!.id, this.tournamentToCancel);
             animateCSS(cancelDialogOverlay, "fadeOut").then(() => {
                 cancelDialogOverlay.classList.add("hidden");
             });

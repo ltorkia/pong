@@ -1,10 +1,11 @@
 import { BasePage } from '../../base/base.page';
 import { RouteConfig } from '../../../types/routes.types';
 import { DataService } from '../../../services/user/data.service';
-import { Player } from '../../../../../shared/types/game.types';
+import { Player } from '../../../shared/types/game.types';
 import { Tournament } from '../../../types/game.types';
 import { TournamentService } from '../../../api/game/game.api';
-import { UserModel } from '../../../../../shared/types/user.types';
+import { UserModel } from '../../../shared/types/user.types';
+import { User } from '../../../shared/models/user.model';
 import { webSocketService } from '../../../services/user/user.service'
 import { router } from '../../../router/router';
 import { animateCSS } from '../../../utils/animate.utils';
@@ -40,10 +41,10 @@ export class GameTournamentLobby extends BasePage {
     protected async beforeMount(): Promise<void> {
         await this.fetchPastille();
         await this.fetchTournament();
-        if (!this.tournament?.players?.find((p: Player) => p.ID == this.currentUser.id)) {
+        if (!this.tournament?.players?.find((p: Player) => p.ID == this.currentUser!.id)) {
             this.joined = false;
             document.getElementById("tournament-join-leave-btn")!.textContent = "JOIN";
-            // await TournamentService.joinTournament(this.currentUser.id, this.tournamentID);
+            // await TournamentService.joinTournament(this.currentUser!.id, this.tournamentID);
             // await this.fetchTournament();
             console.log("WASNT IN THE TOURNAMENT AND JOINED");
         } else {
@@ -55,14 +56,14 @@ export class GameTournamentLobby extends BasePage {
         const pastilleHolder = document.getElementById("pastilles-holder");
         pastilleHolder!.classList.add(this.gridRowStyle);
         this.displayTournament();
-        if (this.currentUser.id == this.tournament?.masterPlayerID) {
+        if (this.currentUser!.id == this.tournament?.masterPlayerID) {
             const cancelBtn = document.getElementById("tournament-cancel-btn")!;
             const startBtn = document.getElementById("tournament-start-btn")!;
             startBtn.classList.remove("hidden");
             cancelBtn.classList.remove("hidden");
             startBtn.addEventListener("click", async () => {
                 try {
-                    await TournamentService.startTournament(this.currentUser.id, this.tournamentID);
+                    await TournamentService.startTournament(this.currentUser!.id, this.tournamentID);
                 } catch (error: any) {
                     this.printError(error.message);
                 }
@@ -168,7 +169,9 @@ export class GameTournamentLobby extends BasePage {
         // if (!res.ok)
         //     return console.error("User fetch failed");
         // const user: UserModel = await res.json();
-        const user: UserModel = await TournamentService.fetchUser(player.ID);
+        const fetchedUser = await TournamentService.fetchUser(player.ID);
+        if (!fetchedUser) throw new Error("User not found");
+        const user: UserModel = fetchedUser;
         const pastille = this.pastilleHTML.cloneNode(true) as HTMLElement;
         const h2 = pastille.querySelector("h2");
         if (player.alias)
@@ -190,7 +193,7 @@ export class GameTournamentLobby extends BasePage {
         const img = pastille.querySelector("#user-avatar") as HTMLImageElement;
         if (this.tournament?.maxPlayers == 16)
             img.classList.add("w-8", "h-8");
-        img.src = await this.dataApi.getUserAvatarURL(user);
+        img.src = await this.dataApi.getUserAvatarURL(user as User);
         // requestAnimationFrame(() => 
         pastille.classList.remove("opacity-0");
         pastille.classList.add("opacity-100")
@@ -220,7 +223,7 @@ export class GameTournamentLobby extends BasePage {
     //         if (!this.leavingPage && !this.beaconSent) {
     //             this.leavingPage = true;
     //             this.beaconSent = true;
-    //             TournamentService.leaveTournamentBeacon(this.currentUser.id, this.tournamentID);
+    //             TournamentService.leaveTournamentBeacon(this.currentUser!.id, this.tournamentID);
     //         }
     //     })
     // }
@@ -244,13 +247,13 @@ export class GameTournamentLobby extends BasePage {
             console.log("coucou");
             if (!this.joined) {
                 this.joined = true;
-                TournamentService.joinTournament(this.currentUser.id, this.tournamentID);
+                TournamentService.joinTournament(this.currentUser!.id, this.tournamentID);
                 const btn = event.target as HTMLElement;
                 btn.textContent = "LEAVE";
             } else {
                 this.joined = false;
                 console.log('Leaving');
-                TournamentService.leaveTournamentReq(this.currentUser.id, this.tournamentID);
+                TournamentService.leaveTournamentReq(this.currentUser!.id, this.tournamentID);
                 const btn = event.target as HTMLElement;
                 btn.textContent = "JOIN";
             }
@@ -259,14 +262,14 @@ export class GameTournamentLobby extends BasePage {
         document.getElementById("tournament-ready-btn")?.addEventListener("click", async () => {
             this.ready = !this.ready;
             try {
-                await TournamentService.sendReadyRequest(this.currentUser.id, this.tournamentID, this.ready);
+                await TournamentService.sendReadyRequest(this.currentUser!.id, this.tournamentID, this.ready);
             } catch (error: any) {
                 this.printError("Please join tournament first!");
             }
         });
 
         document.getElementById("yes-btn")?.addEventListener("click", () => {
-            TournamentService.sendDismantleRequest(this.currentUser.id, this.tournamentID);
+            TournamentService.sendDismantleRequest(this.currentUser!.id, this.tournamentID);
         })
 
 
@@ -274,7 +277,7 @@ export class GameTournamentLobby extends BasePage {
         //     if (!this.leavingPage)
         //         this.leavingPage = true;
         //     try {
-        //         await TournamentService.leaveTournamentReq(this.currentUser.id, this.tournamentID);
+        //         await TournamentService.leaveTournamentReq(this.currentUser!.id, this.tournamentID);
         //     } catch (error: any) {
         //         console.error(error.message);
         //     }

@@ -75,6 +75,7 @@ export async function tournamentRoutes(app: FastifyInstance) {
             tournament.players.push(player);
             const playerData: TournamentLobbyUpdate = {
                 type: "tournament_lobby_update",
+                playerID: player.ID!,
                 tournamentID: tournament.ID!,
                 players: tournament.players,
             };
@@ -105,6 +106,7 @@ export async function tournamentRoutes(app: FastifyInstance) {
             tournament.players.splice(playerIdx, 1);
             const playerData: TournamentLobbyUpdate = {
                 type: "tournament_lobby_update",
+                playerID: leaveTournamentReq.data.playerID,
                 tournamentID: tournament.ID!,
                 players: tournament.players,
             };
@@ -133,6 +135,7 @@ export async function tournamentRoutes(app: FastifyInstance) {
         player.ready = readyReq.data.ready;
         const playerData: TournamentLobbyUpdate = {
             type: "tournament_lobby_update",
+            playerID: player.ID!,
             tournamentID: tournament.ID!,
             players: tournament.players,
         }

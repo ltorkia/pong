@@ -1,6 +1,6 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 // import fastifyWebsocket from '@fastify/websocket';
-import jwt from 'jsonwebtoken';
+// import jwt from 'jsonwebtoken';
 
 // const connectedUsers[]
 

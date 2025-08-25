@@ -175,7 +175,8 @@ export class UserRowComponent extends BaseComponent {
 	private setButtonDataAttribut() {
 		this.buttons.forEach(btn => {
 			const element = btn as HTMLButtonElement;
-			element.setAttribute("data-friend-id", this.user.id.toString());
+			if (btn)
+				element.setAttribute("data-friend-id", this.user!.id.toString());
 		});
 	}
 
@@ -226,7 +227,7 @@ export class UserRowComponent extends BaseComponent {
 	public async toggleFriendButton(): Promise<void> {
 		if (this.user && this.user.id !== this.currentUser!.id || !this.user) {
 			this.hideAllButtons();
-			const friend = await friendService.isFriendWithCurrentUser(this.user.id);
+			const friend = await friendService.isFriendWithCurrentUser(this.user!.id);
 			if (!friend) {
 				this.friendLogoCell.innerHTML = `<i class="fa-solid fa-minus"></i>`;
 				this.addFriendButton.classList.remove('hidden');
@@ -291,7 +292,7 @@ export class UserRowComponent extends BaseComponent {
 	 */
 	private createAlertSpace(): HTMLDivElement {
 		const div = document.createElement('div');
-		div.id = `alert-${this.user.id}`;
+		div.id = `alert-${this.user!.id}`;
 		div.setAttribute('aria-live', 'assertive');
 		div.classList.add('alert', 'mr-5', 'error-message', 'hidden');
 		this.userline.appendChild(div);
@@ -310,43 +311,43 @@ export class UserRowComponent extends BaseComponent {
 	private addFriendClick = async (event: Event): Promise<void> => {
 		event.preventDefault();
 		await notifService.handleAddClick(event);
-		console.log(`Friend request sent to ${this.user.username}`);
+		console.log(`Friend request sent to ${this.user!.username}`);
 	}
 
 	private acceptFriendClick = async (event: Event): Promise<void> => {
 		event.preventDefault();
 		await notifService.handleAcceptClick(event);
-		console.log(`Friend request accepted for ${this.user.username}`);
+		console.log(`Friend request accepted for ${this.user!.username}`);
 	}
 
 	private declineFriendClick = async (event: Event): Promise<void> => {
 		event.preventDefault();
 		await notifService.handleDeclineClick(event);
-		console.log(`Friend request sent to ${this.user.username}`);
+		console.log(`Friend request sent to ${this.user!.username}`);
 	}
 
 	private blockFriendClick = async (event: Event): Promise<void> => {
 		event.preventDefault();
 		await notifService.handleBlockClick(event);
-		console.log(`Friend ${this.user.username} blocked`);
+		console.log(`Friend ${this.user!.username} blocked`);
 	}
 
 	private unblockFriendClick = async (event: Event): Promise<void> => {
 		event.preventDefault();
 		await notifService.handleUnblockClick(event);
-		console.log(`Friend ${this.user.username} unblocked`);
+		console.log(`Friend ${this.user!.username} unblocked`);
 	}
 
 	private unfriendClick = async (event: Event): Promise<void> => {
 		event.preventDefault();
 		await notifService.handleUnfriendClick(event);
-		console.log(`Friend ${this.user.username} unfriended`);
+		console.log(`Friend ${this.user!.username} unfriended`);
 	}
 
 	private cancelFriendRequestClick = async (event: Event): Promise<void> => {
 		event.preventDefault();
 		await notifService.handleCancelClick(event);
-		console.log(`Friend request canceled for ${this.user.username}`);
+		console.log(`Friend request canceled for ${this.user!.username}`);
 	}
 
 	/**

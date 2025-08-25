@@ -39,7 +39,7 @@ export class GameMenuMulti extends BasePage {
     private async sendMatchMakingRequest(): Promise<void> {
         const matchMakingReq: MatchMakingReq = {
             type: "matchmaking_request",
-            playerID: this.currentUser.id,
+            playerID: this.currentUser!.id,
         }
         const res = await fetch("/api/game/multiplayer", {
             method: 'POST',
@@ -99,7 +99,7 @@ export class GameMenuMulti extends BasePage {
                 // this.game!.clearScreen(); //
                 // document.querySelector("endgame-panel")?.remove();
                 this.gameStarted = true;
-                this.initGame(this.currentUser.id, msg.gameID);
+                this.initGame(this.currentUser!.id, msg.gameID);
             } else if (msg.type == "end" && this.gameStarted) {
                 this.game!.gameStarted = false;
                 this.isSearchingGame = false;

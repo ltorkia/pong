@@ -5,7 +5,7 @@ import { GameModel } from '../../shared/types/game.types';	// en rouge car dossi
 import { dataService, currentService } from '../../services/index.service';
 import { secureFetch } from '../../utils/app.utils';
 import { UserResponse } from '../../shared/types/response.types';
-import { SearchParams } from '../../shared/types/search.types';
+import { SearchParams } from '../../shared/types/user.types';
 
 // ===========================================
 // DATA API
@@ -100,7 +100,7 @@ export class DataApi {
 			throw new Error('Erreur de l\'API');
 		}
 		const data: PaginatedUsers = await res.json();
-		data.users = User.fromSafeJSONArray(data.users) as User[];
+		data.users = User.fromSafeJSONArray(data.users as SafeUserModel[]) as User[];
 		return data as PaginatedUsers;
 	}
 

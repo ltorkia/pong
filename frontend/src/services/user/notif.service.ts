@@ -25,7 +25,7 @@ export class NotifService {
 	private navbarInstance!: NavbarComponent | undefined;
 
 	private notifs: AppNotification[] = [];
-	private notifData: NotificationModel | null = null;
+	private notifData: Partial<NotificationModel> | null = null;
 	private notifCount: number = 0;
 	private notifItem: HTMLDivElement | null = null;
 	private notifDeleteHandlers: Map<number, EventListener> = new Map();
@@ -95,7 +95,7 @@ export class NotifService {
 			console.error(updatedRes.errorMessage);
 		}
 		const index = this.notifs.findIndex((notif) => notif.id === id);
-		this.notifs[index] = updatedRes;
+		this.notifs[index] = updatedRes as AppNotification;
 	}
 
 	/**
@@ -172,12 +172,12 @@ export class NotifService {
 	 * @returns {Promise<void>} Une promesse qui est résolue lorsque la notification est traitée.
 	 */
 	private async handleNotification(): Promise<void> {
-		const notifIndex = this.notifs.findIndex((notif) => notif.id === this.currentNotif.id);
+		const notifIndex = this.notifs.findIndex((notif) => notif.id === this.currentNotif!.id);
 		if (notifIndex === -1) {
-			this.notifs.push(this.currentNotif);
+			this.notifs.push(this.currentNotif!);
 			storageService.setCurrentNotifs(this.notifs);
 			this.displayNotif();
-			await this.deleteAllNotifsFromUser(this.currentNotif.from, this.currentNotif.id);
+			await this.deleteAllNotifsFromUser(this.currentNotif!.from, this.currentNotif!.id);
 		};
 	}
 
@@ -194,18 +194,26 @@ export class NotifService {
 	 * @returns {Promise<void>} Une promesse qui est resolvée lorsque les notifications sont chargées.
 	 */
 	private async setCurrentNotifs(): Promise<void> {
-		if (this.currentUser.notifications.length > 0) {
-			this.notifs = this.currentUser.notifications;
+		if (this.currentUser!.notifications.length > 0) {
+			this.notifs = this.currentUser!.notifications;
 			return;
 		}
-		const result: NotifResponse = await notifApi.getUserNotifications();
-		if (result.errorMessage) {
-			console.error(result.errorMessage);
-			return;
+		const response = await notifApi.getUserNotifications();
+		let result: NotifResponse;
+		if (Array.isArray(response))
+			result = { notifs: response }; 
+		else
+			result = { errorMessage: response.errorMessage };
+
+		if ('notifs' in result) {
+			const notifs = result.notifs as AppNotification[];
+			this.notifs = notifs.filter(
+				notif => !isUserOnlineStatus(notif.type) 
+				&& notif.content != null && notif.content !== '');
+		} else {
+			this.notifs = [];
+			console.warn(result.errorMessage);
 		}
-		this.notifs = result.filter((notif: AppNotification) => 
-			!isUserOnlineStatus(notif.type) &&
-        	notif.content != null && notif.content !== '');
 		storageService.setCurrentNotifs(this.notifs);
 		console.log('Notifications rechargées:', this.notifs);
 	}
@@ -219,7 +227,7 @@ export class NotifService {
 	 * en utilisant `this.attachListeners()`.
 	 */
 	private displayNotif(): void {
-		if (!this.currentNotif.content)
+		if (!this.currentNotif!.content)
 			return;
 		this.removeDefaultNotif();
 		this.notifItem = this.createNotifElement();
@@ -228,7 +236,7 @@ export class NotifService {
 		}
 		this.notifItem.classList.add('animate-fade-in-up');
 		this.navbarInstance!.notifsWindow.prepend(this.notifItem);
-		this.notifItem = getHTMLElementById(`notif-${this.currentNotif.id}`, this.navbarInstance!.notifsWindow) as HTMLDivElement;
+		this.notifItem = getHTMLElementById(`notif-${this.currentNotif!.id}`, this.navbarInstance!.notifsWindow) as HTMLDivElement;
 		this.attachListeners();
 	}
 
@@ -245,7 +253,7 @@ export class NotifService {
 	 * @returns {Promise<void>} Une promesse qui se résout lorsque la notification est supprimée.
 	 */
 	private async deleteNotif(notifId?: number): Promise<void> {
-		const id = notifId ?? this.currentNotif.id;
+		const id = notifId ?? this.currentNotif!.id;
 		const notifIndex = this.notifs.findIndex((notif) => notif.id === id);
 		if (notifIndex === -1) {
 			console.warn(`[${this.constructor.name}] Aucune notification à supprimer`);
@@ -325,14 +333,14 @@ export class NotifService {
 	private createNotifElement(): HTMLDivElement {
 		const notifItem: HTMLDivElement = document.createElement('div');
 		notifItem.classList.add('notif-item');
-		notifItem.id = `notif-${this.currentNotif.id}`;
-		notifItem.innerHTML = `<span>${this.currentNotif.content}</span>` || '';
-		if (this.currentNotif.read === 0) {
+		notifItem.id = `notif-${this.currentNotif!.id}`;
+		notifItem.innerHTML = `<span>${this.currentNotif!.content}</span>` || '';
+		if (this.currentNotif!.read === 0) {
 			notifItem.classList.add('new-notif');
 		}
 		const delBtn: HTMLDivElement = document.createElement('div');
 
-      	(delBtn as HTMLDivElement).setAttribute("data-friend-id", this.currentNotif.from.toString());
+      	(delBtn as HTMLDivElement).setAttribute("data-friend-id", this.currentNotif!.from.toString());
 		delBtn.classList.add('notif-del');
 		delBtn.innerHTML = '<i class="fa-solid fa-xmark"></i>';
 		notifItem.appendChild(delBtn);
@@ -393,7 +401,7 @@ export class NotifService {
 		}
 		const delBtn = this.notifItem!.querySelector('div.notif-del');
 		if (delBtn) {
-			const notifId = this.currentNotif.id;
+			const notifId = this.currentNotif!.id;
 			this.attachDeleteListener(notifId, delBtn as HTMLElement);
 		}
 	}
@@ -456,15 +464,19 @@ export class NotifService {
 	 * @returns {Promise<void>}
 	 */
 	public async handleUpdate(action: FriendRequestAction): Promise<void> {
-		let res = await friendApi.updateFriend(this.friendId!, action);
+		if (!this.friendId || !this.notifData) {
+			console.warn("FriendId et/ou notifData manquant(s)");
+			return;
+		}
+		const res = await friendApi.updateFriend(this.friendId, action);
 		if ('errorMessage' in res) {
 			console.error(res.errorMessage);
 			return;
 		}
 		await this.refreshFriendButtons();
-		await this.deleteAllNotifsFromUser(this.notifData.to);
+		await this.deleteAllNotifsFromUser(this.notifData.to!);
 		this.displayDefaultNotif();
-		await notifApi.addNotification(this.notifData);
+		await notifApi.addNotification(this.notifData!);
 	}
 
 	/**
@@ -485,9 +497,9 @@ export class NotifService {
 			return;
 		}
 		await this.refreshFriendButtons();
-		await this.deleteAllNotifsFromUser(this.notifData.to);
+		await this.deleteAllNotifsFromUser(this.notifData!.to!);
 		this.displayDefaultNotif();
-		await notifApi.addNotification(this.notifData);
+		await notifApi.addNotification(this.notifData!);
 	}
 
 	// ===========================================
@@ -504,7 +516,7 @@ export class NotifService {
 		}
 		await this.refreshFriendButtons();
 		this.setNotifData(FRIEND_REQUEST_ACTIONS.ADD);
-		await notifApi.addNotification(this.notifData);
+		await notifApi.addNotification(this.notifData!);
 	}
 
 	public handleCancelClick = async (event: Event): Promise<void> => {
@@ -619,11 +631,8 @@ export class NotifService {
 	 *                   sinon False.
 	 */
 	private needButtons(): boolean {
-		const buttonCases = [
-			FRIEND_REQUEST_ACTIONS.ADD,
-			FRIEND_REQUEST_ACTIONS.INVITE
-		]
-		return Object.values(buttonCases).includes(this.currentNotif.type);
+		const type = this.currentNotif!.type;
+		return type === FRIEND_REQUEST_ACTIONS.ADD || type === FRIEND_REQUEST_ACTIONS.INVITE;
 	}
 
 	/**
@@ -638,20 +647,20 @@ export class NotifService {
 	 */
 	private createNotifButtonsHTML(): string {
 		let html = `<div class="notif-actions flex justify-center space-x-4">`;
-		switch (this.currentNotif.type) {
+		switch (this.currentNotif!.type) {
 			case FRIEND_REQUEST_ACTIONS.ADD:
 				html += `
-					<button class="btn smaller-btn" data-action="accept" data-friend-id="${this.currentNotif.from}">
+					<button class="btn smaller-btn" data-action="accept" data-friend-id="${this.currentNotif!.from}">
 						Accept
 					</button>
-					<button class="btn smaller-btn" data-action="decline" data-friend-id="${this.currentNotif.from}">
+					<button class="btn smaller-btn" data-action="decline" data-friend-id="${this.currentNotif!.from}">
 						Decline
 					</button>
 				`;
 				break;
 			case FRIEND_REQUEST_ACTIONS.INVITE:
 				html += `
-					<button class="btn smaller-btn" data-action="invite" data-friend-id="${this.currentNotif.from}">
+					<button class="btn smaller-btn" data-action="invite" data-friend-id="${this.currentNotif!.from}">
 						Play
 					</button>
 				`;

@@ -85,7 +85,7 @@ export class UsersPage extends BasePage {
 	protected async loadSpecificComponents(): Promise<void> {
 		await this.injectSearchBar();
 		await this.injectUserList();
-		this.paginationInfos.incCurrUser = true;
+		this.paginationInfos!.incCurrUser = true;
 		await this.injectPagination();
 	}
 
@@ -129,9 +129,9 @@ export class UsersPage extends BasePage {
 		const params = (event as CustomEvent).detail;
 			await this.injectUserList(params);
 			if (!params.searchTerm && !params.status && !params.friendsOnly)
-				this.paginationInfos.incCurrUser = true;
+				this.paginationInfos!.incCurrUser = true;
 			else
-				this.paginationInfos.incCurrUser = false;
+				this.paginationInfos!.incCurrUser = false;
 			await this.injectPagination();
 		});
 	}
@@ -163,7 +163,7 @@ export class UsersPage extends BasePage {
 			return;
 		}
 		this.userList.replaceChildren();
-		await this.injectUser(this.currentUser);
+		await this.injectUser(this.currentUser!);
 
 		for (const user of this.users! as User[]) {
 			if (!user.isActive)

@@ -75,7 +75,7 @@ export class NotifApi {
 	 * @returns {Promise<NotifResponse | { errorMessage: string }>} Promesse qui se résout avec les informations
 	 * de l'opération ou un message d'erreur.
 	 */
-	public async addNotification(notifData: NotificationModel): Promise<NotifResponse | { errorMessage: string }> {
+	public async addNotification(notifData: Partial<NotificationModel>): Promise<NotifResponse | { errorMessage: string }> {
 		const res = await secureFetch(`/api/notifs`, {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
@@ -85,7 +85,7 @@ export class NotifApi {
 		if (!res.ok || 'errorMessage' in data || !data) {
 			return { errorMessage: data.errorMessage || 'Erreur lors de l\'ajout de la notif' };
 		}
-		return AppNotification.fromJSON(data) as AppNotification;
+		return AppNotification.fromJSON(data) as NotifResponse;
 	}
 
 	/**

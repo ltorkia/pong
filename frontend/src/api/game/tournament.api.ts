@@ -1,6 +1,6 @@
-// import { Tournament } from "../../../../shared/types/game.types";
-import { UserModel } from '../../../../../shared/types/user.types';
-import { TournamentLobbyUpdate, PlayerReadyUpdate, DismantleTournament, StartTournament } from "../../shared/websocket.types";
+// import { Tournament } from "../../shared/types/game.types";
+import { UserModel } from '../../shared/types/user.types';
+import { TournamentLobbyUpdate, PlayerReadyUpdate, DismantleTournament, StartTournament } from "../../shared/types/websocket.types";
 import { Tournament } from "../../types/game.types";
 
 export class TournamentAPI {
@@ -10,6 +10,7 @@ export class TournamentAPI {
             type: "tournament_lobby_update",
             playerID: userID,
             tournamentID: tournamentID,
+            players: []
         }
         const res = await fetch("/api/game/leave_tournament", {
             method: 'POST',
@@ -28,6 +29,7 @@ export class TournamentAPI {
             type: "tournament_lobby_update",
             playerID: userID,
             tournamentID: tournamentID,
+            players: []
         }
         const data = JSON.stringify(lobbyUpdate);
         navigator.sendBeacon("/api/game/leave_tournament", data);
@@ -38,6 +40,7 @@ export class TournamentAPI {
             type: "tournament_lobby_update",
             playerID: userID,
             tournamentID: tournamentID,
+            players: []
         }
         const res = await fetch("/api/game/join_tournament", {
             method: 'POST',
