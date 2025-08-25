@@ -10,6 +10,7 @@ import { getHTMLElementById, getHTMLAnchorElement, getHTMLElementByTagName } fro
 import { ROUTE_PATHS, PROFILE_HTML_ANCHOR } from '../../config/routes.config';
 import { DB_CONST } from '../../shared/config/constants.config';
 import { notifService } from '../../services/index.service';
+import { Locale, translateService } from '../../services/core/core.service';
 
 // ===========================================
 // NAVBAR COMPONENT
@@ -24,6 +25,7 @@ import { notifService } from '../../services/index.service';
  * par le service de routage pour mettre à jour visuellement le lien actif.
  */
 export class NavbarComponent extends BaseComponent {
+	public langSwitcher!: HTMLSelectElement;
 	private homeLogoLink!: HTMLElement;
 	private homeLink!: HTMLElement;
 	private burgerBtn!: HTMLElement;
@@ -98,12 +100,14 @@ export class NavbarComponent extends BaseComponent {
 		this.notifsWindow = getHTMLElementById('notifs-window', this.container);
 		this.chatBtn = getHTMLElementById('chat', this.container);
 		this.chatWindow = getHTMLElementById('chat-window', this.container);
+		this.langSwitcher = getHTMLElementById('languages', this.container) as HTMLSelectElement;
 		this.mainSection = getHTMLElementByTagName('main');
 	}
 
 	protected async mount(): Promise<void> {
 		this.toggleSettingsLink();
 		this.setActiveLink(this.routeConfig.path);
+		this.langSwitcher.value = translateService.getLocale();
 		this.mainSection.classList.add('mt-main');
 	}
 
@@ -123,6 +127,7 @@ export class NavbarComponent extends BaseComponent {
 		});
 		this.notifsBtn.addEventListener('click', this.toggleNotifsMenu);
 		this.chatBtn.addEventListener('click', this.toggleChatWindow);
+		this.langSwitcher.addEventListener('change', this.toggleLangMenu);
 		this.logoutLink.addEventListener('click', this.handleLogoutClick);
 	}
 
@@ -140,6 +145,7 @@ export class NavbarComponent extends BaseComponent {
 		this.navLinks.forEach(link => {
 			link.removeEventListener('click', this.handleNavLinkClick);
 		});
+		this.langSwitcher.removeEventListener('change', this.toggleLangMenu);
 		this.logoutLink.removeEventListener('click', this.handleLogoutClick);
 	}
 
@@ -379,8 +385,20 @@ export class NavbarComponent extends BaseComponent {
 	 * 
 	 * Alterne entre les classes "show" et "hide" pour afficher ou masquer la fenêtre de chat.
 	 */
-	private toggleChatWindow = async (event: MouseEvent): Promise<void> => {
+	private toggleChatWindow = async (event: Event): Promise<void> => {
 		this.toggleWindow(this.chatWindow);
+	}
+
+	/**
+	 * Bascule la langue de l'application.
+	 * 
+	 * @param {Event} event L'événement de changement de langue.
+	 * @returns {Promise<void>} Une promesse qui se résout lorsque la langue est basculée.
+	 */
+	private toggleLangMenu = async (event: Event): Promise<void> => {
+		const selectedLang = (event.target as HTMLSelectElement).value as Locale;
+		console.log('Langue sélectionnée :', selectedLang);
+		translateService.updateLanguage(selectedLang);
 	}
 
 	/**

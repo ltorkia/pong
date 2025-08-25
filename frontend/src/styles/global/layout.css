@@ -31,11 +31,6 @@
 
 		mobile:w-96;
 	}
-	.mid-box {
-		@apply w-screen
-		mobile:w-auto;
-		@apply transition-all duration-300 ease-in-out;
-	}
 	.large-box {
 		@apply w-full mt-0 min-h-[--h] p-5
 		backdrop-blur-xl bg-opacity-90 rounded-none
@@ -56,6 +51,14 @@
 		desktop:h-[--h-desktop]
 		wide:h-[--h-wide]
 		extra-wide:h-[--h-extra-wide];
+	}
+	.mid-box {
+		@apply w-screen
+		mobile:w-auto;
+		@apply transition-all duration-300 ease-in-out;
+	}
+	.mid-box-limited {
+		@apply mid-box rounded-2xl w-auto max-w-[565px]
 	}
 	.mid-full-box {
 		@apply large-box rounded-2xl max-w-[800px];

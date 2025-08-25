@@ -24,6 +24,7 @@
 	
 	.navbar-style {
 		@apply flex justify-center items-center
+		
 	}
 
 	/* LOGO */
@@ -32,7 +33,7 @@
 	}
 	.navbar-content .title {
 		@apply flex flex-row text-2xl ml-3 mr-4
-		
+
 		desktop:ml-0;
 	}
 	.navbar-content .magical-ball {
@@ -77,6 +78,7 @@
 		@apply w-full bg-slate-900/90 hover:bg-slate-800/95
 		flex flex-row justify-center items-center space-x-3
 		border-b border-slate-500/30 py-6 px-4 hover:text-blue-200
+		whitespace-nowrap
 
 		desktop:w-auto desktop:pl-0
 		desktop:flex-col desktop:justify-center desktop:space-x-0 desktop:border-none
@@ -97,22 +99,21 @@
 
 	/* NOTIFBAR */
 	.notifbar-wrapper {
-		@apply flex justify-center items-center
-		
+		@apply absolute top-0 right-3 flex justify-center items-center
+		tablet:static
 		wide:h-[--navbar-height];
 	}
 
 	.notifbar-px {
 		@apply flex-row space-x-6 space-y-0 w-auto h-[--navbar-height]
 		mobile:space-x-10
-		wide:flex-row wide:space-y-0 wide:w-auto wide:h-[--navbar-height];
+		wide:space-x-14 wide:flex-row wide:space-y-0 wide:w-auto wide:h-[--navbar-height];
 	}
 	.notifbar-px button {
 		@apply flex justify-center items-center relative;
 	}
 	.notifbar-px button i {
-		@apply text-xl transition
-		tablet:text-2xl;
+		@apply text-2xl transition;
 	}
 
 	.window {
@@ -179,5 +180,18 @@
 	}
 	#chat-window.show {
 		@apply translate-x-0 pointer-events-auto;
+	}
+
+	/* TRANSLATION FLAGS */
+	#languages {
+		@apply relative;
+	}
+	.lang-box {
+		@apply appearance-none bg-white/30 border border-gray-300/50
+		rounded-md py-2 px-4 pr-6 text-lg cursor-pointer shadow-sm 
+		focus:outline-none focus:ring-2 focus:ring-blue-300;
+	}
+	.lang-arrow {
+		@apply pointer-events-none absolute inset-y-0 -right-[4px] flex items-center px-2 text-gray-700/80;
 	}
 }

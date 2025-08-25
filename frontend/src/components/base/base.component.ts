@@ -6,6 +6,7 @@ import { checkUserLogged } from '../../utils/app.utils';
 import { RouteConfig } from '../../types/routes.types';
 import { ComponentConfig } from '../../types/components.types';
 import { loadTemplate } from '../../utils/dom.utils';
+import { translateService } from '../../services/core/core.service';
 
 // ===========================================
 // BASE COMPONENT
@@ -28,6 +29,7 @@ export abstract class BaseComponent {
 	protected templatePath: string;
 	protected currentUser: User | null = null;
 	protected removeListenersFlag: boolean = true;
+	protected t = translateService.t.bind(translateService);
 
 	/**
 	 * Constructeur de la classe BaseComponent.

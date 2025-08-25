@@ -1,6 +1,8 @@
 import { AppService } from './app.service';
 import { RoutingService } from './routing.service';
 import { PageService } from './page.service';
+import type { Locale } from './translation/translate.service';
+import { TranslateService } from './translation/translate.service';
 
 // ===========================================
 // CORE SERVICES - SINGLETONS
@@ -37,3 +39,13 @@ export const routingService = new RoutingService();
  * - garder une référence à la page actuellement affichée (currentPage)
  */
 export const pageService = new PageService();
+
+/**
+ * Service de gestion de la traduction.
+ * 
+ * Cette instance unique de TranslateService gère 
+ * la traduction des textes en fonction de la langue choisie.
+ * Locales disponibles: en, fr, ja
+ */
+export const translateService = new TranslateService();
+export { Locale };
