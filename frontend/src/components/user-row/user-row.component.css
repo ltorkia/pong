@@ -2,12 +2,19 @@
 
 	/* GRID RESPONSIVE */
 	.user-line {
-		@apply w-[20rem] grid items-center gap-1
+		@apply w-[20rem] grid items-center gap-1 border-l border-r border-white/20
 		tablet:gap-2 desktop:gap-3 wide:gap-6 extra-wide:gap-6
 		tablet:pr-2 tablet:py-2 tablet:w-[44rem] desktop:w-full;
 		grid-template-columns: auto auto .5fr;
 		grid-auto-flow: row;
 	}
+	.user-line:first-child {
+		@apply border-t;
+	}
+	.user-line:last-child {
+		@apply border-b;
+	}
+
 	.user-line > .user-cell, .user-line > .level-cell, .user-line > .button-cell {
 		grid-column: 1 / -1;
 		justify-self: center;
@@ -46,7 +53,7 @@
 	}
 	.avatar-img {
 		@apply w-20 h-20 md:w-20 md:h-20 object-cover object-center
-		rounded-full border border-white/65 flex-shrink-0 float-left
+		rounded-full border border-white/30 flex-shrink-0 float-left
 		tablet:w-16 tablet:h-16 tablet:float-none;
 	}
 
@@ -68,13 +75,13 @@
 	}
 
 	#user-list .user-line {
-		@apply bg-white/50;
+		@apply bg-[#ffffff4d];
 	}
 	#user-list .user-line:not(:last-child, .line-offline) {
-		@apply border-b border-b-white/40;
+		@apply border-b border-b-white/20;
 	}
 	#user-list .user-line.line-offline {
-		@apply bg-[#acc0dda8];
+		@apply bg-[#acc0dd40];
 	}
 	#user-list .user-line.line-offline:not(:last-child) {
 		@apply border-b border-b-white/20;
@@ -91,8 +98,8 @@
 	}
 	#user-list .user-line .profile-button {
 		@apply custom-btn w-14 text-3xl cursor-pointer
-		text-[#b0bfbf] font-light bg-pastel-blue/90 shadow-none
-		hover:bg-pastel-blue/100 hover:shadow-none
+		text-[#b0bfbf] font-light bg-pastel-blue/70 shadow-none
+		hover:bg-pastel-blue/90 hover:shadow-none
 		tablet:w-auto;
 	}
 	#user-list .user-line .winrate-cell {
@@ -103,20 +110,21 @@
 
 	#user-list .user-line:first-child .profile-button,
 	#user-list .user-line:first-child .winrate-cell {
-		@apply border-white/30;
+		@apply border-[#ffffff3b];
 	}
 	#user-list .user-line.line-offline .winrate-cell {
-		@apply border-white/40;
+		@apply border-white/20;
 	}
 	#user-list .user-line:not(:first-child) .winrate-cell {
-		@apply bg-[#5e8ca5];
+		@apply bg-[#16412933];
 	}
 	#user-list .user-line .winrate-cell {
 		@apply shadow-none hover:shadow-none;
+    	text-shadow: 1px 1px 1px #00000061;
 	}
 	#user-list .user-line:not(:first-child, .line-offline) .winrate-cell,
 	#user-list .user-line:not(:first-child) .profile-button {
-		@apply border-white/50;
+		@apply border-[#ffffff45];
 	}
 
 	.user-line.line-offline .button-cell button {
@@ -145,7 +153,6 @@
 		@apply font-title text-gray-100
 		border border-white/65 rounded-lg px-2 py-0
 		bg-pastel-blue font-bold
-		bg-gradient-to-r from-blue-500 to-pastel-blue
 		absolute bottom-0 left-1/2 -translate-x-1/2 -translate-y-1 -rotate-3
 		max-w-[100px] leading-normal break-words text-center
 		overflow-hidden text-ellipsis whitespace-nowrap
@@ -167,7 +174,7 @@
 		@apply bg-[#555] drop-shadow-[0_0_6px_#696969];
 	}
 	.online {
-		@apply bg-[#208b47] drop-shadow-[0_0_6px_#7ac396];
+		@apply bg-[#386749] drop-shadow-[0_0_6px_#7ac396];
 	}
 	.ingame {
 		@apply bg-yellow-500 drop-shadow-[0_0_6px_#eab308];
@@ -176,6 +183,8 @@
 	.log-cell {
 		@apply font-bold text-gray-700 text-xs hidden
 		wide:block;
+
+		text-shadow: 1px 1px 2px #ffffff6b;
 	}
 
 	.button-cell {

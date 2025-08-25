@@ -232,7 +232,7 @@ export class UsersPage extends BasePage {
 			if (userLine) {
 				userLine.id = instanceKey;
 				if (user.id === this.currentUser!.id) {
-					(userLine as HTMLElement).style.backgroundColor = '#5e8ca591';
+					(userLine as HTMLElement).style.backgroundColor = '#5e8ca570';
 				}
 				this.removeUser(user);
 				userLine.classList.add('animate-fade-in-up');

@@ -36,6 +36,7 @@
 	/* Filtres */
 	.filters-container {
 		@apply flex flex-wrap items-center gap-2 justify-end mt-5 pt-3 border-t border-white/10
+		p-3 rounded-[100px] bg-[linear-gradient(179deg,#0000000d,transparent,transparent,transparent)]
 		tablet:gap-8;
 	}
 

@@ -10,7 +10,7 @@
 		@apply tablet:ml-3;
 	}
 	.pagination-style {
-		@apply text-sm text-white font-semibold font-classic px-3 py-1 
+		@apply text-xs text-white font-light tracking-wider font-classic px-3 py-1 
 		border border-white/20 bg-white/10 backdrop-blur-md rounded;
 	}
 	.default-btn-page {
