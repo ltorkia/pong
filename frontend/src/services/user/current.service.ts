@@ -59,9 +59,9 @@ export class CurrentService {
 		storageService.setCurrentUser(this.currentUser);
 
 		// Ouvre WS si pas déjà ouvert
-		if (!webSocketService.getWebSocket()) {
+		const ws = webSocketService.getWebSocket();
+		if (!ws || ws.readyState === WebSocket.CLOSED)
 			webSocketService.openWebSocket();
-		}
 	}
 
 	/**
@@ -101,6 +101,7 @@ export class CurrentService {
 	 * 
 	 * - Met l'utilisateur courant à null.
 	 * - Supprime l'entrée "currentUser" du localStorage.
+	 * - Ferme le WebSocket de l'utilisateur.
 	 * 
 	 */
 	public clearCurrentUser() {
@@ -109,6 +110,7 @@ export class CurrentService {
 		}
 		this.currentUser = null;
 		storageService.clearCurrentUser();
+		webSocketService.closeWebSocket();
 	}
 
 	/**
