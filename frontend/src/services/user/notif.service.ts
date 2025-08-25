@@ -31,7 +31,6 @@ export class NotifService {
 	private notifDeleteHandlers: Map<number, EventListener> = new Map();
 
 	public currentNotif: AppNotification | null = null;
-	public notifFromCurrentFlag: boolean = false;
 	public friendId: number | null = null;
 
 	// ===========================================

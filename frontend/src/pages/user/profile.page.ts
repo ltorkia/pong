@@ -58,14 +58,14 @@ export class ProfilePage extends BasePage {
             tournamentLosses: 8,
             lastRoundReached: 4,
 			friends: [
-				{ id: 2, username: "BLA", avatar: this.currentUserAvatarURL },
-				{ id: 3, username: "SILVER", avatar: this.currentUserAvatarURL }
+				{ id: 2, username: "ELISA", avatar: this.currentUserAvatarURL },
+				{ id: 3, username: "KIKI", avatar: this.currentUserAvatarURL }
 			],
 			matchHistory: [
 				{
 					id: 1,
 					player1: { username: "LEE", avatar: this.currentUserAvatarURL },
-					player2: { username: "BLA", avatar: this.currentUserAvatarURL },
+					player2: { username: "ELISA", avatar: this.currentUserAvatarURL },
 					score: "11 - 8",
 					winner: "LEE",
 					date: "2025-01-15T14:30:00Z"
@@ -73,9 +73,9 @@ export class ProfilePage extends BasePage {
 				{
 					id: 2,
 					player1: { username: "LEE", avatar: this.currentUserAvatarURL },
-					player2: { username: "SILVER", avatar: this.currentUserAvatarURL },
+					player2: { username: "KIKI", avatar: this.currentUserAvatarURL },
 					score: "7 - 11",
-					winner: "SILVER",
+					winner: "KIKI",
 					date: "2025-01-14T19:45:00Z"
 				}
 			]

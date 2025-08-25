@@ -43,7 +43,7 @@ export async function notificationsRoutes(app: FastifyInstance) {
 			}
 			return reply.code(200).send({ notif });
 		} catch (err) {
-			return reply.code(500).send({ errorMessage: 'Error server' });
+			return reply.code(500).send({ errorMessage: err });
 		}
 	});
 
