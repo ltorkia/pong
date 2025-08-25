@@ -43,12 +43,7 @@ export class AuthApi {
 		const data: UserModel = await res.json();
 
 		// Stockage sécurisé via le store
-		currentService.setCurrentUserFromServer(data);
-
-		// Si pas de websocket ouvert, on l'ouvre
-		if (!webSocketService.getWebSocket()) {
-			webSocketService.openWebSocket();
-		}
+		await currentService.setCurrentUserFromServer(data);
 
 		// Instance avec email en mémoire
 		return currentService.getCurrentUser() as User;
@@ -99,8 +94,6 @@ export class AuthApi {
 		if (!res.ok || data.errorMessage || !data.user) {
 			return { errorMessage: data.errorMessage || data.message || 'Erreur avec la récupération de l\'utilisateur' } as AuthResponse;
 		}
-		if (!webSocketService.getWebSocket())
-			webSocketService.openWebSocket();
 		await currentService.setCurrentUserFromServer(data.user);
 		return data as AuthResponse;
 	}
@@ -217,7 +210,7 @@ export class AuthApi {
 		if (!res.ok || data.errorMessage || !data.user) {
 			return { errorMessage: data.errorMessage || data.message || 'Erreur lors de la connexion Google' };
 		}
-		currentService.setCurrentUserFromServer(data.user);
+		await currentService.setCurrentUserFromServer(data.user);
 		return data as AuthResponse;
 	}
 
