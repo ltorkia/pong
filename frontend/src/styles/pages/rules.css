@@ -1,0 +1,55 @@
+@layer components {
+
+	#rules {
+		@apply max-w-[700px] mx-auto bg-white/[0.05] rounded-[20px] 
+		p-5 tablet:p-[40px] backdrop-blur-[10px] border border-white/[0.1] 
+		shadow-[0_20px_40px_rgba(0,0,0,0.3)];
+	}
+	#rules ul {
+		@apply list-none pl-0;
+	}
+	#rules li {
+		@apply my-[10px] mx-0 pl-5 relative text-[#b8c6db];
+	}
+
+	.section {
+		@apply mb-[35px] p-5 tablet:p-[25px] bg-white/10 rounded-[15px] 
+		border border-white/10 transition-[transform,box-shadow] duration-300 ease-[ease];
+	}
+
+	.section h2 {
+		@apply w-full border-b border-b-black/20 pb-3
+		text-xl text-[#183e46] tracking-wide uppercase mb-[15px] flex items-center font-semibold;
+	}
+
+	.section p {
+		@apply mb-3 text-[.9rem] text-black/80 leading-tight font-classic;
+	}
+
+	.controls-grid {
+		@apply grid grid-cols-1 tablet:grid-cols-2 gap-5 mt-[15px];
+	}
+
+	.player-control {
+		@apply bg-black/10 p-5 rounded-xl border border-pastel-blue/10 text-center;
+	}
+
+	.player-control h3 {
+		@apply text-pastel-blue font-bold mb-[10px] text-[1.4rem];
+	}
+	.player-control p {
+		@apply text-[.9rem];
+	}
+
+	.key {
+		@apply inline-block bg-gradient-to-br from-[#2a2a3a] to-[#1a1a2a] 
+		text-white/80 py-2 px-4 my-[5px] mx-[5px] rounded-lg font-bold font-mono text-[1.1rem] 
+		border-2 border-[rgba(0,212,255,0.3)] shadow-[0_4px_8px_rgba(0,0,0,0.3)];
+	}
+
+	.highlight {
+		@apply bg-black/10 p-[15px] rounded-[10px] font-classic
+		border border-pastel-blue/10 my-[15px] mx-0 text-[1rem];
+		text-shadow: 1px 1px 2px #6b6b6b;
+	}
+}

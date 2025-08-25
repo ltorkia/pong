@@ -52,6 +52,11 @@ export const DB_CONST = {
 } as const;
 
 /**
+ * Chemin vers l'image du chat pong.
+ */
+export const PONG_CAT_PATH = '/assets/img/design/pong.gif';
+
+/**
  * Constantes utilisées pour stocker des informations
  * relatives aux images d'avatar.
  */

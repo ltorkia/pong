@@ -1,8 +1,8 @@
 import { HomePage } from '../pages/user/home.page';
 import { RegisterPage } from '../pages/auth/register.page';
 import { LoginPage } from '../pages/auth/login.page';
-// import { GamePage } from '../pages/game/game.page';
 import { BoidsPage } from '../pages/game/boids.page';
+import { RulesPage } from '../pages/user/rules.page';
 import { UsersPage } from '../pages/user/users.page';
 import { ProfilePage } from '../pages/user/profile.page';
 import { SettingsPage } from '../pages/user/settings.page';
@@ -65,6 +65,7 @@ export const PAGE_NAMES = {
 	GAME_TOURNAMENT_LOBBY: 'Tournament Lobby',
 	GAME_TOURNAMENT_OVERVIEW: 'Tournament Overview',
 	BOIDS: 'Boids',
+	RULES: 'Rules',
 	USERS: 'Users',
 	PROFILE: 'Profile',
 	SETTINGS: 'Settings',
@@ -88,6 +89,7 @@ export const ROUTE_PATHS = {
 	GAME_TOURNAMENT_LOBBY: '/game/tournaments/:id/lobby',
 	GAME_TOURNAMENT_OVERVIEW: '/game/tournaments/:id/overview',
 	BOIDS: '/game/boids',
+	RULES: '/rules',
 	USERS: '/users',
 	PROFILE: '/user/:id',
 	LOGOUT: '/logout',
@@ -112,6 +114,7 @@ export const TEMPLATE_PATHS = {
 	GAME_TOURNAMENT_LOBBY: '/templates/game/tournament_lobby.html',
 	GAME_TOURNAMENT_OVERVIEW: '/templates/game/tournament_overview.html',
 	BOIDS: '/templates/game/boids.html',
+	RULES: '/templates/user/rules.html',
 	USERS: '/templates/user/users.html',
 	PROFILE: '/templates/user/profile.html',
 	SETTINGS: '/templates/user/settings.html',
@@ -250,6 +253,17 @@ export const routesConfig: RouteConfig[] = [
 		name: PAGE_NAMES.BOIDS,
 		pageConstructor: BoidsPage,
 		templatePath: TEMPLATE_PATHS.BOIDS,
+		components: {
+			[COMPONENT_NAMES.NAVBAR]: getComponentConfig(COMPONENT_NAMES.NAVBAR)
+		},
+		isPublic: false,
+		enableParticles: true
+	},
+	{
+		path: ROUTE_PATHS.RULES,
+		name: PAGE_NAMES.RULES,
+		pageConstructor: RulesPage,
+		templatePath: TEMPLATE_PATHS.RULES,
 		components: {
 			[COMPONENT_NAMES.NAVBAR]: getComponentConfig(COMPONENT_NAMES.NAVBAR)
 		},
