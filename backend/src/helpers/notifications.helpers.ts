@@ -52,7 +52,8 @@ export async function setOnlineStatus(app: FastifyInstance, userId: number, stat
 	let notifData: NotificationInput = {
 		type: status,
 		from: userId,
-		to: 0
+		to: 0,
+		read: 0
 	};
 	for (const userWS of app.usersWS) {
 		if (userId === userWS.id)
