@@ -1,0 +1,55 @@
+{
+	"nav": {
+		"game": "Game",
+		"players": "Players",
+		"dashboard": "Dashboard",
+		"profile": "Profile",
+		"settings": "Settings",
+		"logout": "Logout"
+	},
+
+	"home": {
+		"subtitle": "Ready to challenge the magical realm ?",
+		"rulesBtn": "Rules",
+		"localGameBtn": "Local Game",
+		"multiGameBtn": "Multiplayer Game",
+		"tournamentBtn": "Tournament"
+	},
+
+	"rules": {
+		"pageTitle": "Pong game rules",
+		"pageSubtitle": "You must follow",
+		"objective": {
+			"title": "Objective",
+			"text": "Score points by making the ball pass your opponent's paddle."
+		},
+		"gameplay": {
+			"title": "Gameplay",
+			"text1": "• The game is played by two players, each controlling a paddle on opposite sides of the screen.",
+			"text2": "• A ball moves continuously across the screen, bouncing off the top and bottom edges.",
+			"text3": "• Players move their paddles vertically to hit the ball back toward the opponent.",
+			"highlight": "If a player misses the ball and it goes past their paddle, the opponent scores a point."
+		},
+		"controls": {
+			"title": "Controls",
+			"player1": {
+				"title": "Player 1",
+				"text": "Move paddle up/down:"
+			},
+			"player2": {
+				"title": "Player 2",
+				"text": "Move paddle up/down:"
+			}
+		},
+		"scoring": {
+			"title": "Scoring",
+			"text": "Each time the ball passes the opponent's paddle, the scoring player earns 1 point.",
+			"highlight": "The first player to reach ?? points wins the game."
+		},
+		"tournament": {
+			"title": "Tournament",
+			"text": "• Bla bla bla."
+		}
+	}
+
+}

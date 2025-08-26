@@ -10,6 +10,7 @@ import { loadTemplate, getContainerApp, getHTMLElementById } from '../../utils/d
 import { APP_ID, DEFAULT_ROUTE } from '../../config/routes.config';
 import { COMPONENT_NAMES } from '../../config/components.config';
 import { LOADING_PAGE_ERR } from '../../config/messages.config';
+import { translateService } from '../../services/core/core.service';
 
 // ===========================================
 // BASE PAGE
@@ -26,7 +27,9 @@ export abstract class BasePage {
 	protected templatePath: string;
 	protected components?: Partial<Record<ComponentName, ComponentConfig>>;
 	protected componentInstances: Record<ComponentName | string, BaseComponent> = {};
+	protected navbarInstance?: NavbarComponent;
 	protected removeListenersFlag: boolean = true;
+	protected t = translateService.t.bind(translateService);
 
 	/**
 	 * Constructeur de la classe de base des pages.
@@ -71,6 +74,7 @@ export abstract class BasePage {
 	 * - Charge et rend les composants spécifiques à la page.
 	 * - Exécute les opérations de montage spécifiques à la page (injection dynamique d'infos).
 	 * - Attache les écouteurs d'événements nécessaires.
+	 * - Traduit les éléments HTML qui ont l'attribut data-ts (clé de traduction).
 	 * - En cas d'erreur, affiche un message d'erreur dans le conteneur.
 	 * 
 	 * @returns {Promise<void>} Une promesse qui se résout lorsque le rendu est terminé.
@@ -89,6 +93,7 @@ export abstract class BasePage {
 			await this.loadSpecificComponents();
 			await this.mount();
 			this.attachListeners();
+			translateService.updateLanguage();
 
 			console.log(`[${this.constructor.name}] Page montée, rendu terminé`);
 

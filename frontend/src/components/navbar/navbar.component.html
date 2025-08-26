@@ -20,37 +20,37 @@
 								<!-- Home / Game -->
 								<a href="/" class="group" data-link>
 									<i class="fa-solid fa-table-tennis-paddle-ball group-hover:text-cyan-300 no-hover-if-active"></i>
-									<span class="group-hover:text-cyan-300 no-hover-if-active">Game</span>
+									<span data-ts="nav.game" class="group-hover:text-cyan-300 no-hover-if-active">Game</span>
 								</a>
 
 								<!-- Users -->
 								<a href="/users" class="group" data-link>
 									<i class="fa-solid fa-users group-hover:text-cyan-300 no-hover-if-active"></i>
-									<span class="group-hover:text-cyan-300 no-hover-if-active">Players</span>
+									<span data-ts="nav.players" class="group-hover:text-cyan-300 no-hover-if-active">Players</span>
 								</a>
 
 								<!-- Dashboard -->
 								<a href="/dashboard" class="group" data-link>
 									<i class="fa-solid fa-chart-simple group-hover:text-cyan-300 no-hover-if-active"></i>
-									<span class="group-hover:text-cyan-300 no-hover-if-active">Dashboard</span>
+									<span data-ts="nav.dashboard" class="group-hover:text-cyan-300 no-hover-if-active">Dashboard</span>
 								</a>
 
 								<!-- Profile -->
 								<a href="/profile" class="group" data-link>
 									<i class="fa-solid fa-user group-hover:text-cyan-300 no-hover-if-active"></i>
-									<span class="group-hover:text-cyan-300 no-hover-if-active">Profile</span>
+									<span data-ts="nav.profile" class="group-hover:text-cyan-300 no-hover-if-active">Profile</span>
 								</a>
 
 								<!-- Settings -->
 								<a href="/settings" class="group" data-link>
 									<i class="fa-solid fa-gear group-hover:text-cyan-300 no-hover-if-active"></i>
-									<span class="group-hover:text-cyan-300 no-hover-if-active">Settings</span>
+									<span data-ts="nav.settings" class="group-hover:text-cyan-300 no-hover-if-active">Settings</span>
 								</a>
 
 								<!-- Logout -->
 								<a href="/logout" class="group">
 									<i class="fa-solid fa-right-from-bracket group-hover:text-cyan-300 no-hover-if-active"></i>
-									<span class="group-hover:text-cyan-300 no-hover-if-active">Logout</span>
+									<span data-ts="nav.logout" class="group-hover:text-cyan-300 no-hover-if-active">Logout</span>
 								</a>
 							</div>
 
@@ -74,6 +74,17 @@
 								</button>
 								<div id="chat-window" class="window hide z-30">
 									<span>TA MERE ELLE MANGE DES CRÊPES</span>
+								</div>
+
+								<div id="languages">
+									<select id="lang-switch" class="lang-box">
+										<option value="fr">🇫🇷</option>
+										<option value="en">🇬🇧</option>
+										<option value="ja">🇯🇵</option>
+									</select>
+									<div class="lang-arrow">
+										▼
+									</div>
 								</div>
 							</div>
 						</div>

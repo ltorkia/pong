@@ -1,4 +1,4 @@
-import { appService, routingService, pageService } from './core/core.service';
+import { appService, routingService, pageService, translateService } from './core/core.service';
 import { animationService, particlesService } from './ui/ui.service';
 import { authService, googleService, storageService, sessionService, currentService, dataService, friendService, notifService, webSocketService } from './user/user.service';
 
@@ -9,6 +9,6 @@ import { authService, googleService, storageService, sessionService, currentServ
  * Gèrent les logiques métier / ui de l'application.
  */
 
-export { appService, routingService, pageService };
+export { appService, routingService, pageService, translateService };
 export { animationService, particlesService };
 export { authService, googleService, storageService, sessionService, currentService, dataService, friendService, notifService, webSocketService };

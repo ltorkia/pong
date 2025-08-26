@@ -1,0 +1,54 @@
+{
+	"nav": {
+		"game": "Accueil",
+		"players": "Joueurs",
+		"dashboard": "Statistiques",
+		"profile": "Profil",
+		"settings": "Paramètres",
+		"logout": "Déconnexion"
+	},
+
+	"home": {
+		"subtitle": "Prêt·e à jouer dans nos contrées magiques ?",
+		"rulesBtn": "Règles",
+		"localGameBtn": "Partie locale",
+		"multiGameBtn": "Partie multijoueur",
+		"tournamentBtn": "Tournoi"
+	},
+
+	"rules": {
+		"pageTitle": "Règles du jeu Pong",
+		"pageSubtitle": "Vous devez suivre",
+		"objective": {
+			"title": "Objectif",
+			"text": "Marquez des points en faisant passer la balle devant la raquette de votre adversaire."
+		},
+		"gameplay": {
+			"title": "Déroulement du jeu",
+			"text1": "• Le jeu se joue à deux joueurs, chacun contrôlant une raquette sur un côté de l’écran.",
+			"text2": "• La balle se déplace en continu à travers l’écran, rebondissant sur les bords supérieur et inférieur.",
+			"text3": "• Les joueurs déplacent leurs raquettes verticalement pour renvoyer la balle vers l’adversaire.",
+			"highlight": "Si un joueur manque la balle et qu’elle dépasse sa raquette, l’adversaire marque un point."
+		},
+		"controls": {
+			"title": "Commandes",
+			"player1": {
+				"title": "Joueur 1",
+				"text": "Déplacez la raquette haut/bas :"
+			},
+			"player2": {
+				"title": "Joueur 2",
+				"text": "Déplacez la raquette haut/bas :"
+			}
+		},
+		"scoring": {
+			"title": "Score",
+			"text": "Chaque fois que la balle dépasse la raquette de l’adversaire, le joueur marque 1 point.",
+			"highlight": "Le premier joueur à atteindre ?? points gagne la partie."
+		},
+			"tournament": {
+			"title": "Tournoi",
+			"text": "• Bla bla bla."
+		}
+	}
+}
