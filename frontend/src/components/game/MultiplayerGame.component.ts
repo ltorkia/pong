@@ -1,7 +1,6 @@
 import { webSocketService } from "../../services/user/user.service";
 import { GameData } from "../../shared/types/game.types"
-
-const clamp = (val: number, min: number, max: number) => { return Math.min(Math.max(val, min), max) };
+import {PlayerBar, Ball} from "./BaseGame.component";
 
 const lerp = (a: number, b: number, t: number) => { return a + t * (b - a) };
 const getTargetTimestamp = (arr: number[], target: number) => {
@@ -15,71 +14,71 @@ const getTargetTimestamp = (arr: number[], target: number) => {
 }
 const BUFFER_DELAY = 100; // ms
 
-export class PlayerBar {
-    public oldState = { time: 0, x: 0, y: 0 };
-    public newState = { time: 0, x: 0, y: 0 };
-    public x: number;
-    public y: number;
-    public w: number;
-    public h: number;
-    public moveUnit: number;
-    private ctx: CanvasRenderingContext2D;
+// export class PlayerBar {
+//     public oldState = { time: 0, x: 0, y: 0 };
+//     public newState = { time: 0, x: 0, y: 0 };
+//     public x: number;
+//     public y: number;
+//     public w: number;
+//     public h: number;
+//     public moveUnit: number;
+//     private ctx: CanvasRenderingContext2D;
 
-    public draw(): void {
-        const xPixels = ((this.x + 1) / 2) * this.ctx.canvas.clientWidth;
-        const yPixels = (1 - ((this.y + 1) / 2)) * this.ctx.canvas.clientHeight;
-        const pixelWidth = this.w * (this.ctx.canvas.width / 2);
-        const pixelHeight = this.h * (this.ctx.canvas.clientHeight / 2);
-        this.ctx.fillStyle = "rgba(255, 255, 255)";
-        this.ctx.fillRect(
-            xPixels - pixelWidth / 2,
-            yPixels - pixelHeight / 2,
-            pixelWidth,
-            pixelHeight);
-    };
+//     public draw(): void {
+//         const xPixels = ((this.x + 1) / 2) * this.ctx.canvas.clientWidth;
+//         const yPixels = (1 - ((this.y + 1) / 2)) * this.ctx.canvas.clientHeight;
+//         const pixelWidth = this.w * (this.ctx.canvas.width / 2);
+//         const pixelHeight = this.h * (this.ctx.canvas.clientHeight / 2);
+//         this.ctx.fillStyle = "rgba(255, 255, 255)";
+//         this.ctx.fillRect(
+//             xPixels - pixelWidth / 2,
+//             yPixels - pixelHeight / 2,
+//             pixelWidth,
+//             pixelHeight);
+//     };
 
-    constructor(ctx: CanvasRenderingContext2D) {
-        this.x = 0;
-        this.y = 0;
-        this.w = 0;
-        this.h = 0;
-        this.moveUnit = 0;
-        this.ctx = ctx;
-    }
-};
+//     constructor(ctx: CanvasRenderingContext2D) {
+//         this.x = 0;
+//         this.y = 0;
+//         this.w = 0;
+//         this.h = 0;
+//         this.moveUnit = 0;
+//         this.ctx = ctx;
+//     }
+// };
 
-export class Ball {
-    public oldState = { time: 0, x: 0, y: 0 };
-    public newState = { time: 0, x: 0, y: 0 };
-    public x: number;
-    public y: number;
-    public radius: number;
-    public moveUnit: number;
-    private ctx: CanvasRenderingContext2D;
+// export class Ball {
+//     public oldState = { time: 0, x: 0, y: 0 };
+//     public newState = { time: 0, x: 0, y: 0 };
+//     public x: number;
+//     public y: number;
+//     public radius: number;
+//     public moveUnit: number;
+//     private ctx: CanvasRenderingContext2D;
 
-    draw() {
-        const xPixels = ((this.x + 1) / 2) * this.ctx.canvas.width;
-        const yPixels = (1 - ((this.y + 1) / 2)) * this.ctx.canvas.height;
-        const radiusPix = this.radius * (Math.min(this.ctx.canvas.width, this.ctx.canvas.height) / 2);
-        this.ctx.beginPath();
-        this.ctx.arc(
-            xPixels,
-            yPixels,
-            radiusPix, 0, Math.PI * 2, true
-        );
-        this.ctx.closePath();
-        this.ctx.fillStyle = "rgba(255, 255, 255)";
-        this.ctx.fill();
-    };
+//     draw() {
+//         const xPixels = ((this.x + 1) / 2) * this.ctx.canvas.width;
+//         const yPixels = (1 - ((this.y + 1) / 2)) * this.ctx.canvas.height;
+//         const radiusPix = this.radius * (Math.min(this.ctx.canvas.width, this.ctx.canvas.height) / 2);
+//         this.ctx.beginPath();
+//         this.ctx.arc(
+//             xPixels,
+//             yPixels,
+//             radiusPix, 0, Math.PI * 2, true
+//         );
+//         this.ctx.closePath();
+//         this.ctx.fillStyle = "rgba(255, 255, 255)";
+//         this.ctx.fill();
+//     };
 
-    constructor(ctx: CanvasRenderingContext2D) {
-        this.x = 0;
-        this.y = 0;
-        this.moveUnit = 0;
-        this.radius = 0.03;
-        this.ctx = ctx;
-    }
-};
+//     constructor(ctx: CanvasRenderingContext2D) {
+//         this.x = 0;
+//         this.y = 0;
+//         this.moveUnit = 0;
+//         this.radius = 0.03;
+//         this.ctx = ctx;
+//     }
+// };
 
 export class MultiPlayerGame {
     private gameCanvas: HTMLCanvasElement = document.createElement('canvas');
@@ -151,7 +150,7 @@ export class MultiPlayerGame {
         });
     };
 
-    private counter(): Promise<void> {
+    public counter(): Promise<void> {
         this.canvasCtx.font = "64px font-title";
         return new Promise((resolve) => {
             let counterIdx: number = 3;

@@ -121,3 +121,4 @@ public t(path: string): string {
 		this.translatePage();
 	}
 }
+// i18n ->librairie ou truc pour le faire en klks ligns aussi

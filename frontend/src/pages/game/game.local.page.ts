@@ -1,5 +1,6 @@
 import { BasePage } from '../base/base.page';
 import { RouteConfig } from '../../types/routes.types';
+import { LocalGame } from '../../components/game/Localgame.component';
 import { BaseGame } from '../../components/game/BaseGame.component';
 
 export class GameMenuLocal extends BasePage {
@@ -15,7 +16,8 @@ export class GameMenuLocal extends BasePage {
         const mainContainer = document.querySelector("#pong-section");
         while (mainContainer?.lastChild)
             mainContainer.removeChild(mainContainer.lastChild);
-        const gameInstance = new BaseGame(2);
+        const gameInstance = new LocalGame(2);
+        // const gameInstance = new BaseGame(1, );
         gameInstance.initGame();
     }
 

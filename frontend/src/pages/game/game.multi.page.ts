@@ -58,12 +58,13 @@ export class GameMenuMulti extends BasePage {
         }
     }
 
-    private initGame(playerID: number, gameID: number): void {
+    private async initGame(playerID: number, gameID: number): Promise<void> {
         const allChildren = document.getElementById("pong-section");
         while (allChildren?.firstChild)
             allChildren.firstChild.remove();
         this.game = new MultiPlayerGame(2, playerID, gameID);
-        this.game.initGame();
+        // await this.game.counter(); //a voir ou le rajouter
+        await this.game.initGame();
     }
 
     private showEndGamePanel(): void {
@@ -136,5 +137,5 @@ export class GameMenuMulti extends BasePage {
 	}
 }
 
-// TODO = gerer les parties interrompues en cours de jeu -> ajout du score des 2 utilisateurs + check
+// TODO = gerer les parties interrompues en cours de jeu -> ajout du score des 2 utilisateurs + check ? Ou juste refetch quand actualisation et maj des parties abandonnees ? jsp
 // TODO = affichage result -> le remettre au milieu ? 
