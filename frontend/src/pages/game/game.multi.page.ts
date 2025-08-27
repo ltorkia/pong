@@ -36,13 +36,15 @@ export class GameMenuMulti extends BasePage {
         }
     }
 
-    private async sendMatchMakingRequest(confirm : boolean): Promise<void> {
-        let message = "matchmaking_request";
-        if (confirm === false)
-            message = "no_matchmaking_request";
+    private async sendMatchMakingRequest(type : string): Promise<void> {
+        // let message = "matchmaking_request";
+        // if (type = "quit")
+        //     message = "no_matchmaking_request";
+        // else if (type = "local")
+        //     message = "local";
             
         const matchMakingReq: MatchMakingReq = {
-            type: message,
+            type: type,
             playerID: this.currentUser!.id,
         }
         const res = await fetch("/api/game/multiplayer", {
@@ -77,7 +79,7 @@ export class GameMenuMulti extends BasePage {
         this.controlNodesDown = document.querySelectorAll(".control");
         if (event.key == " " && this.isSearchingGame === false) { //TODO : creer un bouton pour lancer le jeu et replay pour sendmatchmaquingrequest pour eviter de le lancer en dehors de la page jeu
             this.isSearchingGame = true;                
-            this.sendMatchMakingRequest(true);
+            this.sendMatchMakingRequest("matchmaking_request");
             this.appendWaitText();
         }
         for (const node of this.controlNodesDown) {
@@ -131,7 +133,7 @@ export class GameMenuMulti extends BasePage {
     protected removeListeners(): void {
 		document.removeEventListener("keydown", this.handleKeyDown);
 		document.removeEventListener("keyup", this.handleKeyup);
-        this.sendMatchMakingRequest(false);
+        this.sendMatchMakingRequest("no_matchmaking_request");
         console.log("@@@@@@@@@@@@@@@@@@@ romove");
 
 	}

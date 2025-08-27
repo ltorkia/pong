@@ -223,7 +223,7 @@ export class LocalGame {
         this.gameCanvas.style.border = "1px solid black";
         canvasContainer.append(this.gameCanvas);
         this.initSizePos();
-        // await this.counter();
+        await this.counter();
         this.clearFillStyle = 0.3;
         this.attachListeners();
         this.gameStarted = true;

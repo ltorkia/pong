@@ -127,8 +127,8 @@ export class BaseGame {
 
     protected attachListeners(): void {
         document.addEventListener("keydown", (event) => {
-            if ((event.key == "w" && this.inputUp == true) || (event.key == "s" && this.inputDown == true))
-                return;
+            if ((event.key == "w" && this.inputUp == true) || (event.key == "s" && this.inputDown == true) || (event.key == "arrowUp" && this.inputDown == true) || (event.key == "arrowDown" && this.inputDown == true))
+                return; //ptet ajoutr arrowup et arrowdown
             this.playerWebSocket.send(JSON.stringify({
                 type: "movement",
                 playerID: this.playerID,
@@ -138,7 +138,7 @@ export class BaseGame {
             }))
         });
         document.addEventListener("keyup", (event) => {
-            if ((event.key == "w" && this.inputUp == true) || (event.key == "s" && this.inputDown == true))
+            if ((event.key == "w" && this.inputUp == true) || (event.key == "s" && this.inputDown == true) || (event.key == "arrowUp" && this.inputDown == true) || (event.key == "arrowDown" && this.inputDown == true))
                 return;
             this.playerWebSocket.send(JSON.stringify({
                 type: "movement",

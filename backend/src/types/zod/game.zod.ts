@@ -49,7 +49,7 @@ export const DismantleTournamentSchema = z.object({
 });
 
 export const MatchMakingReqSchema = z.object({
-    type: z.enum(["matchmaking_request", "no_matchmaking_request"]),
+    type: z.enum(["matchmaking_request", "no_matchmaking_request", "local"]),
     playerID: z.number(),
 });
  

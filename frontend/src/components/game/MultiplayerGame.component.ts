@@ -100,6 +100,7 @@ export class MultiPlayerGame {
     private frameTimings: number[] = [];
     private testStartTime = 0;
     private stutterCount = 0;
+    private kindOfGame: string = "multi";
 
 
     constructor(playersCount: number, playerID: number, gameID: number) {

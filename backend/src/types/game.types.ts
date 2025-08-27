@@ -92,6 +92,8 @@ export class Game {
     private isOver: boolean = false;
     private score: number[] = [];
     public gameIDforDB: number = 0; // a voir
+    // public type: string;
+    // public sidePlayer: string; //dans player plutot
     // private async addGame(userId1: number, userId2: number): Promise<number> ;
     // private async resultGame(gameId: number, winnerId: number, looserId: number);
 
@@ -128,7 +130,7 @@ export class Game {
                 return (this.checkScore());
             const now = Date.now();
             if (now - then < fps) {
-                console.log(`i did sleep at frame ${frame}`);
+                // console.log(`i did sleep at frame ${frame}`);
                 await sleep(fps - (now - then));
             }
             frame++;
@@ -207,7 +209,24 @@ export class Game {
         }
     };
 
-    public registerInput(playerID: number, key: string, status: boolean): void {
+    public registerInputLocal(playerID: number, key: string, status: boolean): void { //peut etre ajouter le type de jeu jsp
+        for (const player of this.players) {
+             if (player.ID == playerID) {
+        //     if (player.sidePlayer === "left") {
+                if (key == "w" && player.inputUp != status) player.inputUp = status;
+                else if (key == "s" && player.inputDown != status) player.inputDown = status;
+            }
+            // if (player.sidePlayer === "right") {
+            else {
+                if (key == "ArrowUp" && player.inputUp != status) player.inputUp = status;
+                else if (key == "ArrowDown" && player.inputDown != status) player.inputDown = status;
+            }
+            }
+        // }
+        // }
+    };
+
+    public registerInput(playerID: number, key: string, status: boolean): void { //peut etre ajouter le type de jeu jsp
         for (const player of this.players) {
             if (player.ID == playerID) {
                 if (key == "w" && player.inputUp != status) player.inputUp = status;
