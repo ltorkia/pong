@@ -186,7 +186,7 @@ export class Game {
                     type: "end",
                     score: this.score
                 }));
-            console.log("////////////////////////////////////////////////////////////////////////player = ", player, "score = ", this.score);
+            // console.log("////////////////////////////////////////////////////////////////////////player = ", player, "score = ", this.score);
         }
         let winner = this.players[1];
         let looser = this.players[0];

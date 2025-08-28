@@ -1,5 +1,9 @@
 import { BasePage } from '../base/base.page';
 import { RouteConfig } from '../../types/routes.types';
+import { webSocketService } from '../../services/user/user.service';
+import { MatchMakingReq } from '../../shared/types/websocket.types';
+import { MultiPlayerGame } from '../../components/game/MultiplayerGame.component';
+
 
 // ===========================================
 // GAME PAGE
@@ -43,7 +47,6 @@ import { RouteConfig } from '../../types/routes.types';
  * 		- mettre à jour la liste des composants de GamePage dans la config routes.config.ts
  * 		- intégrer le composant à ta page...
  */
-
 export class GamePage extends BasePage {
 	/**
 	 * GamePage hérite de BasePage (frontend/src/pages/base.page.ts) qui:
@@ -53,225 +56,110 @@ export class GamePage extends BasePage {
 	 * 
 	 * ! Voir les propriétés + méthodes de surcharge qui peuvent être utilisées ici.
 	 */
+    protected webSocket!: WebSocket | undefined;
+	protected gameStarted: boolean = false;
+	protected game?: MultiPlayerGame;
+	protected finalScore: number[] = [];
+	protected controlNodesUp!: NodeListOf<HTMLElement>;
+	protected controlNodesDown!: NodeListOf<HTMLElement>;
+	protected isSearchingGame: boolean = false;
 
-	// static PlayerBar = class {
-	// 	x: number;
-	// 	y: number;
-	// 	w: number;
-	// 	h: number;
-	// 	ctx: CanvasRenderingContext2D;
-	// 	draw() {
-	// 		this.ctx.fillStyle = "rgba(255, 0, 0)";
-	// 		this.ctx.fillRect(this.x, this.y - (this.h / 2), this.w, this.h);
-	// 		this.ctx.fillStyle = "rgba(0, 255, 0)";
-	// 		this.ctx.fillRect(this.x, this.y, 1, 1);
-	// 	};
-	// 	move(newY: number) {
-	// 		if (newY > 0 && this.y + newY + (this.h / 2) < this.ctx.canvas.clientHeight
-	// 		|| newY < 0 && this.y + newY - (this.h / 2) > 0)
-	// 			this.y += newY;
-	// 	};
-	// 	constructor(ctx: CanvasRenderingContext2D) {
-	// 		this.x = 0;
-	// 		this.y = 0;
-	// 		this.w = 20;
-	// 		this.h = 100;
-	// 		this.ctx = ctx;
-	// 	}
-	// }
 
-	// static Ball = class {
-	// 	x: number;
-	// 	y: number;
-	// 	vAngle: number;
-	// 	vSpeed: number;
-	// 	radius: number;
-	// 	ctx: CanvasRenderingContext2D;
-	// 	draw() {
-	// 		this.ctx.beginPath();
-	// 		this.ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, true);
-	// 		this.ctx.closePath();
-	// 		this.ctx.fillStyle = "rgba(0, 0, 255)";
-	// 		this.ctx.fill();
-	// 	};
-	// 	move() {
-	// 		this.x += Math.cos(this.vAngle * 0.0174533) * this.vSpeed;
-	// 		this.y += Math.sin(this.vAngle * 0.0174533) * this.vSpeed;
-	// 	};
-	// 	verticalCollision() {
-	// 		this.vAngle = (360 - this.vAngle) % 360;
-	// 	}
-	// 	horizontalCollision() {
-	// 		this.vAngle = (180 - this.vAngle + 360) % 360;
-	// 	}
-	// 	isGoingRight() {
-	// 		if ((this.vAngle >= 0 && this.vAngle <= 90) || (this.vAngle >= 270 && this.vAngle <= 360))
-	// 			return true;
-	// 		return false;
-	// 	};
-	// 	isGoingLeft() {
-	// 		if (this.vAngle >= 90 && this.vAngle < 270)
-	// 			return true;
-	// 		return false;
-	// 	}
-	// 	constructor(ctx: CanvasRenderingContext2D) {
-	// 		this.x = 0;
-	// 		this.y = 0;
-	// 		this.vAngle = 30;
-	// 		this.vSpeed = 5;
-	// 		this.radius = 10;
-	// 		this.ctx = ctx;
-	// 	}
-	// }
-    // private gameCanvas: HTMLCanvasElement = document.createElement('canvas');
-    // private canvasCtx: CanvasRenderingContext2D = this.gameCanvas.getContext("2d", {alpha: true})!;
-	// private playerOne = new GamePage.PlayerBar(this.canvasCtx);
-	// private playerTwo = new GamePage.PlayerBar(this.canvasCtx);
-	// private ball = new GamePage.Ball(this.canvasCtx);
-	// private frameReq: number = 0;
-	// private gameStarted: boolean = false;
-	// // private hitAnimationOn: boolean = false;
-	// private inputs: {[key: string]: boolean} = {
-	// 	"w": false,
-	// 	"s": false,
-	// 	"ArrowUp": false,
-	// 	"ArrowDown": false
-	// };
+    protected insertNetworkError(): void {
+        const errorDiv = document.createElement("div");
+        errorDiv.textContent = "Network error. Please try again later";
+        document.getElementById("pong-section")!.append(errorDiv);
+    }
+
+    protected async sendMatchMakingRequest(type : string): Promise<void> {
+        const message = type;         
+        const matchMakingReq: MatchMakingReq = {
+            type: message,
+            playerID: this.currentUser!.id,
+        }
+        console.log("matchMakingReq = ", matchMakingReq);
+        const res = await fetch("/api/game/playgame", {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(matchMakingReq),
+            credentials: 'include',
+        });
+        if (!res.ok) {
+            const error = await res.json();
+            console.error(error.error);
+            return;
+        }
+    }
+
+
+    protected async initGame(playerID: number, gameID: number): Promise<void> {
+        const allChildren = document.getElementById("pong-section");
+        while (allChildren?.firstChild)
+            allChildren.firstChild.remove();
+        this.game = new MultiPlayerGame(2, playerID, gameID);
+        // await this.game.counter(); //a voir ou le rajouter
+        await this.game.initGame();
+    }
+
+    protected showEndGamePanel(): void {
+        const panel = document.getElementById("endgame-panel")!;
+        panel.classList.remove("hidden");
+        panel.innerText = `Result = ${this.finalScore[0]} : ${this.finalScore[1]}`;
+    }
 
 	constructor(config: RouteConfig) {
-		// super() = appelle le constructeur du parent BasePage et lui transmet la config de la page Game.
-		// avec le container et le chemin du template HTML pour injecter la page.
 		super(config);
+		this.webSocket = webSocketService.getWebSocket();
 	}
 	
 	protected async mount(): Promise<void> {
 		// this.initGame();
 	}
 
-	// Les potentiels events de la page ?
-	protected attachListeners(): void {
-		// document.addEventListener("keydown", (event) => {
-		// 	if (event.key in this.inputs) {
-		// 		this.inputs[event.key] = true;
-		// 	}
-		// });
-		// document.addEventListener("keyup", (event) => {
-		// 	if (event.key in this.inputs) {
-		// 		this.inputs[event.key] = false;
-		// 	}
-		// });
-	}
+	protected handleKeyDown = (event: KeyboardEvent): void => {};
+	protected handleKeyup = (event: KeyboardEvent): void => {};
 
-	// private createHitElement() {
-	// 	const x: number = this.ball.x;
-	// 	const y: number = this.ball.y;
-	// 	let radius: number = 10;
 
-	// 	return {
-	// 		getRadius() {
-	// 			radius += 1;
-	// 			return (radius);
-	// 		},
-	// 		getX() { return x; },
-	// 		getY() { return y; }
-	// 	}
-	// };
+    protected attachListeners() {
+        webSocketService.getWebSocket()!.addEventListener("message", async (event) => {
+            const msg = JSON.parse(event.data);
+            // console.log("@@@@@@@@@@@@@@@@@@@@@@msg = ", msg);
+            if (msg.type == "start_game") {
+                console.log(`game starts ! id = ${msg.gameID}`);
+                // this.game!.clearScreen(); 
+                // document.querySelector("endgame-panel")?.remove();
+                this.gameStarted = true;
+                await this.initGame(this.currentUser!.id, msg.gameID);
+            } else if (msg.type == "end" && this.gameStarted) {
+                this.game!.gameStarted = false;
+                this.isSearchingGame = false;
+                this.game!.setScore(msg.score);
+                console.log("END GAME DETECTED")
+                this.game!.clearScreen();
+                document.querySelector("canvas")?.remove();
+                // document.querySelector("#pong-section")!.remove(); //pour permettre de voir le jeu si on decide de le relancer direct avec le meme joueur
+                this.finalScore = this.game!.getScore(); //TODO = clean le final score je sais pas ou et le show en haut
+                this.showEndGamePanel();
+            } else if (msg.type == "GameData") {
+                this.game!.registerGameData(msg);
+                this.game!.setScore(msg.score);
+            } else if (msg.type == "msg")
+                console.log(msg.msg);
+        })
+        this.webSocket?.addEventListener("error", (event) => {
+            console.log(event);
+        })
+        document.addEventListener("keydown", this.handleKeyDown);
+        document.addEventListener("keyup", this.handleKeyup);
+    }
 
-	// private hitAnimation(): void {
-	// 	let hit;
-	// 	if (!this.hitAnimationOn)
-	// 	{
-	// 		this.hitAnimationOn = true;
-	// 		hit = this.createHitElement();
-	// 	}
-	// 	if (hit != undefined)
-	// 	{
-	// 		this.canvasCtx.strokeStyle = "green";
-	// 		this.canvasCtx.beginPath();
-	// 		this.canvasCtx.arc(hit.getX(), hit.getY(), hit.getRadius(), 0, Math.PI * 2, true);
-	// 		this.canvasCtx.stroke();
-	// 		console.log(hit.getRadius());
-	// 	}
-	// }
+    protected removeListeners(): void {
+        document.removeEventListener("keydown", this.handleKeyDown);
+        document.removeEventListener("keyup", this.handleKeyup);
+        this.sendMatchMakingRequest("no_matchmaking_request"); //peut etre optionnel
+        console.log("@@@@@@@@@@@@@@@@@@@ romove");
 
-    // private clearScreen(ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement): void {
-	// 	this.canvasCtx.globalCompositeOperation = 'destination-out';
-	// 	this.canvasCtx.fillStyle = "rgba(0, 0, 0, 0.3)";
-    //     this.canvasCtx.fillRect(0, 0, this.gameCanvas.width, this.gameCanvas.height);
-	// 	this.canvasCtx.globalCompositeOperation = 'source-over';
-    // }
-
-	// private checkCollision(): void {
-	// 	if (this.ball.isGoingRight() && this.ball.x >= this.playerTwo.x) {
-	// 		if ((this.ball.y < this.playerTwo.y - this.playerTwo.h / 2) || (this.ball.y > this.playerTwo.y + this.playerTwo.h / 2)) {
-	// 			this.gameStarted = false;
-	// 			console.log("player two lost !");
-	// 			window.cancelAnimationFrame(this.frameReq);
-	// 		}
-	// 		else {
-	// 			// this.hitAnimation();
-	// 			this.ball.horizontalCollision();
-	// 		}
-	// 	} else if (this.ball.isGoingLeft() && this.ball.x <= this.playerOne.x + this.playerOne.w)
-	// 	{
-	// 		if ((this.ball.y < this.playerOne.y - this.playerOne.h / 2) || (this.ball.y > this.playerOne.y + this.playerOne.h / 2)) {
-	// 			this.gameStarted = false;
-	// 			console.log("player one lost !");
-	// 		}
-	// 		else {
-	// 			// this.hitAnimation
-	// 			this.ball.horizontalCollision();
-	// 		}
-	// 	}
-	// 	else if (this.ball.y <= 0 || this.ball.y >= this.gameCanvas.height)
-	// 		this.ball.verticalCollision();
-	// }
-	
-	// private checkPlayerMovement(): void {
-	// 	for (const input in this.inputs) {
-	// 		if (input === "w" && this.inputs[input] === true)
-	// 			this.playerOne.move(-10);
-	// 		else if (input === "s" && this.inputs[input] === true)
-	// 			this.playerOne.move(10);
-	// 		else if (input === "ArrowUp" && this.inputs[input] === true)
-	// 			this.playerTwo.move(-10);
-	// 		else if (input === "ArrowDown" && this.inputs[input] === true)
-	// 			this.playerTwo.move(10);
-	// 	}
-	// }
-
-	// private gameLoop = () => {
-	// 	if (this.gameStarted === false)
-	// 		return ;
-    //     this.clearScreen(this.canvasCtx, this.gameCanvas);
-	// 	this.playerOne.draw();
-	// 	this.playerTwo.draw();
-	// 	this.checkCollision();
-	// 	this.checkPlayerMovement();
-	// 	this.ball.move();
-	// 	this.ball.draw();
-	// 	// if (this.hitAnimationOn)
-	// 		// this.hitAnimation();
-	// 	this.canvasCtx.filter = 'none';
-    //     requestAnimationFrame(this.gameLoop);
-	// }
-
-	// private initGame(): void {
-    //     const canvasContainer: HTMLElement = document.getElementById("pong-section")!;
-    //     canvasContainer.style.border = "1px solid black";
-	// 	this.gameCanvas.height = canvasContainer.getBoundingClientRect().height;    // will need to update that every frame later (responsiveness)
-	// 	this.gameCanvas.width = canvasContainer.getBoundingClientRect().width;
-	// 	this.playerOne.y = this.playerTwo.y = this.gameCanvas.height / 2;
-	// 	this.playerTwo.x = this.gameCanvas.width - this.playerTwo.w;
-	// 	this.ball.x = this.gameCanvas.width / 2;
-	// 	this.ball.y = this.gameCanvas.height / 2;
-	// 	this.gameCanvas.style.border = "1px solid black";
-    //     canvasContainer.append(this.gameCanvas);
-	// 	if (this.gameStarted === false) {	
-	// 		this.frameReq = requestAnimationFrame(this.gameLoop);
-	// 		this.gameStarted = true;
-	// 	}
-	// }
+    }
 
 	// Amuse-toi biiiiiiennnnnnn ! =D
 }
