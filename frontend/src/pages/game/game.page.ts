@@ -77,7 +77,7 @@ export class GamePage extends BasePage {
             type: message,
             playerID: this.currentUser!.id,
         }
-        console.log("matchMakingReq = ", matchMakingReq);
+        // console.log("matchMakingReq = ", matchMakingReq);
         const res = await fetch("/api/game/playgame", {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -97,14 +97,40 @@ export class GamePage extends BasePage {
         while (allChildren?.firstChild)
             allChildren.firstChild.remove();
         this.game = new MultiPlayerGame(2, playerID, gameID);
-        // await this.game.counter(); //a voir ou le rajouter
         await this.game.initGame();
     }
+// app.get('/:id/games', async(request: FastifyRequest, reply: FastifyReply) => {
+// 		const { id } = request.params as { id: number };
+// 		if (isNaN(id))
+// 			return reply.status(403).send({ errorMessage: 'Forbidden' });
+// 		const games = await getUserGames(id);
+// 		if (!games)
+// 			return reply.code(404).send({ errorMessage: 'User not found'});
+// 		return games;
+// 	})
+    // protected async showEndGamePanel(userID: number, gameID: number): promise<game>{
+    //     const panel = document.getElementById("pong-section")!;
+    //     // const panel = document.getElementById("endgame-panel")!;
+    //     panel.classList.remove("hidden");
+    //     panel.innerText = `Result = ${this.finalScore[0]} : ${this.finalScore[1]}`;
+    //        const res = await fetch(`/api/user/${userID}/games`, {
+    //         method: 'GET',
+    //         headers: { 'Content-Type': 'application/json' },
+    //         credentials: 'include',
+    //     });     
+    // }
 
     protected showEndGamePanel(): void {
-        const panel = document.getElementById("endgame-panel")!;
+        const panel = document.getElementById("pong-section")!;
+        // const panel = document.getElementById("endgame-panel")!;
         panel.classList.remove("hidden");
         panel.innerText = `Result = ${this.finalScore[0]} : ${this.finalScore[1]}`;
+    }
+
+    protected showTimer(time : number): void {
+        const panel = document.getElementById("pong-section")!;
+        panel.classList.remove("hidden");
+        panel.innerText = `Lets play in ... ${time}`;
     }
 
 	constructor(config: RouteConfig) {
@@ -129,7 +155,15 @@ export class GamePage extends BasePage {
                 // this.game!.clearScreen(); 
                 // document.querySelector("endgame-panel")?.remove();
                 this.gameStarted = true;
-                await this.initGame(this.currentUser!.id, msg.gameID);
+            }
+            // if (msg.type == "adversary") {
+            //     //afficher le nom de l adversaire + avatar ? 
+            // }
+            else if (msg.type == "decount_game") 
+            {
+                this.showTimer(msg.message);
+                if (msg.message == 1)
+                    await this.initGame(this.currentUser!.id, msg.gameID);
             } else if (msg.type == "end" && this.gameStarted) {
                 this.game!.gameStarted = false;
                 this.isSearchingGame = false;

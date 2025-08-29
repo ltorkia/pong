@@ -41,6 +41,8 @@ import { snakeToCamel, snakeArrayToCamel } from '../helpers/types.helpers';
 // 	);
 // }
 
+// export async function getResultGame 
+
 export async function addGame(userId1: number, userId2: number, tournament: boolean): Promise<number> {
     const db = await getDb();
 

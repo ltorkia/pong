@@ -47,3 +47,4 @@ export class GameMenuMulti extends GamePage {
 
 // TODO = gerer les parties interrompues en cours de jeu -> ajout du score des 2 utilisateurs + check ? Ou juste refetch quand actualisation et maj des parties abandonnees ? jsp
 // TODO = affichage result -> le remettre au milieu ? 
+// TODO = CLEAN SOCKET MOI PAS COMPRENDRE

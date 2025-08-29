@@ -61,6 +61,27 @@ export async function gameRoutes(app: FastifyInstance) {
     });
 }
 
+async function decount(app: FastifyInstance, players: Player[], gameID: number)
+{
+     const { usersWS } = app;
+     const webSockets: WebSocket[] = [];
+     for (let i = 3; i > 0; i--)
+     {
+        for (const player of players)
+        {
+            const user = usersWS.find((user: UserWS) => user.id == player.ID);
+                    if (user && user.WS) {
+                    user.WS.send(JSON.stringify({
+                        type: "decount_game",
+                        message: i,
+                        gameID: gameID,
+                    }));
+                }       
+            }
+        await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+}
+
 const startGame = async (app: FastifyInstance, players: Player[], mode: string) => {
     const { usersWS } = app;
     const { allGames } = app.lobby;
@@ -77,17 +98,18 @@ const startGame = async (app: FastifyInstance, players: Player[], mode: string) 
             user.WS.onmessage = (event: MessageEvent) => {
                 const msg: any = JSON.parse(event.data);
                 if (msg.type == "movement")
-                {
-                    // console.log("mode = ", mode);
-                    if (mode === "multi")
-                        newGame.registerInput(msg.playerID, msg.key, msg.status);
-                    if (mode === "local")
-                        newGame.registerInputLocal(msg.playerID, msg.key, msg.status);
+                    {
+                        // console.log("mode = ", mode);
+                        if (mode === "multi")
+                            newGame.registerInput(msg.playerID, msg.key, msg.status);
+                        if (mode === "local")
+                            newGame.registerInputLocal(msg.playerID, msg.key, msg.status);
+                    }
                 }
+                player.webSocket = user.WS;
             }
-            player.webSocket = user.WS;
         }
-    }
+        await decount(app, players, gameID);
     const newGame = new Game(2, players);
     if (mode === "local")
         newGame.gameIDforDB = await addGame(players[0].ID, players[1].ID, false);
