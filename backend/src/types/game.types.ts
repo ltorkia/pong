@@ -181,6 +181,8 @@ export class Game {
         this.gameStarted = false;
         this.isOver = true;
         for (const player of this.players) {
+            if (player === this.players[1])
+                this.score = [this.score[1], this.score[0]];
             if (player.webSocket)
                 player.webSocket.send(JSON.stringify({
                     type: "end",
@@ -204,6 +206,13 @@ export class Game {
     private sendGameUpdate() {
         const gameUpdate = new GameData(this.players, this.ball, this.score);
         for (const player of this.players) {
+            if (this.players[1] == player)
+            {
+                gameUpdate.ball.x *=-1;
+                gameUpdate.players[1].pos.x *= -1;
+                gameUpdate.players[0].pos.x *= -1;
+                gameUpdate.score = [this.score[1], this.score[0]];
+            }
             if (player.webSocket)
                 player.webSocket.send(JSON.stringify(gameUpdate));
         }

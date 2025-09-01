@@ -1,7 +1,9 @@
-import { Player } from './game.types'
+import { Player } from './game.types';
+import { SafeUserModel} from './user.types';
 
 export type StartGame = {
     type: "start_game",
+    otherPlayer?: SafeUserModel,
     gameID: number,
 };
 

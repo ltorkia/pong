@@ -1,10 +1,12 @@
 import { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
-import { Player } from '../shared/types/game.types'
+import { Player } from '../shared/types/game.types';
+import { StartGame } from '../shared/types/websocket.types'
 import { Game } from '../types/game.types';
 import { generateUniqueID } from '../shared/functions'
 import { MatchMakingReqSchema } from '../types/zod/game.zod';
 import { UserWS } from '../types/user.types';
 import {addGame, resultGame } from '../db/game';
+import { getUser, getUserStats } from '../db/user';
 
 export async function gameRoutes(app: FastifyInstance) {
     app.post('/playgame', async (request: FastifyRequest, reply: FastifyReply) => {
@@ -65,7 +67,7 @@ async function decount(app: FastifyInstance, players: Player[], gameID: number)
 {
      const { usersWS } = app;
      const webSockets: WebSocket[] = [];
-     for (let i = 3; i > 0; i--)
+     for (let i = 3; i >= 0; i--)
      {
         for (const player of players)
         {
@@ -78,7 +80,8 @@ async function decount(app: FastifyInstance, players: Player[], gameID: number)
                     }));
                 }       
             }
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        if (i !== 0)
+            await new Promise(resolve => setTimeout(resolve, 1000));
     }
 }
 
@@ -88,18 +91,28 @@ const startGame = async (app: FastifyInstance, players: Player[], mode: string) 
     const gameID = generateUniqueID(allGames);
     const webSockets: WebSocket[] = [];
 
+    const newGame = new Game(2, players);
+    let WSToSend = { type: "start_game", gameID: gameID} as StartGame;
+    
     for (const player of players) {
+        if (mode === "multi")
+        {
+            let otherUser;
+            if (player === players[0])
+                otherUser = await getUserStats(players[1].ID);
+            else
+                otherUser = await getUserStats(players[0].ID);
+            WSToSend =  { type: "start_game", otherPlayer: otherUser ,gameID: gameID};
+            console.log(WSToSend);
+        }
         const user = usersWS.find((user: UserWS) => user.id == player.ID);
+
         if (user && user.WS) {
-            user.WS.send(JSON.stringify({
-                type: "start_game",
-                gameID: gameID,
-            }));
+            user.WS.send(JSON.stringify(WSToSend));
             user.WS.onmessage = (event: MessageEvent) => {
                 const msg: any = JSON.parse(event.data);
                 if (msg.type == "movement")
                     {
-                        // console.log("mode = ", mode);
                         if (mode === "multi")
                             newGame.registerInput(msg.playerID, msg.key, msg.status);
                         if (mode === "local")
@@ -110,7 +123,6 @@ const startGame = async (app: FastifyInstance, players: Player[], mode: string) 
             }
         }
         await decount(app, players, gameID);
-    const newGame = new Game(2, players);
     if (mode === "local")
         newGame.gameIDforDB = await addGame(players[0].ID, players[1].ID, false);
     allGames.push(newGame);

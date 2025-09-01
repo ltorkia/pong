@@ -3,6 +3,8 @@ import { RouteConfig } from '../../types/routes.types';
 import { webSocketService } from '../../services/user/user.service';
 import { MatchMakingReq } from '../../shared/types/websocket.types';
 import { MultiPlayerGame } from '../../components/game/MultiplayerGame.component';
+import { Player } from '../../../../shared/types/game.types';
+import { SafeUserModel } from '../../../../shared/types/user.types';
 
 
 // ===========================================
@@ -63,6 +65,7 @@ export class GamePage extends BasePage {
 	protected controlNodesUp!: NodeListOf<HTMLElement>;
 	protected controlNodesDown!: NodeListOf<HTMLElement>;
 	protected isSearchingGame: boolean = false;
+    protected adversary: SafeUserModel | undefined; 
 
 
     protected insertNetworkError(): void {
@@ -120,11 +123,17 @@ export class GamePage extends BasePage {
     //     });     
     // }
 
+
+    // TODO = ADAPTER LES MESSAGES POUR LA TRAD
     protected showEndGamePanel(): void {
         const panel = document.getElementById("pong-section")!;
         // const panel = document.getElementById("endgame-panel")!;
         panel.classList.remove("hidden");
-        panel.innerText = `Result = ${this.finalScore[0]} : ${this.finalScore[1]}`;
+        panel.innerText = `Result = ${this.finalScore[0]} : ${this.finalScore[1]}\n`;
+            if (this.adversary != undefined && this.finalScore[0] < this.finalScore[1])
+                panel.innerText += `You LOOOOOOSE against ${this.adversary?.username}`;
+            else if (this.adversary != undefined && this.finalScore[0] > this.finalScore[1])
+                panel.innerText += `You WIIIIIIIN against ${this.adversary?.username}`;
     }
 
     protected showTimer(time : number): void {
@@ -145,24 +154,24 @@ export class GamePage extends BasePage {
 	protected handleKeyDown = (event: KeyboardEvent): void => {};
 	protected handleKeyup = (event: KeyboardEvent): void => {};
 
-
+    
     protected attachListeners() {
         webSocketService.getWebSocket()!.addEventListener("message", async (event) => {
             const msg = JSON.parse(event.data);
             // console.log("@@@@@@@@@@@@@@@@@@@@@@msg = ", msg);
             if (msg.type == "start_game") {
                 console.log(`game starts ! id = ${msg.gameID}`);
+                console.log("message is :", msg);
+                this.adversary = msg.otherPlayer; // TODO : possibilite de recuperer l'avatar de l autre joueur si on veut l afficher ici
                 // this.game!.clearScreen(); 
                 // document.querySelector("endgame-panel")?.remove();
+                // this
                 this.gameStarted = true;
             }
-            // if (msg.type == "adversary") {
-            //     //afficher le nom de l adversaire + avatar ? 
-            // }
             else if (msg.type == "decount_game") 
             {
                 this.showTimer(msg.message);
-                if (msg.message == 1)
+                if (msg.message == 0)
                     await this.initGame(this.currentUser!.id, msg.gameID);
             } else if (msg.type == "end" && this.gameStarted) {
                 this.game!.gameStarted = false;
