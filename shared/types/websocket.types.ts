@@ -46,7 +46,7 @@ export type MatchMakingReq = {
     playerID: number,
 };
 
-export type decount_game = {
+export type decountgame = {
     type: "decount_game",
     message: number, //pour le decompte
     gameID: number,

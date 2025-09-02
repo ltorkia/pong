@@ -9,6 +9,8 @@ const clamp = (val: number, min: number, max: number) => { return Math.min(Math.
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
+
+
 const shuffleArray = (array: any[]) => {
     for (let i = array.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -197,6 +199,7 @@ export class Game {
             winner = this.players[0];
             looser = this.players[1];
         }
+        // if multiplayer si on veut garder que en db le multiplayer
         await resultGame(this.gameIDforDB, winner.ID, looser.ID, this.score);
         // allPlayers.splice(playerIdx, 1);
         winner.matchMaking = false;

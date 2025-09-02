@@ -5,7 +5,7 @@ import { Game } from '../types/game.types';
 import { generateUniqueID } from '../shared/functions'
 import { MatchMakingReqSchema } from '../types/zod/game.zod';
 import { UserWS } from '../types/user.types';
-import {addGame, resultGame } from '../db/game';
+import {addGame, getResultGame, cancelledGame } from '../db/game';
 import { getUser, getUserStats } from '../db/user';
 
 export async function gameRoutes(app: FastifyInstance) {
@@ -53,11 +53,20 @@ export async function gameRoutes(app: FastifyInstance) {
         } 
         else
         {
+            // const { usersWS } = app;
             if (allPlayers.find((p: Player) => p.ID == matchMakingReq.data.playerID))
             {
                 const playerIdx1 = allPlayers.findIndex((player: Player) => player.ID == matchMakingReq.data.playerID);
                 allPlayers.splice(playerIdx1, 1);
                 console.log(`DELETED USER ID = ${matchMakingReq.data.playerID}`);
+                // for (const otherplayer of allPlayers) {
+                //     console.log("//////////////////////////////ici");
+                //     const user = usersWS.find((user: UserWS) => user.id == otherplayer.ID);
+                //     if (user && user.WS) {
+                //         user.WS.send(JSON.stringify({type: "has_quit_game", userID: `${matchMakingReq.data.playerID}`}));
+                //     }
+                // }
+                // if game ! finish -> update : interrupted + send msg end to other player
             }
         }
     });
@@ -123,7 +132,7 @@ const startGame = async (app: FastifyInstance, players: Player[], mode: string) 
             }
         }
         await decount(app, players, gameID);
-    if (mode === "local")
+    // if (mode === "local")
         newGame.gameIDforDB = await addGame(players[0].ID, players[1].ID, false);
     allGames.push(newGame);
     console.log(allGames);
@@ -131,4 +140,6 @@ const startGame = async (app: FastifyInstance, players: Player[], mode: string) 
     const gameIdx1 = allGames.findIndex((game: Game) => game.gameIDforDB == newGame.gameIDforDB);
     allGames.splice(gameIdx1, 1);
     console.log("////////////////////////////////////////////////////////imheeeere");
+    // if (msg.type == "quit")
+
 }

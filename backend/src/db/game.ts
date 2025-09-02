@@ -2,6 +2,7 @@ import { FastifyInstance, FastifyRegister, FastifyReply, FastifyRequest } from "
 import { getDb } from "./index.db";
 import { Game } from "../types/game.types";
 import { snakeToCamel, snakeArrayToCamel } from '../helpers/types.helpers';
+import { GameModel } from '../shared/types/game.types'; // en rouge car dossier local 'shared' != dossier conteneur
 // import { GameModel } from '../../shared/types/game.types';
 
 
@@ -163,4 +164,15 @@ export async function waitingGame(gameId: number, winnerId: number, looserId: nu
  [winnerId, gameId, gameId, gameId]);
 }
 
+export async function getResultGame(gameId: number)
+{
+    const db = await getDb();
+    const game = await db.get(`
+    	SELECT id, n_participant, begin, end, tournament, status, looser_result, winner_id 
+		FROM Game
+        Where id = ${gameId};
+	`
+   );
+   return snakeToCamel(game) as GameModel;
+}
 // resultgame dans fichier user -> a deplacer ici ? 

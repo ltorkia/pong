@@ -51,7 +51,7 @@
 import { BasePage } from '../base/base.page';
 import { RouteConfig } from '../../types/routes.types';
 import { MatchMakingReq } from '../../shared/types/websocket.types';
-import { MultiPlayerGame } from '../../components/game/MultiplayerGame.component';
+import { MultiPlayerGame } from '../../components/game/BaseGame.component';
 import { webSocketService } from '../../services/user/user.service';
 import { GamePage } from './game.page';
 

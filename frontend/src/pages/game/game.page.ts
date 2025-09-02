@@ -2,7 +2,7 @@ import { BasePage } from '../base/base.page';
 import { RouteConfig } from '../../types/routes.types';
 import { webSocketService } from '../../services/user/user.service';
 import { MatchMakingReq } from '../../shared/types/websocket.types';
-import { MultiPlayerGame } from '../../components/game/MultiplayerGame.component';
+import { MultiPlayerGame } from '../../components/game/BaseGame.component';
 import { Player } from '../../../../shared/types/game.types';
 import { SafeUserModel } from '../../../../shared/types/user.types';
 
@@ -188,6 +188,12 @@ export class GamePage extends BasePage {
                 this.game!.setScore(msg.score);
             } else if (msg.type == "msg")
                 console.log(msg.msg);
+            // else if (msg.type == "hasQuit")
+            // {
+                // fetch post db changement jeu statut
+
+            // }
+
         })
         this.webSocket?.addEventListener("error", (event) => {
             console.log(event);
@@ -200,6 +206,7 @@ export class GamePage extends BasePage {
         document.removeEventListener("keydown", this.handleKeyDown);
         document.removeEventListener("keyup", this.handleKeyup);
         this.sendMatchMakingRequest("no_matchmaking_request"); //peut etre optionnel
+        // fetch game interrupt
         console.log("@@@@@@@@@@@@@@@@@@@ romove");
 
     }
