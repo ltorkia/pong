@@ -19,7 +19,7 @@ export const TournamentSchema = z.object({
     isStarted: z.boolean(),
     masterPlayerID: z.number(),
     // player: z.array(PlayerSchema),
-    maxPlayers: z.number().min(4).max(16),
+    maxPlayers: z.number().min(4).max(4),
 });
 
 export const TournamentReqSchema = z.object({

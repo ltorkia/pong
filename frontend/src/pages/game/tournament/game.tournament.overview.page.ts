@@ -8,7 +8,7 @@ import { DataService } from '../../../services/user/data.service';
 import { Player } from '../../../shared/types/game.types';
 import { User } from '../../../shared/models/user.model';
 
-const MAX_PLAYERS = 16;
+const MAX_PLAYERS = 4;
 const MIN_PLAYERS = 4;
 
 export class GameTournamentOverview extends BasePage {

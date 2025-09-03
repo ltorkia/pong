@@ -1,4 +1,5 @@
 // import { Tournament } from "../../shared/types/game.types";
+import { showAlert } from  '../../utils/dom.utils';
 import { UserModel } from '../../shared/types/user.types';
 import { TournamentLobbyUpdate, PlayerReadyUpdate, DismantleTournament, StartTournament } from "../../shared/types/websocket.types";
 import { Tournament } from "../../types/game.types";
@@ -50,7 +51,9 @@ export class TournamentAPI {
         });
         if (!res.ok) {
             const error = await res.json();
-            throw new Error(error.error);
+            // showAlert(error, 'Tournament'); //TODO : dans le front, check si deja dans lobby tournament players et en fonction afficher d office LEAVE et pas JOIN
+            console.log(error);
+            // throw new Error(error.error);
         }
     };
 

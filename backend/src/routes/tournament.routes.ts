@@ -53,15 +53,25 @@ export async function tournamentRoutes(app: FastifyInstance) {
             return reply.code(400).send({ error: joinTournamentReq.error.errors[0].message });
 
         const allTournaments = app.lobby.allTournaments;
-        const allPlayers = app.lobby.allPlayers;
+        // const allPlayers = app.lobby.allPlayers;
 
         const tournament = allTournaments.find((t: Tournament) => t.ID == joinTournamentReq.data.tournamentID);
         if (!tournament)
             return reply.code(404).send({ error: "Tournament not found" });
 
-        const player = allPlayers.find((p: Player) => p.ID == joinTournamentReq.data.playerID); // necessary ? req.user.id?
-        if (!player)
-            return reply.code(404).send({ error: "Player not found" });
+        // console.log("allll playyyerrs in tournament : ", allPlayers);
+        console.log("allll tournaments in tournament : ", allTournaments);
+        console.log("player ID in tournament : ", joinTournamentReq.data.playerID);
+        const player = new Player(joinTournamentReq.data.playerID);
+        
+        if (tournament.players.find((p: Player) => p.ID == joinTournamentReq.data.playerID))
+            return reply.code(404).send({ error: "Player already registered" });
+        // const player = allPlayers.find((p: Player) => p.ID == joinTournamentReq.data.playerID); // necessary ? req.user.id?
+        // if (!player)
+        // {
+            
+        //     // return reply.code(404).send({ error: "Player not found" });
+        // }
 
         for (const tournamentIt of allTournaments) {
             if (tournamentIt.players.find((p: Player) => tournamentIt.ID != tournament.ID && p.ID == joinTournamentReq.data.playerID))
@@ -194,11 +204,13 @@ export async function tournamentRoutes(app: FastifyInstance) {
         if (!tournament)
             return reply.code(404).send({ error: "Tournament not found" });
 
-        const player = app.lobby.allPlayers.find((p: Player) => p.ID == dismantleTournamentReq.data.playerID);
-        if (!player)
-            return reply.code(404).send({ error: "Player not found" });
+        // const player = app.lobby.allPlayers.find((p: Player) => p.ID == dismantleTournamentReq.data.playerID);
+        // const player = app.lobby.tournament.players.find((p: Player) => p.ID == dismantleTournamentReq.data.playerID);
+        // if (!player)
+        //     return reply.code(404).send({ error: "Player not found" });
 
-        if (player.ID != tournament.masterPlayerID) {
+        // if (player.ID != tournament.masterPlayerID) {
+        if (dismantleTournamentReq.data.playerID != tournament.masterPlayerID) {
             return reply.code(403).send({ error: "Can't dismantle tournament if not owner" });
         }
 
@@ -226,3 +238,5 @@ const broadcast = (toSend: any, app: FastifyInstance) => {
     for (const user of app.usersWS)
         user.WS.send(JSON.stringify(toSend));
 }
+
+// TODO : quand tournament < 2 lettres, ne s affiche pas jusqu au moment ou on ajoute un tourni + long

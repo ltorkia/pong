@@ -118,7 +118,7 @@ export async function cancelledGame(gameId: number, winnerId: number, looserId: 
         UPDATE Game
         SET status = 'cancelled',
             end = CURRENT_TIMESTAMP,
-            winner_id = ?
+            winner_id = ?,
             looser_result = ?
         WHERE id = ?;
 `, [winnerId, gameId, minScore]);

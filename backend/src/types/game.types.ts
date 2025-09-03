@@ -1,4 +1,4 @@
-import { resultGame, addGame } from "../db/game";
+import { resultGame, addGame, cancelledGame } from "../db/game";
 import { GameData, Player } from "../shared/types/game.types"
 
 const DEG_TO_RAD = Math.PI / 180;
@@ -194,13 +194,15 @@ export class Game {
         }
         let winner = this.players[1];
         let looser = this.players[0];
-        if (this.score[0] < this.score[1])
+        if (this.score[0] < this.score[1] && ((this.score[0] = 3) | (this.score[1] = 3)))
         {
             winner = this.players[0];
             looser = this.players[1];
+            // if multiplayer si on veut garder que en db le multiplayer
+            await resultGame(this.gameIDforDB, winner.ID, looser.ID, this.score);
         }
-        // if multiplayer si on veut garder que en db le multiplayer
-        await resultGame(this.gameIDforDB, winner.ID, looser.ID, this.score);
+        else
+            await cancelledGame(this.gameIDforDB, winner.ID, looser.ID, this.score);
         // allPlayers.splice(playerIdx, 1);
         winner.matchMaking = false;
         looser.matchMaking = false;
