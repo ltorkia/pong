@@ -53,7 +53,7 @@ export class TournamentAPI {
             const error = await res.json();
             // showAlert(error, 'Tournament'); //TODO : dans le front, check si deja dans lobby tournament players et en fonction afficher d office LEAVE et pas JOIN
             console.log(error);
-            // throw new Error(error.error);
+            throw new Error(error.error);
         }
     };
 

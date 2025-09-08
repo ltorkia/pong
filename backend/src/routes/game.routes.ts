@@ -143,3 +143,8 @@ const startGame = async (app: FastifyInstance, players: Player[], mode: string) 
     // if (msg.type == "quit")
 
 }
+
+
+
+// quand on appui dans le pret pour le tournoi -> fetch un playgame avec option tournament 
+// -> on mate si le joueur est dans le lobby tournoi ->et game pour ca. quand le 2eme ok -> launch game

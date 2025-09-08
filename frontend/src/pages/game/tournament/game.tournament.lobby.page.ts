@@ -41,15 +41,31 @@ export class GameTournamentLobby extends BasePage {
     protected async beforeMount(): Promise<void> {
         await this.fetchPastille();
         await this.fetchTournament();
-        if (!this.tournament?.players?.find((p: Player) => p.ID == this.currentUser!.id)) {
+        if (!this.tournament?.players?.find((p: Player) => p.ID == this.currentUser!.id)) { //chelou -> passera pas dedans donc plutot erreur about tournament
             this.joined = false;
             document.getElementById("tournament-join-leave-btn")!.textContent = "JOIN";
-            // await TournamentService.joinTournament(this.currentUser!.id, this.tournamentID);
-            // await this.fetchTournament();
-            console.log("WASNT IN THE TOURNAMENT AND JOINED");
-        } else {
-            console.log("WAS IN THE TOURNAMENT HENCE DIDNT JOINED");
+            document.getElementById("tournament-ready-btn")!.textContent = "READY";
+            
         }
+        else
+            {
+                this.joined = true;
+                document.getElementById("tournament-join-leave-btn")!.textContent = "LEAVE";
+                console.log("this readdy en before mount", this.ready);
+                if (this.tournament?.players?.find(p => p.ID === this.currentUser!.id)!.ready == true)
+                {
+                    this.ready = true;
+                    document.getElementById("tournament-ready-btn")!.textContent = "NOT READY";
+                }
+                else
+                    document.getElementById("tournament-ready-btn")!.textContent = "READY";
+        }
+        // await TournamentService.joinTournament(this.currentUser!.id, this.tournamentID);
+        // await this.fetchTournament();
+        console.log("WASNT IN THE TOURNAMENT AND JOINED");
+        // } else {
+        //     console.log("WAS IN THE TOURNAMENT HENCE DIDNT JOINED");
+        // }
     }
 
     protected async mount(): Promise<void> {
@@ -132,7 +148,18 @@ export class GameTournamentLobby extends BasePage {
         for (const player of this.tournament!.players!) {
             const playerUpdate = playersUpdate.find((p: Player) => p.ID == player.ID);
             if (!playerUpdate)
+            {
+                // document.querySelector(`[data-player-id="${player.ID}"]`)?.remove();
                 return document.querySelector(`[data-player-id="${player.ID}"]`)?.remove();
+            }
+            // const DOMPlayerElem = document.querySelector(`[data-player-id="${player.ID}"]`);
+            // if (player.ready === false) {
+            //     DOMPlayerElem?.classList.remove("border-green-500");
+            //     DOMPlayerElem?.classList.add("border-white");
+            // } else {
+            //     DOMPlayerElem?.classList.remove("border-white");
+            //     DOMPlayerElem?.classList.add("border-green-500");
+            // }
             if (playerUpdate?.ready != player.ready) {
                 const DOMPlayerElem = document.querySelector(`[data-player-id="${player.ID}"]`);
                 DOMPlayerElem?.classList.toggle("border-white");
@@ -240,31 +267,44 @@ export class GameTournamentLobby extends BasePage {
             } else if (lobbyUpdate.type == "dismantle_signal") {
                 this.handleRedirectModal();
             } else if (lobbyUpdate.type == "start_tournament_signal")
+            {
                 router.navigate(`/game/tournaments/:${this.tournamentID}/overview`)
+                // fetch appel a la db pour stocker le tournoi avec les joueurs ?
+                // + choper ce qu il y a en lobby ? 
+            }
         });
 
         document.getElementById("tournament-join-leave-btn")?.addEventListener("click", async (event) => {
-            console.log("coucou");
+            
+            const btn = event.target as HTMLElement;
+            btn.textContent = this.joined ? "JOIN" : "LEAVE";
             if (!this.joined) {
                 this.joined = true;
-                TournamentService.joinTournament(this.currentUser!.id, this.tournamentID);
-                const btn = event.target as HTMLElement;
-                btn.textContent = "LEAVE";
+                try {
+                    await TournamentService.joinTournament(this.currentUser!.id, this.tournamentID);
+            } catch (error: any) {
+                this.printError(error);
+            }
+                // const btn = event.target as HTMLElement;
+                // btn.textContent = "LEAVE";
             } else {
                 this.joined = false;
                 console.log('Leaving');
                 TournamentService.leaveTournamentReq(this.currentUser!.id, this.tournamentID);
-                const btn = event.target as HTMLElement;
-                btn.textContent = "JOIN";
+                // const btn = event.target as HTMLElement;
+                // btn.textContent = "JOIN";
             }
         });
 
-        document.getElementById("tournament-ready-btn")?.addEventListener("click", async () => {
+        document.getElementById("tournament-ready-btn")?.addEventListener("click", async (event) => {
             this.ready = !this.ready;
+            const btn = event.target as HTMLElement;
+            btn.textContent = this.ready ? "NOT READY" : "READY"; //TODO = foutre ailleurs pour le module trad
             try {
                 await TournamentService.sendReadyRequest(this.currentUser!.id, this.tournamentID, this.ready);
             } catch (error: any) {
-                this.printError("Please join tournament first!");
+                this.printError(error);
+                // this.printError("Please join tournament first!");
             }
         });
 

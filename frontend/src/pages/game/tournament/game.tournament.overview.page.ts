@@ -122,8 +122,21 @@ export class GameTournamentOverview extends BasePage {
 
     protected async mount(): Promise<void> {
         await this.displayTournament();
-        // await this.attachPastilleListeners();
-    }
+        // Création du bouton
+        const btn = document.createElement("button");
+        btn.id = "start-game-btn";
+        btn.textContent = "Lancer la partie";
+        btn.classList.add("px-4", "py-2", "bg-blue-900", "text-white", "rounded", "mt-4");
+
+        document.getElementById("tournament-overview")?.append(btn);
+
+        // Ajout du listener
+        btn.addEventListener("click", () => {
+             console.log("okeeaiii");
+            // this.startGame(); // fonction qui fetch avec les infos en contenu des joueurs
+        });
+            // await this.attachPastilleListeners();
+        }
 
     private getGameByPlayerID(id: number, stage: Game[]): Game | undefined {
         return stage.find((game: Game) => game.players.find((p: Player) => p.ID == id));

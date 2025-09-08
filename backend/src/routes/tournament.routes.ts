@@ -142,6 +142,10 @@ export async function tournamentRoutes(app: FastifyInstance) {
         if (!player)
             return reply.code(404).send({ error: "Player not found in tournament" });
 
+        //  if (tournament.players.length != tournament.maxPlayers)
+        //     return reply.code(412).send({ error: "Not enough players to be ready!" });
+
+
         player.ready = readyReq.data.ready;
         const playerData: TournamentLobbyUpdate = {
             type: "tournament_lobby_update",
@@ -169,8 +173,8 @@ export async function tournamentRoutes(app: FastifyInstance) {
         if (!player)
             return reply.code(404).send({ error: "Player not found in tournament" });
 
-        if (player.ID != tournament.masterPlayerID)
-            return reply.code(403).send({ error: "Can't start tournament if not owner" });
+        // if (player.ID != tournament.masterPlayerID)
+        //     return reply.code(403).send({ error: "Can't start tournament if not owner" });
 
         if (tournament.players.length != tournament.maxPlayers)
             return reply.code(412).send({ error: "Not enough players to start!" });
@@ -239,4 +243,5 @@ const broadcast = (toSend: any, app: FastifyInstance) => {
         user.WS.send(JSON.stringify(toSend));
 }
 
-// TODO : quand tournament < 2 lettres, ne s affiche pas jusqu au moment ou on ajoute un tourni + long
+// TODO : quand tournament < 2 lettres, ne s affiche pas jusqu au moment ou on ajoute un tourni + long -> fix ?
+// TODO : front : si on recoit sendToTournamentPlayers -> ready 

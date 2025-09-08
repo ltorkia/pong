@@ -176,3 +176,60 @@ export async function getResultGame(gameId: number)
    return snakeToCamel(game) as GameModel;
 }
 // resultgame dans fichier user -> a deplacer ici ? 
+
+// const db = new Database("pong.db"); // ou le chemin vers ta DB
+
+// interface User {
+    //     id: number;
+    //     alias: string;
+    // }
+    
+    // Crée un tournoi et retourne son id
+//     export async function createTournament(nParticipants: number, nRound: number) {
+//         const db = await getDb();
+//     const stmt = db.run(`
+//         INSERT INTO Tournament (n_participants, n_round)
+//         VALUES (?, ?)
+//     `);
+//     const info = stmt.run(nParticipants, nRound);
+//     // return info.lastInsertRowid as number;
+// }
+
+// // Crée un jeu et retourne son id
+// export async function createGame(nParticipants: number, tournamentId?: number) { //ptet pas necessaire si on reprend la logique remote
+//     const db = await getDb();   
+//     const stmt = db.run(`
+//         INSERT INTO Game (n_participants, tournament)
+//         VALUES (?, ?)
+//     `);
+//     // const info = stmt.run(nParticipants, tournamentId || 0);
+//     // return info.lastInsertRowid as number;
+// }
+
+// // Enregistre un joueur dans un jeu
+// export async function registerUserGame(userId: number, gameId: number, statusWin?: number, duration?: number) { //ptet pas necessaire si on reprend la logique remote
+//     const db = await getDb();
+//     const stmt = db.run(`
+//         INSERT INTO User_Game (game_id, user_id, status_win, duration)
+//         VALUES (${gameId}, ${userId}, ?, ?)
+//     `);
+//     // stmt.run(gameId, userId, statusWin ?? null, duration ?? 0);
+// }
+
+// // Enregistre un joueur dans un tournoi
+// export async function registerUserTournament(userId: number, tournamentId: number, gameId?: number, alias?: string) { //a voir ptet a readapter pour quand creation du jeu
+//     const db = await getDb();
+//     const stmt = db.run(`
+//         INSERT INTO User_Tournament (tournament_id, user_id, game_id, alias)
+//         VALUES (?, ?, ?, ?)
+//     `);
+//     stmt.run(tournamentId, userId, gameId ?? null, alias ?? "no");
+// }
+
+// // // Exemple d'utilisation
+// // function setupTournamentWithTwoGames(usersId: number[]) {
+// //     // 1. Créer le tournoi
+// //     const tournamentId = createTournament(usersId.length, 2);
+
+// //     // 2. Créer deux jeux
+// // }
