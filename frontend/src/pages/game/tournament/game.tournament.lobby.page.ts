@@ -79,7 +79,9 @@ export class GameTournamentLobby extends BasePage {
             cancelBtn.classList.remove("hidden");
             startBtn.addEventListener("click", async () => {
                 try {
+                    console.log("iccciii starttournament on front");
                     await TournamentService.startTournament(this.currentUser!.id, this.tournamentID);
+                    console.log("iccciii starttournament on front confirmed ///////////");
                 } catch (error: any) {
                     this.printError(error.message);
                 }

@@ -7,6 +7,7 @@ import { MatchMakingReqSchema } from '../types/zod/game.zod';
 import { UserWS } from '../types/user.types';
 import {addGame, getResultGame, cancelledGame } from '../db/game';
 import { getUser, getUserStats } from '../db/user';
+import { Tournament } from '../types/game.types';
 
 export async function gameRoutes(app: FastifyInstance) {
     app.post('/playgame', async (request: FastifyRequest, reply: FastifyReply) => {
@@ -16,7 +17,20 @@ export async function gameRoutes(app: FastifyInstance) {
         if (!matchMakingReq.success)
             return reply.code(400).send({ error: matchMakingReq.error.errors[0].message });
         const { allPlayers } = app.lobby;
-        console.log(app.lobby);
+        console.log("LOBBY : ",app.lobby);
+        // if (matchMakingReq.data.type === "tournament")
+        // {
+        // const tournament = app.lobby.allTournaments.find((t: Tournament) => t.ID === request.headers['tournamentid'])!;
+        // console.log("LOBBY TOURNOI : ", tournament);
+        // const { players } = tournament.players;
+        // console.log("LOBBY PLAYERS dans tournois: ", players);
+        // // ajouter un const de is ready -> se lance quand les 2 le sont :
+        // const isReady = players.every((p: Player) => p.ready);
+        // if (isReady) {
+        //     // lancer le tournoi
+        // // } adapter la suite pour rentrer dans la logique matchmaking multi mais avec dans db tournoi 
+
+        // }
         if (matchMakingReq.data.type === "matchmaking_request")
         {
             if (!allPlayers.find((p: Player) => p.ID == matchMakingReq.data.playerID))
@@ -102,6 +116,7 @@ const startGame = async (app: FastifyInstance, players: Player[], mode: string) 
 
     const newGame = new Game(2, players);
     let WSToSend = { type: "start_game", gameID: gameID} as StartGame;
+    console.log("dans start game : players are", players);
     
     for (const player of players) {
         if (mode === "multi")
@@ -132,7 +147,8 @@ const startGame = async (app: FastifyInstance, players: Player[], mode: string) 
             }
         }
         await decount(app, players, gameID);
-    // if (mode === "local")
+    // if (mode === "multi")
+    console.log("ici id 1 du players = ", players[1].ID);
         newGame.gameIDforDB = await addGame(players[0].ID, players[1].ID, false);
     allGames.push(newGame);
     console.log(allGames);

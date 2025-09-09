@@ -9,7 +9,7 @@ import { animateCSS } from '../../../utils/animate.utils';
 import { TournamentService } from '../../../api/game/game.api';
 import { Tournament } from '../../../types/game.types';
 
-const MAX_PLAYERS = 16;
+const MAX_PLAYERS = 4;
 const MIN_PLAYERS = 4;
 
 export class GameTournamentList extends BasePage {

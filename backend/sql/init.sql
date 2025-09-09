@@ -90,7 +90,7 @@ CREATE TABLE IF NOT EXISTS User_Tournament (
     tournament_id INTEGER NOT NULL,
     user_id INTEGER NOT NULL,
     game_id INTEGER,
-    alias TEXT NOT NULL,
+    alias TEXT,
     score INTEGER DEFAULT 0,				-- score cumulé dans le tournoi
     wins INTEGER DEFAULT 0,					-- nombre de victoires
     losses INTEGER DEFAULT 0,   			-- nombre de défaites

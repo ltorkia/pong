@@ -1,4 +1,5 @@
 import { BasePage } from '../../base/base.page';
+import { GamePage } from '../game.page';
 import { RouteConfig } from '../../../types/routes.types';
 import { Game, Tournament } from '../../../types/game.types';
 import { TournamentService } from '../../../api/game/game.api';
@@ -11,7 +12,7 @@ import { User } from '../../../shared/models/user.model';
 const MAX_PLAYERS = 4;
 const MIN_PLAYERS = 4;
 
-export class GameTournamentOverview extends BasePage {
+export class GameTournamentOverview extends GamePage {
     private tournamentID: number;
     private pastilleHTML: HTMLElement | undefined;
     private toolTipHTML: HTMLElement | undefined;

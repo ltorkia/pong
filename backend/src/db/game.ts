@@ -83,7 +83,7 @@ export async function resultGame(gameId: number, winnerId: number, looserId: num
 	// 	[winnerId, gameId, gameId, gameId, winnerId, gameId, gameId, gameId, looserId]
 	// );
     const minScore = Math.min(score[0], score[1]);
-
+    console.log("resultGame");
 
     await db.run(`
         UPDATE Game
@@ -185,15 +185,17 @@ export async function getResultGame(gameId: number)
     // }
     
     // Crée un tournoi et retourne son id
-//     export async function createTournament(nParticipants: number, nRound: number) {
-//         const db = await getDb();
-//     const stmt = db.run(`
-//         INSERT INTO Tournament (n_participants, n_round)
-//         VALUES (?, ?)
-//     `);
-//     const info = stmt.run(nParticipants, nRound);
-//     // return info.lastInsertRowid as number;
-// }
+    export async function createTournament(nParticipants: number, nRound: number): Promise<number | undefined> {
+        const db = await getDb();
+    // const t = tournament as tournamentInput;
+    const tournament = await db.run(`
+        INSERT INTO Tournament (n_participants, n_round)
+        VALUES (${nParticipants}, ${nRound})
+    `);
+    return tournament.lastID;
+    // const info = stmt.run(nParticipants, nRound);
+    // return info.lastInsertRowid as number;
+}
 
 // // Crée un jeu et retourne son id
 // export async function createGame(nParticipants: number, tournamentId?: number) { //ptet pas necessaire si on reprend la logique remote
@@ -217,14 +219,13 @@ export async function getResultGame(gameId: number)
 // }
 
 // // Enregistre un joueur dans un tournoi
-// export async function registerUserTournament(userId: number, tournamentId: number, gameId?: number, alias?: string) { //a voir ptet a readapter pour quand creation du jeu
-//     const db = await getDb();
-//     const stmt = db.run(`
-//         INSERT INTO User_Tournament (tournament_id, user_id, game_id, alias)
-//         VALUES (?, ?, ?, ?)
-//     `);
-//     stmt.run(tournamentId, userId, gameId ?? null, alias ?? "no");
-// }
+export async function registerUserTournament(userId: number, tournamentId: number, gameId?: number, alias?: string) { //a voir ptet a readapter pour quand creation du jeu
+    const db = await getDb();
+    await db.run(`
+        INSERT INTO User_Tournament (tournament_id, user_id, game_id, alias)
+        VALUES (${tournamentId},${userId}, ${gameId ?? null}, ${alias ?? null})
+    `);
+}
 
 // // // Exemple d'utilisation
 // // function setupTournamentWithTwoGames(usersId: number[]) {

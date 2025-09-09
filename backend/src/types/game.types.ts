@@ -1,4 +1,4 @@
-import { resultGame, addGame, cancelledGame } from "../db/game";
+import { resultGame, addGame, cancelledGame, createTournament, registerUserTournament } from "../db/game";
 import { GameData, Player } from "../shared/types/game.types"
 
 const DEG_TO_RAD = Math.PI / 180;
@@ -194,15 +194,19 @@ export class Game {
         }
         let winner = this.players[1];
         let looser = this.players[0];
-        if (this.score[0] < this.score[1] && ((this.score[0] = 3) | (this.score[1] = 3)))
+        if ((this.score[0] = 3) | (this.score[1] = 3))
         {
+            console.log("iiiiiiiiiiiiiiiiiiciiiii dans condition endgsameeee ")
             winner = this.players[0];
             looser = this.players[1];
             // if multiplayer si on veut garder que en db le multiplayer
             await resultGame(this.gameIDforDB, winner.ID, looser.ID, this.score);
         }
         else
+        {
+            console.log("iiiiiiiiiiiiiiiiiiciiiii dans else endgsameeee ")
             await cancelledGame(this.gameIDforDB, winner.ID, looser.ID, this.score);
+        }
         // allPlayers.splice(playerIdx, 1);
         winner.matchMaking = false;
         looser.matchMaking = false;
@@ -257,6 +261,7 @@ export class Tournament {
     public alias?: string;
     public maxPlayers: number;
     public ID?: number;
+    protected IDforDB?: number;
     public masterPlayerID?: number;
     public isStarted?: boolean;
     public players: Player[] = [];
@@ -272,6 +277,17 @@ export class Tournament {
     }
 
     public async startTournament(): Promise<void> {
+        console.log("iciiii starttournament baaaackkkk /////")
+        this.IDforDB = await createTournament(this.maxPlayers, this.maxPlayers/2);
+        if (this.IDforDB === undefined)
+            return; //TODO : put some error
+        console.log("game at start tournament is ?", this.stageOneGames);
+
+        for (const player of this.players) 
+        {
+            await registerUserTournament(player.ID, this.IDforDB);
+        }
+        
         shuffleArray(this.players);
         let playerIdx = 0;
         for (let i = 0; i < 2; i++) {
