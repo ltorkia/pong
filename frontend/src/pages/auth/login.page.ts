@@ -7,7 +7,6 @@ import { PAGE_NAMES } from '../../config/routes.config';
 import { COMPONENT_NAMES, HTML_COMPONENT_CONTAINERS } from '../../config/components.config';
 import { getHTMLElementById } from '../../utils/dom.utils';
 import { DB_CONST } from '../../shared/config/constants.config';
-import { TwoFaMethod } from '../../shared/types/user.types';
 
 // ===========================================
 // LOGIN PAGE

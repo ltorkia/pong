@@ -103,7 +103,7 @@
 		tablet:w-auto;
 	}
 	#user-list .user-line .winrate-cell {
-		@apply custom-btn px-2 w-36
+		@apply custom-btn px-2 w-36 leading-[1rem]
 		wide:px-6
 		wide:w-40 extra-wide:w-56;
 	}

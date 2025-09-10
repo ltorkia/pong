@@ -102,7 +102,7 @@ export class UserRowComponent extends BaseComponent {
 		this.statusCell = getHTMLElementByClass('status-cell', this.container) as HTMLElement;
 		this.friendLogoCell = getHTMLElementByClass('friend-logo-cell', this.container) as HTMLElement;
 		this.levelCell = getHTMLElementByClass('level-cell', this.container) as HTMLElement;
-		this.winrate = getHTMLElementByClass('winrate-cell', this.levelCell) as HTMLElement;
+		this.winrate = getHTMLElementByClass('winrate-cell .winrate', this.levelCell) as HTMLElement;
 		this.profileButton = getHTMLElementByClass('profile-button', this.levelCell) as HTMLElement;
 		this.logCell = getHTMLElementByClass('log-cell', this.container) as HTMLElement;
 		this.profilePath = `/user/${this.user!.id}`;
@@ -155,7 +155,7 @@ export class UserRowComponent extends BaseComponent {
 			this.statusCell.innerHTML = dataService.showStatusLabel(this.user!);
 		this.friendLogoCell.innerHTML = dataService.showFriendLogo(this.user!);
 		if ('winRate' in this.user! && this.user.winRate !== undefined)
-			this.winrate.textContent = `win rate: ${this.user.winRate}%`;
+			this.winrate.textContent = `${this.user.winRate}%`;
 		else
 			this.winrate.textContent = 'No stats';
 		if (this.user!.id !== this.currentUser!.id) {

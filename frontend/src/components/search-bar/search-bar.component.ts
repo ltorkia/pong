@@ -80,7 +80,7 @@ export class SearchBarComponent extends BaseComponent {
 	}
 
 	protected async mount(): Promise<void> {
-
+		// this.searchInput.placeholder = this.t('users.searchPlaceholder');
 	}
 
 	/**

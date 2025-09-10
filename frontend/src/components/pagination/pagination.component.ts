@@ -243,6 +243,7 @@ export class PaginationComponent extends BaseComponent {
 	 */
 	private createPaginationButton(text: string, page: number, type: string): void {
 		const button = document.createElement('button');
+		// button.setAttribute('data-ts', 'prevButton');
 		button.textContent = text;
 		button.className = this.getButtonClasses(type);
 		

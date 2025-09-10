@@ -1,3 +1,5 @@
+import { currentService } from '../../../services/index.service';
+import { User } from '../../../shared/types/user.types';
 import en from './en.json';
 import fr from './fr.json';
 import ja from './ja.json';
@@ -10,6 +12,7 @@ import ja from './ja.json';
  */
 export type Locale = 'en' | 'fr' | 'ja';
 export class TranslateService {
+	// private currentUser?: User = currentService.getCurrentUser();
 	private currentLocale: Locale = 'fr';
 	private translations: Record<string, any> = { en, fr, ja };
 
@@ -23,12 +26,14 @@ export class TranslateService {
 	 * et l'enregistre dans le localStorage.
 	 * @param locale La langue à utiliser (en, fr, ja).
 	 */
-	// public setLocale(locale: Locale): void {
-	// 	if (this.translations[locale]) {
-	// 		this.currentLocale = locale;
-	// 		localStorage.setItem('locale', locale);
-	// 	}
-	// }
+	public setLocale(locale: Locale): void {
+		if (this.translations[locale]) {
+			this.currentLocale = locale;
+			localStorage.setItem('locale', locale);
+		} else {
+			console.error('Translation not found for locale:', locale);
+		}
+	}
 
 	/**
 	 * Renvoie la langue actuelle choisie.
@@ -43,52 +48,21 @@ export class TranslateService {
 	 * @param path Chemin de la clé de traduction.
 	 * @returns La traduction si elle existe, sinon la clé de traduction.
 	 */
-	// public t(path: string): string {
-	// 	const keys = path.split('.');
-	// 	let value: any = this.translations[this.currentLocale];
+	public t(path: string): string {
+		const keys = path.split('.');
+		let value: any = this.translations[this.currentLocale];
 
-	// 	for (const key of keys) {
-	// 		if (!value) 
-	// 			return path;
-	// 		value = value[key];
-	// 	}
+		for (const key of keys) {
+			if (!value) {
+				console.log('Value is undefined at key:', key);
+				return path;
+			}
+			value = value[key];
+		}
 
-	// 	return typeof value === 'string' ? value : path;
-	// }
-
-public setLocale(locale: Locale): void {
-    console.log('Setting locale to:', locale);
-    console.log('Available translations:', Object.keys(this.translations));
-    console.log('Translation exists:', !!this.translations[locale]);
-    
-    if (this.translations[locale]) {
-        this.currentLocale = locale;
-        localStorage.setItem('locale', locale);
-        console.log('Locale set successfully to:', this.currentLocale);
-    } else {
-        console.error('Translation not found for locale:', locale);
-    }
-}
-
-public t(path: string): string {
-    console.log('Translating path:', path, 'with locale:', this.currentLocale);
-    const keys = path.split('.');
-    let value: any = this.translations[this.currentLocale];
-    console.log('Starting translation object:', value);
-
-    for (const key of keys) {
-        if (!value) {
-            console.log('Value is null/undefined at key:', key);
-            return path;
-        }
-        value = value[key];
-        console.log('After key', key, ':', value);
-    }
-
-    const result = typeof value === 'string' ? value : path;
-    console.log('Final translation result:', result);
-    return result;
-}
+		const result = typeof value === 'string' ? value : path;
+		return result;
+	}
 
 	/**
 	 * Traduit les éléments HTML qui ont l'attribut data-ts (clé de traduction).
@@ -99,12 +73,49 @@ public t(path: string): string {
 	public translatePage(): void {
 		document.querySelectorAll<HTMLElement>('[data-ts]').forEach(el => {
 			const key = el.dataset.ts!;
-			el.textContent = this.t(key);
+			const paramAttr = el.dataset.param;
+			const dataType = el.dataset.type;
+
+			let content: string;
+			if (paramAttr) {
+				const param = this.getDynamicParam(paramAttr);
+				content = `${this.t(key)} ${param}`;
+			} else
+				content = this.t(key);
+
+			// Appliquer la traduction au bon endroit
+			if (dataType === 'placeholder' && (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement))
+				el.placeholder = content;
+			else if (dataType === 'title' && (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement))
+				el.title = content;
+			else
+				el.textContent = content;
 		});
+
 		// Mets à jour le select si présent
 		const langSelect = document.querySelector<HTMLSelectElement>('#lang-switch');
 		if (langSelect)
 			langSelect.value = this.currentLocale;
+	}
+
+	/**
+	 * Renvoie un paramètre dynamique en fonction de la clé passée.
+	 * Si la clé n'est pas reconnue, ou si l'utilisateur n'est pas connecté,
+	 * la méthode renvoie une chaîne vide.
+	 * @param paramStr Clé du paramètre à renvoyer.
+	 * @returns Le paramètre demandé, ou une chaîne vide si la clé n'est pas reconnue.
+	 */
+	private getDynamicParam(paramStr: string): string {
+		const currentUser = currentService.getCurrentUser();
+		switch (paramStr) {
+			case 'username':
+				if (currentUser)
+					return currentUser.username;
+			case 'greeting.username':
+				if (currentUser)
+					return currentUser.username + " !";
+		}
+		return '';
 	}
 
 	/**
@@ -121,4 +132,3 @@ public t(path: string): string {
 		this.translatePage();
 	}
 }
-// i18n ->librairie ou truc pour le faire en klks ligns aussi

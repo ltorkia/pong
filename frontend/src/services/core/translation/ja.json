@@ -9,7 +9,8 @@
 	},
 
 	"home": {
-		"subtitle": "魔法の世界に挑戦する準備はできましたか ？",
+		"welcome": "こんにちは",
+		"underTitle": "魔法の世界に挑戦する準備はできましたか ？",
 		"rulesBtn": "ルール",
 		"localGameBtn": "ローカルゲーム",
 		"multiGameBtn": "マルチプレイヤーゲーム",
@@ -18,7 +19,7 @@
 
 	"rules": {
 		"pageTitle": "ポンゲームのルール",
-		"pageSubtitle": "従わなければなりません",
+		"underTitle": "従わなければなりません",
 		"objective": {
 			"title": "目的",
 			"text": "ボールを相手のパドルの前に通して得点します。"
@@ -50,5 +51,43 @@
 			"title": "トーナメント",
 			"text": "• 省略"
 		}
+	},
+
+	"users": {
+		"pageTitle": "プレイヤー",
+		"underTitle": "ただいま超越中...",
+		"searchPlaceholder": "名前で検索",
+		"noUsersFound": "プレイヤーが見つかりません。",
+		"search": "検索",
+		"filters": "絞り込み",
+		"status": "ステータス：",
+		"any": "すべて",
+		"online": "🟢 オンライン",
+		"offline": "⚫ オフライン",
+		"friendsOnly": "友達のみ表示",
+		"reset": "リセット",
+		"winRateLabel": "勝率： ",
+		"addFriend": "友達追加",
+		"acceptFriend": "承認",
+		"declineFriend": "拒否",
+		"cancelFriend": "リクエストを取り消す",
+		"challenge": "対戦",
+		"unfriend": "友達を削除",
+		"unblockFriend": "ブロック解除"
+	},
+
+	"settings": {
+		"pageTitle": "設定",
+		"underTitle": "体験をカスタマイズする",
+		"emailLabel": "メールアドレス：",
+		"usernameLabel": "ユーザー名：",
+		"passwordLabel": "パスワードを変更",
+		"currPasswordLabel": "現在のパスワード：",
+		"newPasswordLabel": "新しいパスワード：",
+		"twofaLabel": "二要素認証 (2FA) を有効にする",
+		"twofaEmailLabel": "コードをメールで受け取る",
+		"twofaQRCodeLabel": "コードをQRコードで受け取る",
+		"twofaDisableLabel": "二要素認証を無効にする"
 	}
+
 }

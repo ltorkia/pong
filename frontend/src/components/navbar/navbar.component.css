@@ -109,7 +109,10 @@
 		mobile:space-x-10
 		wide:space-x-14 wide:flex-row wide:space-y-0 wide:w-auto wide:h-[--navbar-height];
 	}
-	.notifbar-px button {
+	/* .notifbar-px button {
+		@apply flex justify-center items-center relative;
+	} */
+	#notifs {
 		@apply flex justify-center items-center relative;
 	}
 	.notifbar-px button i {

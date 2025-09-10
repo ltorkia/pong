@@ -1,7 +1,7 @@
 			<div class="bloc-title">
-				<div class="page-title">Settings</div>
-				<div class="under-title">
-					<span>You do you</span>
+				<div class="page-title" data-ts="settings.pageTitle">Settings</div>
+				<div class="under-title" data-ts="settings.underTitle">
+					You do you
 				</div>
 			</div>
 			
@@ -18,7 +18,7 @@
 						<!-- Email -->
 						<div class="field-content-container">
 							<div class="input-content">
-								<div class="input-label">email : </div>
+								<div class="input-label" data-ts="settings.emailLabel">Email : </div>
 								<div class="content-update">
 									<div class="content" id="email-content"></div>
 									<i class="fa-solid fa-pen"></i>
@@ -38,7 +38,7 @@
 						<!-- Username -->
 						<div class="field-content-container">
 							<div class="input-content">
-								<div class="input-label">username : </div>
+								<div class="input-label" data-ts="settings.usernameLabel">Username : </div>
 								<div class="content-update">
 									<div class="content" id="username-content"></div>
 									<i class="fa-solid fa-pen"></i>
@@ -59,19 +59,19 @@
 						<form id="password-form">
 							<div class="dropdown-container">
 								<div class="dropdown-title">
-									<span>Change your password</span>
+									<span data-ts="settings.passwordLabel">Change your password</span>
 									<i class="fa-solid fa-angle-down"></i>
 								</div>
 								<div class="dropdown-content max-h-0">
 									<!-- Current password -->
 									<div class="field-box pt-2">
-										<label for="curr-password">Current password :</label>
+										<label for="curr-password" data-ts="settings.currPasswordLabel">Current password :</label>
 										<input type="password" id="curr-password" name="curr-password" placeholder="*********" autocomplete="curr-password" required>
 									</div>
 
 									<!-- New password -->
 									<div class="field-box">
-										<label for="new-password">New password :</label>
+										<label for="new-password" data-ts="settings.newPasswordLabel">New password :</label>
 										<input type="password" id="new-password" name="new-password" placeholder="*********" autocomplete="new-password" required>
 									</div>
 
@@ -89,28 +89,28 @@
 						<!-- Checkbox 2FA -->
 						<div class="dropdown-container">
 							<div class="dropdown-title">
-								<span>Enable two-factor authentication (2FA)</span>
+								<span data-ts="settings.twofaLabel">Enable two-factor authentication (2FA)</span>
 								<i class="fa-solid fa-angle-down"></i>
 							</div>
 							<div class="dropdown-content max-h-0">
 								<!-- send code by email -->
 								<div class="field-box radio pt-2">
 									<input type="radio" id="enable-2fa-email" name="twofa-method" value="email" class="mr-2 align-middle" />
-									<label for="enable-2fa-email" class="cursor-pointer select-none">
+									<label for="enable-2fa-email" data-ts="settings.twofaEmailLabel" class="cursor-pointer select-none">
 										Send code by email
 									</label>
 								</div>
 								<!-- send code by QR code -->
 								<div class="field-box radio">
 									<input type="radio" id="enable-2fa-qrcode" name="twofa-method" value="qrcode" class="mr-2 align-middle" />
-									<label for="enable-2fa-qrcode" class="cursor-pointer select-none">
+									<label for="enable-2fa-qrcode" data-ts="settings.twofaQRCodeLabel" class="cursor-pointer select-none">
 										Send code by QR code scan
 									</label>
 								</div>
 								<!-- disable 2FA -->
 								<div class="field-box radio">
 									<input type="radio" id="disable-2fa" name="twofa-method" value="disabled" class="mr-2 align-middle" />
-									<label for="disable-2fa" class="cursor-pointer select-none">
+									<label for="disable-2fa" data-ts="settings.twofaDisableLabel" class="cursor-pointer select-none">
 										Disable two-factor authentication
 									</label>
 								</div>
