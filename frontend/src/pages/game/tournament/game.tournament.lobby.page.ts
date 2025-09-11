@@ -48,7 +48,7 @@ export class GameTournamentLobby extends BasePage {
             
         }
         else
-            {
+            { // TODO : tester le bouton
                 this.joined = true;
                 document.getElementById("tournament-join-leave-btn")!.textContent = "LEAVE";
                 console.log("this readdy en before mount", this.ready);

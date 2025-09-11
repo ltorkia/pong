@@ -120,7 +120,6 @@ export class GameTournamentOverview extends GamePage {
         }
     }
 
-
     protected async mount(): Promise<void> {
         await this.displayTournament();
         // Création du bouton
@@ -142,7 +141,6 @@ export class GameTournamentOverview extends GamePage {
     private getGameByPlayerID(id: number, stage: Game[]): Game | undefined {
         return stage.find((game: Game) => game.players.find((p: Player) => p.ID == id));
     }
-
 
     protected attachListeners(): void {
         const allMatches = document.querySelectorAll("#match-container");

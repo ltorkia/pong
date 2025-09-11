@@ -7,12 +7,21 @@ import { UserWS } from '../types/user.types';
 import { findPlayerWebSocket } from '../helpers/query.helpers';
 import { addGame } from '../db/game';
 
+// Differentes routes pour differents besoins lies aux tournois en remote
+// Les tournois existent en backend dans app.lobby.allTournaments
+// Toutes les infos necessaires a une action sont validees avec ZOD, voir les differents schemas pour mieux comprendre les requetes
+// Toutes les updates (player join, leave, ready) sont renvoyees au front via WebSocket (== broadcast(), sendToTournamentPLayers())
+// pour un affichage en temps reel et pour eviter au front de faire des requetes HTTP en continu
+// app.get, app.post == Requete HTTP du front, qui va en general se finir par un update via WebSocket
+
 export async function tournamentRoutes(app: FastifyInstance) {
+    // retourne tous les tournois existants
     app.get("/tournaments", async (request: FastifyRequest, reply: FastifyReply) => {
         console.log("tournament response:", app.lobby.allTournaments);
         return reply.send(app.lobby.allTournaments);
     });
 
+    // retourne un tournoi en particulier
     app.get("/tournaments/:id", async (request: FastifyRequest, reply: FastifyReply) => {
         const { id } = request.params as { id: string };
         const tournamentID = Number(id.slice(1));
@@ -26,12 +35,15 @@ export async function tournamentRoutes(app: FastifyInstance) {
         }
     });
 
+    // Cree un nouveau tournoi
     app.post("/new_tournament", async (request: FastifyRequest, reply: FastifyReply) => {
         const tournamentParse = TournamentSchema.safeParse(request.body);
 
+        // Validation de donnees
         if (!tournamentParse.success)
             return reply.code(400).send({ error: tournamentParse.error.errors[0].message });
 
+        // Un tournoi existe deja sous ce nom ?
         if (app.lobby.allTournaments.find((t: any) => t.name == tournamentParse.data.name))
             return reply.code(409).send({ error: "Tournament name already exists!" });
 
@@ -46,33 +58,30 @@ export async function tournamentRoutes(app: FastifyInstance) {
         reply.code(200).send();
     });
 
+    // Un player demande a join un tournoi
     app.post("/join_tournament", async (request: FastifyRequest, reply: FastifyReply) => {
         const joinTournamentReq = TournamentReqSchema.safeParse(request.body);
 
+        // Validation de donnees
         if (!joinTournamentReq.success)
             return reply.code(400).send({ error: joinTournamentReq.error.errors[0].message });
 
         const allTournaments = app.lobby.allTournaments;
-        // const allPlayers = app.lobby.allPlayers;
 
+        // Le tournoi existe-t-il ?
         const tournament = allTournaments.find((t: Tournament) => t.ID == joinTournamentReq.data.tournamentID);
         if (!tournament)
             return reply.code(404).send({ error: "Tournament not found" });
 
-        // console.log("allll playyyerrs in tournament : ", allPlayers);
         console.log("allll tournaments in tournament : ", allTournaments);
         console.log("player ID in tournament : ", joinTournamentReq.data.playerID);
         const player = new Player(joinTournamentReq.data.playerID);
         
+        // Ce joueur existe deja dans ce tournoi ?
         if (tournament.players.find((p: Player) => p.ID == joinTournamentReq.data.playerID))
             return reply.code(404).send({ error: "Player already registered" });
-        // const player = allPlayers.find((p: Player) => p.ID == joinTournamentReq.data.playerID); // necessary ? req.user.id?
-        // if (!player)
-        // {
-            
-        //     // return reply.code(404).send({ error: "Player not found" });
-        // }
 
+        // Ce joueur fait deja partie d'un autre tournoi ?
         for (const tournamentIt of allTournaments) {
             if (tournamentIt.players.find((p: Player) => tournamentIt.ID != tournament.ID && p.ID == joinTournamentReq.data.playerID))
                 return reply.code(409).send({ error: "Can't join more than one tournament!" });
@@ -81,6 +90,7 @@ export async function tournamentRoutes(app: FastifyInstance) {
         if (tournament.players.length == tournament.maxPlayers)
             return reply.code(409).send({ error: "Tournament is full!" });
 
+        // Ajout du tournoi au lobby et update de la page tournaments
         if (tournament && player) {
             tournament.players.push(player);
             const playerData: TournamentLobbyUpdate = {
@@ -94,6 +104,7 @@ export async function tournamentRoutes(app: FastifyInstance) {
         }
     });
 
+    // Requete d'un joueur pour quitter le tournoi 
     app.post("/leave_tournament", async (request: FastifyRequest, reply: FastifyReply) => {
         let leaveTournamentReq: any;
         if (typeof request.body == "string")
@@ -107,12 +118,13 @@ export async function tournamentRoutes(app: FastifyInstance) {
 
         const allTournaments = app.lobby.allTournaments;
 
+        // Le tournoi existe-t-il ?
         const tournament = allTournaments.find((t: Tournament) => t.ID == leaveTournamentReq.data.tournamentID);
         if (!tournament)
             return reply.code(404).send({ error: "Tournament not found" });
 
         const playerIdx = tournament.players.findIndex((p: Player) => p.ID == leaveTournamentReq.data.playerID);
-        if (playerIdx != -1) {
+        if (playerIdx != -1) { // == si le joueur existe bien dans ce tournoi il est retire et update du tournoi pour les autres joueurs
             tournament.players.splice(playerIdx, 1);
             const playerData: TournamentLobbyUpdate = {
                 type: "tournament_lobby_update",
@@ -121,32 +133,33 @@ export async function tournamentRoutes(app: FastifyInstance) {
                 players: tournament.players,
             };
             broadcast(playerData, app);
-            // sendToTournamentPlayers(playerData, tournament, app);
             return reply.code(200).send("Successfully left tournament");
 
         } else
             console.log("DIDNT FIND PLAYER IN THIS TOURNAMENT");
     });
 
+    // Requete pour set un player ready (tous les players doivent etre ready pour start un tournoi)
     app.post("/player_ready", async (request: FastifyRequest, reply: FastifyReply) => {
         const readyReq = TournamentPlayerReadySchema.safeParse(request.body);
-        if (!readyReq.success)
+        if (!readyReq.success) // Validation de donnees
             return reply.code(400).send({ error: readyReq.error.errors[0].message });
 
         const allTournaments = app.lobby.allTournaments;
+
+        // Le tournoi existe-t-il ?
         const tournament = allTournaments.find((t: Tournament) => t.ID == readyReq.data.tournamentID);
         if (!tournament)
             return reply.code(404).send({ error: "Tournament not found" });
 
+        // Ce joueur fait-il partie de ce tournoi ?
         const player = tournament.players.find((p: Player) => p.ID == readyReq.data.playerID);
         if (!player)
             return reply.code(404).send({ error: "Player not found in tournament" });
-
-        //  if (tournament.players.length != tournament.maxPlayers)
-        //     return reply.code(412).send({ error: "Not enough players to be ready!" });
-
-
+ 
         player.ready = readyReq.data.ready;
+        
+        // Update pour tous les joueurs participants au tournoi
         const playerData: TournamentLobbyUpdate = {
             type: "tournament_lobby_update",
             playerID: player.ID!,
@@ -159,26 +172,33 @@ export async function tournamentRoutes(app: FastifyInstance) {
         return reply.code(200).send(`Successfully marked player ${player.ID} ready`);
     });
 
+    // Requete pour demarrer un tournoi 
     app.post("/start_tournament", async (request: FastifyRequest, reply: FastifyReply) => {
         const startTournamentReq = StartTournamentSchema.safeParse(request.body);
-        if (!startTournamentReq.success)
+        if (!startTournamentReq.success) // Validation de donnees
             return reply.code(400).send({ error: startTournamentReq.error.errors[0].message });
 
         const allTournaments = app.lobby.allTournaments;
+
+        // Ce tournoi existe-t-il ?
         const tournament = allTournaments.find((t: Tournament) => t.ID == startTournamentReq.data.tournamentID);
         if (!tournament)
             return reply.code(404).send({ error: "Tournament not found" });
 
+        // Ce joueur fait partie du tournoi
         const player = tournament.players.find((p: Player) => p.ID == startTournamentReq.data.playerID);
         if (!player)
             return reply.code(404).send({ error: "Player not found in tournament" });
 
-        // if (player.ID != tournament.masterPlayerID)
-        //     return reply.code(403).send({ error: "Can't start tournament if not owner" });
+        // Uniquement le createur du tournoi peut le demarrer (pourquoi est-ce que ce check etait desactive ?)
+        if (player.ID != tournament.masterPlayerID)
+            return reply.code(403).send({ error: "Can't start tournament if not owner" });
 
+        // Le tournoi ne peut pas start sans le bon nombre de players
         if (tournament.players.length != tournament.maxPlayers)
             return reply.code(412).send({ error: "Not enough players to start!" });
 
+        // Le tournoi ne peut pas start si tous les joueurs ne sont pas prets
         for (const player of tournament.players) {
             if (!player.ready)
                 return reply.code(412).send({ error: "Not all players are ready!" });
@@ -188,6 +208,7 @@ export async function tournamentRoutes(app: FastifyInstance) {
         // db -> creation du tournoi 
         tournament.startTournament();
 
+        // Update envoyee par WS pour signaler le debut du tournoi
         const startSignal: StartTournamentSignal = { type: "start_tournament_signal" };
 
         sendToTournamentPlayers(startSignal, tournament, app);
@@ -198,12 +219,15 @@ export async function tournamentRoutes(app: FastifyInstance) {
         // }
     });
 
+    // Requete pour annuler un tournoi
     app.post("/dismantle_tournament", async (request: FastifyRequest, reply: FastifyReply) => {
         const dismantleTournamentReq = DismantleTournamentSchema.safeParse(request.body);
-        if (!dismantleTournamentReq.success)
+        if (!dismantleTournamentReq.success) // Validation de donnees
             return reply.code(400).send({ error: dismantleTournamentReq.error.errors[0].message });
 
         const allTournaments = app.lobby.allTournaments;
+
+        // Ce tournoi existe-t-il ?
         const tournament = allTournaments.find((t: Tournament) => t.ID == dismantleTournamentReq.data.tournamentID);
         if (!tournament)
             return reply.code(404).send({ error: "Tournament not found" });
@@ -214,12 +238,14 @@ export async function tournamentRoutes(app: FastifyInstance) {
         //     return reply.code(404).send({ error: "Player not found" });
 
         // if (player.ID != tournament.masterPlayerID) {
+        
+        // Ce joueur est-il le createur du tournoi ? 
         if (dismantleTournamentReq.data.playerID != tournament.masterPlayerID) {
             return reply.code(403).send({ error: "Can't dismantle tournament if not owner" });
         }
 
         const toDeleteIdx = allTournaments.findIndex((t: Tournament) => t.ID == tournament.ID);
-        if (toDeleteIdx != -1) {
+        if (toDeleteIdx != -1) { // Si le tournoi est bien trouve, delete puis update a tous les joueurs du tournoi
             const stopSignal: DismantleSignal = { type: "dismantle_signal" };
             sendToTournamentPlayers(stopSignal, tournament, app);
             allTournaments.splice(toDeleteIdx, 1);
@@ -230,6 +256,7 @@ export async function tournamentRoutes(app: FastifyInstance) {
     });
 }
 
+// Update envoyee a tous les participants du tournoi
 const sendToTournamentPlayers = (toSend: any, tournament: Tournament, app: FastifyInstance) => {
     for (const player of tournament.players) {
         const userWS: UserWS | undefined = app.usersWS.find((user: UserWS) => user.id == player.ID);
@@ -238,6 +265,7 @@ const sendToTournamentPlayers = (toSend: any, tournament: Tournament, app: Fasti
     }
 };
 
+// Update envoyee a tous les joueurs, pour que tout le monde puisse voir en direct l'etat de chaque tournoi 
 const broadcast = (toSend: any, app: FastifyInstance) => {
     for (const user of app.usersWS)
         user.WS.send(JSON.stringify(toSend));
