@@ -9,7 +9,7 @@
 	},
 
 	"home": {
-		"welcome": "Hi",
+		"greeting": "Hi",
 		"underTitle": "Ready to challenge the magical realm ?",
 		"rulesBtn": "Rules",
 		"localGameBtn": "Local Game",
@@ -62,10 +62,13 @@
 		"filters": "Filters",
 		"status": "Status :",
 		"any": "Any",
-		"online": "🟢 online",
-		"offline": "⚫ offline",
+		"inputOnline": "🟢 online",
+		"inputOffline": "⚫ offline",
+		"online": "online",
+		"offline": "offline",
 		"friendsOnly": "Friends only",
 		"reset": "Reset",
+		"viewProfile": "View profile",
 		"winRateLabel": "Win rate: ",
 		"addFriend": "Add friend",
 		"acceptFriend": "Accept",
@@ -73,7 +76,11 @@
 		"cancelFriend": "Cancel friend request",
 		"challenge": "Play",
 		"unfriend": "Unfriend",
-		"unblockFriend": "Unblock"
+		"blockFriend": "Block",
+		"unblockFriend": "Unblock",
+		"acceptedFriend": "Friend !",
+		"pendingFriend": "Pending resquest...",
+		"blockedFriend": "Blocked !"
 	},
 
 	"settings": {
@@ -88,6 +95,14 @@
 		"twofaEmailLabel": "Send code by email",
 		"twofaQRCodeLabel": "Send code by QR code scan",
 		"twofaDisableLabel": "Disable two-factor authentication"
+	},
+
+	"time": {
+		"never": "never",
+		"agoFr": "",
+		"ago": " ago",
+		"hours": "H",
+		"minutes": "min"
 	}
 
 }

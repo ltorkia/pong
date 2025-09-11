@@ -1,13 +1,13 @@
 <div class="user-line">
 	<div class="cell user-cell">
 		<div class="avatar-cell">
-			<img class="avatar-img" src="" alt="avatar" />
+			<img class="avatar-img" src="" alt="avatar" loading="lazy" />
 		</div>
 		<div class="name-cell"></div>
 		<div class="status-cell"></div>
 	</div>
 	<div class="cell level-cell">
-		<div class="profile-button">
+		<div class="profile-button" data-ts="users.viewProfile" data-type="title" title="View profile">
 			<i class="fa-regular fa-circle-user"></i>
 		</div>
 		<div class="winrate-cell">
@@ -41,7 +41,7 @@
 			<i class="fa-solid fa-xmark"></i>
 			<span data-ts="users.unfriend">Unfriend</span>
 		</button>
-		<button class="hidden block-friend-button" title="Block">
+		<button class="hidden block-friend-button" data-ts="users.blockFriend" data-type="title" title="Block">
 			<i class="fa-solid fa-ban"></i>
 		</button>
 		<button class="hidden unblock-friend-button">

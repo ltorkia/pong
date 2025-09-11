@@ -9,7 +9,7 @@
 	},
 
 	"home": {
-		"welcome": "Salut",
+		"greeting": "Salut",
 		"underTitle": "Prêt·e à jouer dans nos contrées magiques ?",
 		"rulesBtn": "Règles",
 		"localGameBtn": "Partie locale",
@@ -62,10 +62,13 @@
 		"filters": "Filtres",
 		"status": "Statut :",
 		"any": "Tout",
-		"online": "🟢 en ligne",
-		"offline": "⚫ hors ligne",
+		"inputOnline": "🟢 en ligne",
+		"inputOffline": "⚫ hors ligne",
+		"online": "en ligne",
+		"offline": "hors ligne",
 		"friendsOnly": "Amis uniquement",
 		"reset": "Réinitialiser",
+		"viewProfile": "Voir le profil",
 		"winRateLabel": "Taux de victoire: ",
 		"addFriend": "Ajouter en ami",
 		"acceptFriend": "Accepter",
@@ -73,7 +76,11 @@
 		"cancelFriend": "Annuler la demande d'ami",
 		"challenge": "Jouer",
 		"unfriend": "Retirer des amis",
-		"unblockFriend": "Débloquer"
+		"blockFriend": "Bloquer",
+		"unblockFriend": "Débloquer",
+		"acceptedFriend": "Ami !",
+		"pendingFriend": "Demande en attente...",
+		"blockedFriend": "Bloqué !"
 	},
 
 	"settings": {
@@ -88,5 +95,13 @@
 		"twofaEmailLabel": "Envoyer le code par email",
 		"twofaQRCodeLabel": "Envoyer le code par QR code",
 		"twofaDisableLabel": "Désactiver l'authentification à deux facteurs"
+	},
+
+	"time": {
+		"never": "jamais",
+		"agoFr": "il y a ",
+		"ago": "",
+		"hours": "H",
+		"minutes": "min"
 	}
 }

@@ -5,7 +5,7 @@ import { BaseComponent } from '../base/base.component';
 import { RouteConfig } from '../../types/routes.types';
 import { router } from '../../router/router';
 import { ComponentConfig } from '../../types/components.types';
-import { dataService, notifService, friendService } from '../../services/index.service';
+import { dataService, notifService, friendService, translateService } from '../../services/index.service';
 import { getHTMLElementByClass } from '../../utils/dom.utils';
 import { DB_CONST } from '../../shared/config/constants.config';
 import { User } from '../../shared/models/user.model';
@@ -140,14 +140,6 @@ export class UserRowComponent extends BaseComponent {
 	 */
 	protected async mount(): Promise<void> {
 		this.createAlertSpace();
-		if (this.user!.id === this.currentUser!.id) {
-			this.profileButton.setAttribute('title', 'Your profile');
-			this.avatarImg.setAttribute('alt', 'Your avatar');
-		} else {
-			this.profileButton.setAttribute('title', `${this.user!.username}'s profile`);
-			this.avatarImg.setAttribute('alt', `${this.user!.username}'s avatar`);
-		}
-		this.avatarImg.setAttribute('loading', 'lazy');
 		const userAvatar = await dataService.getUserAvatarURL(this.user!);
 		this.avatarImg.setAttribute('src', userAvatar);
 		this.nameCell.textContent = this.user!.username;
@@ -161,7 +153,7 @@ export class UserRowComponent extends BaseComponent {
 		if (this.user!.id !== this.currentUser!.id) {
 			const logDate = dataService.showLogDate(this.user!);
 			if (logDate)
-				this.logCell.textContent = logDate;
+				this.logCell.innerHTML = logDate;
 		}
 		this.setButtonDataAttribut();
 		await this.toggleFriendButton();

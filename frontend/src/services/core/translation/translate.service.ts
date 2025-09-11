@@ -1,5 +1,3 @@
-import { currentService } from '../../../services/index.service';
-import { User } from '../../../shared/types/user.types';
 import en from './en.json';
 import fr from './fr.json';
 import ja from './ja.json';
@@ -70,24 +68,17 @@ export class TranslateService {
 	 * La clé est passée à la méthode t() pour obtenir la traduction.
 	 * Met aussi à jour le selecteur de langue de la navbar.
 	 */
-	public translatePage(): void {
-		document.querySelectorAll<HTMLElement>('[data-ts]').forEach(el => {
+	public translatePage(root: ParentNode = document): void {
+		root.querySelectorAll<HTMLElement>('[data-ts]').forEach(el => {
 			const key = el.dataset.ts!;
-			const paramAttr = el.dataset.param;
 			const dataType = el.dataset.type;
-
-			let content: string;
-			if (paramAttr) {
-				const param = this.getDynamicParam(paramAttr);
-				content = `${this.t(key)} ${param}`;
-			} else
-				content = this.t(key);
+			const content = this.t(key);
 
 			// Appliquer la traduction au bon endroit
 			if (dataType === 'placeholder' && (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement))
 				el.placeholder = content;
-			else if (dataType === 'title' && (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement))
-				el.title = content;
+			else if (dataType === 'title') 
+				el.setAttribute('title', content);
 			else
 				el.textContent = content;
 		});
@@ -99,36 +90,17 @@ export class TranslateService {
 	}
 
 	/**
-	 * Renvoie un paramètre dynamique en fonction de la clé passée.
-	 * Si la clé n'est pas reconnue, ou si l'utilisateur n'est pas connecté,
-	 * la méthode renvoie une chaîne vide.
-	 * @param paramStr Clé du paramètre à renvoyer.
-	 * @returns Le paramètre demandé, ou une chaîne vide si la clé n'est pas reconnue.
-	 */
-	private getDynamicParam(paramStr: string): string {
-		const currentUser = currentService.getCurrentUser();
-		switch (paramStr) {
-			case 'username':
-				if (currentUser)
-					return currentUser.username;
-			case 'greeting.username':
-				if (currentUser)
-					return currentUser.username + " !";
-		}
-		return '';
-	}
-
-	/**
 	 * Met à jour la langue de la page en fonction de la locale actuelle.
 	 * Si un paramètre selectedLang est fourni, il est utilisé pour définir la
 	 * nouvelle langue de la page.
 	 * Ensuite, la méthode translatePage() est appelée pour traduire les éléments
 	 * HTML qui ont l'attribut data-ts (clé de traduction).
 	 * @param selectedLang Nouvelle langue à utiliser (en, fr, ja).
+	 * @param root Le nœud racine dans lequel effectuer la traduction. Par défaut, c'est le document entier.
 	 */
-	public updateLanguage(selectedLang?: Locale) {
+	public updateLanguage(selectedLang?: Locale, root?: ParentNode): void {
 		if (selectedLang)
 			this.setLocale(selectedLang);
-		this.translatePage();
+		this.translatePage(root ?? document);
 	}
 }

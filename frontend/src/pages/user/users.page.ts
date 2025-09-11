@@ -1,7 +1,7 @@
 import { BasePage } from '../base/base.page';
 import { User } from '../../shared/models/user.model';
 import { dataApi } from '../../api/index.api';
-import { dataService } from '../../services/index.service';
+import { dataService, translateService } from '../../services/index.service';
 import { SearchBarComponent } from '../../components/search-bar/search-bar.component';
 import { UserRowComponent } from '../../components/user-row/user-row.component';
 import { PaginationComponent } from '../../components/pagination/pagination.component';

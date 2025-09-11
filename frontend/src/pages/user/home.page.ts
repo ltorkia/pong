@@ -10,6 +10,7 @@ import { getHTMLElementById, getHTMLElementByClass } from '../../utils/dom.utils
  * Elle charge son avatar.
  */
 export class HomePage extends BasePage {
+	private welcomeContainer!: HTMLElement;
 	private avatarContainer!: HTMLElement;
 
 	/**
@@ -32,11 +33,13 @@ export class HomePage extends BasePage {
 	 * Récupère les éléments HTML de la page d'accueil avant de la monter.
 	 * 
 	 * Stocke les éléments HTML suivants dans les propriétés de l'objet:
+	 * - welcomeContainer: le conteneur de la zone de bienvenue.
 	 * - avatarContainer: le conteneur de l'avatar qui sera mis à jour avec l'image sélectionnée.
 	 * 
 	 * @returns {Promise<void>} Une promesse qui se résout lorsque les éléments HTML ont été stockés.
 	 */
 	protected async beforeMount(): Promise<void> {
+		this.welcomeContainer = getHTMLElementById('welcome-username');
 		this.avatarContainer = getHTMLElementByClass('avatar') as HTMLElement;
 	}
 
@@ -49,12 +52,21 @@ export class HomePage extends BasePage {
 	 * @returns Une promesse qui se résout lorsque le composant est monté.
 	 */
 	protected async mount(): Promise<void> {
+		this.welcomeUser();
 		this.loadAvatar();
 	}
 
 	// ===========================================
 	// METHODES PRIVATES
 	// ===========================================
+
+	/**
+	 * Modifie le titre de la page d'accueil pour afficher un message de
+	 * bienvenue personnalisé avec le nom d'utilisateur.
+	 */
+	private welcomeUser() {
+		this.welcomeContainer.textContent = `${this.currentUser!.username}`;
+	}
 
 	/**
 	 * Charge l'image d'avatar de l'utilisateur actuel.

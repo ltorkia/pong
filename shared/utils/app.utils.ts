@@ -86,7 +86,7 @@ export function isNotificationModel(obj: any): obj is NotificationModel {
  */
 export function formatRelativeDate(dateStr: string | null): string {
 	if (!dateStr) 
-		return 'never';
+		return '<span data-ts="time.never">never</span>';
 
 	// Forcer l'interprétation en UTC en ajoutant 'Z'
 	const date = new Date(dateStr + 'Z');
@@ -97,18 +97,18 @@ export function formatRelativeDate(dateStr: string | null): string {
 	const diffHours = Math.floor(diffMinutes / 60);
 	const diffDays = Math.floor(diffHours / 24);
 
-	if (diffMinutes < 1) return 'just now';
-	if (diffMinutes < 60) return `${diffMinutes} minute${diffMinutes > 1 ? 's' : ''} ago`;
+	if (diffMinutes < 1) return '<span data-ts="time.now">just now</span>';
+	if (diffMinutes < 60) return `<span data-ts="time.agoFr"></span>${diffMinutes}m<span data-ts="time.ago"> ago</span>`;
 	if (diffHours < 24) {
 		const remainingMinutes = diffMinutes % 60;
 		if (remainingMinutes === 0) {
-			return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+			return `<span data-ts="time.agoFr"></span>${diffHours}<span data-ts="time.hours">H</span><span data-ts="time.ago"> ago</span>`;
 		}
-		return `${diffHours} hour${diffHours > 1 ? 's' : ''} ${remainingMinutes} minute${remainingMinutes > 1 ? 's' : ''} ago`;
+		return `<span data-ts="time.agoFr"></span>${diffHours}<span data-ts="time.hours">H</span> ${remainingMinutes}<span data-ts="time.minutes">m</span><span data-ts="time.ago"> ago</span>`;
 	}
 
-	if (diffDays === 1) return 'yesterday';
-	if (diffDays <= 14) return `${diffDays} days ago`;
+	if (diffDays === 1) return '<span data-ts="time.yesterday">yesterday</span>';
+	if (diffDays <= 14) return `<span data-ts="time.agoFr"></span>${diffDays} <span data-ts="time.days">days</span><span data-ts="time.days"> ago</span>`;
 
 	return date.toLocaleDateString('en-GB', {
 		day: '2-digit',
