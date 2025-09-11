@@ -274,13 +274,14 @@ export class Tournament {
         this.isStarted = isStarted ?? true;
     }
 
-    // Les joueurs sont rajoutes post creation d'une instance de classe, via requete HTTP
+    // Les joueurs sont rajoutes post creation d'une instance de classe, via requete HTTP (/join_tournament)
     // Seulement 4 joueurs max dont uniquement deux etapes de tournoi : stage 1 et stage 2
     // this.players est melange et l'ordre du tableau donne les differents matchs
     // Match 1 : players[0] && players[1] | Match 2 : players[2] && players[3]
+    // Dans l'ideal les games du tournoi sont des Game remote classiques pour ne pas avoir a adapter grand chose
     // TODO : actualiser le tournoi quand une game est finie pour pouvoir continuer
     // exemple de logique :
-    // game 1 finie -> front fait une requete au back -> le back recherche le tournoi -> met a jour le tournoi
+    // game 1 finie -> front fait une requete au back -> le back recherche le tournoi -> la game fait elle partie dun tournoi ? oui -> met a jour le tournoi
     // le winner de stage one game 1 devient player[0] de stageTwoGame (c'est un tableau actuellement mais en vrai c'est qu'un seul match)
     // le winner de stage one game 2 devient player[1] de stageTwoGame
     // c'etait ce sur quoi je travaillais en dernier donc la logique est pas finie ni en front ni en back
