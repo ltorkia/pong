@@ -1,7 +1,7 @@
 import { FastifyInstance } from 'fastify';
 import { UserWS } from '../types/user.types';
 import { NotificationModel, UserOnlineStatus } from '../shared/types/notification.types';
-import { FRIEND_REQUEST_ACTIONS } from '../shared/config/constants.config';
+import { FRIEND_REQUEST_ACTIONS, FRIEND_NOTIF_CONTENT } from '../shared/config/constants.config';
 import { getUser } from '../db/user';
 import { NotificationInput } from '../types/zod/app.zod';
 import { getTwinNotifications, updateNotification, deleteNotification } from '../db/notification';
@@ -124,27 +124,26 @@ export async function sendDeleteNotification(app: FastifyInstance, data: Notific
  * En fonction du type de la demande, elle génère le contenu de la notification.
  * 
  * @param {T extends NotificationInput | NotificationModel} notifData - L'objet contenant les données de la notification.
- * @return {Promise<T>} L'objet de notification avec le contenu ajouté.
+ * @return {T} L'objet de notification avec le contenu ajouté.
  */
-export async function addNotifContent<T extends NotificationInput | NotificationModel>(notifData: T): Promise<T> {
+export function addNotifContent<T extends NotificationInput | NotificationModel>(notifData: T): T {
 	if (!isValidNotificationType(notifData.type!)) {
 		throw new Error('Invalid notification type');
 	}
 	
-	const user = await getUser(notifData.from);
 	let notif = '';
 	if (!notifData.type) {
 		return notifData;
 	}
 	switch (notifData.type) {
 		case FRIEND_REQUEST_ACTIONS.ADD:
-			notif = `has sent you a friend request.`;
+			notif = FRIEND_NOTIF_CONTENT.ADD;
 			break;
 		case FRIEND_REQUEST_ACTIONS.ACCEPT:
-			notif = `has accepted your friend request.`;
+			notif = FRIEND_NOTIF_CONTENT.ACCEPT;
 			break;
 		case FRIEND_REQUEST_ACTIONS.INVITE:
-			notif = `has invited you to a game.`;
+			notif = FRIEND_NOTIF_CONTENT.INVITE;
 		// case FRIEND_REQUEST_ACTIONS.DELETE:
 		// 	break;
 		// case FRIEND_REQUEST_ACTIONS.BLOCK:
@@ -153,7 +152,7 @@ export async function addNotifContent<T extends NotificationInput | Notification
 			notifData.content = '';
 			return notifData;
 	}
-	notifData.content = `${user.username} ${notif}`;
+	notifData.content = `${notif}`;
 	return notifData;
 }
 

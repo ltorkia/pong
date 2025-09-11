@@ -103,6 +103,24 @@
 		"ago": " ago",
 		"hours": "H",
 		"minutes": "min"
+	},
+
+	"pagination": {
+		"page": "Page",
+		"prev": "‹ Prev",
+		"next": "Next ›",
+		"usersLabel": "user(s)",
+		"userLabel": "user"
+	},
+
+	"notif": {
+		"accept": "Accept",
+		"decline": "Decline",
+		"invite": "Play",
+		"noNew": "No new notifications.",
+		"friendRequest": "has sent you a friend request.",
+		"friendAccept": "has accepted your friend request.",
+		"friendInvite": "has invited you to a game."
 	}
 
 }

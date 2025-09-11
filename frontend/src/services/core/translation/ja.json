@@ -103,6 +103,24 @@
 		"ago": "",
 		"hours": "時間",
 		"minutes": "分"
+	},
+
+	"pagination": {
+		"page": "ページ",
+		"prev": "‹ 前へ",
+		"next": "次へ ›",
+		"usersLabel": "プレイヤー",
+		"userLabel": "プレイヤー"
+	},
+
+	"notif": {
+		"accept": "承認",
+		"decline": "拒否",
+		"invite": "対戦",
+		"noNew": "新しい通知はありません。",
+		"friendRequest": "友達申請を送りました。",
+		"friendAccept": "友達になりました。",
+		"friendInvite": "対戦を招待しました。"
 	}
 
 }

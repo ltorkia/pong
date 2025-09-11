@@ -80,7 +80,7 @@
 		"unblockFriend": "Débloquer",
 		"acceptedFriend": "Ami !",
 		"pendingFriend": "Demande en attente...",
-		"blockedFriend": "Bloqué !"
+		"blockedFriend": "Bloqué(e) !"
 	},
 
 	"settings": {
@@ -103,5 +103,23 @@
 		"ago": "",
 		"hours": "H",
 		"minutes": "min"
+	},
+
+	"pagination": {
+		"page": "Page",
+		"prev": "‹ Précédent",
+		"next": "Suivant ›",
+		"usersLabel": "utilisateur(s)",
+		"userLabel": "utilisateur"
+	},
+
+	"notif": {
+		"accept": "Accepter",
+		"decline": "Refuser",
+		"invite": "Jouer",
+		"noNew": "Pas de nouvelles notifications.",
+		"friendRequest": "vous a envoyé une demande d'ami.",
+		"friendAccept": "vous a accepté en tant qu'ami.",
+		"friendInvite": "vous a invité à jouer."
 	}
 }

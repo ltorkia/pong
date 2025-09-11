@@ -8,10 +8,11 @@ import { currentService, storageService } from './user.service';
 import { User } from '../../shared/models/user.model';
 import { AppNotification } from '../../shared/models/notification.model';
 import { NotifResponse } from '../../shared/types/response.types';
-import { FRIEND_REQUEST_ACTIONS } from '../../shared/config/constants.config'; // en rouge car dossier local 'shared' != dossier conteneur
+import { FRIEND_REQUEST_ACTIONS, FRIEND_NOTIF_CONTENT } from '../../shared/config/constants.config'; // en rouge car dossier local 'shared' != dossier conteneur
 import { isValidNotificationType, isFriendRequestAction, isUserOnlineStatus } from '../../shared/utils/app.utils';
 import { getHTMLElementById } from '../../utils/dom.utils';
 import { FriendRequestAction, NotificationModel, NotificationType } from '../../shared/types/notification.types';
+import { translateService } from '../index.service';
 
 // ============================================================================
 // NOTIF SERVICE
@@ -32,6 +33,7 @@ export class NotifService {
 
 	public currentNotif: AppNotification | null = null;
 	public friendId: number | null = null;
+	public friendName: string | null = null;
 
 	// ===========================================
 	// METHODES PUBLICS
@@ -51,6 +53,7 @@ export class NotifService {
 		this.currentPage = currentPage;
 		this.navbarInstance = this.currentPage.getComponentInstance!<NavbarComponent>(COMPONENT_NAMES.NAVBAR);
 		await this.loadNotifs();
+		translateService.updateLanguage(undefined, this.navbarInstance!.notifsWindow);
 	}
 
 	/**
@@ -70,6 +73,9 @@ export class NotifService {
 				}
 				if (isFriendRequestAction(notif.type)) {
 					this.currentNotif = notif;
+					this.friendId = this.currentNotif.from;
+					const friend = await dataApi.getUserById(Number(this.friendId!));
+					this.friendName = friend!.username;
 					await this.handleNotification();
 				}
 			}
@@ -152,8 +158,12 @@ export class NotifService {
 
 		// Sinon, parcourt les notifications et crée un élément HTML pour chacune
 		this.updateNotifsCounter();
-		this.notifs.forEach((notifDb: AppNotification) => {
+		this.notifs.forEach(async (notifDb: AppNotification) => {
 			this.currentNotif = notifDb;
+			this.friendId = this.currentNotif.from;
+			const friend = await dataApi.getUserById(Number(this.friendId!));
+			this.friendName = friend!.username;
+			console.log('friendName:', this.friendName);
 			this.displayNotif();
 		});
 	}
@@ -333,7 +343,8 @@ export class NotifService {
 		const notifItem: HTMLDivElement = document.createElement('div');
 		notifItem.classList.add('notif-item');
 		notifItem.id = `notif-${this.currentNotif!.id}`;
-		notifItem.innerHTML = `<span>${this.currentNotif!.content}</span>` || '';
+		const dataTsLabel = this.getDataTsLabel(this.currentNotif!.content);
+		notifItem.innerHTML = `<div>${this.friendName!} <span data-ts="${dataTsLabel}">${this.currentNotif!.content}</span></div>` || '';
 		if (this.currentNotif!.read === 0) {
 			notifItem.classList.add('new-notif');
 		}
@@ -360,7 +371,8 @@ export class NotifService {
 			return;
 		const notifItem = document.createElement('div');
 		notifItem.classList.add('default-notif', 'animate-fade-in-up');
-		notifItem.textContent = 'No notification yet.';
+		notifItem.setAttribute('data-ts', 'notif.noNew');
+		notifItem.textContent = 'No new notifications.';
 		this.navbarInstance!.notifsWindow.prepend(notifItem);
 	}
 
@@ -601,6 +613,11 @@ export class NotifService {
 			return;
 		}
 		this.friendId = Number(friendId);
+		// this.friendName = target.getAttribute("data-friend-name");
+		// if (!this.friendName) {
+		// 	console.error("Pas de friendName sur le bouton");
+		// 	return;
+		// }
 	}
 
 	/**
@@ -649,17 +666,17 @@ export class NotifService {
 		switch (this.currentNotif!.type) {
 			case FRIEND_REQUEST_ACTIONS.ADD:
 				html += `
-					<button class="btn smaller-btn" data-action="accept" data-friend-id="${this.currentNotif!.from}">
+					<button class="btn smaller-btn" data-ts="notif.accept" data-action="accept" data-friend-id="${this.currentNotif!.from}">
 						Accept
 					</button>
-					<button class="btn smaller-btn" data-action="decline" data-friend-id="${this.currentNotif!.from}">
+					<button class="btn smaller-btn" data-ts="notif.decline" data-action="decline" data-friend-id="${this.currentNotif!.from}">
 						Decline
 					</button>
 				`;
 				break;
 			case FRIEND_REQUEST_ACTIONS.INVITE:
 				html += `
-					<button class="btn smaller-btn" data-action="invite" data-friend-id="${this.currentNotif!.from}">
+					<button class="btn smaller-btn" data-ts="notif.invite" data-action="invite" data-friend-id="${this.currentNotif!.from}">
 						Play
 					</button>
 				`;
@@ -668,5 +685,21 @@ export class NotifService {
 		}
 		html += `</div>`;
 		return html;
+	}
+
+	/**
+	 * Renvoie le label de traduction en fonction du contenu de la notification.
+	 *
+	 * @param content Le contenu de la notification.
+	 * @returns Le label de traduction correspondant.
+	 */
+	private getDataTsLabel(content: string): string {
+		if (content.includes(FRIEND_NOTIF_CONTENT.ADD)) 
+			return 'notif.friendRequest';
+		if (content.includes(FRIEND_NOTIF_CONTENT.ACCEPT)) 
+			return 'notif.friendAccept';
+		if (content.includes(FRIEND_NOTIF_CONTENT.INVITE)) 
+			return 'notif.friendInvite';
+		return '';
 	}
 }
