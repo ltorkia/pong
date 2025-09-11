@@ -281,18 +281,18 @@ export class Tournament {
     // TODO : actualiser le tournoi quand une game est finie pour pouvoir continuer
     // exemple de logique :
     // game 1 finie -> front fait une requete au back -> le back recherche le tournoi -> met a jour le tournoi
-    // le winner de game 1 devient player[0] de stageTwoGame (c'est un tableau actuellement mais en vrai c'est qu'un seul match)
-    // le winner de game 2 devient player[1] de stageTwoGame
+    // le winner de stage one game 1 devient player[0] de stageTwoGame (c'est un tableau actuellement mais en vrai c'est qu'un seul match)
+    // le winner de stage one game 2 devient player[1] de stageTwoGame
     // c'etait ce sur quoi je travaillais en dernier donc la logique est pas finie ni en front ni en back
 
     public async startTournament(): Promise<void> {
         console.log("iciiii starttournament baaaackkkk /////")
         this.IDforDB = await createTournament(this.maxPlayers, this.maxPlayers/2);
         if (this.IDforDB === undefined)
-            return; //TODO : put some error ; //TODO : arreter les TODO et DO
+            return; //TODO : put some error
         console.log("game at start tournament is ?", this.stageOneGames);
 
-        for (const player of this.players) 
+        for (const player of this.players)
         {
             await registerUserTournament(player.ID, this.IDforDB);
         }
@@ -303,7 +303,7 @@ export class Tournament {
         for (let i = 0; i < 2; i++) {
             // tu peux la changer sa mere si tu veux par game1 = new Game(2, this.players[0], this.players[1]);
             // game2 = newGame(2, this.players[2], this.players[3])
-            // mais en soit ca marche deja meme si c'est pas tres bo
+            // mais en soit ca marche deja
             const newGame = new Game(2, [this.players[playerIdx], this.players[playerIdx + 1]]); // a changer sa mere
             this.stageOneGames.push(newGame);
             playerIdx += 2;
