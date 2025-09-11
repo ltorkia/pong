@@ -121,6 +121,21 @@
 		"friendRequest": "友達申請を送りました。",
 		"friendAccept": "友達になりました。",
 		"friendInvite": "対戦を招待しました。"
+	},
+
+	"dashboard": {
+		"pageTitle": "ダッシュボード",
+		"underTitle": "ゲームの統計情報など",
+		"totalGames": "プレイしたゲーム数: ",
+		"winRate": "勝率: ",
+		"averageScore": "平均スコア: ",
+		"streak": "連勝: "
+	},
+
+	"profile": {
+		"statsTitle": "ゲーム統計",
+		"friendsTitle": "友達",
+		"matchHistoryTitle": "マッチ履歴"
 	}
 
 }

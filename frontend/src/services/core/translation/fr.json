@@ -121,5 +121,20 @@
 		"friendRequest": "vous a envoyé une demande d'ami.",
 		"friendAccept": "vous a accepté en tant qu'ami.",
 		"friendInvite": "vous a invité à jouer."
+	},
+
+	"dashboard": {
+		"pageTitle": "Statistiques",
+		"underTitle": "Stats de jeu et plus encore",
+		"totalGames": "Parties jouées: ",
+		"winRate": "Taux de victoire: ",
+		"averageScore": "Score moyen: ",
+		"streak": "Séries: "
+	},
+
+	"profile": {
+		"statsTitle": "Stats",
+		"friendsTitle": "Amis",
+		"matchHistoryTitle": "Historique des matchs"
 	}
 }

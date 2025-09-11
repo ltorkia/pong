@@ -121,6 +121,20 @@
 		"friendRequest": "has sent you a friend request.",
 		"friendAccept": "has accepted your friend request.",
 		"friendInvite": "has invited you to a game."
-	}
+	},
 
+	"dashboard": {
+		"pageTitle": "Dashboard",
+		"underTitle": "Game statistics and more",
+		"totalGames": "Game played: ",
+		"winRate": "Win rate: ",
+		"averageScore": "Average score: ",
+		"streak": "Streaks: "
+	},
+
+	"profile": {
+		"statsTitle": "Stats",
+		"friendsTitle": "Mates",
+		"matchHistoryTitle": "Match history"
+	}
 }
