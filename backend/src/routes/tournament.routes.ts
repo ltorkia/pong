@@ -185,7 +185,6 @@ export async function tournamentRoutes(app: FastifyInstance) {
         }
         
         tournament.isStarted = true;
-        // db -> creation du tournoi 
         tournament.startTournament();
 
         const startSignal: StartTournamentSignal = { type: "start_tournament_signal" };

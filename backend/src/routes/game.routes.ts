@@ -18,19 +18,53 @@ export async function gameRoutes(app: FastifyInstance) {
             return reply.code(400).send({ error: matchMakingReq.error.errors[0].message });
         const { allPlayers } = app.lobby;
         console.log("LOBBY : ",app.lobby);
-        // if (matchMakingReq.data.type === "tournament")
-        // {
-        // const tournament = app.lobby.allTournaments.find((t: Tournament) => t.ID === request.headers['tournamentid'])!;
-        // console.log("LOBBY TOURNOI : ", tournament);
+        if (matchMakingReq.data.type === "tournament")
+        {
+            console.log("TOURNAMENT REQUEST RECEIVED : ", matchMakingReq.data);
+        const tournament = app.lobby.allTournaments.find((t: Tournament) => t.ID === matchMakingReq.data.tournamentID)!;
+        console.log("LOBBY TOURNOI : ", tournament);
         // const { players } = tournament.players;
-        // console.log("LOBBY PLAYERS dans tournois: ", players);
-        // // ajouter un const de is ready -> se lance quand les 2 le sont :
-        // const isReady = players.every((p: Player) => p.ready);
-        // if (isReady) {
+        console.log("LOBBY PLAYERS dans tournois: ", tournament.players);
+        // console.log("LOBBY PLAYERS DANS STAGE 1: ", tournament.stageOneGames[0].players);
+        // ajouter un const de is ready -> se lance quand les 2 le sont :
+// Correct way with implicit return:
+        let playerOne = tournament.stageOneGames[0].players.find((p: Player) => p.ID === matchMakingReq.data.playerID);
+//         let playerOne = tournament.stageOneGames[0].players.find((p: Player) => { p.ID === matchMakingReq.data.playerID});
+
+// // Or with explicit return:
+// let playerOne = tournament.stageOneGames[0].players.find((p: Player) => { return p.ID === matchMakingReq.data.playerID; });
+        if (!playerOne)
+        {
+            let playerOne = tournament.stageOneGames[1].players.find((p: Player) => p.ID === matchMakingReq.data.playerID);
+            // playerOne = tournament.stageOneGames[1].players.find((p: Player) => { p.ID === matchMakingReq.data.playerID});
+            if (!playerOne)
+            return reply.code(404).send({ error: "Player not found in tournament" });
+        }
+        playerOne!.readyforTournament = true;
+        console.log("PLAYER ONE READY : ", playerOne);
+        reply.code(200).send("Successfully added to tournament matchmaking");
+        //vérifier si tous les joueurs sont prêts
+        const isReady = tournament.players.every((p: Player) => p.readyforTournament);
+        if (isReady)
+        {
+            startGame(app, tournament.stageOneGames[0].players, "multi");
+            startGame(app, tournament.stageOneGames[1].players, "multi");
+        }
+        // if (isReady && tournament.stageOneGames.length < 2 
+        //     && tournament.players[0] === this.player.id) {
+        //     tournament.stageOneGames.push(new Player(matchMakingReq.data.playerID));
+        //     if (tournament.stageOneGames.length === 2) {
+        //         startGame(app, tournament.stageOneGames, "multi");
+        //         // tournament.stageOneGames = [];
+        //     }
+
+        //     console.log("i m heeeeeeeeeere");
+        // }
+        
         //     // lancer le tournoi
         // // } adapter la suite pour rentrer dans la logique matchmaking multi mais avec dans db tournoi 
 
-        // }
+        }
         if (matchMakingReq.data.type === "matchmaking_request")
         {
             if (!allPlayers.find((p: Player) => p.ID == matchMakingReq.data.playerID))

@@ -11,6 +11,7 @@ import { router } from '../../../router/router';
 import { animateCSS } from '../../../utils/animate.utils';
 import { TournamentAPI } from '../../../api/game/tournament.api';
 
+//   TODO : Start Tournament -> affiche que pour celui qui peut lancer le tournoi
 export class GameTournamentLobby extends BasePage {
     private tournamentID: number;
     private tournament: Tournament | undefined;

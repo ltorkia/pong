@@ -12,7 +12,7 @@ import { User } from '../../../shared/models/user.model';
 const MAX_PLAYERS = 4;
 const MIN_PLAYERS = 4;
 
-export class GameTournamentOverview extends GamePage {
+export class GameTournamentOverview extends GamePage { //changement de basepage mais a voir
     private tournamentID: number;
     private pastilleHTML: HTMLElement | undefined;
     private toolTipHTML: HTMLElement | undefined;
@@ -133,7 +133,9 @@ export class GameTournamentOverview extends GamePage {
 
         // Ajout du listener
         btn.addEventListener("click", () => {
-             console.log("okeeaiii");
+            this.isSearchingGame = true;          
+            this.sendMatchMakingRequest("tournament", this.tournamentID);
+            console.log("okeeaiii");
             // this.startGame(); // fonction qui fetch avec les infos en contenu des joueurs
         });
             // await this.attachPastilleListeners();

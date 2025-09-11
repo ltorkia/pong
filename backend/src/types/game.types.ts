@@ -87,7 +87,8 @@ export class Ball {
 
 export class Game {
     private duration: number = 0;
-    private players: Player[] = [];
+    // private players: Player[] = [];
+    public players: Player[] = []; //TODO : plutot faire un getteur
     private ball = new Ball();
     private playersCount: number = 0;
     private gameStarted: boolean = false;

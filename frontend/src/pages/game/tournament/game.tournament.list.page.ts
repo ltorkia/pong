@@ -185,6 +185,8 @@ export class GameTournamentList extends BasePage {
         }
     }
 
+    // TODO : listen socket pour maj liste tournois et maj joueurs dans tournoi;
+
     protected attachListeners(): void {
         const tournamentBtns = document.querySelectorAll("#btn-counter");
         const tournamentInput = document.getElementById("tournament-name-input") as HTMLInputElement;

@@ -5,6 +5,7 @@ import { MatchMakingReq } from '../../shared/types/websocket.types';
 import { MultiPlayerGame } from '../../components/game/BaseGame.component';
 import { Player } from '../../../../shared/types/game.types';
 import { SafeUserModel } from '../../../../shared/types/user.types';
+import { Tournament } from 'src/types/game.types';
 
 
 // ===========================================
@@ -74,13 +75,15 @@ export class GamePage extends BasePage {
         document.getElementById("pong-section")!.append(errorDiv);
     }
 
-    protected async sendMatchMakingRequest(type : string): Promise<void> {
+    protected async sendMatchMakingRequest(type : string, tournamentID?: number | undefined): Promise<void> {
         const message = type;         
+        console.log(this.currentUser!);
         const matchMakingReq: MatchMakingReq = {
             type: message,
             playerID: this.currentUser!.id,
+            tournamentID: tournamentID,
         }
-        // console.log("matchMakingReq = ", matchMakingReq);
+        console.log("matchMakingReq = ", matchMakingReq);
         const res = await fetch("/api/game/playgame", {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
