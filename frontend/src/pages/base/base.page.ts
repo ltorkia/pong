@@ -227,6 +227,8 @@ export abstract class BasePage {
 	 * @returns {boolean} Retourne true si le composant doit être rendu, false sinon.
 	 */
 	protected shouldRenderComponent(componentConfig: ComponentConfig): boolean {
+		if (componentConfig.isPublic === undefined)
+			return true;
 		return this.config.isPublic === componentConfig.isPublic;
 	}
 

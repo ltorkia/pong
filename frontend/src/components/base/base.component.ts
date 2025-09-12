@@ -26,6 +26,8 @@ export abstract class BaseComponent {
 	protected routeConfig: RouteConfig;
 	public componentConfig: ComponentConfig;
 	public container: HTMLElement;
+	protected templateId?: string;
+	protected templateNode?: Node;
 	protected templatePath: string;
 	protected currentUser: User | null = null;
 	protected removeListenersFlag: boolean = true;
@@ -104,7 +106,8 @@ export abstract class BaseComponent {
 	 * @returns {Promise<boolean>} Une promesse qui se résout lorsque les checks sont terminées et validés.
 	 */
 	protected async preRenderCheck(): Promise<boolean> {
-		if (!checkUserLogged(this.componentConfig.isPublic))
+		if (this.componentConfig.isPublic !== undefined
+			&& !checkUserLogged(this.componentConfig.isPublic))
 			return false;
 		return true;
 	}

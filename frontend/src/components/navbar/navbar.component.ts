@@ -107,7 +107,8 @@ export class NavbarComponent extends BaseComponent {
 	protected async mount(): Promise<void> {
 		this.toggleSettingsLink();
 		this.setActiveLink(this.routeConfig.path);
-		this.langSwitcher.value = translateService.getLocale();
+		// this.langSwitcher.value = translateService.getLocale();
+		this.addTranslaterComponent();
 		this.mainSection.classList.add('mt-main');
 	}
 
@@ -309,6 +310,21 @@ export class NavbarComponent extends BaseComponent {
 			}
 		});
 		this.updateBurgerIcon();
+	}
+
+	private addTranslaterComponent(): void {
+		const translaterContainer = getHTMLElementById('translater-container', this.container);
+		const translaterComponentConfig: ComponentConfig = {
+			name: 'translater',
+			destroy: false,
+			animateIn: false,
+			animateOut: false,
+		};
+		const translaterComponent = new (require('../translater/translater.component').TranslaterComponent)(
+			this.routeConfig,
+			translaterComponentConfig,
+			translaterContainer
+		);
 	}
 
 	// ===========================================

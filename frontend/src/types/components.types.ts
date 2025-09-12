@@ -37,8 +37,8 @@ export interface ComponentConfig {
 	componentConstructor: ComponentConstructor;
 	templatePath: ComponentPath;
 	containerId: ComponentContainer;
-	isPublic: boolean;
-	isPersistent: boolean;
+	isPublic?: boolean;
+	isPersistent?: boolean;
 	destroy?: boolean;
 	instance?: BaseComponent;
 }

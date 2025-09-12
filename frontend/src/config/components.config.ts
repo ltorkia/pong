@@ -31,10 +31,12 @@ import { ComponentConfig } from '../types/components.types';
  */
 export const HTML_COMPONENT_CONTAINERS = {
 	TWOFA_MODAL_ID: 'twofa-modal',
+	HOMEBAR_ID: 'homebar',
 	NAVBAR_ID: 'navbar',
 	SEARCH_BAR_ID: 'search-bar',
 	USER_LIST_ID: 'user-list',
 	PAGINATION_ID: 'pagination',
+	TRANSLATER_ID: 'languages',
 } as const;
 
 /**
@@ -46,10 +48,12 @@ export const HTML_COMPONENT_CONTAINERS = {
  */
 export const COMPONENT_NAMES = {
 	TWOFA_MODAL: 'twofa-modal',
+	HOMEBAR: 'homebar',
 	NAVBAR: 'navbar',
 	SEARCH_BAR: 'search-bar',
 	USER_ROW: 'user-row',
 	PAGINATION: 'pagination',
+	TRANSLATER: 'languages',
 } as const;
 
 /**
@@ -61,10 +65,12 @@ export const COMPONENT_NAMES = {
  */
 export const COMPONENT_PATHS = {
 	[COMPONENT_NAMES.TWOFA_MODAL]: '/components/twofa-modal/twofa-modal.component.html',
+	[COMPONENT_NAMES.HOMEBAR]: '/components/homebar/homebar.component.html',
 	[COMPONENT_NAMES.NAVBAR]: '/components/navbar/navbar.component.html',
 	[COMPONENT_NAMES.SEARCH_BAR]: '/components/search-bar/search-bar.component.html',
 	[COMPONENT_NAMES.USER_ROW]: '/components/user-row/user-row.component.html',
 	[COMPONENT_NAMES.PAGINATION]: '/components/pagination/pagination.component.html',
+	[COMPONENT_NAMES.TRANSLATER]: '/components/translater/translater.component.html',
 } as const;
 
 /**
@@ -95,6 +101,14 @@ export const componentsConfig: ComponentConfig[] = [
 		componentConstructor: TwofaModalComponent,
 		templatePath: COMPONENT_PATHS[COMPONENT_NAMES.TWOFA_MODAL],
 		containerId: HTML_COMPONENT_CONTAINERS.TWOFA_MODAL_ID,
+		isPublic: true,
+		isPersistent: false
+	},
+	{
+		name: COMPONENT_NAMES.HOMEBAR,
+		componentConstructor: HomebarComponent,
+		templatePath: COMPONENT_PATHS[COMPONENT_NAMES.HOMEBAR],
+		containerId: HTML_COMPONENT_CONTAINERS.HOMEBAR_ID,
 		isPublic: true,
 		isPersistent: false
 	},
@@ -131,5 +145,11 @@ export const componentsConfig: ComponentConfig[] = [
 		containerId: HTML_COMPONENT_CONTAINERS.PAGINATION_ID,
 		isPublic: false,
 		isPersistent: false
+	},
+	{
+		name: COMPONENT_NAMES.TRANSLATER,
+		componentConstructor: TranslaterComponent,
+		templatePath: COMPONENT_PATHS[COMPONENT_NAMES.TRANSLATER],
+		containerId: HTML_COMPONENT_CONTAINERS.TRANSLATER_ID
 	}
 ];
