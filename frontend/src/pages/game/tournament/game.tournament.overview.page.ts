@@ -21,18 +21,22 @@ export class GameTournamentOverview extends GamePage { //changement de basepage 
     private users: UserModel[] = [];
     private winner: Player | undefined;
 
+
     protected async beforeMount(): Promise<void> {
+        // Check si le tournoi existe ou redirection
         this.tournament = await TournamentService.fetchTournament(this.tournamentID);
         if (!this.tournament) {
             console.error("Tournament not found");
             router.navigate("/game/tournaments");
         }
+        // Fetch du html qui va etre reutilise plusieurs fois
         this.pastilleHTML = await this.fetchHTML("../../../../public/templates/game/tournament_pastille.html", "#tournament-pastille");
         this.toolTipHTML = await this.fetchHTML("../../../../public/templates/game/tournament_tooltip.html", "#tooltip");
         await this.fetchUsers();
         console.log(this.tournament);
     }
 
+    // Methode pour fetch une partie de HTML depuis une url
     private async fetchHTML(src: string, idTopContainer: string): Promise<HTMLElement | undefined> {
         const response = await fetch(src);
         if (!response) {
@@ -56,6 +60,8 @@ export class GameTournamentOverview extends GamePage { //changement de basepage 
         this.tournamentID = Number(window.location.href.split('/').reverse()[1].slice(1));
     }
 
+    // Fetch les players d'un tournoi stocke dans le back pour les avoir a disposition dans le front
+    // Users plutot que players probablement pour avoir acces a id, avatar, etc
     private async fetchUsers() {
         for (const player of this.tournament?.players!) {
             const user = await TournamentService.fetchUser(player.ID);
@@ -64,6 +70,7 @@ export class GameTournamentOverview extends GamePage { //changement de basepage 
         }
     }
 
+    // Afficher le tournoi 
     private async displayTournament(): Promise<void> {
         const firstStage: HTMLElement = document.getElementById("first-stage")!;
         const secondStage: HTMLElement = document.getElementById("second-stage")!;
@@ -79,6 +86,7 @@ export class GameTournamentOverview extends GamePage { //changement de basepage 
         }
     }
 
+    // Afficher le winner
     private async displayWinner(): Promise<void> {
         const playerPastille = this.pastilleHTML?.cloneNode(true) as HTMLElement;
         if (this.winner) {
@@ -92,12 +100,15 @@ export class GameTournamentOverview extends GamePage { //changement de basepage 
         document.getElementById("winner")?.append(playerPastille);
     }
 
+    // Afficher chaque etape du tournoi
     private async displayStage(stage: Game[], playerNb: number, container: HTMLElement): Promise<void> {
+        // Loop pour le nombre de match par stage 
         for (let i = 0; i < playerNb / 2; i++) {
             const div = document.createElement("div");
             div.id = "match-container";
             div.classList.add("relative");
             // div.dataset
+            // Loop pour le nombre de joueur par match, cherche le user approprie, lui cree un container et l'affiche
             for (let j = 0; j < 2; j++) {
                 const playerPastille = this.pastilleHTML?.cloneNode(true) as HTMLElement;
                 if (stage && stage[i]) {
@@ -119,7 +130,6 @@ export class GameTournamentOverview extends GamePage { //changement de basepage 
             div.append(newTooltip);
         }
     }
-
 
     protected async mount(): Promise<void> {
         await this.displayTournament();
@@ -144,7 +154,6 @@ export class GameTournamentOverview extends GamePage { //changement de basepage 
     private getGameByPlayerID(id: number, stage: Game[]): Game | undefined {
         return stage.find((game: Game) => game.players.find((p: Player) => p.ID == id));
     }
-
 
     protected attachListeners(): void {
         const allMatches = document.querySelectorAll("#match-container");
