@@ -93,14 +93,17 @@ export class Game {
     private isOver: boolean = false;
     private score: number[] = [];
     public gameIDforDB: number = 0; // a voir
+    public tournamentID?: number; // a voir
+    // protected tournamentIDforDB = null;
     // public type: string;
     // public sidePlayer: string; //dans player plutot
     // private async addGame(userId1: number, userId2: number): Promise<number> ;
     // private async resultGame(gameId: number, winnerId: number, looserId: number);
 
-    constructor(playersCount: number, players: Player[]) {
+    constructor(playersCount: number, players: Player[], tournamentID?: number) {
         this.playersCount = playersCount;
         this.players = players;
+        this.tournamentID = tournamentID;
     }
 
     private async gameLoop(): Promise<void> {
@@ -178,7 +181,7 @@ export class Game {
     }
 
     public async endGame(): Promise<void> {
-        console.log("coucou end !");
+        console.log("coucou end !, score = ", this.score);
         this.gameStarted = false;
         this.isOver = true;
         for (const player of this.players) {
@@ -187,15 +190,17 @@ export class Game {
             if (player.webSocket)
                 player.webSocket.send(JSON.stringify({
                     type: "end",
-                    score: this.score
+                    score: this.score,
+                    // players: JSON.stringify(this.players.map(p => ({ ID: p.ID, alias: p.alias }))),
+                    tournamentID: this.tournamentID || null
                 }));
             // console.log("////////////////////////////////////////////////////////////////////////player = ", player, "score = ", this.score);
         }
         let winner = this.players[1];
         let looser = this.players[0];
-        if ((this.score[0] = 3) | (this.score[1] = 3))
+        if ((this.score[0] === 3) || (this.score[1] === 3))
         {
-            console.log("iiiiiiiiiiiiiiiiiiciiiii dans condition endgsameeee ")
+            console.log("iiiiiiiiiiiiiiiiiiciiiii dans condition endgsameeee,  score = ", this.score)
             winner = this.players[0];
             looser = this.players[1];
             // if multiplayer si on veut garder que en db le multiplayer
@@ -306,7 +311,7 @@ export class Tournament {
             // tu peux la changer sa mere si tu veux par game1 = new Game(2, this.players[0], this.players[1]);
             // game2 = newGame(2, this.players[2], this.players[3])
             // mais en soit ca marche deja
-            const newGame = new Game(2, [this.players[playerIdx], this.players[playerIdx + 1]]); // a changer sa mere
+            const newGame = new Game(2, [this.players[playerIdx], this.players[playerIdx + 1]], this.ID); // a changer sa mere
             this.stageOneGames.push(newGame);
             playerIdx += 2;
         }

@@ -142,8 +142,19 @@ export class GameTournamentOverview extends GamePage { //changement de basepage 
         document.getElementById("tournament-overview")?.append(btn);
 
         // Ajout du listener
-        btn.addEventListener("click", () => {
-            this.isSearchingGame = true;          
+        btn.addEventListener("click", async () => {
+            this.isSearchingGame = true;
+            // const res = await fetch("/api/game/update_tournament_games", {
+            //     method: 'POST',
+            //     headers: { 'Content-Type': 'application/json' },
+            //     // body: JSON.stringify(lobbyUpdate),
+            //     credentials: 'include',
+            // });
+        // if (!res.ok) {
+        //     const error = await res.json();
+        //     throw new Error(error.error);
+        // }
+            // await fetch("/update_tournament_games")
             this.sendMatchMakingRequest("tournament", this.tournamentID);
             console.log("okeeaiii");
             // this.startGame(); // fonction qui fetch avec les infos en contenu des joueurs

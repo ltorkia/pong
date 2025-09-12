@@ -21,35 +21,38 @@ export async function gameRoutes(app: FastifyInstance) {
         if (matchMakingReq.data.type === "tournament")
         {
             console.log("TOURNAMENT REQUEST RECEIVED : ", matchMakingReq.data);
-        const tournament = app.lobby.allTournaments.find((t: Tournament) => t.ID === matchMakingReq.data.tournamentID)!;
-        console.log("LOBBY TOURNOI : ", tournament);
-        // const { players } = tournament.players;
-        console.log("LOBBY PLAYERS dans tournois: ", tournament.players);
-        // console.log("LOBBY PLAYERS DANS STAGE 1: ", tournament.stageOneGames[0].players);
-        // ajouter un const de is ready -> se lance quand les 2 le sont :
-// Correct way with implicit return:
-        let playerOne = tournament.stageOneGames[0].players.find((p: Player) => p.ID === matchMakingReq.data.playerID);
-//         let playerOne = tournament.stageOneGames[0].players.find((p: Player) => { p.ID === matchMakingReq.data.playerID});
-
-// // Or with explicit return:
-// let playerOne = tournament.stageOneGames[0].players.find((p: Player) => { return p.ID === matchMakingReq.data.playerID; });
-        if (!playerOne)
-        {
-            let playerOne = tournament.stageOneGames[1].players.find((p: Player) => p.ID === matchMakingReq.data.playerID);
-            // playerOne = tournament.stageOneGames[1].players.find((p: Player) => { p.ID === matchMakingReq.data.playerID});
+            const tournament = app.lobby.allTournaments.find((t: Tournament) => t.ID === matchMakingReq.data.tournamentID)!;
+            console.log("LOBBY TOURNOI : ", tournament);
+            // const { players } = tournament.players;
+            console.log("LOBBY PLAYERS dans tournois: ", tournament.players);
+            // if(tournament.stageTwoGames[0].players.length === 2)
+            // {
+            //     console.log("DEJA EN STAGE 2, ON LANCE LE JEU DIRECT");
+            //     startGame(app, tournament.stageTwoGames[0].players, "multi", tournament.stageTwoGames[0]);
+            //     return ;
+            // }
+            console.log("LOBBY PLAYERS DANS STAGE 1: ", tournament.stageOneGames[0].players);
+            let playerOne = tournament.stageOneGames[0].players.find((p: Player) => p.ID === matchMakingReq.data.playerID);
             if (!playerOne)
-            return reply.code(404).send({ error: "Player not found in tournament" });
-        }
-        playerOne!.readyforTournament = true;
-        console.log("PLAYER ONE READY : ", playerOne);
-        reply.code(200).send("Successfully added to tournament matchmaking");
-        //vérifier si tous les joueurs sont prêts
-        const isReady = tournament.players.every((p: Player) => p.readyforTournament);
-        if (isReady)
-        {
-            startGame(app, tournament.stageOneGames[0].players, "multi");
-            startGame(app, tournament.stageOneGames[1].players, "multi");
-        }
+            {
+                playerOne = tournament.stageOneGames[1].players.find((p: Player) => p.ID === matchMakingReq.data.playerID);
+                // playerOne = tournament.stageOneGames[1].players.find((p: Player) => { p.ID === matchMakingReq.data.playerID});
+                if (!playerOne)
+                return reply.code(404).send({ error: "Player not found in tournament" });
+            }
+            playerOne!.readyforTournament = true;
+            console.log("PLAYER ONE READY : ", playerOne);
+            reply.code(200).send("Successfully added to tournament matchmaking");
+            //vérifier si tous les joueurs sont prêts
+            const isReady = tournament.players.every((p: Player) => p.readyforTournament);
+            if (isReady)
+            {
+                startGame(app, tournament.stageOneGames[0].players, "multi", tournament.stageOneGames[0]);
+                startGame(app, tournament.stageOneGames[1].players, "multi", tournament.stageOneGames[1]);
+                for (const player of tournament.players) {
+                    player.readyforTournament = false;
+                }
+            }
         // if (isReady && tournament.stageOneGames.length < 2 
         //     && tournament.players[0] === this.player.id) {
         //     tournament.stageOneGames.push(new Player(matchMakingReq.data.playerID));
@@ -142,13 +145,14 @@ async function decount(app: FastifyInstance, players: Player[], gameID: number)
     }
 }
 
-const startGame = async (app: FastifyInstance, players: Player[], mode: string) => {
+const startGame = async (app: FastifyInstance, players: Player[], mode: string, gameCreated?: Game) => {
     const { usersWS } = app;
     const { allGames } = app.lobby;
     const gameID = generateUniqueID(allGames);
     const webSockets: WebSocket[] = [];
+    const newGame = gameCreated || new Game(2, players);
 
-    const newGame = new Game(2, players);
+    // const newGame = new Game(2, players);
     let WSToSend = { type: "start_game", gameID: gameID} as StartGame;
     console.log("dans start game : players are", players);
     

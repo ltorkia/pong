@@ -5,8 +5,8 @@ import { Tournament } from '../types/game.types';
 import { TournamentLobbyUpdate, StartTournamentSignal, DismantleSignal } from '../shared/types/websocket.types'
 import { UserWS } from '../types/user.types';
 import { findPlayerWebSocket } from '../helpers/query.helpers';
-import { addGame } from '../db/game';
-
+import { addGame, getResultGame } from '../db/game';
+import { Game } from '../types/game.types';
 // Differentes routes pour differents besoins lies aux tournois en remote
 // Les tournois existent en backend dans app.lobby.allTournaments
 // Toutes les infos necessaires a une action sont validees avec ZOD, voir les differents schemas pour mieux comprendre les requetes
@@ -253,7 +253,48 @@ export async function tournamentRoutes(app: FastifyInstance) {
             console.log("Tournament not found and it is weird");
         }
     });
+
+    app.post("/update_tournament_games", async (request: FastifyRequest, reply: FastifyReply) => {
+        const { id } = request.params as { id: string };
+        const tournamentID = Number(id.slice(1));
+        const allTournaments = app.lobby.allTournaments;
+        const tournament = allTournaments.find((t: Tournament) => t.ID == tournamentID);
+        const winnerList: number[] = [];
+
+        // let newGame = new Game(2, [new Player(1), new Player(2)], "multi");
+        // recuperer les resultats des games du tournoi depuis la db
+        if (!tournament)
+            return reply.code(404).send({ error: "Tournament not found" });
+
+        // const newGame = new Game(2, [new Player(1), new Player(2)], "multi");
+        for (const game of tournament.stageOneGames) {
+            // if (game.isOver)
+            // {
+                const resultgame = await getResultGame(game.gameIDforDB!);
+                if (resultgame.status != "finished")
+                    continue ;
+                // tournament.stageTwoGames.push(Player(resultgame!.winnerID));
+                // game.isOver = false; // pour ne pas refaire cette operation a la prochaine update
+                const winner = resultgame?.winnerId;
+                if (winner) {
+                    winnerList.push(winner);
+                } else {
+                    return reply.code(404).send({ error: "Winner not found" });
+                console.log("WINNER ID = ", winner);
+                }
+            // }
+        }
+        if( winnerList.length != 2)
+            return reply.code(404).send({ error: "Not enough winners" });
+        tournament.stageTwoGames.push(new Game(2, [new Player(winnerList[0]), new Player(winnerList[1])], tournamentID));
+        // return winnerList;
+        sendToTournamentPlayers({ type: "tournament_update_second_round", players: tournament?.players }, tournament!, app);
+        return reply.code(200).send("Update sent to all players");
+        
+    });
 }
+
+
 
 // Update envoyee a tous les participants du tournoi
 const sendToTournamentPlayers = (toSend: any, tournament: Tournament, app: FastifyInstance) => {
