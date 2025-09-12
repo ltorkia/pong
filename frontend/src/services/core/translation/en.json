@@ -136,5 +136,14 @@
 		"statsTitle": "Stats",
 		"friendsTitle": "Mates",
 		"matchHistoryTitle": "Match history"
+	},
+
+	"game": {
+		"networkError": "Network error. Please try again later.",
+		"lobbyWaiting": "Waiting for other players to connect...",
+		"timerText": "Lets play in ... ",
+		"resultText": "Result = ",
+		"loseMessage": "You lose against ",
+		"winMessage": "You WIIIIIIIN against "
 	}
 }
