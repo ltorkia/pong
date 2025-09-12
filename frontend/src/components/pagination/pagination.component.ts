@@ -86,7 +86,7 @@ export class PaginationComponent extends BaseComponent {
 	protected async mount(): Promise<void> {
 		if (!this.paginationInfos || !this.paginationParams)
 			return;
-		this.paginationInfoElement.textContent = this.getPaginationStats();
+		this.paginationInfoElement.innerHTML = this.getPaginationStats();
 		this.paginationButtonsContainer.innerHTML = '';
 
 		if (this.paginationInfos.totalPages <= 1) {
@@ -145,10 +145,10 @@ export class PaginationComponent extends BaseComponent {
 	 */
 	private getPaginationStats(): string {
 		this.setTotalUsers();
-		const str = this.paginationInfos.totalUsers <= 1 ? 'user' : 'users';
+		const str = '<span data-ts="pagination.usersLabel">user(s)</span>';
 		if (this.paginationInfos.totalPages > 0)
-			return `Page ${this.paginationInfos.currentPage} / ${this.paginationInfos.totalPages} - ${this.paginationInfos.totalUsers} ${str}`;;
-		return `No ${str} found.`;
+			return `<span data-ts="pagination.page">Page</span> ${this.paginationInfos.currentPage} / ${this.paginationInfos.totalPages} - ${this.paginationInfos.totalUsers} ${str}`;
+		return `No <span data-ts="pagination.userLabel">user</span> found.`;
 	}
 
 	/**
@@ -159,7 +159,8 @@ export class PaginationComponent extends BaseComponent {
 
 		// Bouton Précédent
 		if (hasPreviousPage) {
-			this.createPaginationButton('‹ Prev', currentPage - 1, 'prev-btn');
+			// this.createPaginationButton('‹ Prev', currentPage - 1, 'prev-btn');
+			this.createPaginationButton('pagination.prev', currentPage - 1, 'prev-btn');
 		}
 
 		// Logique d'affichage des pages
@@ -179,7 +180,8 @@ export class PaginationComponent extends BaseComponent {
 
 		// Bouton Suivant
 		if (hasNextPage) {
-			this.createPaginationButton('Next ›', currentPage + 1, 'next-btn');
+			// this.createPaginationButton('Next ›', currentPage + 1, 'next-btn');
+			this.createPaginationButton('pagination.next', currentPage + 1, 'next-btn');
 		}
 	}
 
@@ -241,9 +243,11 @@ export class PaginationComponent extends BaseComponent {
 	 * @param {number} page Le numéro de page associé au bouton
 	 * @param {string} type Le type de bouton pour le styling
 	 */
-	private createPaginationButton(text: string, page: number, type: string): void {
+	private createPaginationButton(dataLabel: string, page: number, type: string): void {
 		const button = document.createElement('button');
-		button.textContent = text;
+		// button.setAttribute('data-ts', 'prevButton');
+		button.setAttribute('data-ts', dataLabel);
+		// button.textContent = text;
 		button.className = this.getButtonClasses(type);
 		
 		if (type === 'current-page') {

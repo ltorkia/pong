@@ -104,7 +104,7 @@ export class DataService {
 	 */
 	public showLogDate(user: User): string | void {
 		if (!user.isOnline())
-			return `online ${user.formattedEndLog}`;
+			return `<span data-ts="users.online">online</span> ${user.formattedEndLog}`;
 	}
 
 	/**
@@ -115,11 +115,11 @@ export class DataService {
 	public showStatusLabel(user: User): string {
 		switch (user.status) {
 			case USER_ONLINE_STATUS.ONLINE: 
-				return `<div class="online" title="online"></div>`;
+				return `<div class="online" data-ts="users.online" data-type="title" title="online"></div>`;
 			case USER_ONLINE_STATUS.OFFLINE:
-				return `<div class="offline" title="offline"></div>`;
-			case USER_ONLINE_STATUS.IN_GAME:
-				return `<div class="ingame" title="in game"></div>`;
+				return `<div class="offline" data-ts="users.offline" data-type="title" title="offline"></div>`;
+			// case USER_ONLINE_STATUS.IN_GAME:
+			// 	return `<div class="ingame" data-ts="users.ingame" title="in game"></div>`;
 			default: return 'Unknown';
 		}
 	}
@@ -135,11 +135,11 @@ export class DataService {
 	public showFriendLogo(user: User | Friend): string {
 		switch (user.friendStatus) {
 			case DB_CONST.FRIENDS.STATUS.ACCEPTED:
-				return `<i class="fa-solid fa-user-check" title="Friend !"></i>`;
+				return `<i class="fa-solid fa-user-check" data-ts="users.acceptedFriend" data-type="title" title="Friend !"></i>`;
 			case DB_CONST.FRIENDS.STATUS.PENDING:
-				return `<i class="fa-solid fa-user-clock" title="Pending resquest..."></i>`;
+				return `<i class="fa-solid fa-user-clock" data-ts="users.pendingFriend" data-type="title" title="Pending resquest..."></i>`;
 			case DB_CONST.FRIENDS.STATUS.BLOCKED:
-				return `<i class="fa-solid fa-user-slash" title="Blocked !"></i>`;
+				return `<i class="fa-solid fa-user-slash" data-ts="users.blockedFriend" data-type="title" title="Blocked !"></i>`;
 			default: 
 				return `<i class="fa-solid fa-minus"></i>`;
 		}

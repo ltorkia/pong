@@ -7,8 +7,7 @@ import { getHTMLElementById, getHTMLElementByClass } from '../../utils/dom.utils
 // ===========================================
 /**
  * La page d'accueil est chargée lorsque l'utilisateur se connecte.
- * Elle affiche un message de bienvenue avec le nom de l'utilisateur et
- * charge son avatar.
+ * Elle charge son avatar.
  */
 export class HomePage extends BasePage {
 	private welcomeContainer!: HTMLElement;
@@ -66,7 +65,7 @@ export class HomePage extends BasePage {
 	 * bienvenue personnalisé avec le nom d'utilisateur.
 	 */
 	private welcomeUser() {
-		this.welcomeContainer.textContent = `Hi ${this.currentUser!.username} !`;
+		this.welcomeContainer.textContent = `${this.currentUser!.username}`;
 	}
 
 	/**

@@ -9,7 +9,8 @@
 	},
 
 	"home": {
-		"subtitle": "Prêt·e à jouer dans nos contrées magiques ?",
+		"greeting": "Salut",
+		"underTitle": "Prêt·e à jouer dans nos contrées magiques ?",
 		"rulesBtn": "Règles",
 		"localGameBtn": "Partie locale",
 		"multiGameBtn": "Partie multijoueur",
@@ -18,7 +19,7 @@
 
 	"rules": {
 		"pageTitle": "Règles du jeu Pong",
-		"pageSubtitle": "Vous devez suivre",
+		"underTitle": "Vous devez suivre",
 		"objective": {
 			"title": "Objectif",
 			"text": "Marquez des points en faisant passer la balle devant la raquette de votre adversaire."
@@ -50,5 +51,90 @@
 			"title": "Tournoi",
 			"text": "• Bla bla bla."
 		}
+	},
+
+	"users": {
+		"pageTitle": "Joueurs",
+		"underTitle": "Sont en train de transcender...",
+		"searchPlaceholder": "Rechercher par nom d'utilisateur",
+		"noUsersFound": "Aucun joueur trouvé.",
+		"search": "Rechercher",
+		"filters": "Filtres",
+		"status": "Statut :",
+		"any": "Tout",
+		"inputOnline": "🟢 en ligne",
+		"inputOffline": "⚫ hors ligne",
+		"online": "en ligne",
+		"offline": "hors ligne",
+		"friendsOnly": "Amis uniquement",
+		"reset": "Réinitialiser",
+		"viewProfile": "Voir le profil",
+		"winRateLabel": "Taux de victoire: ",
+		"addFriend": "Ajouter en ami",
+		"acceptFriend": "Accepter",
+		"declineFriend": "Refuser",
+		"cancelFriend": "Annuler la demande d'ami",
+		"challenge": "Jouer",
+		"unfriend": "Retirer des amis",
+		"blockFriend": "Bloquer",
+		"unblockFriend": "Débloquer",
+		"acceptedFriend": "Ami !",
+		"pendingFriend": "Demande en attente...",
+		"blockedFriend": "Bloqué(e) !"
+	},
+
+	"settings": {
+		"pageTitle": "Paramètres",
+		"underTitle": "Personnalise ton expérience",
+		"emailLabel": "Email : ",
+		"usernameLabel": "Nom d'utilisateur : ",
+		"passwordLabel": "Change ton mot de passe",
+		"currPasswordLabel": "Mot de passe actuel :",
+		"newPasswordLabel": "Nouveau mot de passe :",
+		"twofaLabel": "Activer l'authentification à deux facteurs (2FA)",
+		"twofaEmailLabel": "Envoyer le code par email",
+		"twofaQRCodeLabel": "Envoyer le code par QR code",
+		"twofaDisableLabel": "Désactiver l'authentification à deux facteurs"
+	},
+
+	"time": {
+		"never": "jamais",
+		"agoFr": "il y a ",
+		"ago": "",
+		"hours": "H",
+		"minutes": "min"
+	},
+
+	"pagination": {
+		"page": "Page",
+		"prev": "‹ Précédent",
+		"next": "Suivant ›",
+		"usersLabel": "utilisateur(s)",
+		"userLabel": "utilisateur"
+	},
+
+	"notif": {
+		"accept": "Accepter",
+		"decline": "Refuser",
+		"invite": "Jouer",
+		"noNew": "Pas de nouvelles notifications.",
+		"friendRequest": "vous a envoyé une demande d'ami.",
+		"friendAccept": "vous a accepté en tant qu'ami.",
+		"friendInvite": "vous a invité à jouer."
+	},
+
+	"dashboard": {
+		"pageTitle": "Statistiques",
+		"underTitle": "Stats de jeu et plus encore",
+		"totalGames": "Parties jouées: ",
+		"winRate": "Taux de victoire: ",
+		"averageScore": "Score moyen: ",
+		"streak": "Séries: "
+	},
+
+	"profile": {
+		"statsTitle": "Stats",
+		"friendsTitle": "Amis",
+		"matchHistoryTitle": "Historique des matchs"
 	}
 }

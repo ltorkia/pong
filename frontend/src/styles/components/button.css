@@ -14,6 +14,9 @@
 	.smaller-btn {
 		@apply min-w-24 text-xs px-0 mt-2;
 	}
+	.p-btn {
+		@apply smaller-btn min-w-0 px-6;
+	}
 	.form-btn {
 		@apply min-w-40 -mt-3;
 	}

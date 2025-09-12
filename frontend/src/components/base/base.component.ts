@@ -86,6 +86,7 @@ export abstract class BaseComponent {
 		await this.beforeMount();
 		await this.mount();
 		this.attachListeners();
+		translateService.updateLanguage(undefined, this.container);
 	}
 
 	// ===========================================

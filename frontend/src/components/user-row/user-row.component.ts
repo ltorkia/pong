@@ -5,7 +5,7 @@ import { BaseComponent } from '../base/base.component';
 import { RouteConfig } from '../../types/routes.types';
 import { router } from '../../router/router';
 import { ComponentConfig } from '../../types/components.types';
-import { dataService, notifService, friendService } from '../../services/index.service';
+import { dataService, notifService, friendService, translateService } from '../../services/index.service';
 import { getHTMLElementByClass } from '../../utils/dom.utils';
 import { DB_CONST } from '../../shared/config/constants.config';
 import { User } from '../../shared/models/user.model';
@@ -102,7 +102,7 @@ export class UserRowComponent extends BaseComponent {
 		this.statusCell = getHTMLElementByClass('status-cell', this.container) as HTMLElement;
 		this.friendLogoCell = getHTMLElementByClass('friend-logo-cell', this.container) as HTMLElement;
 		this.levelCell = getHTMLElementByClass('level-cell', this.container) as HTMLElement;
-		this.winrate = getHTMLElementByClass('winrate-cell', this.levelCell) as HTMLElement;
+		this.winrate = getHTMLElementByClass('winrate-cell .winrate', this.levelCell) as HTMLElement;
 		this.profileButton = getHTMLElementByClass('profile-button', this.levelCell) as HTMLElement;
 		this.logCell = getHTMLElementByClass('log-cell', this.container) as HTMLElement;
 		this.profilePath = `/user/${this.user!.id}`;
@@ -140,14 +140,6 @@ export class UserRowComponent extends BaseComponent {
 	 */
 	protected async mount(): Promise<void> {
 		this.createAlertSpace();
-		if (this.user!.id === this.currentUser!.id) {
-			this.profileButton.setAttribute('title', 'Your profile');
-			this.avatarImg.setAttribute('alt', 'Your avatar');
-		} else {
-			this.profileButton.setAttribute('title', `${this.user!.username}'s profile`);
-			this.avatarImg.setAttribute('alt', `${this.user!.username}'s avatar`);
-		}
-		this.avatarImg.setAttribute('loading', 'lazy');
 		const userAvatar = await dataService.getUserAvatarURL(this.user!);
 		this.avatarImg.setAttribute('src', userAvatar);
 		this.nameCell.textContent = this.user!.username;
@@ -155,13 +147,13 @@ export class UserRowComponent extends BaseComponent {
 			this.statusCell.innerHTML = dataService.showStatusLabel(this.user!);
 		this.friendLogoCell.innerHTML = dataService.showFriendLogo(this.user!);
 		if ('winRate' in this.user! && this.user.winRate !== undefined)
-			this.winrate.textContent = `win rate: ${this.user.winRate}%`;
+			this.winrate.textContent = `${this.user.winRate}%`;
 		else
 			this.winrate.textContent = 'No stats';
 		if (this.user!.id !== this.currentUser!.id) {
 			const logDate = dataService.showLogDate(this.user!);
 			if (logDate)
-				this.logCell.textContent = logDate;
+				this.logCell.innerHTML = logDate;
 		}
 		this.setButtonDataAttribut();
 		await this.toggleFriendButton();
@@ -175,8 +167,10 @@ export class UserRowComponent extends BaseComponent {
 	private setButtonDataAttribut() {
 		this.buttons.forEach(btn => {
 			const element = btn as HTMLButtonElement;
-			if (btn)
+			if (btn) {
 				element.setAttribute("data-friend-id", this.user!.id.toString());
+				element.setAttribute("data-friend-name", this.user!.username);
+			}
 		});
 	}
 

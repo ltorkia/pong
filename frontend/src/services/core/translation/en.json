@@ -9,7 +9,8 @@
 	},
 
 	"home": {
-		"subtitle": "Ready to challenge the magical realm ?",
+		"greeting": "Hi",
+		"underTitle": "Ready to challenge the magical realm ?",
 		"rulesBtn": "Rules",
 		"localGameBtn": "Local Game",
 		"multiGameBtn": "Multiplayer Game",
@@ -18,7 +19,7 @@
 
 	"rules": {
 		"pageTitle": "Pong game rules",
-		"pageSubtitle": "You must follow",
+		"underTitle": "You must follow",
 		"objective": {
 			"title": "Objective",
 			"text": "Score points by making the ball pass your opponent's paddle."
@@ -50,6 +51,90 @@
 			"title": "Tournament",
 			"text": "• Bla bla bla."
 		}
-	}
+	},
 
+	"users": {
+		"pageTitle": "Players",
+		"underTitle": "Currently transcending...",
+		"searchPlaceholder": "Search by username",
+		"noUsersFound": "No players found.",
+		"search": "Search",
+		"filters": "Filters",
+		"status": "Status :",
+		"any": "Any",
+		"inputOnline": "🟢 online",
+		"inputOffline": "⚫ offline",
+		"online": "online",
+		"offline": "offline",
+		"friendsOnly": "Friends only",
+		"reset": "Reset",
+		"viewProfile": "View profile",
+		"winRateLabel": "Win rate: ",
+		"addFriend": "Add friend",
+		"acceptFriend": "Accept",
+		"declineFriend": "Decline",
+		"cancelFriend": "Cancel friend request",
+		"challenge": "Play",
+		"unfriend": "Unfriend",
+		"blockFriend": "Block",
+		"unblockFriend": "Unblock",
+		"acceptedFriend": "Friend !",
+		"pendingFriend": "Pending resquest...",
+		"blockedFriend": "Blocked !"
+	},
+
+	"settings": {
+		"pageTitle": "Settings",
+		"underTitle": "You do you",
+		"emailLabel": "Email : ",
+		"usernameLabel": "Username : ",
+		"passwordLabel": "Change your password",
+		"currPasswordLabel": "Current password :",
+		"newPasswordLabel": "New password :",
+		"twofaLabel": "Enable two-factor authentication (2FA)",
+		"twofaEmailLabel": "Send code by email",
+		"twofaQRCodeLabel": "Send code by QR code scan",
+		"twofaDisableLabel": "Disable two-factor authentication"
+	},
+
+	"time": {
+		"never": "never",
+		"agoFr": "",
+		"ago": " ago",
+		"hours": "H",
+		"minutes": "min"
+	},
+
+	"pagination": {
+		"page": "Page",
+		"prev": "‹ Prev",
+		"next": "Next ›",
+		"usersLabel": "user(s)",
+		"userLabel": "user"
+	},
+
+	"notif": {
+		"accept": "Accept",
+		"decline": "Decline",
+		"invite": "Play",
+		"noNew": "No new notifications.",
+		"friendRequest": "has sent you a friend request.",
+		"friendAccept": "has accepted your friend request.",
+		"friendInvite": "has invited you to a game."
+	},
+
+	"dashboard": {
+		"pageTitle": "Dashboard",
+		"underTitle": "Game statistics and more",
+		"totalGames": "Game played: ",
+		"winRate": "Win rate: ",
+		"averageScore": "Average score: ",
+		"streak": "Streaks: "
+	},
+
+	"profile": {
+		"statsTitle": "Stats",
+		"friendsTitle": "Mates",
+		"matchHistoryTitle": "Match history"
+	}
 }

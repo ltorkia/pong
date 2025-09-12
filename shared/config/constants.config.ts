@@ -122,6 +122,14 @@ export const FRIEND_REQUEST_ACTIONS = {
 	INVITE: 'invite',
 } as const;
 
+/**
+ * Contenu des notifications de demande d'ami.
+ */
+export const FRIEND_NOTIF_CONTENT = {
+	ADD: `has sent you a friend request.`,
+	ACCEPT: `has accepted your friend request.`,
+	INVITE: `has invited you to a game.`,
+}
 
 /**
  * Liste des types de notification autorisées.
