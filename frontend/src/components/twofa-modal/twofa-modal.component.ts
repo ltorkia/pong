@@ -173,11 +173,13 @@ export class TwofaModalComponent extends BaseComponent {
 				return;
 			}
 			if (this.userTwofaMethod === DB_CONST.USER.ACTIVE_2FA.EMAIL_CODE) {
+				this.pageTitle.setAttribute("data-ts", "twofa.emailcodeLabel");
 				this.pageTitle.textContent = 'Code by email';
 				await this.handleSendEmailCode();
 				this.emailContainer.classList.remove('hidden');
 			}
 			if (this.userTwofaMethod === DB_CONST.USER.ACTIVE_2FA.QR_CODE) {
+				this.pageTitle.setAttribute("data-ts", "twofa.qrcodeLabel");
 				this.pageTitle.textContent = 'QR code';
 				await this.handleSendQrCode();
 				this.qrcodeContainer.classList.remove('hidden');

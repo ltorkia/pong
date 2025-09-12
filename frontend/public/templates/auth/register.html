@@ -1,7 +1,7 @@
 			<div class="bloc-title">
-				<div class="page-title">Register</div>
+				<div class="page-title" data-ts="auth.pageTitle">Register</div>
 				<div class="under-title">
-					<span>Transcende and play</span>
+					<span data-ts="auth.underTitle">Transcende and play</span>
 				</div>
 			</div>
 
@@ -12,32 +12,43 @@
 
 						<!-- Email -->
 						<div class="field-box">
-							<label for="email">Email <span class="important-field">*</span> :</label>
-							<input type="email" id="email" name="email" placeholder="your@email.com" autocomplete="email" required>
+							<label for="email">
+								<span data-ts="auth.emailLabel">Email </span>
+								<span class="important-field">*</span> :
+							</label>
+							<input type="email" data-ts="auth.emailPlaceholder" data-type="placeholder" id="email" name="email" placeholder="your@email.com" autocomplete="email" required>
 						</div>
 
 						<!-- Username -->
 						<div class="field-box">
-							<label for="username">Username <span class="important-field">*</span> :</label>
-							<input type="text" id="username" name="username" placeholder="Unique username" required>
+							<label for="username">
+								<span data-ts="auth.usernameLabel">Username </span>
+								<span class="important-field">*</span> :
+							</label>
+							<input type="text" data-ts="auth.usernamePlaceholder" data-type="placeholder" id="username" name="username" placeholder="Unique username" required>
 						</div>
 
 						<!-- Password -->
 						<div class="field-box">
-							<label for="password">Password <span class="important-field">*</span> :</label>
+							<label for="password">
+								<span data-ts="auth.passwordLabel">Password </span>
+								<span class="important-field">*</span> :
+							</label>
 							<input type="password" id="password" name="password" placeholder="*********" autocomplete="new-password" required>
 						</div>
 
 						<!-- Avatar -->
 						<div class="field-box">
-							<label for="avatar">Avatar :</label>
+							<label for="avatar">
+								<span data-ts="auth.avatarLabel">Avatar </span> :
+							</label>
 							<input type="file" id="avatar" name="avatar" class="avatar-field" accept="image/*">
 						</div>
 					</div> 
 
 					<!-- Submit -->
 					<div class="btn-container">
-						<button type="submit" class="btn form-btn">
+						<button type="submit" class="btn form-btn" data-ts="auth.signUpBtn">
 							Sign up
 						</button>
 					</div>
@@ -52,7 +63,7 @@
 						<div class="google-icon-wrapper">
 							<img src="/assets/img/design/google-icon.svg" alt="Google logo" class="google-icon" />
 						</div>
-						<span>Continue with Google</span>
+						<span data-ts="auth.continueWithGoogle">Continue with Google</span>
 					</button>
 				</div>
 			</div>

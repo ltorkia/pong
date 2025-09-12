@@ -8,12 +8,41 @@
 		"logout": "Déconnexion"
 	},
 
+	"auth": {
+		"loginUnderTitle": "Un jeu très spécial",
+		"pageTitle": "Inscription",
+		"underTitle": "Transcende et joue",
+		"emailLabel": "Email ",
+		"usernameLabel": "Nom d'utilisateur ",
+		"passwordLabel": "Mot de passe ",
+		"avatarLabel": "Avatar ",
+		"emailPlaceholder": "ton@email.com",
+		"usernamePlaceholder": "Pseudo unique",
+		"signUpBtn": "S'inscrire",
+		"loginBtn": "Se connecter",
+		"notRegistered": "Pas encore inscrit ?",
+		"continueWithGoogle": "Continuer avec Google"
+	},
+
+	"twofa": {
+		"pageTitle": "Authentification à deux étapes",
+		"underTitle": "Sécurisez votre compte avec une couche de protection supplémentaire",
+		"codeLabel": "Code reçu :",
+		"codeInput": "Insérez votre code secret ici",
+		"sendBtn": "Envoyer",
+		"resendBtn": "Renvoyer",
+		"submitBtn": "Confirmer",
+		"errCodeRequired": "Code requis",
+		"codeEmailSent": "Code envoyé à votre adresse email",
+		"codeQrSent": "Code envoyé à l'application 2FA"
+	},
+
 	"home": {
 		"greeting": "Salut",
 		"underTitle": "Prêt·e à jouer dans nos contrées magiques ?",
 		"rulesBtn": "Règles",
-		"localGameBtn": "Partie locale",
-		"multiGameBtn": "Partie multijoueur",
+		"localGameBtn": "1v1 • partie locale",
+		"distantGameBtn": "1v1 • partie en ligne",
 		"tournamentBtn": "Tournoi"
 	},
 
@@ -98,6 +127,7 @@
 	},
 
 	"time": {
+		"now": "à l'instant",
 		"never": "jamais",
 		"agoFr": "il y a ",
 		"ago": "",
@@ -136,5 +166,17 @@
 		"statsTitle": "Stats",
 		"friendsTitle": "Amis",
 		"matchHistoryTitle": "Historique des matchs"
+	},
+
+	"game": {
+		"controlLabel": "COMMANDES",
+		"networkError": "Erreur réseau. Veuillez réessayer plus tard.",
+		"ready": "PRÊT ? APPUYEZ SUR ESPACE POUR COMMENCER",
+		"lobbyWaiting": "En attente de la connexion des autres joueurs...",
+		"timerText": "Jouons dans ... ",
+		"resultText": "Résultat = ",
+		"loseMessage": "Vous avez perdu contre ",
+		"winMessage": "Vous avez gagné contre ",
+		"finalScore": "Score final : "
 	}
 }

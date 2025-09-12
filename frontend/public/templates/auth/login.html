@@ -12,7 +12,7 @@
 					</div>
 				</div>
 				<div class="under-title">
-					<span>A very special game</span>
+					<span data-ts="auth.loginUnderTitle">A very special game</span>
 				</div>
 			</div>
 
@@ -22,20 +22,24 @@
 						
 						<!-- Email -->
 						<div class="field-box">
-							<label for="email">Email :</label>
+							<label for="email">
+								<span data-ts="auth.emailLabel">Email </span> :
+							</label>
 							<input type="email" id="email" name="email" autocomplete="email" required>
 						</div>
 
 						<!-- Password -->
 						<div class="field-box">
-							<label for="password">Password :</label>
+							<label for="password">
+								<span data-ts="auth.passwordLabel">Password </span> :
+							</label>
 							<input type="password" id="password" name="password" autocomplete="current-password" required>
 						</div>
 					</div>
 
 					<!-- Submit -->
 					<div class="btn-container">
-						<button type="submit" class="btn form-btn">
+						<button type="submit" class="btn form-btn" data-ts="auth.loginBtn">
 							Login
 						</button>
 					</div>
@@ -46,9 +50,9 @@
 				<hr class="form-separator">
 
 				<div>
-					<span>Not registered yet ?</span>
+					<span data-ts="auth.notRegistered">Not registered yet ?</span>
 					<div class="btn-container">
-						<a href="/register" class="btn smaller-btn" data-link>
+						<a href="/register" class="btn smaller-btn" data-ts="auth.signUpBtn" data-link>
 							Sign up
 						</a>
 					</div>
@@ -61,7 +65,7 @@
 						<div class="google-icon-wrapper">
 							<img src="/assets/img/design/google-icon.svg" alt="Google logo" class="google-icon" />
 						</div>
-						<span>Continue with Google</span>
+						<span data-ts="auth.continueWithGoogle">Continue with Google</span>
 					</button>
 				</div>
 				

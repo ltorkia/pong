@@ -8,12 +8,41 @@
 		"logout": "ログアウト"
 	},
 
+	"auth": {
+		"loginUnderTitle": "特別なゲーム",
+		"pageTitle": "登録",
+		"underTitle": "超越して遊ぼう",
+		"emailLabel": "メール ",
+		"usernameLabel": "ユーザー名 ",
+		"passwordLabel": "パスワード ",
+		"avatarLabel": "アバター ",
+		"emailPlaceholder": "あなたのメールアドレス",
+		"usernamePlaceholder": "ユニークなユーザー名",
+		"signUpBtn": "サインアップ",
+		"loginBtn": "ログイン",
+		"notRegistered": "まだ登録していませんか？",
+		"continueWithGoogle": "Googleで続行"
+	},
+
+	"twofa": {
+		"pageTitle": "二要素認証",
+		"underTitle": "アカウントを追加の保護層で保護します",
+		"codeLabel": "受信したコード：",
+		"codeInput": "ここに秘密のコードを入力してください",
+		"sendBtn": "送信",
+		"resendBtn": "再送信",
+		"submitBtn": "確認",
+		"errCodeRequired": "コードが必要です",
+		"codeEmailSent": "コードがあなたのメールに送信されました",
+		"codeQrSent": "コードが2FAアプリに送信されました"
+	},
+
 	"home": {
 		"greeting": "こんにちは",
 		"underTitle": "魔法の世界に挑戦する準備はできましたか ？",
 		"rulesBtn": "ルール",
-		"localGameBtn": "ローカルゲーム",
-		"multiGameBtn": "マルチプレイヤーゲーム",
+		"localGameBtn": "1v1 • ローカルゲーム",
+		"distantGameBtn": "1v1 • オンラインゲーム",
 		"tournamentBtn": "トーナメント"
 	},
 
@@ -98,6 +127,7 @@
 	},
 
 	"time": {
+		"now": "たった今",
 		"never": "未接続",
 		"agoFr": "前 ",
 		"ago": "",
@@ -136,6 +166,18 @@
 		"statsTitle": "ゲーム統計",
 		"friendsTitle": "友達",
 		"matchHistoryTitle": "マッチ履歴"
+	},
+
+	"game": {
+		"controlLabel": "コマンド",
+		"networkError": "ネットワークエラー。しばらくお待ちください。",
+		"ready": "READY ? SPACE を押して始めよう",
+		"lobbyWaiting": "他のプレイヤーと接続中...",
+		"timerText": "ゲーム中 ",
+		"resultText": "結果 = ",
+		"loseMessage": "負けました。",
+		"winMessage": "勝ちました。",
+		"finalScore": "最終スコア:"
 	}
 
 }

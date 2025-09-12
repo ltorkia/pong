@@ -8,12 +8,42 @@
 		"logout": "Logout"
 	},
 
+	"auth": {
+		"loginUnderTitle": "A very special game",
+		"pageTitle": "Register",
+		"underTitle": "Transcende and play",
+		"emailLabel": "Email ",
+		"usernameLabel": "Username ",
+		"passwordLabel": "Password ",
+		"avatarLabel": "Avatar ",
+		"emailPlaceholder": "your@email.com",
+		"usernamePlaceholder": "Unique username",
+		"signUpBtn": "Sign up",
+		"loginBtn": "Login",
+		"notRegistered": "Not registered yet ?",
+		"continueWithGoogle": "Continue with Google"
+	},
+
+	"twofa": {
+		"pageTitle": "Two-Step Authentication",
+		"emailcodeLabel": "Code by email",
+		"qrcodeLabel": "QR code",
+		"codeLabel": "Code received :",
+		"codeInput": "Insert your secret code here",
+		"sendBtn": "Send",
+		"resendBtn": "Resend",
+		"submitBtn": "Confirm",
+		"errCodeRequired": "Code required",
+		"codeEmailSent": "Code sent to your email",
+		"codeQrSent": "Code sent to 2FA app"
+	},
+
 	"home": {
 		"greeting": "Hi",
 		"underTitle": "Ready to challenge the magical realm ?",
 		"rulesBtn": "Rules",
-		"localGameBtn": "Local Game",
-		"multiGameBtn": "Multiplayer Game",
+		"localGameBtn": "1v1 • local game",
+		"distantGameBtn": "1v1 • online game",
 		"tournamentBtn": "Tournament"
 	},
 
@@ -98,6 +128,7 @@
 	},
 
 	"time": {
+		"now": "just now",
 		"never": "never",
 		"agoFr": "",
 		"ago": " ago",
@@ -139,11 +170,14 @@
 	},
 
 	"game": {
+		"controlLabel": "CONTROLS",
 		"networkError": "Network error. Please try again later.",
+		"ready": "READY? PRESS SPACE TO BEGIN",
 		"lobbyWaiting": "Waiting for other players to connect...",
 		"timerText": "Lets play in ... ",
 		"resultText": "Result = ",
 		"loseMessage": "You lose against ",
-		"winMessage": "You WIIIIIIIN against "
+		"winMessage": "You win against ",
+		"finalScore": "Final Score : "
 	}
 }

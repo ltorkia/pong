@@ -1,7 +1,7 @@
 	<div class="modal-content section-box auth-box">
 
 		<div class="bloc-title">
-			<div class="page-title">Two-Step Authentication</div>
+			<div class="page-title" data-ts="twofa.pageTitle">Two-Step Authentication</div>
 			<div class="under-title"></div>
 		</div>
 	
@@ -14,17 +14,17 @@
 					<hr class="form-separator">
 					<div class="field-box">
 						<div>
-							<label for="twofa-code">Code received :</label>
-							<input type="text" id="twofa-code-email" autocomplete="one-time-code" placeholder="Insert your secret code here" />
+							<label for="twofa-code" data-ts="twofa.codeLabel">Code received :</label>
+							<input type="text" data-ts="twofa.codeInput" data-type="placeholder" id="twofa-code-email" autocomplete="one-time-code" placeholder="Insert your secret code here" />
 						</div>
 					</div>
 
 					<hr class="form-separator">
 					<div class="btn-container">
-						<button id="twofa-email-resend-btn" type="button" class="btn form-btn bg-black/10">
+						<button id="twofa-email-resend-btn" data-ts="twofa.resendBtn" type="button" class="btn form-btn bg-black/10">
 							Resend
 						</button>
-						<button id="twofa-email-code-submit-btn" type="submit" class="btn form-btn">
+						<button id="twofa-email-code-submit-btn" data-ts="twofa.submitBtn" type="submit" class="btn form-btn">
 							Confirm
 						</button>
 					</div>
@@ -38,14 +38,14 @@
 
 					<div class="field-box mt-2">
 						<div>
-							<label for="twofa-code">Code received :</label>
-							<input type="text" id="twofa-code-qrcode" autocomplete="one-time-code" placeholder="Insert your secret code here" />
+							<label for="twofa-code" data-ts="twofa.codeLabel">Code received :</label>
+							<input type="text" data-ts="twofa.codeInput" data-type="placeholder" id="twofa-code-qrcode" autocomplete="one-time-code" placeholder="Insert your secret code here" />
 						</div>
 					</div>
 
 					<hr class="form-separator">
 					<div class="btn-container">
-						<button id="twofa-qrcode-submit-btn" type="button" class="btn form-btn">
+						<button id="twofa-qrcode-submit-btn" data-ts="twofa.sendBtn" type="button" class="btn form-btn">
 							Send
 						</button>
 					</div>
