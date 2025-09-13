@@ -18,8 +18,8 @@
 		"avatarLabel": "Avatar ",
 		"emailPlaceholder": "ton@email.com",
 		"usernamePlaceholder": "Pseudo unique",
-		"signUpBtn": "S'inscrire",
-		"loginBtn": "Se connecter",
+		"signUpBtn": "S'enregistrer",
+		"loginBtn": "connexion",
 		"notRegistered": "Pas encore inscrit ?",
 		"continueWithGoogle": "Continuer avec Google"
 	},

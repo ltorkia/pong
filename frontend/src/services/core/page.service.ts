@@ -30,6 +30,7 @@ export class PageService {
 	 * Rendu d'une nouvelle page.
 	 * 
 	 * - Gère la transition de la page actuelle vers la nouvelle page.
+	 * - Gère la transition de la homebar (disparait à la connexion)
 	 * - Gère la transition de la navbar (disparait à la déconnexion
 	 *   et apparait à la connexion après redirection).
 	 * - Active ou désactive les particules de fond en fonction de la config de la page.
@@ -44,14 +45,17 @@ export class PageService {
 
 		this.toggleParticles(page.config);
 		const appDiv = getHTMLElementById(APP_ID);
+		const homebarDiv = getHTMLElementById(HTML_COMPONENT_CONTAINERS.HOMEBAR_ID);
 		const navbarDiv = getHTMLElementById(HTML_COMPONENT_CONTAINERS.NAVBAR_ID);
 		await animationService.pageTransitionOut(appDiv);
-		await this.checkNavbarAnimationIn(navbarDiv);
+		await this.checkNavbarAnimationIn(homebarDiv, 'homebar');
+		await this.checkNavbarAnimationIn(navbarDiv, 'navbar');
 		await this.cleanup();
 		this.currentPage = page;
 		await animationService.pageTransitionIn(appDiv);
 		await this.currentPage.render();
-		await this.checkNavbarAnimationOut(navbarDiv);
+		await this.checkNavbarAnimationOut(homebarDiv, 'homebar');
+		await this.checkNavbarAnimationOut(navbarDiv, 'navbar');
 		if (this.currentPage.config.components
 			&& COMPONENT_NAMES.NAVBAR in this.currentPage.config.components)
 			await notifService.init(this.currentPage);
@@ -79,12 +83,17 @@ export class PageService {
 	 * Si c'est le cas, attend que l'animation soit terminée, puis annule l'animation.
 	 * 
 	 * @param {HTMLElement} container - Élément HTML de la navbar.
+	 * @param {string} barType - Type de barre ('navbar' ou 'homebar').
 	 * @returns {Promise<void>} Une promesse qui se résout lorsque l'animation est terminée.
 	 */
-	private async checkNavbarAnimationIn(container: HTMLElement): Promise<void> {
-		if (animationService.animateNavbarOut === true) {
+	private async checkNavbarAnimationIn(container: HTMLElement, barType: string): Promise<void> {
+		let animationVar = barType === 'navbar' ? animationService.animateNavbarOut : animationService.animateHomebarOut;
+		if (animationVar === true) {
 			await animationService.navbarTransitionOut(container);
-			animationService.animateNavbarOut = false;
+			if ( barType === 'navbar')
+				animationService.animateNavbarOut = false;
+			else
+				animationService.animateHomebarOut = false;
 		}
 	}
 	
@@ -95,12 +104,17 @@ export class PageService {
 	 * vers la position cachée.
 	 * 
 	 * @param {HTMLElement} container - Élément HTML de la navbar à transitionner.
+	 * @param {string} barType - Type de barre ('navbar' ou 'homebar').
 	 * @returns {Promise<void>} Une promesse qui se résout lorsque la transition est terminée.
 	 */
-	private async checkNavbarAnimationOut(container: HTMLElement): Promise<void> {
-		if (animationService.animateNavbarIn === true) {
+	private async checkNavbarAnimationOut(container: HTMLElement, barType: string): Promise<void> {
+		let animationVar = barType === 'navbar' ? animationService.animateNavbarIn : animationService.animateHomebarIn;
+		if (animationVar === true) {
 			await animationService.navbarTransitionIn(container);
-			animationService.animateNavbarIn = false;
+			if ( barType === 'navbar')
+				animationService.animateNavbarIn = false;
+			else
+				animationService.animateHomebarIn = false;
 		}
 	}
 

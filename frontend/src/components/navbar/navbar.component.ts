@@ -10,7 +10,6 @@ import { getHTMLElementById, getHTMLAnchorElement, getHTMLElementByTagName } fro
 import { ROUTE_PATHS, PROFILE_HTML_ANCHOR } from '../../config/routes.config';
 import { DB_CONST } from '../../shared/config/constants.config';
 import { notifService } from '../../services/index.service';
-import { Locale, translateService } from '../../services/core/core.service';
 
 // ===========================================
 // NAVBAR COMPONENT
@@ -25,7 +24,6 @@ import { Locale, translateService } from '../../services/core/core.service';
  * par le service de routage pour mettre à jour visuellement le lien actif.
  */
 export class NavbarComponent extends BaseComponent {
-	public langSwitcher!: HTMLSelectElement;
 	private homeLogoLink!: HTMLElement;
 	private homeLink!: HTMLElement;
 	private burgerBtn!: HTMLElement;
@@ -100,7 +98,6 @@ export class NavbarComponent extends BaseComponent {
 		this.notifsWindow = getHTMLElementById('notifs-window', this.container);
 		this.chatBtn = getHTMLElementById('chat', this.container);
 		this.chatWindow = getHTMLElementById('chat-window', this.container);
-		this.langSwitcher = getHTMLElementById('languages', this.container) as HTMLSelectElement;
 		this.mainSection = getHTMLElementByTagName('main');
 	}
 
@@ -108,7 +105,6 @@ export class NavbarComponent extends BaseComponent {
 		this.toggleSettingsLink();
 		this.setActiveLink(this.routeConfig.path);
 		// this.langSwitcher.value = translateService.getLocale();
-		this.addTranslaterComponent();
 		this.mainSection.classList.add('mt-main');
 	}
 
@@ -128,7 +124,6 @@ export class NavbarComponent extends BaseComponent {
 		});
 		this.notifsBtn.addEventListener('click', this.toggleNotifsMenu);
 		this.chatBtn.addEventListener('click', this.toggleChatWindow);
-		this.langSwitcher.addEventListener('change', this.toggleLangMenu);
 		this.logoutLink.addEventListener('click', this.handleLogoutClick);
 	}
 
@@ -146,7 +141,6 @@ export class NavbarComponent extends BaseComponent {
 		this.navLinks.forEach(link => {
 			link.removeEventListener('click', this.handleNavLinkClick);
 		});
-		this.langSwitcher.removeEventListener('change', this.toggleLangMenu);
 		this.logoutLink.removeEventListener('click', this.handleLogoutClick);
 	}
 
@@ -312,21 +306,6 @@ export class NavbarComponent extends BaseComponent {
 		this.updateBurgerIcon();
 	}
 
-	private addTranslaterComponent(): void {
-		const translaterContainer = getHTMLElementById('translater-container', this.container);
-		const translaterComponentConfig: ComponentConfig = {
-			name: 'translater',
-			destroy: false,
-			animateIn: false,
-			animateOut: false,
-		};
-		const translaterComponent = new (require('../translater/translater.component').TranslaterComponent)(
-			this.routeConfig,
-			translaterComponentConfig,
-			translaterContainer
-		);
-	}
-
 	// ===========================================
 	// LISTENER HANDLERS
 	// ===========================================
@@ -345,7 +324,7 @@ export class NavbarComponent extends BaseComponent {
 	};
 
 	/**
-	 * Basculle le menu burger pour la navigation mobile.
+	 * Bascule le menu burger pour la navigation mobile.
 	 *
 	 * Handler pour ajouter un listener d'événement de clic au bouton burger qui:
 	 * - Fait basculer l'icône entre le symbole 'bars' et 'x'.
@@ -403,18 +382,6 @@ export class NavbarComponent extends BaseComponent {
 	 */
 	private toggleChatWindow = async (event: Event): Promise<void> => {
 		this.toggleWindow(this.chatWindow);
-	}
-
-	/**
-	 * Bascule la langue de l'application.
-	 * 
-	 * @param {Event} event L'événement de changement de langue.
-	 * @returns {Promise<void>} Une promesse qui se résout lorsque la langue est basculée.
-	 */
-	private toggleLangMenu = async (event: Event): Promise<void> => {
-		const selectedLang = (event.target as HTMLSelectElement).value as Locale;
-		console.log('Langue sélectionnée :', selectedLang);
-		translateService.updateLanguage(selectedLang);
 	}
 
 	/**

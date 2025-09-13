@@ -186,9 +186,9 @@
 	}
 
 	/* TRANSLATION FLAGS */
-	#languages {
+	/* #languages {
 		@apply relative;
-	}
+	} */
 	/* .lang-box {
 		@apply appearance-none bg-white/30 border border-gray-300/50
 		rounded-md py-2 px-4 pr-6 text-lg cursor-pointer shadow-sm 

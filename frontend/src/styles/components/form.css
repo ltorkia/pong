@@ -46,6 +46,9 @@
 	.auth-box {
 		@apply px-0 m-5 mt-0;
 	}
+	.auth-box label {
+		@apply whitespace-nowrap;
+	}
 	#login-form .field-box label, #twofa-form .field-box label {
 		@apply w-20;
 	}

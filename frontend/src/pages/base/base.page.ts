@@ -6,9 +6,10 @@ import { checkUserLogged } from '../../utils/app.utils';
 import { BaseComponent } from '../../components/base/base.component';
 import { NavbarComponent } from '../../components/navbar/navbar.component';
 import { ComponentName, ComponentConfig } from '../../types/components.types';
+import { TranslaterComponent } from '../../components/translater/translater.component';
 import { loadTemplate, getContainerApp, getHTMLElementById } from '../../utils/dom.utils';
 import { APP_ID, DEFAULT_ROUTE } from '../../config/routes.config';
-import { COMPONENT_NAMES } from '../../config/components.config';
+import { COMPONENT_NAMES, HTML_COMPONENT_CONTAINERS } from '../../config/components.config';
 import { LOADING_PAGE_ERR } from '../../config/messages.config';
 import { translateService } from '../../services/core/core.service';
 
@@ -151,6 +152,9 @@ export abstract class BasePage {
 	 * Sinon, fait appel à initPersistentComponent() pour créer
 	 * l'instance du composant persistant et le charger et le rendre.
 	 * 
+	 * Enfin, injecte le composant de traduction.
+	 * - dans la navbar (si connecté) ou la homebar (si non connecté).
+	 * 
 	 * @returns {Promise<void>} Une promesse qui se résout lorsque
 	 * tous les composants persistants sont chargés et rendus.
 	 */
@@ -170,6 +174,7 @@ export abstract class BasePage {
 			}
 			await this.initPersistentComponent(componentConfig);
 		};
+		await this.injectTranslater();
 	}
 	
 	/**
@@ -210,9 +215,8 @@ export abstract class BasePage {
 		const isVisibilityMismatch = !this.shouldRenderComponent(componentConfig);
 		const isTypeMismatch = isPersistent !== componentConfig.isPersistent;
 
-		if (isVisibilityMismatch || isTypeMismatch) {
+		if (isVisibilityMismatch || isTypeMismatch)
 			return false;
-		}
 		return true;
 	}
 
@@ -230,6 +234,25 @@ export abstract class BasePage {
 		if (componentConfig.isPublic === undefined)
 			return true;
 		return this.config.isPublic === componentConfig.isPublic;
+	}
+
+	/**
+	 * Vérifie que la configuration d'un composant est valide et la retourne.
+	 *
+	 * Vérifie que la configuration du composant est présente dans la configuration
+	 * de la page, que le composant doit être rendu et que la configuration est
+	 * valide. Si une des conditions n'est pas remplie, une erreur est lancée.
+	 * 
+	 * @param {ComponentName} componentName Le nom du composant à vérifier.
+	 * @returns {ComponentConfig} La configuration valide du composant.
+	 * @throws {Error} Si la configuration est invalide.
+	 */
+	protected checkComponentConfig(componentName: ComponentName): ComponentConfig {
+		const config: ComponentConfig | undefined = this.components?.[componentName];
+		if (!config || !this.isValidConfig(config, false)) {
+			throw new Error(`Configuration du composant '${componentName}' invalide`);
+		}
+		return config;
 	}
 
 	/**
@@ -277,6 +300,26 @@ export abstract class BasePage {
 		if (componentConfig.name === COMPONENT_NAMES.NAVBAR && componentConfig.instance instanceof NavbarComponent) {
 			componentConfig.instance.setActiveLink(this.config.path);
 		}
+	}
+
+	/**
+	 * Injecte le composant de traduction dans le conteneur.
+	 * 
+	 * Cherche la configuration du composant de traduction, puis crée une instance
+	 * de ce composant en passant la configuration et le selecteur de langue en paramètres.
+	 * Enfin, appelle la méthode de rendu de l'instance pour injecter le composant
+	 * dans le conteneur.
+	 * 
+	 * @returns {Promise<void>} Une promesse qui se résout lorsque le composant est injecté.
+	 */
+	private async injectTranslater(): Promise<void> {
+		const translaterConfig: ComponentConfig | undefined = this.components?.[COMPONENT_NAMES.TRANSLATER];
+		if (!translaterConfig)
+			throw new Error(`Configuration du composant '${COMPONENT_NAMES.TRANSLATER}' introuvable`);
+		const langSwitcher = getHTMLElementById(HTML_COMPONENT_CONTAINERS.TRANSLATER_ID) as HTMLSelectElement;
+		const translaterComponent = new TranslaterComponent(this.config, translaterConfig, langSwitcher);
+		await translaterComponent.render();
+		console.log(`[${this.constructor.name}] Composant '${COMPONENT_NAMES.TRANSLATER}' généré`);
 	}
 
 	/**

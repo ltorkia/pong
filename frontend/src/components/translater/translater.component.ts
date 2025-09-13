@@ -61,7 +61,7 @@ export class TranslaterComponent extends BaseComponent {
 	 * @returns {Promise<void>} Une promesse qui se résout lorsque les éléments HTML ont été stockés.
 	 */
 	protected async beforeMount(): Promise<void> {
-		this.langSwitcher = getHTMLElementById('lang-switch', this.container) as HTMLSelectElement;
+		this.langSwitcher = this.container as HTMLSelectElement;
 	}
 
 	protected async mount(): Promise<void> {

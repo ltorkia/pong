@@ -2,7 +2,7 @@
 	.homebar-content {
 		@apply h-[--navbar-height]
 		w-screen top-0 left-0 space-x-10
-		flex justify-between items-center
+		flex justify-end items-center
 		text-white bg-white/10 backdrop-blur-xl
 		pl-14 pr-6
 

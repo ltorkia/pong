@@ -7,6 +7,9 @@
 export class AnimationService {
 	public animateNavbarIn: boolean = false;
 	public animateNavbarOut: boolean = false;
+	
+	public animateHomebarIn: boolean = false;
+	public animateHomebarOut: boolean = false;
 
 	// ===========================================
 	// METHODES PUBLICS

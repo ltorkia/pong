@@ -1,6 +1,6 @@
 import { BasePage } from '../base/base.page';
 import { RouteConfig } from '../../types/routes.types';
-import { authService, googleService } from '../../services/index.service';
+import { animationService, authService, currentService, googleService } from '../../services/index.service';
 import { TwofaModalComponent } from '../../components/twofa-modal/twofa-modal.component';
 import { ComponentConfig } from '../../types/components.types';
 import { PAGE_NAMES } from '../../config/routes.config';
@@ -20,7 +20,9 @@ import { DB_CONST } from '../../shared/config/constants.config';
  */
 export class LoginPage extends BasePage {
 	private form!: HTMLFormElement;
-	private componentConfig?: ComponentConfig;
+	// private homebarConfig?: ComponentConfig;
+	private twofaModalConfig?: ComponentConfig;
+	// private homebar!: HTMLElement;
 
 	/**
 	 * Constructeur de la page de connexion.
@@ -51,12 +53,14 @@ export class LoginPage extends BasePage {
 		if (!this.components) {
 			return;
 		}
-		const config = this.components[COMPONENT_NAMES.TWOFA_MODAL];
-		if (!config || !this.shouldRenderComponent(config)
-			|| !this.isValidConfig(config, false)) {
-			throw new Error(`Configuration du composant '${COMPONENT_NAMES.TWOFA_MODAL}' invalide`);
-		}
-		this.componentConfig = config;
+		// const twofaModalConfig = this.components[COMPONENT_NAMES.TWOFA_MODAL];
+		// if (!twofaModalConfig || !this.shouldRenderComponent(twofaModalConfig)
+		// 	|| !this.isValidConfig(twofaModalConfig, false)) {
+		// 	throw new Error(`Configuration du composant '${COMPONENT_NAMES.TWOFA_MODAL}' invalide`);
+		// }
+		// this.homebarConfig = this.checkComponentConfig(COMPONENT_NAMES.HOMEBAR);
+		this.twofaModalConfig = this.checkComponentConfig(COMPONENT_NAMES.TWOFA_MODAL);
+		// this.homebar = getHTMLElementById(HTML_COMPONENT_CONTAINERS.HOMEBAR_ID);
 	}
 
 	/**
@@ -125,10 +129,10 @@ export class LoginPage extends BasePage {
 	 */
 	private async injectTwofaModal(): Promise<void> {
 		const twofaModalContainer = getHTMLElementById(HTML_COMPONENT_CONTAINERS.TWOFA_MODAL_ID);
-		const twofaModal = new TwofaModalComponent(this.config, this.componentConfig!, twofaModalContainer);
+		const twofaModal = new TwofaModalComponent(this.config, this.twofaModalConfig!, twofaModalContainer);
 		await twofaModal.render();
 		this.addToComponentInstances(COMPONENT_NAMES.TWOFA_MODAL, twofaModal);
-		console.log(`[${this.constructor.name}] Composant '${this.componentConfig!.name}' généré`);
+		console.log(`[${this.constructor.name}] Composant '${this.twofaModalConfig!.name}' généré`);
 	}
 
 	// ===========================================
@@ -153,6 +157,14 @@ export class LoginPage extends BasePage {
 
 		// Affiche le modal 2FA seulement si login OK et 2FA activé
 		if (!loginResult || loginResult.errorMessage || loginResult.user!.active2Fa === DB_CONST.USER.ACTIVE_2FA.DISABLED) {
+			if (currentService.getCurrentUser()) {
+				const homebarConfig = this.components?.[COMPONENT_NAMES.HOMEBAR];
+				if (!homebarConfig) {
+					console.error(`Composant 'Homebar' introuvable`);
+				}
+				homebarConfig!.destroy = true;
+				animationService.animateHomebarOut = true;
+			}
 			return;
 		}
 
@@ -162,7 +174,7 @@ export class LoginPage extends BasePage {
 		// Récupère l’instance du composant 2FA
 		const modal = this.getComponentInstance<TwofaModalComponent>(COMPONENT_NAMES.TWOFA_MODAL);
 		if (!modal) {
-			console.error('Composant 2FA introuvable');
+			console.error(`Composant '2FA' introuvable`);
 			return;
 		}
 

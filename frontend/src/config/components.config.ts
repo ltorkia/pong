@@ -1,8 +1,10 @@
 import { TwofaModalComponent } from '../components/twofa-modal/twofa-modal.component';
+import { HomebarComponent } from '../components/homebar/homebar.component';
 import { NavbarComponent } from '../components/navbar/navbar.component';
 import { SearchBarComponent } from '../components/search-bar/search-bar.component';
 import { UserRowComponent } from '../components/user-row/user-row.component';
 import { PaginationComponent } from '../components/pagination/pagination.component';
+import { TranslaterComponent } from '../components/translater/translater.component';
 import { ComponentConfig } from '../types/components.types';
 
 // ===========================================
@@ -110,7 +112,9 @@ export const componentsConfig: ComponentConfig[] = [
 		templatePath: COMPONENT_PATHS[COMPONENT_NAMES.HOMEBAR],
 		containerId: HTML_COMPONENT_CONTAINERS.HOMEBAR_ID,
 		isPublic: true,
-		isPersistent: false
+		isPersistent: true,
+		destroy: true
+		// instance: créee et stockée ici si pas connecté, sinon undefined
 	},
 	{
 		name: COMPONENT_NAMES.NAVBAR,
@@ -150,6 +154,8 @@ export const componentsConfig: ComponentConfig[] = [
 		name: COMPONENT_NAMES.TRANSLATER,
 		componentConstructor: TranslaterComponent,
 		templatePath: COMPONENT_PATHS[COMPONENT_NAMES.TRANSLATER],
-		containerId: HTML_COMPONENT_CONTAINERS.TRANSLATER_ID
+		containerId: HTML_COMPONENT_CONTAINERS.TRANSLATER_ID,
+		isPublic: undefined, // s'affiche partout
+		isPersistent: false
 	}
 ];

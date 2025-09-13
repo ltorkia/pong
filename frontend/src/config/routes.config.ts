@@ -161,7 +161,8 @@ export const routesConfig: RouteConfig[] = [
 		pageConstructor: HomePage,
 		templatePath: TEMPLATE_PATHS.HOME,
 		components: {
-			[COMPONENT_NAMES.NAVBAR]: getComponentConfig(COMPONENT_NAMES.NAVBAR)
+			[COMPONENT_NAMES.NAVBAR]: getComponentConfig(COMPONENT_NAMES.NAVBAR),
+			[COMPONENT_NAMES.TRANSLATER]: getComponentConfig(COMPONENT_NAMES.TRANSLATER)
 		},
 		isPublic: false,
 		enableParticles: true
@@ -171,7 +172,10 @@ export const routesConfig: RouteConfig[] = [
 		name: PAGE_NAMES.REGISTER,
 		pageConstructor: RegisterPage,
 		templatePath: TEMPLATE_PATHS.REGISTER,
-		components: {},
+		components: {
+			[COMPONENT_NAMES.HOMEBAR]: getComponentConfig(COMPONENT_NAMES.HOMEBAR),
+			[COMPONENT_NAMES.TRANSLATER]: getComponentConfig(COMPONENT_NAMES.TRANSLATER)
+		},
 		isPublic: true,
 		enableParticles: true
 	},
@@ -181,6 +185,8 @@ export const routesConfig: RouteConfig[] = [
 		pageConstructor: LoginPage,
 		templatePath: TEMPLATE_PATHS.LOGIN,
 		components: {
+			[COMPONENT_NAMES.HOMEBAR]: getComponentConfig(COMPONENT_NAMES.HOMEBAR),
+			[COMPONENT_NAMES.TRANSLATER]: getComponentConfig(COMPONENT_NAMES.TRANSLATER),
 			[COMPONENT_NAMES.TWOFA_MODAL]: getComponentConfig(COMPONENT_NAMES.TWOFA_MODAL)
 		},
 		isPublic: true,
@@ -192,7 +198,8 @@ export const routesConfig: RouteConfig[] = [
 		pageConstructor: GameMenuLocal,
 		templatePath: TEMPLATE_PATHS.GAME_LOCAL,
 		components: {
-			[COMPONENT_NAMES.NAVBAR]: getComponentConfig(COMPONENT_NAMES.NAVBAR)
+			[COMPONENT_NAMES.NAVBAR]: getComponentConfig(COMPONENT_NAMES.NAVBAR),
+			[COMPONENT_NAMES.TRANSLATER]: getComponentConfig(COMPONENT_NAMES.TRANSLATER)
 		},
 		isPublic: false,
 		enableParticles: true
@@ -203,7 +210,8 @@ export const routesConfig: RouteConfig[] = [
 		pageConstructor: GameMenuMulti,
 		templatePath: TEMPLATE_PATHS.GAME_MULTI,
 		components: {
-			[COMPONENT_NAMES.NAVBAR]: getComponentConfig(COMPONENT_NAMES.NAVBAR)
+			[COMPONENT_NAMES.NAVBAR]: getComponentConfig(COMPONENT_NAMES.NAVBAR),
+			[COMPONENT_NAMES.TRANSLATER]: getComponentConfig(COMPONENT_NAMES.TRANSLATER)
 		},
 		isPublic: false,
 		enableParticles: true
@@ -214,7 +222,8 @@ export const routesConfig: RouteConfig[] = [
 		pageConstructor: GameMenuTournament,
 		templatePath: TEMPLATE_PATHS.GAME_TOURNAMENT,
 		components: {
-			[COMPONENT_NAMES.NAVBAR]: getComponentConfig(COMPONENT_NAMES.NAVBAR)
+			[COMPONENT_NAMES.NAVBAR]: getComponentConfig(COMPONENT_NAMES.NAVBAR),
+			[COMPONENT_NAMES.TRANSLATER]: getComponentConfig(COMPONENT_NAMES.TRANSLATER)
 		},
 		isPublic: false,
 		enableParticles: true
@@ -225,7 +234,8 @@ export const routesConfig: RouteConfig[] = [
 		pageConstructor: GameTournamentLobby,
 		templatePath: TEMPLATE_PATHS.GAME_TOURNAMENT_LOBBY,
 		components: {
-			[COMPONENT_NAMES.NAVBAR]: getComponentConfig(COMPONENT_NAMES.NAVBAR)
+			[COMPONENT_NAMES.NAVBAR]: getComponentConfig(COMPONENT_NAMES.NAVBAR),
+			[COMPONENT_NAMES.TRANSLATER]: getComponentConfig(COMPONENT_NAMES.TRANSLATER)
 		},
 		isPublic: false,
 		enableParticles: true
@@ -236,7 +246,8 @@ export const routesConfig: RouteConfig[] = [
 		pageConstructor: GameTournamentList,
 		templatePath: TEMPLATE_PATHS.GAME_TOURNAMENT_LIST,
 		components: {
-			[COMPONENT_NAMES.NAVBAR]: getComponentConfig(COMPONENT_NAMES.NAVBAR)
+			[COMPONENT_NAMES.NAVBAR]: getComponentConfig(COMPONENT_NAMES.NAVBAR),
+			[COMPONENT_NAMES.TRANSLATER]: getComponentConfig(COMPONENT_NAMES.TRANSLATER)
 		},
 		isPublic: false,
 		enableParticles: true
@@ -247,7 +258,8 @@ export const routesConfig: RouteConfig[] = [
 		pageConstructor: GameTournamentOverview,
 		templatePath: TEMPLATE_PATHS.GAME_TOURNAMENT_OVERVIEW,
 		components: {
-			[COMPONENT_NAMES.NAVBAR]: getComponentConfig(COMPONENT_NAMES.NAVBAR)
+			[COMPONENT_NAMES.NAVBAR]: getComponentConfig(COMPONENT_NAMES.NAVBAR),
+			[COMPONENT_NAMES.TRANSLATER]: getComponentConfig(COMPONENT_NAMES.TRANSLATER)
 		},
 		isPublic: false,
 		enableParticles: true
@@ -258,7 +270,8 @@ export const routesConfig: RouteConfig[] = [
 		pageConstructor: BoidsPage,
 		templatePath: TEMPLATE_PATHS.BOIDS,
 		components: {
-			[COMPONENT_NAMES.NAVBAR]: getComponentConfig(COMPONENT_NAMES.NAVBAR)
+			[COMPONENT_NAMES.NAVBAR]: getComponentConfig(COMPONENT_NAMES.NAVBAR),
+			[COMPONENT_NAMES.TRANSLATER]: getComponentConfig(COMPONENT_NAMES.TRANSLATER)
 		},
 		isPublic: false,
 		enableParticles: true
@@ -269,7 +282,8 @@ export const routesConfig: RouteConfig[] = [
 		pageConstructor: RulesPage,
 		templatePath: TEMPLATE_PATHS.RULES,
 		components: {
-			[COMPONENT_NAMES.NAVBAR]: getComponentConfig(COMPONENT_NAMES.NAVBAR)
+			[COMPONENT_NAMES.NAVBAR]: getComponentConfig(COMPONENT_NAMES.NAVBAR),
+			[COMPONENT_NAMES.TRANSLATER]: getComponentConfig(COMPONENT_NAMES.TRANSLATER)
 		},
 		isPublic: false,
 		enableParticles: true
@@ -281,6 +295,7 @@ export const routesConfig: RouteConfig[] = [
 		templatePath: TEMPLATE_PATHS.USERS,
 		components: {
 			[COMPONENT_NAMES.NAVBAR]: getComponentConfig(COMPONENT_NAMES.NAVBAR),
+			[COMPONENT_NAMES.TRANSLATER]: getComponentConfig(COMPONENT_NAMES.TRANSLATER),
 			[COMPONENT_NAMES.SEARCH_BAR]: getComponentConfig(COMPONENT_NAMES.SEARCH_BAR),
 			[COMPONENT_NAMES.USER_ROW]: getComponentConfig(COMPONENT_NAMES.USER_ROW),
 			[COMPONENT_NAMES.PAGINATION]: getComponentConfig(COMPONENT_NAMES.PAGINATION)
@@ -294,7 +309,8 @@ export const routesConfig: RouteConfig[] = [
 		pageConstructor: ProfilePage,
 		templatePath: TEMPLATE_PATHS.PROFILE,
 		components: {
-			[COMPONENT_NAMES.NAVBAR]: getComponentConfig(COMPONENT_NAMES.NAVBAR)
+			[COMPONENT_NAMES.NAVBAR]: getComponentConfig(COMPONENT_NAMES.NAVBAR),
+			[COMPONENT_NAMES.TRANSLATER]: getComponentConfig(COMPONENT_NAMES.TRANSLATER)
 		},
 		isPublic: false,
 		enableParticles: true
@@ -305,7 +321,8 @@ export const routesConfig: RouteConfig[] = [
 		pageConstructor: DashboardPage,
 		templatePath: TEMPLATE_PATHS.DASHBOARD,
 		components: {
-			[COMPONENT_NAMES.NAVBAR]: getComponentConfig(COMPONENT_NAMES.NAVBAR)
+			[COMPONENT_NAMES.NAVBAR]: getComponentConfig(COMPONENT_NAMES.NAVBAR),
+			[COMPONENT_NAMES.TRANSLATER]: getComponentConfig(COMPONENT_NAMES.TRANSLATER)
 		},
 		isPublic: false,
 		enableParticles: true
@@ -317,6 +334,7 @@ export const routesConfig: RouteConfig[] = [
 		templatePath: TEMPLATE_PATHS.SETTINGS,
 		components: {
 			[COMPONENT_NAMES.NAVBAR]: getComponentConfig(COMPONENT_NAMES.NAVBAR),
+			[COMPONENT_NAMES.TRANSLATER]: getComponentConfig(COMPONENT_NAMES.TRANSLATER),
 			[COMPONENT_NAMES.TWOFA_MODAL]: getComponentConfig(COMPONENT_NAMES.TWOFA_MODAL)
 		},
 		isPublic: false,
