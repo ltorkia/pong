@@ -1,3 +1,4 @@
+import DOMPurify from "dompurify";
 import { alertStyles } from '../config/ui-styles.config';
 import { AlertTheme } from '../types/ui-styles.types';
 import { APP_ID } from '../config/routes.config';
@@ -38,8 +39,10 @@ export async function loadTemplate(path: string): Promise<string> {
 		throw new Error(`Le template '${path}' n'a pas pu être chargé`);
 	}
 	const html = await response.text();
-	templateCache.set(path, html);
-	return html;
+	const safeHtml = DOMPurify.sanitize(html);
+
+	templateCache.set(path, safeHtml);
+	return safeHtml;
 }
 
 	/**
