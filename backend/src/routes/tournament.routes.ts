@@ -254,6 +254,7 @@ export async function tournamentRoutes(app: FastifyInstance) {
         }
     });
 
+    // permet de recuperer les resultats des games du tournoi et de creer la deuxieme manche avec les winners
     app.post("/update_tournament_games", async (request: FastifyRequest, reply: FastifyReply) => {
         const { id } = request.params as { id: string };
         const tournamentID = Number(id.slice(1));
@@ -290,7 +291,6 @@ export async function tournamentRoutes(app: FastifyInstance) {
         // return winnerList;
         sendToTournamentPlayers({ type: "tournament_update_second_round", players: tournament?.players }, tournament!, app);
         return reply.code(200).send("Update sent to all players");
-        
     });
 }
 

@@ -18,6 +18,12 @@ export async function gameRoutes(app: FastifyInstance) {
             return reply.code(400).send({ error: matchMakingReq.error.errors[0].message });
         const { allPlayers } = app.lobby;
         console.log("LOBBY : ",app.lobby);
+
+
+        // TOURNAMENT REQUEST POUR REMOTE
+        // TODO : Kes gens peuvent relancer un game non stop -> creer condition pour l empecher une fois le 1er jeu termine ici ou dans le front
+        // TODO : gerer les cas d abandon de tournoi (maj db + msg a l autre joueur)
+        // TODO : gerer le 2eme round du tournoi
         if (matchMakingReq.data.type === "tournament")
         {
             console.log("TOURNAMENT REQUEST RECEIVED : ", matchMakingReq.data);
@@ -25,7 +31,7 @@ export async function gameRoutes(app: FastifyInstance) {
             console.log("LOBBY TOURNOI : ", tournament);
             // const { players } = tournament.players;
             console.log("LOBBY PLAYERS dans tournois: ", tournament.players);
-            // if(tournament.stageTwoGames[0].players.length === 2)
+            // if(tournament.stageTwoGames[0].players.length === 2) // TODO : lancer la 2eme manche
             // {
             //     console.log("DEJA EN STAGE 2, ON LANCE LE JEU DIRECT");
             //     startGame(app, tournament.stageTwoGames[0].players, "multi", tournament.stageTwoGames[0]);
@@ -36,14 +42,13 @@ export async function gameRoutes(app: FastifyInstance) {
             if (!playerOne)
             {
                 playerOne = tournament.stageOneGames[1].players.find((p: Player) => p.ID === matchMakingReq.data.playerID);
-                // playerOne = tournament.stageOneGames[1].players.find((p: Player) => { p.ID === matchMakingReq.data.playerID});
                 if (!playerOne)
                 return reply.code(404).send({ error: "Player not found in tournament" });
             }
             playerOne!.readyforTournament = true;
             console.log("PLAYER ONE READY : ", playerOne);
             reply.code(200).send("Successfully added to tournament matchmaking");
-            //vérifier si tous les joueurs sont prêts
+            //vérifier si tous les joueurs sont prêts // a ajuster pour bloquer si 1ere manche deja faite ptet en regardantsi dj resultat dans la db ? 
             const isReady = tournament.players.every((p: Player) => p.readyforTournament);
             if (isReady)
             {
@@ -53,17 +58,6 @@ export async function gameRoutes(app: FastifyInstance) {
                     player.readyforTournament = false;
                 }
             }
-        // if (isReady && tournament.stageOneGames.length < 2 
-        //     && tournament.players[0] === this.player.id) {
-        //     tournament.stageOneGames.push(new Player(matchMakingReq.data.playerID));
-        //     if (tournament.stageOneGames.length === 2) {
-        //         startGame(app, tournament.stageOneGames, "multi");
-        //         // tournament.stageOneGames = [];
-        //     }
-
-        //     console.log("i m heeeeeeeeeere");
-        // }
-        
         //     // lancer le tournoi
         // // } adapter la suite pour rentrer dans la logique matchmaking multi mais avec dans db tournoi 
 
@@ -94,7 +88,7 @@ export async function gameRoutes(app: FastifyInstance) {
                 startGame(app, [newPlayer, playerTwo], "multi");
             }
         }
-        else if (matchMakingReq.data.type === "local")
+        else if (matchMakingReq.data.type === "local") //jeu en local
         {
             const playerOne = new Player(matchMakingReq.data.playerID);
             const playerID2 = generateUniqueID(allPlayers);
@@ -102,7 +96,7 @@ export async function gameRoutes(app: FastifyInstance) {
             if (playerOne && playerTwo)
                 startGame(app, [playerOne, playerTwo], "local"); //TODO: a securiser avec l id du currentuser
         } 
-        else
+        else //si on quitte la page de matchmaking
         {
             // const { usersWS } = app;
             if (allPlayers.find((p: Player) => p.ID == matchMakingReq.data.playerID))
@@ -110,14 +104,6 @@ export async function gameRoutes(app: FastifyInstance) {
                 const playerIdx1 = allPlayers.findIndex((player: Player) => player.ID == matchMakingReq.data.playerID);
                 allPlayers.splice(playerIdx1, 1);
                 console.log(`DELETED USER ID = ${matchMakingReq.data.playerID}`);
-                // for (const otherplayer of allPlayers) {
-                //     console.log("//////////////////////////////ici");
-                //     const user = usersWS.find((user: UserWS) => user.id == otherplayer.ID);
-                //     if (user && user.WS) {
-                //         user.WS.send(JSON.stringify({type: "has_quit_game", userID: `${matchMakingReq.data.playerID}`}));
-                //     }
-                // }
-                // if game ! finish -> update : interrupted + send msg end to other player
             }
         }
     });
