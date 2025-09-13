@@ -1,3 +1,4 @@
+import DOMPurify from "dompurify";
 import { ROUTE_PATHS } from '../../config/routes.config';
 import { notifApi, friendApi, dataApi } from '../../api/index.api';
 import { PageInstance } from '../../types/routes.types';
@@ -344,7 +345,7 @@ export class NotifService {
 		notifItem.classList.add('notif-item');
 		notifItem.id = `notif-${this.currentNotif!.id}`;
 		const dataTsLabel = this.getDataTsLabel(this.currentNotif!.content);
-		notifItem.innerHTML = `<div>${this.friendName!} <span data-ts="${dataTsLabel}">${this.currentNotif!.content}</span></div>` || '';
+		notifItem.innerHTML = DOMPurify.sanitize(`<div>${this.friendName!} <span data-ts="${dataTsLabel}">${this.currentNotif!.content}</span></div>`) || '';
 		if (this.currentNotif!.read === 0) {
 			notifItem.classList.add('new-notif');
 		}
@@ -352,7 +353,7 @@ export class NotifService {
 
       	(delBtn as HTMLDivElement).setAttribute("data-friend-id", this.currentNotif!.from.toString());
 		delBtn.classList.add('notif-del');
-		delBtn.innerHTML = '<i class="fa-solid fa-xmark"></i>';
+		delBtn.innerHTML = DOMPurify.sanitize('<i class="fa-solid fa-xmark"></i>');
 		notifItem.appendChild(delBtn);
 		return notifItem;
 	}
@@ -684,7 +685,7 @@ export class NotifService {
 			default:
 		}
 		html += `</div>`;
-		return html;
+		return DOMPurify.sanitize(html);
 	}
 
 	/**

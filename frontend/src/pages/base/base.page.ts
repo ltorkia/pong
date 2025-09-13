@@ -1,3 +1,4 @@
+import DOMPurify from "dompurify";
 import { RouteConfig } from '../../types/routes.types';
 import { router } from '../../router/router';
 import { User } from '../../shared/models/user.model';
@@ -368,6 +369,6 @@ export abstract class BasePage {
 	 * @returns {string} Le message d'erreur sous forme de code HTML.
 	 */
 	protected getErrorMessage(): string {
-		return `<div id="alert" class="alert alert-error">${LOADING_PAGE_ERR}</div>`;
+		return DOMPurify.sanitize(`<div id="alert" class="alert alert-error">${LOADING_PAGE_ERR}</div>`);
 	}
 }

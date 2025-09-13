@@ -1,6 +1,7 @@
 // Pour hot reload Vite
 import template from './pagination.component.html?raw'
 
+import DOMPurify from "dompurify";
 import { BaseComponent } from '../base/base.component';
 import { RouteConfig } from '../../types/routes.types';
 import { ComponentConfig, PaginationParams } from '../../types/components.types';
@@ -86,7 +87,7 @@ export class PaginationComponent extends BaseComponent {
 	protected async mount(): Promise<void> {
 		if (!this.paginationInfos || !this.paginationParams)
 			return;
-		this.paginationInfoElement.innerHTML = this.getPaginationStats();
+		this.paginationInfoElement.innerHTML = DOMPurify.sanitize(this.getPaginationStats());
 		this.paginationButtonsContainer.innerHTML = '';
 
 		if (this.paginationInfos.totalPages <= 1) {

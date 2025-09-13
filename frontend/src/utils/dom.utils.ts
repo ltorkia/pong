@@ -104,7 +104,7 @@ export function showAlert(message: string, containerId: string = 'alert', type: 
 	alertDiv.classList.add(style.baseClass);
 
 	// Injecte le contenu et affiche
-	alertDiv.innerHTML = style.icon + ' ' + message;
+	alertDiv.innerHTML = DOMPurify.sanitize(style.icon + ' ' + message);
 	alertDiv.classList.remove('hidden');
 }
 

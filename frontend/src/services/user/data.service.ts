@@ -1,3 +1,4 @@
+import DOMPurify from "dompurify";
 import { User } from '../../shared/models/user.model';
 import { Friend } from '../../shared/models/friend.model';
 import { dataApi } from '../../api/index.api';
@@ -104,7 +105,7 @@ export class DataService {
 	 */
 	public showLogDate(user: User): string | void {
 		if (!user.isOnline())
-			return `<span data-ts="users.online">online</span> ${user.formattedEndLog}`;
+			return DOMPurify.sanitize(`<span data-ts="users.online">online</span> ${user.formattedEndLog}`);
 	}
 
 	/**
@@ -115,11 +116,11 @@ export class DataService {
 	public showStatusLabel(user: User): string {
 		switch (user.status) {
 			case USER_ONLINE_STATUS.ONLINE: 
-				return `<div class="online" data-ts="users.online" data-type="title" title="online"></div>`;
+				return DOMPurify.sanitize(`<div class="online" data-ts="users.online" data-type="title" title="online"></div>`);
 			case USER_ONLINE_STATUS.OFFLINE:
-				return `<div class="offline" data-ts="users.offline" data-type="title" title="offline"></div>`;
+				return DOMPurify.sanitize(`<div class="offline" data-ts="users.offline" data-type="title" title="offline"></div>`);
 			// case USER_ONLINE_STATUS.IN_GAME:
-			// 	return `<div class="ingame" data-ts="users.ingame" title="in game"></div>`;
+			// 	return DOMPurify.sanitize(`<div class="ingame" data-ts="users.ingame" title="in game"></div>`);
 			default: return 'Unknown';
 		}
 	}
@@ -135,13 +136,13 @@ export class DataService {
 	public showFriendLogo(user: User | Friend): string {
 		switch (user.friendStatus) {
 			case DB_CONST.FRIENDS.STATUS.ACCEPTED:
-				return `<i class="fa-solid fa-user-check" data-ts="users.acceptedFriend" data-type="title" title="Friend !"></i>`;
+				return DOMPurify.sanitize(`<i class="fa-solid fa-user-check" data-ts="users.acceptedFriend" data-type="title" title="Friend !"></i>`);
 			case DB_CONST.FRIENDS.STATUS.PENDING:
-				return `<i class="fa-solid fa-user-clock" data-ts="users.pendingFriend" data-type="title" title="Pending resquest..."></i>`;
+				return DOMPurify.sanitize(`<i class="fa-solid fa-user-clock" data-ts="users.pendingFriend" data-type="title" title="Pending resquest..."></i>`);
 			case DB_CONST.FRIENDS.STATUS.BLOCKED:
-				return `<i class="fa-solid fa-user-slash" data-ts="users.blockedFriend" data-type="title" title="Blocked !"></i>`;
+				return DOMPurify.sanitize(`<i class="fa-solid fa-user-slash" data-ts="users.blockedFriend" data-type="title" title="Blocked !"></i>`);
 			default: 
-				return `<i class="fa-solid fa-minus"></i>`;
+				return DOMPurify.sanitize(`<i class="fa-solid fa-minus"></i>`);
 		}
 	}
 

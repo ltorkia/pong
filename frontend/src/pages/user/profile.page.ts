@@ -1,3 +1,4 @@
+import DOMPurify from "dompurify";
 import { BasePage } from '../base/base.page';
 import { RouteConfig, RouteParams } from '../../types/routes.types';
 import { User } from '../../shared/models/user.model';
@@ -348,12 +349,12 @@ export class ProfilePage extends BasePage {
 		if (this.userFriends.length > 12) {
 			const viewMoreCard = document.createElement('div');
 			viewMoreCard.className = 'friend-card bg-white/5 border-dashed cursor-pointer hover:bg-white/10';
-			viewMoreCard.innerHTML = `
+			viewMoreCard.innerHTML = DOMPurify.sanitize(`
 				<div class="text-center text-white/60 py-2">
 					<div class="text-2xl mb-2">+</div>
 					<div class="text-xs">Voir plus</div>
 				</div>
-			`;
+			`);
 			viewMoreCard.addEventListener('click', () => {
 				// TODO: Implémenter l'affichage de tous les amis
 				console.log('Afficher tous les amis');
@@ -455,10 +456,10 @@ export class ProfilePage extends BasePage {
 		const text = clone.querySelector('.empty-text') as HTMLElement;
 
 		if (type === 'friends') {
-			icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>';
+			icon.innerHTML = DOMPurify.sanitize('<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>');
 			text.textContent = 'No friends';
 		} else {
-			icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>';
+			icon.innerHTML = DOMPurify.sanitize('<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>');
 			text.textContent = 'No match';
 		}
 

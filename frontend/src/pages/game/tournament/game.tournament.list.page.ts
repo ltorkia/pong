@@ -5,7 +5,6 @@ import { secureFetch } from '../../../utils/app.utils';
 import { generateUniqueID } from '../../../shared/functions'
 import { currentService } from '../../../services/index.service';
 import { animateCSS } from '../../../utils/animate.utils';
-// import { joinTournament, postNewTournament, sendDismantleRequest } from '../../../api/game/tournament.api';
 import { TournamentService } from '../../../api/game/game.api';
 import { Tournament } from '../../../types/game.types';
 import { loadTemplate } from '../../../utils/dom.utils';
@@ -73,8 +72,6 @@ export class GameTournamentList extends BasePage {
 	}
 
 	private async fetchTournamentItem(): Promise<void> {
-		// const response = await fetch("../../../../public/templates/game/tournament_item.html");
-		// const html = await response.text();
 		const html = await loadTemplate("../../../../public/templates/game/tournament_item.html");
 		const parser = new DOMParser();
 		const doc = parser.parseFromString(html, "text/html");

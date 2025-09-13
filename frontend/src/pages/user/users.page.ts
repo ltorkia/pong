@@ -1,3 +1,4 @@
+import DOMPurify from "dompurify";
 import { BasePage } from '../base/base.page';
 import { User } from '../../shared/models/user.model';
 import { dataApi } from '../../api/index.api';
@@ -281,7 +282,7 @@ export class UsersPage extends BasePage {
 		const userRow = document.getElementById(`${this.userRowConfig!.name}-${user.id}`);
 		if (userRow) {
 			const statusCell = getHTMLElementByClass('status-cell', userRow) as HTMLElement;
-			statusCell.innerHTML = dataService.showStatusLabel(user);
+			statusCell.innerHTML = DOMPurify.sanitize(dataService.showStatusLabel(user));
 		}
 	}
 
