@@ -47,6 +47,12 @@ export class PageService {
 		const appDiv = getHTMLElementById(APP_ID);
 		const homebarDiv = getHTMLElementById(HTML_COMPONENT_CONTAINERS.HOMEBAR_ID);
 		const navbarDiv = getHTMLElementById(HTML_COMPONENT_CONTAINERS.NAVBAR_ID);
+		
+		console.log('animateNavbarTransitionOut', animationService.animateNavbarOut);
+		console.log('animateNavbarTransitionIn', animationService.animateNavbarIn);
+		console.log('animateHomebarTransitionOut', animationService.animateHomebarOut);
+		console.log('animateHomebarTransitionIn', animationService.animateHomebarIn);
+		
 		await animationService.pageTransitionOut(appDiv);
 		await this.checkNavbarAnimationIn(homebarDiv, 'homebar');
 		await this.checkNavbarAnimationIn(navbarDiv, 'navbar');
@@ -54,6 +60,12 @@ export class PageService {
 		this.currentPage = page;
 		await animationService.pageTransitionIn(appDiv);
 		await this.currentPage.render();
+		
+		console.log('animateNavbarTransitionOut', animationService.animateNavbarOut);
+		console.log('animateNavbarTransitionIn', animationService.animateNavbarIn);
+		console.log('animateHomebarTransitionOut', animationService.animateHomebarOut);
+		console.log('animateHomebarTransitionIn', animationService.animateHomebarIn);
+		
 		await this.checkNavbarAnimationOut(homebarDiv, 'homebar');
 		await this.checkNavbarAnimationOut(navbarDiv, 'navbar');
 		if (this.currentPage.config.components

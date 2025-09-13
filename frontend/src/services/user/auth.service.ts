@@ -44,7 +44,7 @@ export class AuthService {
 			}
 			console.log(`[${this.constructor.name}] Utilisateur inscrit.`);
 			alert(REGISTERED_MSG);
-			animationService.animateNavbarOut = true;
+			animationService.animateBarsLogged();
 			await router.redirect(DEFAULT_ROUTE);
 		} catch (err) {
 			console.error(`[${this.constructor.name}] Erreur réseau ou serveur`, err);
@@ -81,7 +81,7 @@ export class AuthService {
 			// Sinon connexion réussie, redirection vers la page d'accueil
 			console.log(`[${this.constructor.name}] Authentification réussie sans 2FA`);
 
-			animationService.animateNavbarOut = true;
+			animationService.animateBarsLogged();
 			await router.redirect(DEFAULT_ROUTE);
 			return data as AuthResponse;
 
@@ -140,7 +140,7 @@ export class AuthService {
 			}
 			// Redirection home si l'utilisateur vient de la page login
 			if (!isFromSettings) {
-				animationService.animateNavbarOut = true;
+				animationService.animateBarsLogged();
 				await router.redirect(DEFAULT_ROUTE);
 			}
 			return result;
@@ -170,7 +170,8 @@ export class AuthService {
 				showAlert(result.errorMessage);
 				return;
 			}
-			animationService.animateNavbarOut = true;
+			// animationService.animateNavbarOut = true;
+			animationService.animateBarsLogged();
 			console.log(`[${this.constructor.name}] Utilisateur déconnecté.`);
 			
 			// Redirection SPA vers login

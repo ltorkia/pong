@@ -397,7 +397,7 @@ export class NavbarComponent extends BaseComponent {
 	private handleLogoutClick = async (event: MouseEvent): Promise<void> => {
 		event.preventDefault();
 		this.componentConfig.destroy = true;
-		animationService.animateNavbarOut = true;
+		// animationService.animateNavbarOut = true;
 		await authService.logout();
 	};
 }

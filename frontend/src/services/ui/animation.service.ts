@@ -1,3 +1,7 @@
+import { HomebarComponent } from '../../components/homebar/homebar.component';
+import { getComponentConfig } from '../../utils/config.utils';
+import { COMPONENT_NAMES } from '../../config/components.config';
+
 // ===========================================
 // ANIMATION SERVICE
 // ===========================================
@@ -5,11 +9,12 @@
  * Service gérant les effets d'animation de l'application.
  */
 export class AnimationService {
-	public animateNavbarIn: boolean = false;
+	// public animateNavbarIn: boolean = false;
 	public animateNavbarOut: boolean = false;
 	
-	public animateHomebarIn: boolean = false;
+	// public animateHomebarIn: boolean = false;
 	public animateHomebarOut: boolean = false;
+	public barsTransitioned: boolean = false;
 
 	// ===========================================
 	// METHODES PUBLICS
@@ -105,5 +110,31 @@ export class AnimationService {
 		container.classList.add('scale-90');
 		await new Promise(resolve => setTimeout(resolve, 200)); // attend la fin du scale
 		container.classList.add('hidden');
+	}
+
+	/**
+	 * Animate les barres de navigation.
+	 * 
+	 * - Définie la propriété "animateNavbarOut" de l'animation service à true.
+	 * - Appelle la méthode "animateOut()" de l'instance du composant HomebarComponent.
+	 */
+	public animateBarsLogged(): void {
+		this.animateNavbarOut = true;
+		this.animateHomebarOut = false;
+		this.barsTransitioned = true;
+		// const homebarInstance = getComponentConfig(COMPONENT_NAMES.HOMEBAR).instance as HomebarComponent;
+		// homebarInstance.animateOut();
+	}
+
+	/**
+	 * Animate les barres de navigation en mode non connecté.
+	 * 
+	 * - Définie la propriété "animateNavbarOut" de l'animation service à false.
+	 * - Définie la propriété "animateHomebarOut" du service d'animation à true.
+	 */
+	public animateBarsUnlogged(): void {
+		this.animateNavbarOut = false;
+		this.animateHomebarOut = true;
+		this.barsTransitioned = true;
 	}
 }

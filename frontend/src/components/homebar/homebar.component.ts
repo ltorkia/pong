@@ -1,10 +1,10 @@
 // Pour hot reload Vite
 import template from './homebar.component.html?raw';
 
+import { currentService, animationService } from '../../services/index.service';
 import { BaseComponent } from '../base/base.component';
 import { RouteConfig } from '../../types/routes.types';
 import { ComponentConfig } from '../../types/components.types';
-import { getHTMLElementById } from '../../utils/dom.utils';
 
 // ===========================================
 // HOMEBAR COMPONENT
@@ -48,45 +48,23 @@ export class HomebarComponent extends BaseComponent {
 		return true;
 	}
 
-	/**
-	 * Méthode de pré-rendering du composant de la navbar.
-	 * 
-	 * Stocke les éléments HTML utiles pour le fonctionnement du composant
-	 * dans les propriétés de l'objet.
-	 * 
-	 * @returns {Promise<void>} Une promesse qui se résout lorsque les éléments HTML ont été stockés.
-	 */
-	protected async beforeMount(): Promise<void> {
-		this.langSwitcher = getHTMLElementById('languages', this.container) as HTMLSelectElement;
-	}
-
-	protected async mount(): Promise<void> {
-		// this.langSwitcher.value = translateService.getLocale();
-		this.addTranslaterComponent();
-	}
+	// ===========================================
+	// METHODES PUBLIC
+	// ===========================================
 
 	/**
-	 * Attribue les listeners aux éléments de la navbar.
+	 * Animate la barre de navigation hors de l'écran.
 	 * 
-	 * - Attribue un listener au lien de logo de la navbar.
-	 * - Attribue un listener au bouton burger pour le menu mobile.
-	 * - Attribue un listener aux liens de navigation.
-	 * - Attribue un listener au bouton de déconnexion.
+	 * - Définie la propriété "destroy" de la configuration du composant à true.
+	 * - Définie la propriété "animateHomebarOut" du service d'animation à true.
 	 */
-	protected attachListeners(): void {
-		this.langSwitcher.addEventListener('change', this.toggleLangMenu);
-	}
-
-	/**
-	 * Enlève les listeners attribués aux éléments de la navbar.
-	 *
-	 * - Enlève le listener au lien de logo de la navbar.
-	 * - Enlève le listener du bouton burger pour le menu mobile.
-	 * - Enlève le listener aux liens de navigation.
-	 * - Enlève le listener du bouton de déconnexion.
-	 */
-	protected removeListeners(): void {
-		this.langSwitcher.removeEventListener('change', this.toggleLangMenu);
+	public destroy(): void {
+		if (currentService.getCurrentUser()) {
+			this.componentConfig.destroy = true;
+			// animationService.animateHomebarOut = true;
+			console.log(`[${this.constructor.name}] HOMEBAR DESTROY`);
+		}
+		console.log(`[${this.constructor.name}] SKIP CONDITON`);
 	}
 
 	// ===========================================
@@ -106,20 +84,5 @@ export class HomebarComponent extends BaseComponent {
 	 */
 	private async loadTemplateDev(): Promise<void> {
 		this.loadTemplate(template);
-	}
-
-	private addTranslaterComponent(): void {
-		// const translaterContainer = getHTMLElementById('translater-container', this.container);
-		// const translaterComponentConfig: ComponentConfig = {
-		// 	name: 'translater',
-		// 	destroy: false,
-		// 	animateIn: false,
-		// 	animateOut: false,
-		// };
-		// const translaterComponent = new (require('../translater/translater.component').TranslaterComponent)(
-		// 	this.routeConfig,
-		// 	translaterComponentConfig,
-		// 	translaterContainer
-		// );
 	}
 }

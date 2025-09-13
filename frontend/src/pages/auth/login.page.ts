@@ -1,12 +1,13 @@
 import { BasePage } from '../base/base.page';
 import { RouteConfig } from '../../types/routes.types';
-import { animationService, authService, currentService, googleService } from '../../services/index.service';
+import { animationService, authService, googleService } from '../../services/index.service';
 import { TwofaModalComponent } from '../../components/twofa-modal/twofa-modal.component';
 import { ComponentConfig } from '../../types/components.types';
 import { PAGE_NAMES } from '../../config/routes.config';
 import { COMPONENT_NAMES, HTML_COMPONENT_CONTAINERS } from '../../config/components.config';
 import { getHTMLElementById } from '../../utils/dom.utils';
 import { DB_CONST } from '../../shared/config/constants.config';
+import { HomebarComponent } from '../../components/homebar/homebar.component';
 
 // ===========================================
 // LOGIN PAGE
@@ -20,9 +21,7 @@ import { DB_CONST } from '../../shared/config/constants.config';
  */
 export class LoginPage extends BasePage {
 	private form!: HTMLFormElement;
-	// private homebarConfig?: ComponentConfig;
 	private twofaModalConfig?: ComponentConfig;
-	// private homebar!: HTMLElement;
 
 	/**
 	 * Constructeur de la page de connexion.
@@ -53,14 +52,7 @@ export class LoginPage extends BasePage {
 		if (!this.components) {
 			return;
 		}
-		// const twofaModalConfig = this.components[COMPONENT_NAMES.TWOFA_MODAL];
-		// if (!twofaModalConfig || !this.shouldRenderComponent(twofaModalConfig)
-		// 	|| !this.isValidConfig(twofaModalConfig, false)) {
-		// 	throw new Error(`Configuration du composant '${COMPONENT_NAMES.TWOFA_MODAL}' invalide`);
-		// }
-		// this.homebarConfig = this.checkComponentConfig(COMPONENT_NAMES.HOMEBAR);
 		this.twofaModalConfig = this.checkComponentConfig(COMPONENT_NAMES.TWOFA_MODAL);
-		// this.homebar = getHTMLElementById(HTML_COMPONENT_CONTAINERS.HOMEBAR_ID);
 	}
 
 	/**
@@ -155,16 +147,13 @@ export class LoginPage extends BasePage {
 		const data = Object.fromEntries(formData.entries()) as Record<string, string>;
 		const loginResult = await authService.login(data);
 
+		if (animationService.barsTransitioned) {
+			const homebar = this.getComponentInstance<HomebarComponent>(COMPONENT_NAMES.HOMEBAR);
+			homebar!.destroy();
+		}
+
 		// Affiche le modal 2FA seulement si login OK et 2FA activé
 		if (!loginResult || loginResult.errorMessage || loginResult.user!.active2Fa === DB_CONST.USER.ACTIVE_2FA.DISABLED) {
-			if (currentService.getCurrentUser()) {
-				const homebarConfig = this.components?.[COMPONENT_NAMES.HOMEBAR];
-				if (!homebarConfig) {
-					console.error(`Composant 'Homebar' introuvable`);
-				}
-				homebarConfig!.destroy = true;
-				animationService.animateHomebarOut = true;
-			}
 			return;
 		}
 
