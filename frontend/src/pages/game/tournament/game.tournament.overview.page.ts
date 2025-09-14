@@ -107,7 +107,7 @@ export class GameTournamentOverview extends GamePage {
             const div = document.createElement("div");
             div.id = "match-container";
             div.classList.add("relative");
-            // div.dataset
+            const newTooltip = this.toolTipHTML?.cloneNode(true) as HTMLElement;
             // Loop pour le nombre de joueur par match, cherche le user approprie, lui cree un container et l'affiche
             for (let j = 0; j < 2; j++) {
                 const playerPastille = this.pastilleHTML?.cloneNode(true) as HTMLElement;
@@ -118,36 +118,35 @@ export class GameTournamentOverview extends GamePage {
                     playerPastille.dataset.id = user?.id.toString();
                     const img = playerPastille.querySelector("#user-avatar") as HTMLImageElement;
                     img.src = await this.dataApi.getUserAvatarURL(user! as User);
-                } else {
+                    newTooltip.querySelector(`#player-${j}`)!.textContent = user!.username;
+                    if (this.currentUser.id == user.id)
+                        newTooltip.querySelector("button")!.classList.remove("hidden");
+                } else
                     playerPastille.textContent = "?";
-                }
                 div.append(playerPastille);
             }
             container.append(div);
-            const newTooltip = this.toolTipHTML?.cloneNode(true) as HTMLElement;
-            // newTooltip!.style.top = div.getBoundingClientRect().top.toString();
-            // newTooltip!.style.left = div.getBoundingClientRect().left.toFixed(0).toString() + "px";
             div.append(newTooltip);
         }
     }
 
     protected async mount(): Promise<void> {
         await this.displayTournament();
-        // Création du bouton
-        const btn = document.createElement("button");
-        btn.id = "start-game-btn";
-        btn.textContent = "Lancer la partie";
-        btn.classList.add("px-4", "py-2", "bg-blue-900", "text-white", "rounded", "mt-4");
+        // // Création du bouton
+        // const btn = document.createElement("button");
+        // btn.id = "start-game-btn";
+        // btn.textContent = "Lancer la partie";
+        // btn.classList.add("px-4", "py-2", "bg-blue-900", "text-white", "rounded", "mt-4");
 
-        document.getElementById("tournament-overview")?.append(btn);
+        // document.getElementById("tournament-overview")?.append(btn);
 
-        // Ajout du listener
-        btn.addEventListener("click", () => {
-             console.log("okeeaiii");
-            // this.startGame(); // fonction qui fetch avec les infos en contenu des joueurs
-        });
-            // await this.attachPastilleListeners();
-        }
+        // // Ajout du listener
+        // btn.addEventListener("click", () => {
+        //      console.log("okeeaiii");
+        //     // this.startGame(); // fonction qui fetch avec les infos en contenu des joueurs
+        // });
+        //     // await this.attachPastilleListeners();
+    }
 
     private getGameByPlayerID(id: number, stage: Game[]): Game | undefined {
         return stage.find((game: Game) => game.players.find((p: Player) => p.ID == id));
@@ -155,16 +154,16 @@ export class GameTournamentOverview extends GamePage {
 
     protected attachListeners(): void {
         const allMatches = document.querySelectorAll("#match-container");
-        
+
         for (const match of allMatches) {
             const tooltip = match.querySelector("#tooltip");
             match.addEventListener("mouseenter", (event) => {
                 tooltip!.classList.remove("opacity-0", "pointer-events-none");
-                tooltip!.classList.add("opacity-90");
+                tooltip!.classList.add("opacity-100");
                 tooltip?.querySelector("h2");
             });
             match.addEventListener("mouseleave", () => {
-                tooltip?.classList.remove("opacity-90");
+                tooltip?.classList.remove("opacity-100");
                 tooltip?.classList.add("opacity-0", "pointer-events-none");
             })
         }
