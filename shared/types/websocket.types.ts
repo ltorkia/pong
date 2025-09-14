@@ -3,7 +3,9 @@ import { SafeUserModel} from './user.types';
 
 export type StartGame = {
     type: "start_game",
-    otherPlayer?: SafeUserModel,
+    otherPlayer?: SafeUserModel, //a modifier
+    userId1?: SafeUserModel,
+    userId2?: SafeUserModel,
     gameID: number,
 };
 

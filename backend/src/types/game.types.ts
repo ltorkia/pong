@@ -90,7 +90,8 @@ export class Game {
     private ball = new Ball();
     private playersCount: number = 0;
     private gameStarted: boolean = false;
-    private isOver: boolean = false;
+    public isOver: boolean = false; //private
+    public launched: boolean = false; //added pour local tournament
     private score: number[] = [];
     public gameIDforDB: number = 0; // a voir
     public tournamentID?: number; // a voir
