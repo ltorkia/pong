@@ -1,7 +1,6 @@
 import { User } from '../../shared/models/user.model';
-import { currentService } from '../index.service';
+import { currentService, pageService, animationService } from '../index.service';
 import { authApi } from '../../api/index.api';
-import { animationService } from '../index.service';
 import { COOKIES_CONST } from '../../shared/config/constants.config';
 
 // ===========================================
@@ -82,7 +81,9 @@ export class SessionService {
 				console.log(`[${this.constructor.name}] Utilisateur localStorage trouvé, validation serveur en cours...`);
 				const validatedUser = await this.validateAndReturn(user);
 				if (validatedUser) {
-					animationService.animateNavbarOut = true;
+					// animationService.animateNavbarOut = true;
+					if (pageService.homebarInstance)
+						pageService.homebarInstance.destroy();
 					return validatedUser;
 				}
 			}
@@ -95,7 +96,9 @@ export class SessionService {
 			console.log(`[${this.constructor.name}] Tentative de récupération via API...`);
 			const apiUser = await authApi.getMe();
 			if (apiUser && apiUser.id) {
-				animationService.animateNavbarOut = true;
+				// animationService.animateNavbarOut = true;
+				if (pageService.homebarInstance)
+					pageService.homebarInstance.destroy();
 				console.log(`[${this.constructor.name}] Utilisateur chargé via API`);
 				return apiUser;
 			}

@@ -4,7 +4,6 @@ import { DB_CONST } from '../../shared/config/constants.config';
 import { currentService } from '../../services/index.service';
 import { BasicResponse, AuthResponse } from '../../shared/types/response.types';
 import { secureFetch } from '../../utils/app.utils';
-import { webSocketService } from '../../services/user/user.service';
 
 // ===========================================
 // AUTH API
@@ -64,12 +63,6 @@ export class AuthApi {
 		if (!res.ok) {
 			return { valid: false };
 		}
-
-		// Si pas de websocket ouvert, on l'ouvre
-		if (!webSocketService.getWebSocket()) {
-			webSocketService.openWebSocket();
-		}
-		
 		return res.json() as Promise<{ valid: boolean }>;
 	}
 

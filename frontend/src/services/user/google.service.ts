@@ -1,7 +1,6 @@
 import { router } from '../../router/router';
 import { showAlert } from '../../utils/dom.utils';
 import { authApi } from '../../api/user/user.api';
-import { animationService } from '../index.service';
 import { getHTMLElementById, getHTMLScriptElement } from '../../utils/dom.utils';
 import { DEFAULT_ROUTE } from '../../config/routes.config';
 
@@ -139,7 +138,6 @@ export class GoogleService {
 				showAlert(result.errorMessage);
 				return;
 			}
-			animationService.animateNavbarOut = true;
 			await router.redirect(DEFAULT_ROUTE);
 
 		} catch (err) {

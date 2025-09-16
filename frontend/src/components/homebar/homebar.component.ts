@@ -55,16 +55,16 @@ export class HomebarComponent extends BaseComponent {
 	/**
 	 * Animate la barre de navigation hors de l'écran.
 	 * 
-	 * - Définie la propriété "destroy" de la configuration du composant à true.
-	 * - Définie la propriété "animateHomebarOut" du service d'animation à true.
+	 * - Définit la propriété "destroy" de la configuration du composant à true.
+	 * - Définit la propriété "animateHomebarOut" du service d'animation à true.
+	 * - Définit la propriété "animateNavbarIn" du service d'animation à true.
 	 */
 	public destroy(): void {
 		if (currentService.getCurrentUser()) {
 			this.componentConfig.destroy = true;
-			// animationService.animateHomebarOut = true;
-			console.log(`[${this.constructor.name}] HOMEBAR DESTROY`);
+			animationService.animateHomebarOut = true;
+			animationService.animateNavbarIn = true;
 		}
-		console.log(`[${this.constructor.name}] SKIP CONDITON`);
 	}
 
 	// ===========================================

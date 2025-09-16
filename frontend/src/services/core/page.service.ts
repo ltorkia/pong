@@ -3,7 +3,8 @@ import { getHTMLElementById } from '../../utils/dom.utils';
 import { APP_ID } from '../../config/routes.config';
 import { RouteConfig, PageInstance } from '../../types/routes.types';
 import { COMPONENT_NAMES, HTML_COMPONENT_CONTAINERS } from '../../config/components.config';
-
+import { HomebarComponent } from '../../components/homebar/homebar.component';
+import { NavbarComponent } from '../../components/navbar/navbar.component';
 // ===========================================
 // PAGE SERVICE
 // ===========================================
@@ -27,6 +28,12 @@ export class PageService {
 	private currentPage: PageInstance | null = null;
 
 	/**
+	 * Référence à la navbar ou homebar actuellement affichée.
+	 */
+	public navbarInstance: NavbarComponent | null = null;
+	public homebarInstance: HomebarComponent | null = null;
+
+	/**
 	 * Rendu d'une nouvelle page.
 	 * 
 	 * - Gère la transition de la page actuelle vers la nouvelle page.
@@ -47,27 +54,15 @@ export class PageService {
 		const appDiv = getHTMLElementById(APP_ID);
 		const homebarDiv = getHTMLElementById(HTML_COMPONENT_CONTAINERS.HOMEBAR_ID);
 		const navbarDiv = getHTMLElementById(HTML_COMPONENT_CONTAINERS.NAVBAR_ID);
-		
-		console.log('animateNavbarTransitionOut', animationService.animateNavbarOut);
-		console.log('animateNavbarTransitionIn', animationService.animateNavbarIn);
-		console.log('animateHomebarTransitionOut', animationService.animateHomebarOut);
-		console.log('animateHomebarTransitionIn', animationService.animateHomebarIn);
-		
 		await animationService.pageTransitionOut(appDiv);
-		await this.checkNavbarAnimationIn(homebarDiv, 'homebar');
-		await this.checkNavbarAnimationIn(navbarDiv, 'navbar');
+		await this.checkNavbarAnimationOut(homebarDiv, 'homebar');
+		await this.checkNavbarAnimationOut(navbarDiv, 'navbar');
 		await this.cleanup();
 		this.currentPage = page;
 		await animationService.pageTransitionIn(appDiv);
 		await this.currentPage.render();
-		
-		console.log('animateNavbarTransitionOut', animationService.animateNavbarOut);
-		console.log('animateNavbarTransitionIn', animationService.animateNavbarIn);
-		console.log('animateHomebarTransitionOut', animationService.animateHomebarOut);
-		console.log('animateHomebarTransitionIn', animationService.animateHomebarIn);
-		
-		await this.checkNavbarAnimationOut(homebarDiv, 'homebar');
-		await this.checkNavbarAnimationOut(navbarDiv, 'navbar');
+		await this.checkNavbarAnimationIn(homebarDiv, 'homebar');
+		await this.checkNavbarAnimationIn(navbarDiv, 'navbar');
 		if (this.currentPage.config.components
 			&& COMPONENT_NAMES.NAVBAR in this.currentPage.config.components)
 			await notifService.init(this.currentPage);
@@ -98,11 +93,11 @@ export class PageService {
 	 * @param {string} barType - Type de barre ('navbar' ou 'homebar').
 	 * @returns {Promise<void>} Une promesse qui se résout lorsque l'animation est terminée.
 	 */
-	private async checkNavbarAnimationIn(container: HTMLElement, barType: string): Promise<void> {
+	private async checkNavbarAnimationOut(container: HTMLElement, barType: string): Promise<void> {
 		let animationVar = barType === 'navbar' ? animationService.animateNavbarOut : animationService.animateHomebarOut;
 		if (animationVar === true) {
 			await animationService.navbarTransitionOut(container);
-			if ( barType === 'navbar')
+			if (barType === 'navbar')
 				animationService.animateNavbarOut = false;
 			else
 				animationService.animateHomebarOut = false;
@@ -110,7 +105,8 @@ export class PageService {
 	}
 	
 	/**
-	 * Transition de la navbar de la position visible vers la position cachée.
+	 * Vérifie si une animation de transition de la navbar vers l'entrée est en cours.
+	 * Si c'est le cas, attend que l'animation soit terminée, puis annule l'animation.
 	 *
 	 * Si animateNavbarIn est à true, on lance la transition de la navbar
 	 * vers la position cachée.
@@ -119,11 +115,11 @@ export class PageService {
 	 * @param {string} barType - Type de barre ('navbar' ou 'homebar').
 	 * @returns {Promise<void>} Une promesse qui se résout lorsque la transition est terminée.
 	 */
-	private async checkNavbarAnimationOut(container: HTMLElement, barType: string): Promise<void> {
+	private async checkNavbarAnimationIn(container: HTMLElement, barType: string): Promise<void> {
 		let animationVar = barType === 'navbar' ? animationService.animateNavbarIn : animationService.animateHomebarIn;
 		if (animationVar === true) {
 			await animationService.navbarTransitionIn(container);
-			if ( barType === 'navbar')
+			if (barType === 'navbar')
 				animationService.animateNavbarIn = false;
 			else
 				animationService.animateHomebarIn = false;

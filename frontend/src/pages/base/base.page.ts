@@ -2,9 +2,10 @@ import DOMPurify from "dompurify";
 import { RouteConfig } from '../../types/routes.types';
 import { router } from '../../router/router';
 import { User } from '../../shared/models/user.model';
-import { currentService, dataService } from '../../services/index.service';
+import { currentService, dataService, pageService } from '../../services/index.service';
 import { checkUserLogged } from '../../utils/app.utils'; 
 import { BaseComponent } from '../../components/base/base.component';
+import { HomebarComponent } from '../../components/homebar/homebar.component';
 import { NavbarComponent } from '../../components/navbar/navbar.component';
 import { ComponentName, ComponentConfig } from '../../types/components.types';
 import { TranslaterComponent } from '../../components/translater/translater.component';
@@ -29,9 +30,7 @@ export abstract class BasePage {
 	protected templatePath: string;
 	protected components?: Partial<Record<ComponentName, ComponentConfig>>;
 	protected componentInstances: Record<ComponentName | string, BaseComponent> = {};
-	protected navbarInstance?: NavbarComponent;
 	protected removeListenersFlag: boolean = true;
-	protected t = translateService.t.bind(translateService);
 
 	/**
 	 * Constructeur de la classe de base des pages.
@@ -167,6 +166,7 @@ export abstract class BasePage {
 			if (!componentConfig || !this.isValidConfig(componentConfig)) {
 				continue;
 			}
+			console.log(`[${this.constructor.name}] Chargement du composant '${componentConfig.name}'...`);
 			if (componentConfig.instance) {
 				this.updateNavigation(componentConfig);
 				this.addToComponentInstances(componentConfig.name, componentConfig.instance);
@@ -197,7 +197,6 @@ export abstract class BasePage {
 		componentConfig.instance = componentInstance;
 		this.addToComponentInstances(componentConfig.name, componentInstance);
 		await componentInstance.render();
-		
 		console.log(`[${this.constructor.name}] Composant '${componentConfig.name}' généré`);
 	}
 
@@ -263,12 +262,22 @@ export abstract class BasePage {
 	 * componentInstances en utilisant le nom du composant fourni comme clé.
 	 * Cela permet de retrouver et de gérer facilement les instances de composants
 	 * associées à la page.
+	 * 
+	 * Ajoute les instances de Homebar ou Navbar à l'instance de la page actuelle.
 	 *
 	 * @param {ComponentName} componentName - Le nom du composant.
 	 * @param {BaseComponent} componentInstance - L'instance du composant à stocker.
 	 */
 	protected addToComponentInstances(componentName: ComponentName | string, componentInstance: BaseComponent): void {
 		this.componentInstances[componentName] = componentInstance;
+		switch (componentName) {
+			case COMPONENT_NAMES.HOMEBAR:
+				pageService.homebarInstance = componentInstance as HomebarComponent;
+				break;
+			case COMPONENT_NAMES.NAVBAR:
+				pageService.navbarInstance = componentInstance as NavbarComponent;
+				break;
+		}
 	}
 
 	/**

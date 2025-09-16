@@ -31,7 +31,6 @@ export abstract class BaseComponent {
 	protected templatePath: string;
 	protected currentUser: User | null = null;
 	protected removeListenersFlag: boolean = true;
-	protected t = translateService.t.bind(translateService);
 
 	/**
 	 * Constructeur de la classe BaseComponent.

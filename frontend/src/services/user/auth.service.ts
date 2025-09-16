@@ -1,7 +1,6 @@
 import { router } from '../../router/router';
 import { showAlert } from '../../utils/dom.utils';
 import { authApi } from '../../api/index.api';
-import { animationService } from '../index.service';
 import { AuthResponse, BasicResponse } from '../../shared/types/response.types';
 import { isValidImage } from '../../utils/image.utils';
 import { DEFAULT_ROUTE, AUTH_FALLBACK_ROUTE, PAGE_NAMES } from '../../config/routes.config';
@@ -44,7 +43,6 @@ export class AuthService {
 			}
 			console.log(`[${this.constructor.name}] Utilisateur inscrit.`);
 			alert(REGISTERED_MSG);
-			animationService.animateBarsLogged();
 			await router.redirect(DEFAULT_ROUTE);
 		} catch (err) {
 			console.error(`[${this.constructor.name}] Erreur réseau ou serveur`, err);
@@ -81,7 +79,6 @@ export class AuthService {
 			// Sinon connexion réussie, redirection vers la page d'accueil
 			console.log(`[${this.constructor.name}] Authentification réussie sans 2FA`);
 
-			animationService.animateBarsLogged();
 			await router.redirect(DEFAULT_ROUTE);
 			return data as AuthResponse;
 
@@ -140,7 +137,6 @@ export class AuthService {
 			}
 			// Redirection home si l'utilisateur vient de la page login
 			if (!isFromSettings) {
-				animationService.animateBarsLogged();
 				await router.redirect(DEFAULT_ROUTE);
 			}
 			return result;
@@ -170,8 +166,6 @@ export class AuthService {
 				showAlert(result.errorMessage);
 				return;
 			}
-			// animationService.animateNavbarOut = true;
-			animationService.animateBarsLogged();
 			console.log(`[${this.constructor.name}] Utilisateur déconnecté.`);
 			
 			// Redirection SPA vers login

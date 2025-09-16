@@ -1,7 +1,6 @@
 import { User } from '../../shared/models/user.model';
-import { storageService } from '../index.service';
 import { UserModel, SafeUserModel } from '../../shared/types/user.types';
-import { webSocketService } from '../../services/index.service';
+import { storageService, webSocketService, animationService, pageService } from '../index.service';
 
 // ===========================================
 // CURRENT SERVICE
@@ -35,17 +34,29 @@ export class CurrentService {
 
 		// Ouvre WS si pas déjà ouvert, avec gestion d'erreur
 		await this.ensureWebSocketOpen();
+
+		// Animation de transition des barres de navigation
+		// animationService.animateNavbarOut = true;
+		if (pageService.homebarInstance)
+			pageService.homebarInstance.destroy();
 	}
 
 	/**
 	 * Met à jour l'utilisateur courant avec les données complètes du serveur.
 	 */
 	public async setCurrentUserFromServer(userData: UserModel): Promise<void> {
+		if (!userData)
+			return;
 		this.currentUser = User.fromJSON(userData);
 		storageService.setCurrentUser(this.currentUser);
 
 		// Ouvre WS après que l'utilisateur est complètement restauré et valide
 		await this.ensureWebSocketOpen();
+
+		// Animation de transition des barres de navigation
+		// animationService.animateNavbarOut = true;
+		if (pageService.homebarInstance)
+			pageService.homebarInstance.destroy();
 
 		console.log(`[${this.constructor.name}] Utilisateur mis à jour depuis serveur:`, this.currentUser);
 	}
@@ -54,6 +65,10 @@ export class CurrentService {
 	 * Met à jour les propriétés de l'utilisateur avec de nouvelles données.
 	 */
 	public async updateCurrentUser(updates: Partial<UserModel>): Promise<User | null> {
+		if (!updates) {
+			console.warn(`[${this.constructor.name}] Aucune donnée utilisateur à mettre à jour`);
+			return null;
+		}
 		if (!this.currentUser) {
 			console.warn(`[${this.constructor.name}] Aucun utilisateur courant à mettre à jour`);
 			return null;
@@ -63,6 +78,11 @@ export class CurrentService {
 
 		// Ouvre WS si pas déjà ouvert
 		await this.ensureWebSocketOpen();
+
+		// Animation de transition des barres de navigation
+		// animationService.animateNavbarOut = true;
+		if (pageService.homebarInstance)
+			pageService.homebarInstance.destroy();
 
 		console.log(`[${this.constructor.name}] Utilisateur courant mis à jour:`, this.currentUser);
 		return this.currentUser;
@@ -78,6 +98,11 @@ export class CurrentService {
 		this.currentUser = null;
 		storageService.clearCurrentUser();
 		webSocketService.closeWebSocket();
+
+		// Animation de transition des barres de navigation
+		// animationService.animateHomebarOut = true;
+		if (pageService.navbarInstance)
+			pageService.navbarInstance.destroy();
 	}
 
 	/**
@@ -102,7 +127,6 @@ export class CurrentService {
 			const user = User.fromSafeJSON(storedUser);
 			this.currentUser = user;
 			storageService.setCurrentUser(this.currentUser);
-
 			this.ensureWebSocketOpen().catch(err => 
 				console.warn(`[${this.constructor.name}] WebSocket non ouvert après restauration:`, err)
 			);

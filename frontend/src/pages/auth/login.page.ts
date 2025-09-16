@@ -1,13 +1,12 @@
 import { BasePage } from '../base/base.page';
 import { RouteConfig } from '../../types/routes.types';
-import { animationService, authService, googleService } from '../../services/index.service';
+import { authService, googleService } from '../../services/index.service';
 import { TwofaModalComponent } from '../../components/twofa-modal/twofa-modal.component';
 import { ComponentConfig } from '../../types/components.types';
 import { PAGE_NAMES } from '../../config/routes.config';
 import { COMPONENT_NAMES, HTML_COMPONENT_CONTAINERS } from '../../config/components.config';
 import { getHTMLElementById } from '../../utils/dom.utils';
 import { DB_CONST } from '../../shared/config/constants.config';
-import { HomebarComponent } from '../../components/homebar/homebar.component';
 
 // ===========================================
 // LOGIN PAGE
@@ -145,12 +144,9 @@ export class LoginPage extends BasePage {
 		event.preventDefault();
 		const formData = new FormData(this.form);
 		const data = Object.fromEntries(formData.entries()) as Record<string, string>;
+		console.log(`[${this.constructor.name}] AVANT LOGIN`);
 		const loginResult = await authService.login(data);
-
-		if (animationService.barsTransitioned) {
-			const homebar = this.getComponentInstance<HomebarComponent>(COMPONENT_NAMES.HOMEBAR);
-			homebar!.destroy();
-		}
+		console.log(`[${this.constructor.name}] APRES LOGIN`);
 
 		// Affiche le modal 2FA seulement si login OK et 2FA activé
 		if (!loginResult || loginResult.errorMessage || loginResult.user!.active2Fa === DB_CONST.USER.ACTIVE_2FA.DISABLED) {

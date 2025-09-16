@@ -1,7 +1,3 @@
-import { HomebarComponent } from '../../components/homebar/homebar.component';
-import { getComponentConfig } from '../../utils/config.utils';
-import { COMPONENT_NAMES } from '../../config/components.config';
-
 // ===========================================
 // ANIMATION SERVICE
 // ===========================================
@@ -9,12 +5,11 @@ import { COMPONENT_NAMES } from '../../config/components.config';
  * Service gérant les effets d'animation de l'application.
  */
 export class AnimationService {
-	// public animateNavbarIn: boolean = false;
-	public animateNavbarOut: boolean = false;
-	
-	// public animateHomebarIn: boolean = false;
-	public animateHomebarOut: boolean = false;
-	public barsTransitioned: boolean = false;
+
+	public animateNavbarIn: boolean = true;
+	public animateNavbarOut: boolean = true;
+	public animateHomebarIn: boolean = true;
+	public animateHomebarOut: boolean = true;
 
 	// ===========================================
 	// METHODES PUBLICS
@@ -25,7 +20,7 @@ export class AnimationService {
 	 * 
 	 * - Retire la classe '-translate-y-[--navbar-height]' pour annuler la translation vers le haut.
 	 * - Ajoute la classe 'translate-y-0' pour appliquer la translation vers le bas.
-	 * - Retire la classe 'translate-y-0' après 300ms.
+	 * - Attend 200ms pour que la transition soit terminée avant de continuer.
 	 * 
 	 * @param {HTMLElement} container - Élément HTML de la navbar à transitionner.
 	 * @returns {Promise<void>} Une promesse qui se résout lorsque la transition est terminée.
@@ -33,7 +28,7 @@ export class AnimationService {
 	public async navbarTransitionIn(container: HTMLElement): Promise<void> {
 		container.classList.remove('-translate-y-[--navbar-height]');
 		container.classList.add('translate-y-0');
-		setTimeout(() => container.classList.remove('translate-y-0'), 300);
+		await new Promise(resolve => setTimeout(resolve, 300));
 	}
 	
 	/**
@@ -41,7 +36,6 @@ export class AnimationService {
 	 *
 	 * - Retire la classe 'translate-y-0' pour annuler la translation vers le bas.
 	 * - Ajoute la classe '-translate-y-[--navbar-height]' pour appliquer la translation vers le haut.
-	 * - Retire la classe '-translate-y-[--navbar-height]' après 300ms.
 	 * - Attend 200ms pour que la transition soit terminée avant de continuer.
 	 *
 	 * @param {HTMLElement} container - Élément HTML de la navbar à transitionner.
@@ -50,7 +44,6 @@ export class AnimationService {
 	public async navbarTransitionOut(container: HTMLElement): Promise<void> {
 		container.classList.remove('translate-y-0');
 		container.classList.add('-translate-y-[--navbar-height]');
-		setTimeout(() => container.classList.remove('-translate-y-[--navbar-height]'), 300);
 		await new Promise(resolve => setTimeout(resolve, 200));
 	}
 
@@ -110,31 +103,5 @@ export class AnimationService {
 		container.classList.add('scale-90');
 		await new Promise(resolve => setTimeout(resolve, 200)); // attend la fin du scale
 		container.classList.add('hidden');
-	}
-
-	/**
-	 * Animate les barres de navigation.
-	 * 
-	 * - Définie la propriété "animateNavbarOut" de l'animation service à true.
-	 * - Appelle la méthode "animateOut()" de l'instance du composant HomebarComponent.
-	 */
-	public animateBarsLogged(): void {
-		this.animateNavbarOut = true;
-		this.animateHomebarOut = false;
-		this.barsTransitioned = true;
-		// const homebarInstance = getComponentConfig(COMPONENT_NAMES.HOMEBAR).instance as HomebarComponent;
-		// homebarInstance.animateOut();
-	}
-
-	/**
-	 * Animate les barres de navigation en mode non connecté.
-	 * 
-	 * - Définie la propriété "animateNavbarOut" de l'animation service à false.
-	 * - Définie la propriété "animateHomebarOut" du service d'animation à true.
-	 */
-	public animateBarsUnlogged(): void {
-		this.animateNavbarOut = false;
-		this.animateHomebarOut = true;
-		this.barsTransitioned = true;
 	}
 }

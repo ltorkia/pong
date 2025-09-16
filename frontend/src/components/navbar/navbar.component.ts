@@ -2,7 +2,7 @@
 import template from './navbar.component.html?raw';
 
 import { BaseComponent } from '../base/base.component';
-import { animationService, authService } from '../../services/index.service';
+import { authService, animationService, currentService } from '../../services/index.service';
 import { RouteConfig } from '../../types/routes.types';
 import { ComponentConfig } from '../../types/components.types';
 import { getHTMLElementByClass } from '../../utils/dom.utils';
@@ -101,10 +101,18 @@ export class NavbarComponent extends BaseComponent {
 		this.mainSection = getHTMLElementByTagName('main');
 	}
 
+	/**
+	 * Méthode de montage du composant de la navbar.
+	 * 
+	 * Active le lien correspondant à la route actuelle.
+	 * Ajoute la classe 'mt-main' à la section principale.
+	 * Active l'animation de la navbar.
+	 * 
+	 * @returns {Promise<void>} Une promesse qui se résout lorsque le composant est monté.
+	 */
 	protected async mount(): Promise<void> {
 		this.toggleSettingsLink();
 		this.setActiveLink(this.routeConfig.path);
-		// this.langSwitcher.value = translateService.getLocale();
 		this.mainSection.classList.add('mt-main');
 	}
 
@@ -171,6 +179,21 @@ export class NavbarComponent extends BaseComponent {
 				anchor.classList.add('active');
 			}
 		});
+	}
+	
+	/**
+	 * Animate la barre de navigation hors de l'écran.
+	 * 
+	 * - Définit la propriété "destroy" de la configuration du composant à true.
+	 * - Définit la propriété "animateNavbarOut" du service d'animation à true.
+	 * - Définit la propriété "animateHomebarIn" du service d'animation à true.
+	 */
+	public destroy(): void {
+		if (!currentService.getCurrentUser()) {
+			this.componentConfig.destroy = true;
+			animationService.animateNavbarOut = true;
+			animationService.animateHomebarIn = true;
+		}
 	}
 
 	// ===========================================
@@ -396,7 +419,7 @@ export class NavbarComponent extends BaseComponent {
 	 */
 	private handleLogoutClick = async (event: MouseEvent): Promise<void> => {
 		event.preventDefault();
-		this.componentConfig.destroy = true;
+		// this.componentConfig.destroy = true;
 		// animationService.animateNavbarOut = true;
 		await authService.logout();
 	};
