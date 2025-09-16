@@ -3,7 +3,7 @@ import { FriendRequestAction } from '../shared/types/notification.types';
 import { DB_CONST, FRIEND_REQUEST_ACTIONS } from '../shared/config/constants.config';
 
 /**
- * Vérifie si l'action demandée (accept, block, unblock, decline, cancel) est valide
+ * Vérifie si l'action demandée (accept, invite, block, unblock, decline, cancel) est valide
  * par rapport au statut de la relation actuelle (pending, accepted, blocked).
  *
  * @param {FriendRequestAction} action - L'action demandée
@@ -18,6 +18,7 @@ export function isFriendRequestValid(action: FriendRequestAction, friendStatus: 
 			return friendStatus === DB_CONST.FRIENDS.STATUS.PENDING;
 		case FRIEND_REQUEST_ACTIONS.BLOCK:
 		case FRIEND_REQUEST_ACTIONS.UNFRIEND:
+		case FRIEND_REQUEST_ACTIONS.INVITE:
 			return friendStatus === DB_CONST.FRIENDS.STATUS.ACCEPTED;
 		case FRIEND_REQUEST_ACTIONS.UNBLOCK:
 			return friendStatus === DB_CONST.FRIENDS.STATUS.BLOCKED;
@@ -48,6 +49,7 @@ export function isValidRequester(action: FriendRequestAction, relation: FriendMo
 			return relation.requesterId == currUserId;
 		case FRIEND_REQUEST_ACTIONS.BLOCK:
 		case FRIEND_REQUEST_ACTIONS.UNFRIEND:
+		case FRIEND_REQUEST_ACTIONS.INVITE:
 		case FRIEND_REQUEST_ACTIONS.DELETE:
 			return true;
 		default:

@@ -6,7 +6,7 @@ import { getUser } from '../db/user';
 import { UserModel } from '../shared/types/user.types';
 import { FriendModel } from '../shared/types/friend.types';	// en rouge car dossier local 'shared' != dossier conteneur
 import { getRelation, getUserFriends, getAllRelations } from '../db/friend'
-import { addUserFriend, updateRelationshipConfirmed, updateRelationshipBlocked, updateRelationshipDelete } from '../db/friend'
+import { addUserFriend, updateRelationshipConfirmed, updateRelationshipBlocked, updateFriendChallenged, updateRelationshipDelete } from '../db/friend'
 import { FriendResponse } from '../shared/types/response.types';
 
 import { IdInputSchema, IdInput, FriendActionInputSchema, FriendActionInput } from '../types/zod/app.zod';
@@ -92,8 +92,7 @@ export async function friendsRoutes(app: FastifyInstance) {
 		const jwtUser = request.user as JwtPayload;
 		let { friendId } = request.params as { friendId: number };
 		friendId = Number(friendId);
-		if (!Number.isInteger(friendId) || friendId <= 0
-			|| !Number.isInteger(friendId) || friendId <= 0)
+		if (!Number.isInteger(friendId) || friendId <= 0)
 			return reply.status(403).send({ errorMessage: 'Forbidden' });
 
 		const friendDataCheck = await checkParsing(FriendActionInputSchema, request.body);
@@ -116,6 +115,9 @@ export async function friendsRoutes(app: FastifyInstance) {
 				break;
 			case FRIEND_REQUEST_ACTIONS.BLOCK:
 				relation = await updateRelationshipBlocked(friendId, jwtUser.id);
+				break;
+			case FRIEND_REQUEST_ACTIONS.INVITE:
+				relation = await updateFriendChallenged(friendId, jwtUser.id);
 				break;
 		}
 		return reply.code(200).send({ message: 'Relation updated' });

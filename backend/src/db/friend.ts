@@ -7,7 +7,7 @@ export async function getAllRelations() {
 	const db = await getDb();
 	const relations = await db.all(`
 		SELECT u.id, u.username, u.avatar, u.begin_log, u.end_log, 
-			f.requester_id, f.friend_status, f.blocked_by, f.meet_date
+			f.requester_id, f.friend_status, f.blocked_by, f.challenged_by, f.meet_date
 		FROM Friends f
 		JOIN User u ON u.id = f.user1_id OR u.id = f.user2_id
 	`);
@@ -20,8 +20,8 @@ export async function getAllRelations() {
 export async function getUserFriends(userId: number): Promise<FriendModel[]> {
 	const db = await getDb();
 	const friends = await db.all(`
-		SELECT u.id, u.username, u.avatar, u.begin_log, u.end_log, 
-		f.requester_id, f.friend_status, f.blocked_by, f.meet_date
+		SELECT u.id, u.username, u.avatar, u.begin_log, u.end_log, u.status,
+		f.requester_id, f.friend_status, f.blocked_by, f.challenged_by, f.meet_date
 		FROM Friends f
 		JOIN User u ON (
 			(f.user1_id = ? AND f.user2_id = u.id)
@@ -43,8 +43,8 @@ export async function getUserFriends(userId: number): Promise<FriendModel[]> {
 export async function getRelation(userId1: number, userId2: number): Promise<FriendModel> {
 	const db = await getDb();
 	const relation = await db.get(`
-		SELECT u.id, u.username, u.avatar, u.begin_log, u.end_log, 
-			f.requester_id, f.friend_status, f.blocked_by, f.meet_date
+		SELECT u.id, u.username, u.avatar, u.begin_log, u.end_log, u.status,
+			f.requester_id, f.friend_status, f.blocked_by, f.challenged_by, f.meet_date
 		FROM Friends f
 		JOIN User u ON (
 			(f.user1_id = u.id OR f.user2_id = u.id)
@@ -164,6 +164,29 @@ export async function updateRelationshipDelete(userId1: number, userId2: number)
 		DELETE FROM Friends
 		WHERE user1_id = ? AND user2_id = ?
 	`, [user1, user2]);
+}
+
+/**
+ * Met à jour le statut de défi entre deux utilisateurs en marquant que le premier utilisateur a été défié par le second.
+ * @param {number} userId1 - Identifiant du premier utilisateur.
+ * @param {number} userId2 - Identifiant du second utilisateur.
+ * @returns {Promise<void>} - Promesse qui se résout après avoir mis à jour le statut de défi entre les deux utilisateurs.
+ */
+export async function updateFriendChallenged(userId1: number, userId2: number): Promise<FriendModel> {
+	const db = await getDb();
+
+	const [user1, user2] = userId1 < userId2
+		? [userId1, userId2]
+		: [userId2, userId1];
+
+	await db.run(`
+		UPDATE Friends
+		SET challenged_by = ?
+		WHERE user1_id = ? AND user2_id = ?
+	`, [userId2, user1, user2]);
+
+	const relation = await getRelation(userId1, userId2);
+	return snakeToCamel(relation) as FriendModel;
 }
 
 /**

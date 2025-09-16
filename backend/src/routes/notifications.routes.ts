@@ -64,6 +64,7 @@ export async function notificationsRoutes(app: FastifyInstance) {
 			return reply.code(404).send({ errorMessage: 'No user found'});
 
 		let notifData: NotificationInput = addNotifContent(data);
+		console.log(notifData);
 		notifData.read = data.read ?? 0;
 		const notif = await insertNotification(notifData);
 		if (!notif || "errorMessage" in notif) {

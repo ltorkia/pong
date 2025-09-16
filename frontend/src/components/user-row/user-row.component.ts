@@ -1,14 +1,16 @@
 // Pour hot reload Vite
 import template from './user-row.component.html?raw'
 
+import DOMPurify from "dompurify";
 import { BaseComponent } from '../base/base.component';
 import { RouteConfig } from '../../types/routes.types';
 import { router } from '../../router/router';
 import { ComponentConfig } from '../../types/components.types';
-import { dataService, notifService, friendService, translateService } from '../../services/index.service';
+import { dataService, notifService, friendService } from '../../services/index.service';
 import { getHTMLElementByClass } from '../../utils/dom.utils';
 import { DB_CONST } from '../../shared/config/constants.config';
 import { User } from '../../shared/models/user.model';
+import { Friend } from '../../../../shared/models/friend.model';
 
 // ===========================================
 // USER ROW COMPONENT
@@ -27,6 +29,7 @@ import { User } from '../../shared/models/user.model';
  */
 export class UserRowComponent extends BaseComponent {
 	protected user?: User | null = null;
+	private friend?: Friend | null = null;
 	public userline!: HTMLDivElement;
 	private avatarImg!: HTMLImageElement;
 	private nameCell!: HTMLElement;
@@ -188,7 +191,7 @@ export class UserRowComponent extends BaseComponent {
 		this.unfriendButton.addEventListener('click', this.unfriendClick);
 		this.blockFriendButton.addEventListener('click', this.blockFriendClick);
 		this.unblockFriendButton.addEventListener('click', this.unblockFriendClick);
-		// this.challengeButton.addEventListener('click', this.challengeClick);
+		this.challengeButton.addEventListener('click', this.challengeClick);
 	}
 
 	/**
@@ -203,7 +206,7 @@ export class UserRowComponent extends BaseComponent {
 		this.unfriendButton.removeEventListener('click', this.unfriendClick);
 		this.blockFriendButton.removeEventListener('click', this.blockFriendClick);
 		this.unblockFriendButton.removeEventListener('click', this.unblockFriendClick);
-		// this.challengeButton.removeEventListener('click', this.challengeClick);
+		this.challengeButton.removeEventListener('click', this.challengeClick);
 	}
 
 	// ===========================================
@@ -221,29 +224,30 @@ export class UserRowComponent extends BaseComponent {
 	public async toggleFriendButton(): Promise<void> {
 		if (this.user && this.user.id !== this.currentUser!.id || !this.user) {
 			this.hideAllButtons();
-			const friend = await friendService.isFriendWithCurrentUser(this.user!.id);
-			if (!friend) {
-				this.friendLogoCell.innerHTML = `<i class="fa-solid fa-minus"></i>`;
+			this.friend = await friendService.isFriendWithCurrentUser(this.user!.id);
+			if (!this.friend) {
+				this.friendLogoCell.innerHTML = DOMPurify.sanitize(`<i class="fa-solid fa-minus"></i>`);
 				this.addFriendButton.classList.remove('hidden');
 				return;
 			}
-			this.friendLogoCell.innerHTML = dataService.showFriendLogo(friend);
+			this.friendLogoCell.innerHTML = dataService.showFriendLogo(this.friend);
 
-			if (friend.friendStatus === DB_CONST.FRIENDS.STATUS.PENDING) {
-				if (friend.requesterId === this.currentUser!.id) {
+			if (this.friend.friendStatus === DB_CONST.FRIENDS.STATUS.PENDING) {
+				if (this.friend.requesterId === this.currentUser!.id) {
 					this.cancelFriendButton.classList.remove('hidden');
 					return;
 				}
 				this.acceptFriendButton.classList.remove('hidden');
 				this.declineFriendButton.classList.remove('hidden');
 			}
-			if (friend.friendStatus === DB_CONST.FRIENDS.STATUS.ACCEPTED) {
-				this.challengeButton.classList.remove('hidden');
+			if (this.friend.friendStatus === DB_CONST.FRIENDS.STATUS.ACCEPTED) {
+				if (this.friend.isOnline() && this.friend.challengedBy !== this.currentUser!.id)
+					this.challengeButton.classList.remove('hidden');
 				this.blockFriendButton.classList.remove('hidden');
 				this.unfriendButton.classList.remove('hidden');
 			}
-			if (friend.friendStatus === DB_CONST.FRIENDS.STATUS.BLOCKED) {
-				if (friend.blockedBy === this.currentUser!.id) {
+			if (this.friend.friendStatus === DB_CONST.FRIENDS.STATUS.BLOCKED) {
+				if (this.friend.blockedBy === this.currentUser!.id) {
 					this.unblockFriendButton.classList.remove('hidden');
 					return;
 				}
@@ -344,26 +348,17 @@ export class UserRowComponent extends BaseComponent {
 		console.log(`Friend request canceled for ${this.user!.username}`);
 	}
 
-	/**
-	 * CHALLENGER UN AMI -
-	 * FRIEND_REQUEST_ACTIONS.INVITE sera une constante utilisée durant le processus.
-	 * L'ébauche ci-dessous date un peu. Il faudrait plutôt s'inspirer des méthodes ci-dessus :
-	 * chacune appelle une méthode de notifService (qu'il faudra créer dans notre cas).
-	 * C'est dans notifService qu'on gère à la fois les relations et les notifs en db 
-	 * via les boutons cliquables de la liste des utilisateurs (ici même), et du centre de notifications.
-	 */
-
-	// private challengeClick = async (event: Event): Promise<void> => {
-	// 	event.preventDefault();
-	// 	if (!this.user) {
-	// 		return;
-	// 	}
-	// 	const res = await friendApi.challengeUser(this.currentUser.id, this.user.id);
-	// 	if (res.errorMessage) {
-	// 		showAlert(res.errorMessage, `alert-${this.user.id}`, 'error');
-	// 		return;
-	// 	}
-	// 	console.log(`Challenge sent to ${this.user.username}`);
-	// 	await router.navigate(`/game/${res.gameId}`);
-	// }
+	private challengeClick = async (event: Event): Promise<void> => {
+		event.preventDefault();
+		if (!this.friend || !this.friend.isOnline()) {
+			// Notifier message erreur -> ami hors ligne ou inexistant
+			return;
+		}
+		if (!this.friend.challengedBy) {
+			await notifService.handleChallengeClick(event);
+			console.log(`Challenge request sent to ${this.user!.username}`);
+		}
+		// else if (this.friend.challengedBy === this.friend.id)
+			// méthode pour rejoindre le jeu où l'autre joueur attend
+	}
 }

@@ -43,6 +43,7 @@ CREATE TABLE IF NOT EXISTS Friends (
 	requester_id INTEGER NOT NULL,												-- user qui a fait la demande d'ami
 	friend_status TEXT DEFAULT 'pending' CHECK (friend_status IN ('pending', 'accepted', 'blocked')),	-- pour checker le status, oui, non, en attente
 	blocked_by INTEGER DEFAULT 0,
+	challenged_by INTEGER DEFAULT 0,
 	meet_date DATETIME DEFAULT CURRENT_TIMESTAMP,
 	FOREIGN KEY (user1_id) REFERENCES User(id) ON DELETE CASCADE,
 	FOREIGN KEY (user2_id) REFERENCES User(id) ON DELETE CASCADE,

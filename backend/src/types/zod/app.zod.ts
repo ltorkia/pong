@@ -5,7 +5,7 @@ export const IdInputSchema = z.object({
 	id: z.number().int().positive(),
 });
 
-export const UsertatusSchema = z.enum([
+export const UserStatusSchema = z.enum([
 	USER_ONLINE_STATUS.OFFLINE,
 	USER_ONLINE_STATUS.ONLINE,
 	USER_ONLINE_STATUS.IN_GAME
@@ -29,7 +29,7 @@ export const NotificationInputSchema = z.object({
 	to: z.number().int().positive(),
 	type: z.union([
 		FriendActionInputSchema,
-		UsertatusSchema
+		UserStatusSchema
 	]).optional(),
 	content: z.string().optional(),
 	createdAt: z.string().optional(),
@@ -41,7 +41,7 @@ export const MessageInputSchema = z.object({
 });
 
 export type IdInput = z.infer<typeof IdInputSchema>;
-export type UserStatus = z.infer<typeof UsertatusSchema>;
+export type UserStatus = z.infer<typeof UserStatusSchema>;
 export type FriendActionInput = z.infer<typeof FriendActionInputSchema>;
 export type NotificationInput = z.infer<typeof NotificationInputSchema>;
 export type MessageInput = z.infer<typeof MessageInputSchema>;

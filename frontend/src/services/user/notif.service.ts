@@ -164,7 +164,6 @@ export class NotifService {
 			this.friendId = this.currentNotif.from;
 			const friend = await dataApi.getUserById(Number(this.friendId!));
 			this.friendName = friend!.username;
-			console.log('friendName:', this.friendName);
 			this.displayNotif();
 		});
 	}
@@ -565,7 +564,7 @@ export class NotifService {
 
 	public handleUnblockClick = async (event: Event): Promise<void> => {
 		const type: NotificationType = FRIEND_REQUEST_ACTIONS.UNBLOCK;
-  		const target = event.currentTarget as HTMLElement;
+		const target = event.currentTarget as HTMLElement;
 		this.setFriendId(target);
 		this.setNotifData(type, 1);
 		await this.handleUpdate(type);
@@ -578,6 +577,28 @@ export class NotifService {
 		this.setNotifData(type, 1);
 		await this.handleDelete(type);
 	}
+
+	public handleChallengeClick = async (event: Event): Promise<void> => {
+  		const target = event.currentTarget as HTMLElement;
+		this.setFriendId(target);
+		const type: NotificationType = FRIEND_REQUEST_ACTIONS.INVITE;
+		const res = await friendApi.updateFriend(this.friendId!, type);
+		if ('errorMessage' in res) {
+			console.error(res.errorMessage);
+			return;
+		}
+		await this.refreshFriendButtons();
+		this.setNotifData(type);
+		await notifApi.addNotification(this.notifData!);
+	}
+
+	// public handlePlayClick = async (event: Event): Promise<void> => {
+	// 	const type: NotificationType = FRIEND_REQUEST_ACTIONS.PLAY;
+	// 	const target = event.currentTarget as HTMLElement;
+	// 	this.setFriendId(target);
+	// 	this.setNotifData(type, 1);
+	// 	await this.handleUpdate(type);
+	// }
 
 	// ===========================================
 	// UTILS
@@ -614,11 +635,6 @@ export class NotifService {
 			return;
 		}
 		this.friendId = Number(friendId);
-		// this.friendName = target.getAttribute("data-friend-name");
-		// if (!this.friendName) {
-		// 	console.error("Pas de friendName sur le bouton");
-		// 	return;
-		// }
 	}
 
 	/**

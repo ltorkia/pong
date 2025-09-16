@@ -131,7 +131,7 @@ export class FriendApi {
 		});
 		const data: FriendResponse = await res.json();
 		if (!res.ok || 'errorMessage' in data) {
-			return { errorMessage: data.errorMessage || 'Erreur lors de l\'acceptation / le blocage d\'ami' };
+			return { errorMessage: data.errorMessage || 'Erreur lors de la demande de challenge / l\'acceptation / le blocage d\'ami' };
 		}
 		return data;
 	}
