@@ -42,9 +42,10 @@
 		"greeting": "Hi",
 		"underTitle": "Ready to challenge the magical realm ?",
 		"rulesBtn": "Rules",
-		"localGameBtn": "1v1 • local game",
-		"distantGameBtn": "1v1 • online game",
-		"tournamentBtn": "Tournament"
+		"localGameBtn": "1v1 local game",
+		"distantGameBtn": "1v1 online game",
+		"localTournamentBtn": "Local tournament",
+		"onlineTournamentBtn": "Online tournament"
 	},
 
 	"rules": {

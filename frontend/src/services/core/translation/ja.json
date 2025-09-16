@@ -41,9 +41,10 @@
 		"greeting": "こんにちは",
 		"underTitle": "魔法の世界に挑戦する準備はできましたか ？",
 		"rulesBtn": "ルール",
-		"localGameBtn": "1v1 • ローカルゲーム",
-		"distantGameBtn": "1v1 • オンラインゲーム",
-		"tournamentBtn": "トーナメント"
+		"localGameBtn": "1v1 ローカルゲーム",
+		"distantGameBtn": "1v1 オンラインゲーム",
+		"localTournamentBtn": "トーナメント • ローカル",
+		"onlineTournamentBtn": "トーナメント • オンライン"
 	},
 
 	"rules": {

@@ -41,9 +41,11 @@
 		"greeting": "Salut",
 		"underTitle": "Prêt·e à jouer dans nos contrées magiques ?",
 		"rulesBtn": "Règles",
-		"localGameBtn": "1v1 • partie locale",
-		"distantGameBtn": "1v1 • partie en ligne",
-		"tournamentBtn": "Tournoi"
+		"localGameBtn": "partie 1v1 locale",
+		"distantGameBtn": "partie 1v1 en ligne",
+		"localTournamentBtn": "Tournoi local",
+		"onlineTournamentBtn": "Tournoi en ligne"
+
 	},
 
 	"rules": {
