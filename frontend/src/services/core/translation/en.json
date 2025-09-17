@@ -177,9 +177,9 @@
 		"ready": "READY? PRESS SPACE TO BEGIN",
 		"lobbyWaiting": "Waiting for other players to connect...",
 		"timerText": "Lets play in ... ",
-		"resultText": "Result = ",
-		"loseMessage": "You lose against ",
-		"winMessage": "You win against ",
+		"resultText": "You ",
+		"loseMessage": "You lose !",
+		"winMessage": "You win !",
 		"finalScore": "Final Score : "
 	},
 

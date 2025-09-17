@@ -123,28 +123,34 @@ export class GamePage extends BasePage {
 		panel.innerHTML = "";
 
 		const wrapper = document.createElement("div");
+		const divWinLose = document.createElement("span");
+		const divResScore = document.createElement("div");
 		const spanRes = document.createElement("span");
 		const spanScore = document.createElement("span");
-		const spanWinLose = document.createElement("span");
 		const spanAdversary = document.createElement("span");
 
-		spanRes.setAttribute("data-ts", "game.resultText");
-		spanRes.textContent = "Result = ";
-		spanScore.textContent = `${this.finalScore[0]} : ${this.finalScore[1]} `;
-
 		if (this.adversary && this.finalScore[0] < this.finalScore[1]) {
-			spanWinLose.setAttribute("data-ts", "game.loseMessage");
-			spanWinLose.textContent = "You lose against ";
+			divWinLose.setAttribute("data-ts", "game.loseMessage");
+			divWinLose.textContent = "You lose !";
+			divWinLose.classList.add("lose-message");
 		} else if (this.adversary && this.finalScore[0] > this.finalScore[1]) {
-			spanWinLose.setAttribute("data-ts", "game.winMessage");
-			spanWinLose.textContent = "You win against ";
+			divWinLose.setAttribute("data-ts", "game.winMessage");
+			divWinLose.textContent = "You win !";
+			divWinLose.classList.add("win-message");
 		}
 
 		if (this.adversary && this.finalScore[0] !== this.finalScore[1]) {
-			spanAdversary.textContent = `${this.adversary?.username}`;
+			spanRes.setAttribute("data-ts", "game.resultText");
+			spanRes.textContent = "You ";
+		}
+		spanScore.textContent = `${this.finalScore[0]} : ${this.finalScore[1]}`;
+		if (this.adversary && this.finalScore[0] !== this.finalScore[1]) {
+			spanAdversary.textContent = ` ${this.adversary?.username}`;
 		}
 
-		wrapper.append(spanRes, spanScore, spanWinLose, spanAdversary);
+		wrapper.classList.add("end-game-panel");
+		divResScore.append(spanRes, spanScore, spanAdversary);
+		wrapper.append(divWinLose, divResScore);
 		panel.appendChild(wrapper);
 		translateService.updateLanguage(undefined, panel);
 		panel.classList.remove("hidden");

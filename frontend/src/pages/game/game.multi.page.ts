@@ -2,7 +2,7 @@ import { BasePage } from '../base/base.page';
 import { RouteConfig } from '../../types/routes.types';
 import { MatchMakingReq } from '../../shared/types/websocket.types';
 import { MultiPlayerGame } from '../../components/game/BaseGame.component';
-import { webSocketService } from '../../services/user/user.service';
+import { webSocketService, translateService } from '../../services/index.service';
 import { GamePage } from './game.page';
 
 export class GameMenuMulti extends GamePage {
@@ -22,6 +22,7 @@ export class GameMenuMulti extends GamePage {
 			const pongSection = document.getElementById("pong-section")!;
 			pongSection.innerHTML = "";
 			pongSection.append(lobby);
+			translateService.updateLanguage(undefined, pongSection);
 		}
 	}
 

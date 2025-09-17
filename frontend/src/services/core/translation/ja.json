@@ -176,9 +176,9 @@
 		"ready": "READY ? SPACE を押して始めよう",
 		"lobbyWaiting": "他のプレイヤーと接続中...",
 		"timerText": "ゲーム中 ",
-		"resultText": "結果 = ",
-		"loseMessage": "負けました。",
-		"winMessage": "勝ちました。",
+		"resultText": "あなた ",
+		"loseMessage": "失敗！",
+		"winMessage": "勝利！",
 		"finalScore": "最終スコア:"
 	},
 

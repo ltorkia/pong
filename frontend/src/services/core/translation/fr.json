@@ -175,11 +175,11 @@
 		"controlLabel": "COMMANDES",
 		"networkError": "Erreur réseau. Veuillez réessayer plus tard.",
 		"ready": "PRÊT ? APPUYEZ SUR ESPACE POUR COMMENCER",
-		"lobbyWaiting": "En attente de la connexion des autres joueurs...",
+		"lobbyWaiting": "En attente d'un autre joueur...",
 		"timerText": "Jeu dans ... ",
-		"resultText": "Résultat = ",
-		"loseMessage": "Echec contre ",
-		"winMessage": "Victoire contre ",
+		"resultText": "Vous ",
+		"loseMessage": "Echec !",
+		"winMessage": "Victoire !",
 		"finalScore": "Score final : "
 	},
 

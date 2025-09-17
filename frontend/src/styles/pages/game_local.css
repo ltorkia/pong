@@ -19,4 +19,9 @@
 	.canvas-container {
 		@apply h-full w-full
 	}
+
+	.end-game-panel {
+		@apply w-52 h-full flex flex-col items-center justify-center p-5
+		backdrop-blur-sm bg-black/10 border border-black/20 rounded-2xl shadow-lg
+	}
 }
