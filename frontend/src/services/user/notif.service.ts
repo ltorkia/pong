@@ -243,6 +243,7 @@ export class NotifService {
 		if (this.needButtons()) {
 			this.notifItem.innerHTML += this.createNotifButtonsHTML();
 		}
+		translateService.updateLanguage(undefined, this.notifItem);
 		this.notifItem.classList.add('animate-fade-in-up');
 		this.navbarInstance!.notifsWindow.prepend(this.notifItem);
 		this.notifItem = getHTMLElementById(`notif-${this.currentNotif!.id}`, this.navbarInstance!.notifsWindow) as HTMLDivElement;
@@ -374,6 +375,8 @@ export class NotifService {
 		notifItem.setAttribute('data-ts', 'notif.noNew');
 		notifItem.textContent = 'No new notifications.';
 		this.navbarInstance!.notifsWindow.prepend(notifItem);
+		const newDefaultItem = this.navbarInstance!.notifsWindow.querySelector('.default-notif');
+		translateService.updateLanguage(undefined, newDefaultItem!);
 	}
 
 	/**
