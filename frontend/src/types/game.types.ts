@@ -12,9 +12,9 @@ export class Tournament implements TournamentInterface {
     stageTwoGames?: GameInterface[] | undefined;
     players?: Player[]
 
-    constructor(name: string, maxPlayers: number, ID: number, masterPlayerID?: number, 
-        stageOneGames?: Game[], stageTwoGames?: Game[], 
-            isStarted?: boolean, players?: Player[]) {
+    constructor(name: string, maxPlayers: number, ID: number, masterPlayerID?: number,
+        stageOneGames?: Game[], stageTwoGames?: Game[],
+        isStarted?: boolean, players?: Player[]) {
         this.name = name;
         this.maxPlayers = maxPlayers;
         this.ID = ID;
@@ -25,6 +25,17 @@ export class Tournament implements TournamentInterface {
         this.players = players
     }
 }
+
+export class TournamentLocal implements TournamentInterface {
+    maxPlayers: number;
+    players: Player[];
+
+    constructor(maxPlayers: number, players: Player[]) {
+        this.maxPlayers = maxPlayers;
+        this.players = players;
+    }
+}
+
 
 export class Game implements GameInterface {
     duration?: number;

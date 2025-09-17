@@ -1,9 +1,10 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
-import { TournamentSchema, TournamentReqSchema, TournamentPlayerReadySchema, StartTournamentSchema, DismantleTournamentSchema } from '../types/zod/game.zod';
+import { TournamentSchema, TournamentReqSchema, TournamentPlayerReadySchema, StartTournamentSchema, DismantleTournamentSchema, TournamentLocalSchema } from '../types/zod/game.zod';
 import { Player } from '../shared/types/game.types';
-import { Tournament } from '../types/game.types';
+import { Tournament, TournamentLocal } from '../types/game.types';
 import { TournamentLobbyUpdate, StartTournamentSignal, DismantleSignal } from '../shared/types/websocket.types'
 import { UserWS } from '../types/user.types';
+import { generateUniqueID } from '../shared/functions'
 import { findPlayerWebSocket } from '../helpers/query.helpers';
 import { addGame } from '../db/game';
 
@@ -58,6 +59,36 @@ export async function tournamentRoutes(app: FastifyInstance) {
         reply.code(200).send();
     });
 
+    app.post("/new_tournament_local", async (request: FastifyRequest, reply: FastifyReply) => {
+        const tournamentParse = TournamentLocalSchema.safeParse(request.body);
+
+        const allPlayers = app.lobby.allPlayers;
+        const allTournamentsLocal = app.lobby.allTournamentsLocal;
+        
+        console.log(request.body);
+        // Validation de donnees
+        if (!tournamentParse.success){
+            console.log(tournamentParse.error.errors[0].message);
+            return reply.code(400).send({ error: tournamentParse.error.errors[0].message });
+        }
+        
+        const players: Player[] = [];
+
+        for (const player of tournamentParse.data.players) {
+            if (player.ID == -1)
+                players.push(new Player(generateUniqueID(allPlayers)));
+            else
+                players.push(new Player(player.ID));
+        }
+        const newTournament: TournamentLocal = new TournamentLocal(
+            players,
+            tournamentParse.data.maxPlayers,
+            generateUniqueID(allTournamentsLocal),
+        );
+        app.lobby.allTournamentsLocal.push(newTournament);
+        reply.code(200).send(newTournament.ID);
+    });
+
     // Un player demande a join un tournoi
     app.post("/join_tournament", async (request: FastifyRequest, reply: FastifyReply) => {
         const joinTournamentReq = TournamentReqSchema.safeParse(request.body);
@@ -76,7 +107,7 @@ export async function tournamentRoutes(app: FastifyInstance) {
         console.log("allll tournaments in tournament : ", allTournaments);
         console.log("player ID in tournament : ", joinTournamentReq.data.playerID);
         const player = new Player(joinTournamentReq.data.playerID);
-        
+
         // Ce joueur existe deja dans ce tournoi ?
         if (tournament.players.find((p: Player) => p.ID == joinTournamentReq.data.playerID))
             return reply.code(404).send({ error: "Player already registered" });
@@ -156,9 +187,9 @@ export async function tournamentRoutes(app: FastifyInstance) {
         const player = tournament.players.find((p: Player) => p.ID == readyReq.data.playerID);
         if (!player)
             return reply.code(404).send({ error: "Player not found in tournament" });
- 
+
         player.ready = readyReq.data.ready;
-        
+
         // Update pour tous les joueurs participants au tournoi
         const playerData: TournamentLobbyUpdate = {
             type: "tournament_lobby_update",
@@ -203,7 +234,7 @@ export async function tournamentRoutes(app: FastifyInstance) {
             if (!player.ready)
                 return reply.code(412).send({ error: "Not all players are ready!" });
         }
-        
+
         tournament.isStarted = true;
         // db -> creation du tournoi 
         tournament.startTournament();
@@ -238,7 +269,7 @@ export async function tournamentRoutes(app: FastifyInstance) {
         //     return reply.code(404).send({ error: "Player not found" });
 
         // if (player.ID != tournament.masterPlayerID) {
-        
+
         // Ce joueur est-il le createur du tournoi ? 
         if (dismantleTournamentReq.data.playerID != tournament.masterPlayerID) {
             return reply.code(403).send({ error: "Can't dismantle tournament if not owner" });

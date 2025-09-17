@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 export const PlayerSchema = z.object({
     ID: z.number().max(Number.MAX_SAFE_INTEGER),
-    webSocket: z.undefined(),
+    webSocket: z.undefined().optional(),
     inGame: z.boolean(),
     ready: z.boolean(),
     pos: z.number(),
@@ -13,12 +13,25 @@ export const PlayerSchema = z.object({
     alias: z.string(),
 });
 
+export const PlayerLocalSchema = z.object({
+    id: z.number(),
+    alias: z.string(),
+});
+
 export const TournamentSchema = z.object({
     name: z.string().min(1).max(16),
     ID: z.number().max(Number.MAX_SAFE_INTEGER),
     isStarted: z.boolean(),
     masterPlayerID: z.number(),
     // player: z.array(PlayerSchema),
+    maxPlayers: z.number().min(4).max(4),
+});
+
+export const TournamentLocalSchema = z.object({
+    players: z.array(z.object({
+        ID: z.number(),
+        alias: z.string(), 
+    })),
     maxPlayers: z.number().min(4).max(4),
 });
 
@@ -52,4 +65,4 @@ export const MatchMakingReqSchema = z.object({
     type: z.enum(["matchmaking_request", "no_matchmaking_request", "local", "tournament"]),
     playerID: z.number(),
 });
- 
+

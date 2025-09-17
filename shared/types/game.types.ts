@@ -39,13 +39,14 @@ export class Player {
             this.pos.y -= 0.02;
     }
 
-    constructor(ID: number) {
+    constructor(ID: number, alias?: string) {
         this.ID = ID;
         this.inGame = false;
         this.ready = false;
         this.matchMaking = false;
         this.width = 0.02;
         this.height = 0.40;
+        this.alias = alias || undefined;
     }
 }
 
@@ -85,4 +86,10 @@ export interface TournamentInterface {
     isStarted?: boolean;
     players?: Player[];
     games?: GameInterface[];
+}
+
+export interface TournamentLocalInterface {
+    maxPlayers: number;
+    ID: number;
+    players: Player[];
 }

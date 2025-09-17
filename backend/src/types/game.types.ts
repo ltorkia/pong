@@ -254,6 +254,41 @@ export class Game {
     public setGameStarted(started: boolean) { this.gameStarted = started };
 };
 
+export class TournamentLocal {
+    public players: Player[] = [];
+    public maxPlayers: number;
+    public ID?: number;
+    protected IDforDB?: number;
+    public stageOne: Game[] = [];
+    public stageTwo: Game | undefined;
+
+    constructor(players: Player[], maxPlayers: number, ID?: number) {
+        this.players = players;
+        this.maxPlayers = maxPlayers;
+        this.ID = ID ?? 0;
+    }
+
+    public async startTournament(): Promise<void> {
+        console.log("iciiii starttournament baaaackkkk /////")
+        this.IDforDB = await createTournament(this.maxPlayers, this.maxPlayers/2);
+        if (this.IDforDB === undefined)
+            return; //TODO : put some error
+        console.log("game at start tournament is ?", this.stageOne);
+
+        for (const player of this.players)
+        {
+            await registerUserTournament(player.ID, this.IDforDB);
+        }
+        
+        // this.players est melange pour avoir des matchs aleatoire
+        shuffleArray(this.players);
+        let playerIdx = 0;
+        this.stageOne[0] = new Game(2, [this.players[0], this.players[1]]);
+        this.stageOne[1] = new Game(2, [this.players[2], this.players[3]]);
+    }
+}
+
+
 export class Tournament {
     public name: string;
     public alias?: string;
@@ -316,4 +351,5 @@ export class Lobby {
     public allPlayers: Player[] = [];
     public allGames: Game[] = [];
     public allTournaments: Tournament[] = [];
+    public allTournamentsLocal: TournamentLocal[] = [];
 }

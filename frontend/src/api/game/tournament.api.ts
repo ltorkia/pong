@@ -1,8 +1,8 @@
 // import { Tournament } from "../../shared/types/game.types";
-import { showAlert } from  '../../utils/dom.utils';
+import { showAlert } from '../../utils/dom.utils';
 import { UserModel } from '../../shared/types/user.types';
 import { TournamentLobbyUpdate, PlayerReadyUpdate, DismantleTournament, StartTournament } from "../../shared/types/websocket.types";
-import { Tournament } from "../../types/game.types";
+import { Tournament, TournamentLocal } from "../../types/game.types";
 
 export class TournamentAPI {
 
@@ -125,6 +125,21 @@ export class TournamentAPI {
         }
     }
 
+    public async postNewLocalTournament(newTournament: TournamentLocal): Promise<void> {
+        const res: Response = await fetch('/api/game/new_tournament_local', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(newTournament),
+            credentials: 'include',
+        });
+        if (!res.ok) {
+            const error = await res.json();
+            throw new Error(error.error);
+        }
+        const tournamentID = await res.json();
+        return tournamentID;
+    }
+
     public async fetchTournament(tournamentID: number): Promise<Tournament | undefined> {
         const res = await fetch(`/api/game/tournaments/:${tournamentID}`);
         if (res.ok) {
@@ -151,7 +166,7 @@ export class TournamentAPI {
             const user: UserModel = await res.json();
             return user;
         }
-            console.error("User fetch failed");
-            return undefined;
+        console.error("User fetch failed");
+        return undefined;
     }
 }

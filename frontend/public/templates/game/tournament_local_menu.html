@@ -4,7 +4,7 @@
 <div id="register-container" class="size-full h-96 flex relative justify-evenly items-center">
     <div id="alias-container" class="relative h-full flex flex-col justify-center items-center">
         <div id="input-box"
-            class="h-full w-80 m-2 relative flex flex-col justify-center items-center bg-black bg-opacity-70 shadow-lg shadow-black ring-1 ring-black inset-shadow-lg inset-shadow-white-500 border-white rounded-md transition-all delay-50 duration-500 ease-in-out active:duration-75 hover:-translate-y-1 hover:bg-white hover:opacity-90 hover:text-black inline-block will-change-transform">
+            class="h-full w-full m-2 relative flex flex-col justify-center items-center bg-black bg-opacity-70 shadow-lg shadow-black ring-1 ring-black inset-shadow-lg inset-shadow-white-500 border-white rounded-md transition-all delay-50 duration-500 ease-in-out active:duration-75 hover:-translate-y-1 hover:bg-white hover:opacity-90 hover:text-black inline-block will-change-transform">
             <div id="alias-box" class="flex flex-col items-center">
                 <h3 id="alias-title " class="font-title text-center m-3">Your Alias ? :</h3>
                 <input id="alias-name-input" type="text"
@@ -12,11 +12,11 @@
             </div>
         </div>
         <div id="input-box"
-            class="h-full w-80 m-2 relative font-title flex flex-col justify-center items-center bg-black bg-opacity-70 shadow-lg shadow-black ring-1 ring-black inset-shadow-lg inset-shadow-white-500 border-white rounded-md transition-all delay-50 duration-500 ease-in-out active:duration-75 hover:-translate-y-1 hover:bg-white hover:opacity-90 hover:text-black inline-block will-change-transform">
+            class="h-full w-full m-2 relative font-title flex flex-col justify-center items-center bg-black bg-opacity-70 shadow-lg shadow-black ring-1 ring-black inset-shadow-lg inset-shadow-white-500 border-white rounded-md transition-all delay-50 duration-500 ease-in-out active:duration-75 hover:-translate-y-1 hover:bg-white hover:opacity-90 hover:text-black inline-block will-change-transform">
             <h2 class="m-2">Already registered ?</h2>
             <div id="register-box" class="flex">
                 <div id="username-box" class="flex flex-col items-center">
-                    <h3 id="username-title" class="font-title text-sm text-center m-1">Username :</h3>
+                    <h3 id="username-title" class="font-title text-sm text-center m-1">E-mail :</h3>
                     <input id="username-input" type="text"
                         class="w-32 m-2 p-1 font-home bg-white bg-opacity-20 rounded-md shadow-white bg-opacity-10 text-white focus:outline-none"></input>
                 </div>
@@ -26,26 +26,14 @@
                         class="w-32 m-2 p-1 font-home bg-white bg-opacity-20 rounded-md shadow-white bg-opacity-10 text-white focus:outline-none"></input>
                 </div>
             </div>
-            <button class="p-2 m-1 transition-all rounded-lg shadow-black delay-50 duration-300 ease-in-out active:duration-75 hover:-translate-y-0.5 hover:bg-green-500 hover:scale-110 hover:shadow-black hover:shadow-md active:scale-105 active:translate-y-0.5">ADD PLAYER</button>
+            <button id="add-player-btn" class="p-2 m-1 transition-all rounded-lg shadow-black delay-50 duration-300 ease-in-out active:duration-75 hover:-translate-y-0.5 hover:bg-green-500 hover:scale-110 hover:shadow-black hover:shadow-md active:scale-105 active:translate-y-0.5">ADD PLAYER</button>
         </div>
+        <button id="tournament-start-btn"
+            class="w-full m-2 p-2 relative rounded-md border-black border-2 border-transparent bg-black bg-opacity-70 text-white text-lg transform transition-all delay-50 duration-300 ease-in-out active:duration-75 hover:-translate-y-1 hover:bg-white hover:opacity-90 hover:text-black hover:scale-110 active:scale-105 active:translate-y-0.5 inline-block will-change-transform">Start Tournament!
+        </button>
     </div>
     <div id="pastilles-holder"
         class="gap-1 p-2 bg-black bg-opacity-30 shadow-lg shadow-black ring-1 ring-black <!-- inset-shadow-lg inset-shadow-white-500 --> border-white rounded-md h-full w-2/3 overflow-hidden scroll-smooth">
     </div>
-    <!-- <i id="refresh-btn" -->
-        <!-- class="fa-solid fa-arrows-rotate absolute -bottom-20 right-7 m-5 p-2 bg-transparent rounded-md text-white border-2 transition-all delay-50 duration-300 ease-in-out hover:-translate-y-1 hover:bg-white hover:text-black hover:scale-110 active:scale-105 active:translate-y-0.5"></i> -->
 </div>
-<!-- <div id="cancel-dialog-overlay"
-    class="hidden fixed inset-0 flex items-center justify-center opacity-0 bg-black bg-opacity-50 z-50 transition-opacity duration-300">
-    <div id="cancel-dialog"
-        class="flex justify-center items-center bg-black p-6 rounded-lg shadow-md shadow-black w-full max-w-md">
-        <h2 class="text-xl font-title ">Sure you want to cancel tournament?</h2>
-        <button id="no-btn"
-            class="rounded-md border-black border-2 border-transparent m-1 p-2 transform transition-all delay-50 duration-300 ease-in-out active:duration-75 hover:-translate-y-1 hover:bg-green-500 hover:opacity-90 hover:text-black hover:scale-110 active:scale-105 active:translate-y-0.5 inline-block will-change-transform">
-            It's a mistake!</button>
-        <button id="yes-btn"
-            class="rounded-md border-black border-2 border-transparent m-1 p-2 transform transition-all delay-50 duration-300 ease-in-out active:duration-75 hover:-translate-y-1 hover:bg-red-500 hover:opacity-90 hover:text-black hover:scale-110 active:scale-105 active:translate-y-0.5 inline-block will-change-transform">
-            Yes please.</button>
-    </div>
-</div> -->
 <div id="infos-game"></div>
