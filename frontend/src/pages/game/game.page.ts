@@ -106,27 +106,15 @@ export class GamePage extends BasePage {
 		this.game = new MultiPlayerGame(2, playerID, gameID);
 		await this.game.initGame();
 	}
-// app.get('/:id/games', async(request: FastifyRequest, reply: FastifyReply) => {
-// 		const { id } = request.params as { id: number };
-// 		if (isNaN(id))
-// 			return reply.status(403).send({ errorMessage: 'Forbidden' });
-// 		const games = await getUserGames(id);
-// 		if (!games)
-// 			return reply.code(404).send({ errorMessage: 'User not found'});
-// 		return games;
-// 	})
-	// protected async showEndGamePanel(userID: number, gameID: number): promise<game>{
-	//     const panel = document.getElementById("pong-section")!;
-	//     // const panel = document.getElementById("endgame-panel")!;
-	//     panel.classList.remove("hidden");
-	//     panel.innerText = `Result = ${this.finalScore[0]} : ${this.finalScore[1]}`;
-	//        const res = await fetch(`/api/user/${userID}/games`, {
-	//         method: 'GET',
-	//         headers: { 'Content-Type': 'application/json' },
-	//         credentials: 'include',
-	//     });     
-	// }
-
+	// app.get('/:id/games', async(request: FastifyRequest, reply: FastifyReply) => {
+	// 		const { id } = request.params as { id: number };
+	// 		if (isNaN(id))
+	// 			return reply.status(403).send({ errorMessage: 'Forbidden' });
+	// 		const games = await getUserGames(id);
+	// 		if (!games)
+	// 			return reply.code(404).send({ errorMessage: 'User not found'});
+	// 		return games;
+	// 	})
 
 	// Les span avec attribut "data-ts" sont automatiquement traduits par le service de traduction
 	// ! Si modif du texte, penser à mettre à jour les fichiers de traduction (frontend/src/services/core/translation/*.json)
