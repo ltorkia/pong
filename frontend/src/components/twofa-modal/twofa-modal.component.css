@@ -1,6 +1,6 @@
 @layer components {
 	#twofa-form .form-btn {
-		@apply min-w-36 mt-0;
+		@apply min-w-[10rem] mt-0;
 	}
 	#twofa-back-btn {
 		@apply mt-0;

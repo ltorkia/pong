@@ -12,14 +12,16 @@
 	}
 	.field-box {
 		@apply flex flex-col justify-center
-		
-		mobile:flex-row mobile:items-center mobile:space-x-2;
+	}
+	#login-form .field-box {
+		@apply mobile:flex-row mobile:items-center mobile:space-x-2;
 	}
 	.field-box label {
 		@apply w-full font-classic text-xs
-		
-		mobile:w-28 mobile:text-right;
 	}	
+	#login-form .field-box label {
+		@apply mobile:w-28 mobile:text-right;
+	}
 	.field-box input, .field-box select, #search-bar input {
 		@apply border border-gray-300 rounded px-3 py-1 focus:outline-none focus:ring focus:ring-blue-300
 		text-black font-classic text-sm w-full;

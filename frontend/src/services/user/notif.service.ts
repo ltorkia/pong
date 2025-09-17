@@ -582,7 +582,7 @@ export class NotifService {
 	}
 
 	public handleChallengeClick = async (event: Event): Promise<void> => {
-  		const target = event.currentTarget as HTMLElement;
+		const target = event.currentTarget as HTMLElement;
 		this.setFriendId(target);
 		const type: NotificationType = FRIEND_REQUEST_ACTIONS.INVITE;
 		const res = await friendApi.updateFriend(this.friendId!, type);

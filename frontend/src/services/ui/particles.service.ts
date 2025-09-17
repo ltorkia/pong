@@ -90,6 +90,12 @@ export class ParticlesService {
 						opacity: 0
 					},
 					particles: {
+						life: {
+							count: 0,
+							duration: {
+								value: 0
+							}
+						},
 						number: { 
 							value: 80,
 							density: {
@@ -136,7 +142,7 @@ export class ParticlesService {
 							random: true,
 							straight: false,
 							outModes: {
-								default: "bounce"
+								default: "out"
 							},
 						},
 						twinkle: {

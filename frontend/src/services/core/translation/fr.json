@@ -25,7 +25,7 @@
 	},
 
 	"twofa": {
-		"pageTitle": "Authentification à deux étapes",
+		"pageTitle": "Authentification en deux étapes",
 		"underTitle": "Sécurisez votre compte avec une couche de protection supplémentaire",
 		"codeLabel": "Code reçu :",
 		"codeInput": "Insérez votre code secret ici",
