@@ -163,7 +163,7 @@ export class GamePage extends BasePage {
 
 	protected showTimer(time: number): void {
 		const panel = document.getElementById("pong-section")!;
-		panel.innerHTML = ""; // ⚡ vide le contenu précédent
+		panel.innerHTML = "";
 
 		const spanTimerText = document.createElement("span");
 		const spanTime = document.createElement("span");
