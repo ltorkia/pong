@@ -161,8 +161,10 @@ export class GamePage extends BasePage {
 		panel.classList.remove("hidden");
 	}
 
-	protected showTimer(time : number): void {
+	protected showTimer(time: number): void {
 		const panel = document.getElementById("pong-section")!;
+		panel.innerHTML = ""; // ⚡ vide le contenu précédent
+
 		const spanTimerText = document.createElement("span");
 		const spanTime = document.createElement("span");
 
