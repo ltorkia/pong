@@ -149,7 +149,7 @@ export class PaginationComponent extends BaseComponent {
 		const str = '<span data-ts="pagination.usersLabel">user(s)</span>';
 		if (this.paginationInfos.totalPages > 0)
 			return `<span data-ts="pagination.page">Page</span> ${this.paginationInfos.currentPage} / ${this.paginationInfos.totalPages} - ${this.paginationInfos.totalUsers} ${str}`;
-		return `No <span data-ts="pagination.userLabel">user</span> found.`;
+		return `<span data-ts="pagination.noUser">No user found.</span>`;
 	}
 
 	/**

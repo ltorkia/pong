@@ -44,7 +44,7 @@
 		"localGameBtn": "partie 1v1 locale",
 		"distantGameBtn": "partie 1v1 en ligne",
 		"localTournamentBtn": "Tournoi local",
-		"onlineTournamentBtn": "Tournoi en ligne"
+		"onlineTournamentBtn": "Tournois en ligne"
 
 	},
 
@@ -142,7 +142,8 @@
 		"prev": "‹ Précédent",
 		"next": "Suivant ›",
 		"usersLabel": "utilisateur(s)",
-		"userLabel": "utilisateur"
+		"userLabel": "utilisateur",
+		"noUser": "Aucun utilisateur trouvé."
 	},
 
 	"notif": {
@@ -175,10 +176,30 @@
 		"networkError": "Erreur réseau. Veuillez réessayer plus tard.",
 		"ready": "PRÊT ? APPUYEZ SUR ESPACE POUR COMMENCER",
 		"lobbyWaiting": "En attente de la connexion des autres joueurs...",
-		"timerText": "Jouons dans ... ",
+		"timerText": "Jeu dans ... ",
 		"resultText": "Résultat = ",
-		"loseMessage": "Vous avez perdu contre ",
-		"winMessage": "Vous avez gagné contre ",
+		"loseMessage": "Echec contre ",
+		"winMessage": "Victoire contre ",
 		"finalScore": "Score final : "
+	},
+
+	"tournament": {
+		"tournamentLabel": "Tournoi",
+		"participants": "Veuillez entrer un nombre de participants :",
+		"lobbyTitle": "Lobby du tournoi",
+		"aliasLabel": "Votre pseudo ? :",
+		"createNew": "Créer un nouveau tournoi",
+		"name": "Nom :",
+		"startTournament": "Démarrer le tournoi",
+		"cancelTournament": "Annuler le tournoi",
+		"cancelConfirm": "Êtes-vous sûr de vouloir annuler le tournoi ?",
+		"cancelNo": "C'était une erreur !",
+		"cancelYes": "Oui, s'il vous plaît.",
+		"canceled": "Ce tournoi a été annulé par son propriétaire !",
+		"backToLobby": "Retour au lobby du tournoi...",
+		"players": "Joueurs : ",
+		"status": "Statut : ",
+		"start": "DÉMARRER !"
 	}
+
 }

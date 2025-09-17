@@ -141,7 +141,8 @@
 		"prev": "‹ 前へ",
 		"next": "次へ ›",
 		"usersLabel": "プレイヤー",
-		"userLabel": "プレイヤー"
+		"userLabel": "プレイヤー",
+		"noUser": "プレイヤーが見つかりません。"
 	},
 
 	"notif": {
@@ -179,6 +180,25 @@
 		"loseMessage": "負けました。",
 		"winMessage": "勝ちました。",
 		"finalScore": "最終スコア:"
+	},
+
+	"tournament": {
+		"tournamentLabel": "トーナメント",
+		"participants": "参加者の人数を入力してください：",
+		"lobbyTitle": "トーナメントロビー",
+		"aliasLabel": "あなたのエイリアスは？：",
+		"createNew": "新しいトーナメントを作成",
+		"name": "名前：",
+		"startTournament": "トーナメントを開始",
+		"cancelTournament": "トーナメントをキャンセル",
+		"cancelConfirm": "本当にトーナメントをキャンセルしますか？",
+		"cancelNo": "間違えました！",
+		"cancelYes": "はい、お願いします。",
+		"canceled": "このトーナメントは主催者によってキャンセルされました！",
+		"backToLobby": "トーナメントロビーに戻る...",
+		"players": "プレイヤー：",
+		"status": "ステータス：",
+		"start": "スタート！"
 	}
 
 }

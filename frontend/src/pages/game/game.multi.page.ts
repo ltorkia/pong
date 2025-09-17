@@ -19,7 +19,9 @@ export class GameMenuMulti extends GamePage {
 			lobby.setAttribute("data-ts", "game.lobbyWaiting");
 			lobby.textContent = "Waiting for other players to connect...";
 			lobby.id = "wait-div";
-			document.getElementById("pong-section")?.append(lobby);
+			const pongSection = document.getElementById("pong-section")!;
+			pongSection.innerHTML = "";
+			pongSection.append(lobby);
 		}
 	}
 

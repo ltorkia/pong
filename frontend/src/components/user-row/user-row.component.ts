@@ -6,7 +6,7 @@ import { BaseComponent } from '../base/base.component';
 import { RouteConfig } from '../../types/routes.types';
 import { router } from '../../router/router';
 import { ComponentConfig } from '../../types/components.types';
-import { dataService, notifService, friendService } from '../../services/index.service';
+import { dataService, notifService, friendService, translateService } from '../../services/index.service';
 import { getHTMLElementByClass } from '../../utils/dom.utils';
 import { DB_CONST } from '../../shared/config/constants.config';
 import { User } from '../../shared/models/user.model';
@@ -252,6 +252,7 @@ export class UserRowComponent extends BaseComponent {
 					return;
 				}
 			}
+			translateService.updateLanguage(undefined, this.container);
 		}
 	}
 

@@ -1,6 +1,6 @@
 import { BasePage } from '../base/base.page';
 import { RouteConfig } from '../../types/routes.types';
-import { webSocketService } from '../../services/user/user.service';
+import { webSocketService, translateService } from '../../services/index.service';
 import { MatchMakingReq } from '../../shared/types/websocket.types';
 import { MultiPlayerGame } from '../../components/game/BaseGame.component';
 import { Player } from '../../../../shared/types/game.types';
@@ -146,6 +146,7 @@ export class GamePage extends BasePage {
 
 		wrapper.append(spanRes, spanScore, spanWinLose, spanAdversary);
 		panel.appendChild(wrapper);
+		translateService.updateLanguage(undefined, panel);
 		panel.classList.remove("hidden");
 	}
 
@@ -163,6 +164,7 @@ export class GamePage extends BasePage {
 
 		wrapper.append(spanTimerText, spanTime);
 		panel.appendChild(wrapper);
+		translateService.updateLanguage(undefined, panel);
 		panel.classList.remove("hidden");
 	}
 

@@ -45,7 +45,7 @@
 		"localGameBtn": "1v1 local game",
 		"distantGameBtn": "1v1 online game",
 		"localTournamentBtn": "Local tournament",
-		"onlineTournamentBtn": "Online tournament"
+		"onlineTournamentBtn": "Online tournaments"
 	},
 
 	"rules": {
@@ -142,7 +142,8 @@
 		"prev": "‹ Prev",
 		"next": "Next ›",
 		"usersLabel": "user(s)",
-		"userLabel": "user"
+		"userLabel": "user",
+		"noUser": "No user found."
 	},
 
 	"notif": {
@@ -180,5 +181,24 @@
 		"loseMessage": "You lose against ",
 		"winMessage": "You win against ",
 		"finalScore": "Final Score : "
+	},
+
+	"tournament": {
+		"tournamentLabel": "Tournament",
+		"participants": "Please enter a number of participants :",
+		"lobbyTitle": "Tournament Lobby",
+		"aliasLabel": "Your Alias ? :",
+		"createNew": "Create new tournament",
+		"name": "Name :",
+		"startTournament": "Start tournament",
+		"cancelTournament": "Cancel tournament",
+		"cancelConfirm": "Sure you want to cancel tournament ?",
+		"cancelNo": "It's a mistake!",
+		"cancelYes": "Yes please.",
+		"canceled": "This tournament has been canceled by its owner!",
+		"backToLobby": "Back to tournament lobby..",
+		"players": "Players : ",
+		"status": "Status : ",
+		"start": "START!"
 	}
 }

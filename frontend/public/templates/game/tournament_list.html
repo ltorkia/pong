@@ -1,20 +1,21 @@
 <!-- <div id="pong-section" class="h-full w-full section-box large-box game-local justify-evenly p-0"> -->
-<h1 class="font-title m-10 font-bold text-5xl text-center text-shadow-5xl text-shadow-black text-white w-full">
-    TOURNAMENTS</h1>
+<h1 data-ts="home.onlineTournamentBtn" class="font-title m-10 font-bold text-5xl text-center text-shadow-5xl text-shadow-black text-white w-full">
+    Online tournaments
+</h1>
 <div id="register-container" class="size-full h-96 flex relative justify-evenly items-center">
     <div id="alias-container" class="relative h-full flex flex-col justify-center items-center">
         <div id="input-box"
             class="h-full w-80 m-2 relative flex flex-col justify-center items-center bg-black bg-opacity-70 shadow-lg shadow-black ring-1 ring-black inset-shadow-lg inset-shadow-white-500 border-white rounded-md transition-all delay-50 duration-500 ease-in-out active:duration-75 hover:-translate-y-1 hover:bg-white hover:opacity-90 hover:text-black inline-block will-change-transform">
             <div id="alias-box" class="flex flex-col items-center">
-                <h3 id="alias-title " class="font-title text-center m-3">Your Alias ? :</h3>
+                <h3 data-ts="tournament.aliasLabel" id="alias-title " class="font-title text-center m-3">Your Alias ? :</h3>
                 <input id="alias-name-input" type="text"
                     class="w-1/2 m-2 p-1 bg-white bg-opacity-20 rounded-md shadow-white bg-opacity-10 text-white focus:outline-none"></input>
             </div>
         </div>
         <div id="input-box"
             class="relative h-full w-80 m-2 flex flex-col justify-center items-center bg-black bg-opacity-70 shadow-lg shadow-black ring-1 ring-black inset-shadow-lg inset-shadow-white-500 border-white rounded-md transition-all delay-50 duration-500 ease-in-out hover:-translate-y-1 hover:bg-white hover:opacity-90 hover:text-black inline-block will-change-transform">
-            <h3 class="font-title text-center m-3">Create new tournament</h3>
-            <h3 class="font-title text-sm">Name :</h3>
+            <h3 data-ts="tournament.createNew" class="font-title text-center m-3">Create new tournament</h3>
+            <h3 data-ts="tournament.name" class="font-title text-sm">Name :</h3>
             <input id="tournament-name-input" type="text"
                 class="w-1/2 m-2 p-1 bg-white bg-opacity-20 rounded-md shadow-white bg-opacity-10 text-white focus:outline-none"></input>
             <div id="tournament-btn-holder" class="h-full w-full flex justify-center items-center">
@@ -36,11 +37,13 @@
     class="hidden fixed inset-0 flex items-center justify-center opacity-0 bg-black bg-opacity-50 z-50 transition-opacity duration-300">
     <div id="cancel-dialog"
         class="flex justify-center items-center bg-black p-6 rounded-lg shadow-md shadow-black w-full max-w-md">
-        <h2 class="text-xl font-title ">Sure you want to cancel tournament?</h2>
+        <h2 data-ts="tournament.cancelConfirm" class="text-xl font-title">Sure you want to cancel tournament?</h2>
         <button id="no-btn"
+        data-ts="tournament.cancelNo"
             class="rounded-md border-black border-2 border-transparent m-1 p-2 transform transition-all delay-50 duration-300 ease-in-out active:duration-75 hover:-translate-y-1 hover:bg-green-500 hover:opacity-90 hover:text-black hover:scale-110 active:scale-105 active:translate-y-0.5 inline-block will-change-transform">
             It's a mistake!</button>
         <button id="yes-btn"
+        data-ts="tournament.cancelYes"
             class="rounded-md border-black border-2 border-transparent m-1 p-2 transform transition-all delay-50 duration-300 ease-in-out active:duration-75 hover:-translate-y-1 hover:bg-red-500 hover:opacity-90 hover:text-black hover:scale-110 active:scale-105 active:translate-y-0.5 inline-block will-change-transform">
             Yes please.</button>
     </div>
