@@ -129,8 +129,9 @@ export class GamePage extends BasePage {
 	// ! Si modif du texte, penser à mettre à jour les fichiers de traduction (frontend/src/services/core/translation/*.json)
 	protected showEndGamePanel(): void {
 		const panel = document.getElementById("pong-section")!;
-		// const panel = document.getElementById("endgame-panel")!;
+		panel.innerHTML = "";
 
+		const wrapper = document.createElement("div");
 		const spanRes = document.createElement("span");
 		const spanScore = document.createElement("span");
 		const spanWinLose = document.createElement("span");
@@ -138,26 +139,25 @@ export class GamePage extends BasePage {
 
 		spanRes.setAttribute("data-ts", "game.resultText");
 		spanRes.textContent = "Result = ";
-		spanScore.textContent = `${this.finalScore[0]} : ${this.finalScore[1]}\n`;
+		spanScore.textContent = `${this.finalScore[0]} : ${this.finalScore[1]} `;
+		
+		console.log("Adversary:", this.adversary);
+		console.log("Final score:", this.finalScore);
 
-		if (this.adversary != undefined && this.finalScore[0] < this.finalScore[1]) {
+		if (this.adversary && this.finalScore[0] < this.finalScore[1]) {
 			spanWinLose.setAttribute("data-ts", "game.loseMessage");
-			spanWinLose.textContent = `You lose against `;
-		}
-		else if (this.adversary != undefined && this.finalScore[0] > this.finalScore[1]) {
+			spanWinLose.textContent = "You lose against ";
+		} else if (this.adversary && this.finalScore[0] > this.finalScore[1]) {
 			spanWinLose.setAttribute("data-ts", "game.winMessage");
-			spanWinLose.textContent = `You win against `;
+			spanWinLose.textContent = "You win against ";
 		}
-		if (this.adversary != undefined 
-			&& (this.finalScore[0] > this.finalScore[1] 
-				|| this.finalScore[0] < this.finalScore[1])) {
+
+		if (this.adversary && this.finalScore[0] !== this.finalScore[1]) {
 			spanAdversary.textContent = `${this.adversary?.username}`;
 		}
 
-		panel.appendChild(spanRes);
-		panel.appendChild(spanScore);
-		panel.appendChild(spanWinLose);
-		panel.appendChild(spanAdversary);
+		wrapper.append(spanRes, spanScore, spanWinLose, spanAdversary);
+		panel.appendChild(wrapper);
 		panel.classList.remove("hidden");
 	}
 
@@ -165,15 +165,16 @@ export class GamePage extends BasePage {
 		const panel = document.getElementById("pong-section")!;
 		panel.innerHTML = "";
 
+		const wrapper = document.createElement("div");
 		const spanTimerText = document.createElement("span");
-		const spanTime = document.createElement("span");
-
 		spanTimerText.setAttribute("data-ts", "game.timerText");
-		spanTimerText.textContent = `Lets play in ... `;
+		spanTimerText.textContent = "Lets play in ... ";
+
+		const spanTime = document.createElement("span");
 		spanTime.textContent = `${time}`;
 
-		panel.appendChild(spanTimerText);
-		panel.appendChild(spanTime);
+		wrapper.append(spanTimerText, spanTime);
+		panel.appendChild(wrapper);
 		panel.classList.remove("hidden");
 	}
 
