@@ -131,9 +131,6 @@ export class GamePage extends BasePage {
 		spanRes.setAttribute("data-ts", "game.resultText");
 		spanRes.textContent = "Result = ";
 		spanScore.textContent = `${this.finalScore[0]} : ${this.finalScore[1]} `;
-		
-		console.log("Adversary:", this.adversary);
-		console.log("Final score:", this.finalScore);
 
 		if (this.adversary && this.finalScore[0] < this.finalScore[1]) {
 			spanWinLose.setAttribute("data-ts", "game.loseMessage");
