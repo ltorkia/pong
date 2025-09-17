@@ -24,6 +24,7 @@ export class Player {
     public webSocket?: WebSocket;
     public inGame: boolean;
     public ready: boolean;
+    public readyforTournament: boolean = false; //ptet a modifier
     public matchMaking: boolean;
     public pos = { x: 0, y: 0 };
     public height: number;
@@ -32,6 +33,10 @@ export class Player {
     public inputDown: boolean = false;
     public alias?: string;
 
+    
+    // public getPlayers(): Player[] {
+    //     return this.players;
+    // }
     move() {
         if (this.inputUp == true && this.pos.y + (this.height / 2) + 0.02 < 1)
             this.pos.y += 0.02;

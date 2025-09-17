@@ -18,19 +18,50 @@ export async function gameRoutes(app: FastifyInstance) {
             return reply.code(400).send({ error: matchMakingReq.error.errors[0].message });
         const { allPlayers } = app.lobby;
         console.log("LOBBY : ",app.lobby);
-        // if (matchMakingReq.data.type === "tournament")
-        // {
-        // const tournament = app.lobby.allTournaments.find((t: Tournament) => t.ID === request.headers['tournamentid'])!;
-        // console.log("LOBBY TOURNOI : ", tournament);
-        // const { players } = tournament.players;
-        // console.log("LOBBY PLAYERS dans tournois: ", players);
-        // // ajouter un const de is ready -> se lance quand les 2 le sont :
-        // const isReady = players.every((p: Player) => p.ready);
-        // if (isReady) {
+
+
+        // TOURNAMENT REQUEST POUR REMOTE
+        // TODO : Kes gens peuvent relancer un game non stop -> creer condition pour l empecher une fois le 1er jeu termine ici ou dans le front
+        // TODO : gerer les cas d abandon de tournoi (maj db + msg a l autre joueur)
+        // TODO : gerer le 2eme round du tournoi
+        if (matchMakingReq.data.type === "tournament")
+        {
+            console.log("TOURNAMENT REQUEST RECEIVED : ", matchMakingReq.data);
+            const tournament = app.lobby.allTournaments.find((t: Tournament) => t.ID === matchMakingReq.data.tournamentID)!;
+            console.log("LOBBY TOURNOI : ", tournament);
+            // const { players } = tournament.players;
+            console.log("LOBBY PLAYERS dans tournois: ", tournament.players);
+            // if(tournament.stageTwoGames[0].players.length === 2) // TODO : lancer la 2eme manche
+            // {
+            //     console.log("DEJA EN STAGE 2, ON LANCE LE JEU DIRECT");
+            //     startGame(app, tournament.stageTwoGames[0].players, "multi", tournament.stageTwoGames[0]);
+            //     return ;
+            // }
+            console.log("LOBBY PLAYERS DANS STAGE 1: ", tournament.stageOneGames[0].players);
+            let playerOne = tournament.stageOneGames[0].players.find((p: Player) => p.ID === matchMakingReq.data.playerID);
+            if (!playerOne)
+            {
+                playerOne = tournament.stageOneGames[1].players.find((p: Player) => p.ID === matchMakingReq.data.playerID);
+                if (!playerOne)
+                return reply.code(404).send({ error: "Player not found in tournament" });
+            }
+            playerOne!.readyforTournament = true;
+            console.log("PLAYER ONE READY : ", playerOne);
+            reply.code(200).send("Successfully added to tournament matchmaking");
+            //vérifier si tous les joueurs sont prêts // a ajuster pour bloquer si 1ere manche deja faite ptet en regardantsi dj resultat dans la db ? 
+            const isReady = tournament.players.every((p: Player) => p.readyforTournament);
+            if (isReady)
+            {
+                startGame(app, tournament.stageOneGames[0].players, "multi", tournament.stageOneGames[0]);
+                startGame(app, tournament.stageOneGames[1].players, "multi", tournament.stageOneGames[1]);
+                for (const player of tournament.players) {
+                    player.readyforTournament = false;
+                }
+            }
         //     // lancer le tournoi
         // // } adapter la suite pour rentrer dans la logique matchmaking multi mais avec dans db tournoi 
 
-        // }
+        }
         if (matchMakingReq.data.type === "matchmaking_request")
         {
             if (!allPlayers.find((p: Player) => p.ID == matchMakingReq.data.playerID))
@@ -57,7 +88,7 @@ export async function gameRoutes(app: FastifyInstance) {
                 startGame(app, [newPlayer, playerTwo], "multi");
             }
         }
-        else if (matchMakingReq.data.type === "local")
+        else if (matchMakingReq.data.type === "local") //jeu en local
         {
             const playerOne = new Player(matchMakingReq.data.playerID);
             const playerID2 = generateUniqueID(allPlayers);
@@ -65,7 +96,7 @@ export async function gameRoutes(app: FastifyInstance) {
             if (playerOne && playerTwo)
                 startGame(app, [playerOne, playerTwo], "local"); //TODO: a securiser avec l id du currentuser
         } 
-        else
+        else //si on quitte la page de matchmaking
         {
             // const { usersWS } = app;
             if (allPlayers.find((p: Player) => p.ID == matchMakingReq.data.playerID))
@@ -73,14 +104,6 @@ export async function gameRoutes(app: FastifyInstance) {
                 const playerIdx1 = allPlayers.findIndex((player: Player) => player.ID == matchMakingReq.data.playerID);
                 allPlayers.splice(playerIdx1, 1);
                 console.log(`DELETED USER ID = ${matchMakingReq.data.playerID}`);
-                // for (const otherplayer of allPlayers) {
-                //     console.log("//////////////////////////////ici");
-                //     const user = usersWS.find((user: UserWS) => user.id == otherplayer.ID);
-                //     if (user && user.WS) {
-                //         user.WS.send(JSON.stringify({type: "has_quit_game", userID: `${matchMakingReq.data.playerID}`}));
-                //     }
-                // }
-                // if game ! finish -> update : interrupted + send msg end to other player
             }
         }
     });
@@ -108,13 +131,14 @@ async function decount(app: FastifyInstance, players: Player[], gameID: number)
     }
 }
 
-const startGame = async (app: FastifyInstance, players: Player[], mode: string) => {
+const startGame = async (app: FastifyInstance, players: Player[], mode: string, gameCreated?: Game) => {
     const { usersWS } = app;
     const { allGames } = app.lobby;
     const gameID = generateUniqueID(allGames);
     const webSockets: WebSocket[] = [];
+    const newGame = gameCreated || new Game(2, players);
 
-    const newGame = new Game(2, players);
+    // const newGame = new Game(2, players);
     let WSToSend = { type: "start_game", gameID: gameID} as StartGame;
     console.log("dans start game : players are", players);
     

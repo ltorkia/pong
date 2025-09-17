@@ -169,20 +169,22 @@ export class GameTournamentList extends BasePage {
 		this.displayTournamentsAndAttachListeners(allTournaments);
 	}
 
-	private async sendTournament(tournamentName: string): Promise<void> {
-		const newTournament: Tournament = {
-			name: tournamentName,
-			maxPlayers: this.playersNb,
-			ID: generateUniqueID(this.allTournaments),
-			masterPlayerID: currentService.getCurrentUser()!.id,
-			isStarted: false,
-		};
-		try {
-			TournamentService.postNewTournament(newTournament);
-		} catch (error: any) {
-			console.error(error.message);
-		}
-	}
+    private async sendTournament(tournamentName: string): Promise<void> {
+        const newTournament: Tournament = {
+            name: tournamentName,
+            maxPlayers: this.playersNb,
+            ID: generateUniqueID(this.allTournaments),
+            masterPlayerID: currentService.getCurrentUser()!.id,
+            isStarted: false,
+        };
+        try {
+            TournamentService.postNewTournament(newTournament);
+        } catch (error: any) {
+            console.error(error.message);
+        }
+    }
+
+    // TODO : listen socket pour maj liste tournois et maj joueurs dans tournoi;
 
 	protected attachListeners(): void {
 		const tournamentBtns = document.querySelectorAll("#btn-counter");

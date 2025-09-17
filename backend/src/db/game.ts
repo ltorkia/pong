@@ -83,7 +83,7 @@ export async function resultGame(gameId: number, winnerId: number, looserId: num
 	// 	[winnerId, gameId, gameId, gameId, winnerId, gameId, gameId, gameId, looserId]
 	// );
     const minScore = Math.min(score[0], score[1]);
-    console.log("resultGame");
+    console.log("resultGame,  score = ", score, " minScore = ", minScore);
 
     await db.run(`
         UPDATE Game

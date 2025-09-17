@@ -44,6 +44,7 @@ export type PlayerReadyUpdate = {
 export type MatchMakingReq = {
     type: "matchmaking_request",
     playerID: number,
+    tournamentID?: number,
 };
 
 export type decountgame = {

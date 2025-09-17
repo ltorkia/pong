@@ -9,8 +9,6 @@ const clamp = (val: number, min: number, max: number) => { return Math.min(Math.
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-
-
 const shuffleArray = (array: any[]) => {
     for (let i = array.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -87,21 +85,25 @@ export class Ball {
 
 export class Game {
     private duration: number = 0;
-    private players: Player[] = [];
+    // private players: Player[] = [];
+    public players: Player[] = []; //TODO : plutot faire un getteur
     private ball = new Ball();
     private playersCount: number = 0;
     private gameStarted: boolean = false;
     private isOver: boolean = false;
     private score: number[] = [];
     public gameIDforDB: number = 0; // a voir
+    public tournamentID?: number; // a voir
+    // protected tournamentIDforDB = null;
     // public type: string;
     // public sidePlayer: string; //dans player plutot
     // private async addGame(userId1: number, userId2: number): Promise<number> ;
     // private async resultGame(gameId: number, winnerId: number, looserId: number);
 
-    constructor(playersCount: number, players: Player[]) {
+    constructor(playersCount: number, players: Player[], tournamentID?: number) {
         this.playersCount = playersCount;
         this.players = players;
+        this.tournamentID = tournamentID;
     }
 
     private async gameLoop(): Promise<void> {
@@ -179,7 +181,7 @@ export class Game {
     }
 
     public async endGame(): Promise<void> {
-        console.log("coucou end !");
+        console.log("coucou end !, score = ", this.score);
         this.gameStarted = false;
         this.isOver = true;
         for (const player of this.players) {
@@ -188,15 +190,17 @@ export class Game {
             if (player.webSocket)
                 player.webSocket.send(JSON.stringify({
                     type: "end",
-                    score: this.score
+                    score: this.score,
+                    // players: JSON.stringify(this.players.map(p => ({ ID: p.ID, alias: p.alias }))),
+                    tournamentID: this.tournamentID || null
                 }));
             // console.log("////////////////////////////////////////////////////////////////////////player = ", player, "score = ", this.score);
         }
         let winner = this.players[1];
         let looser = this.players[0];
-        if ((this.score[0] = 3) | (this.score[1] = 3))
+        if ((this.score[0] === 3) || (this.score[1] === 3))
         {
-            console.log("iiiiiiiiiiiiiiiiiiciiiii dans condition endgsameeee ")
+            console.log("iiiiiiiiiiiiiiiiiiciiiii dans condition endgsameeee,  score = ", this.score)
             winner = this.players[0];
             looser = this.players[1];
             // if multiplayer si on veut garder que en db le multiplayer
@@ -276,6 +280,18 @@ export class Tournament {
         this.isStarted = isStarted ?? true;
     }
 
+    // Les joueurs sont rajoutes post creation d'une instance de classe, via requete HTTP (/join_tournament)
+    // Seulement 4 joueurs max dont uniquement deux etapes de tournoi : stage 1 et stage 2
+    // this.players est melange et l'ordre du tableau donne les differents matchs
+    // Match 1 : players[0] && players[1] | Match 2 : players[2] && players[3]
+    // Dans l'ideal les games du tournoi sont des Game remote classiques pour ne pas avoir a adapter grand chose
+    // TODO : actualiser le tournoi quand une game est finie pour pouvoir continuer
+    // exemple de logique :
+    // game 1 finie -> front fait une requete au back -> le back recherche le tournoi -> la game fait elle partie dun tournoi ? oui -> met a jour le tournoi
+    // le winner de stage one game 1 devient player[0] de stageTwoGame (c'est un tableau actuellement mais en vrai c'est qu'un seul match)
+    // le winner de stage one game 2 devient player[1] de stageTwoGame
+    // c'etait ce sur quoi je travaillais en dernier donc la logique est pas finie ni en front ni en back
+
     public async startTournament(): Promise<void> {
         console.log("iciiii starttournament baaaackkkk /////")
         this.IDforDB = await createTournament(this.maxPlayers, this.maxPlayers/2);
@@ -283,15 +299,19 @@ export class Tournament {
             return; //TODO : put some error
         console.log("game at start tournament is ?", this.stageOneGames);
 
-        for (const player of this.players) 
+        for (const player of this.players)
         {
             await registerUserTournament(player.ID, this.IDforDB);
         }
         
+        // this.players est melange pour avoir des matchs aleatoire
         shuffleArray(this.players);
         let playerIdx = 0;
         for (let i = 0; i < 2; i++) {
-            const newGame = new Game(2, [this.players[playerIdx], this.players[playerIdx + 1]]); // a changer sa mere
+            // tu peux la changer sa mere si tu veux par game1 = new Game(2, this.players[0], this.players[1]);
+            // game2 = newGame(2, this.players[2], this.players[3])
+            // mais en soit ca marche deja
+            const newGame = new Game(2, [this.players[playerIdx], this.players[playerIdx + 1]], this.ID); // a changer sa mere
             this.stageOneGames.push(newGame);
             playerIdx += 2;
         }
