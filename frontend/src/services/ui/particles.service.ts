@@ -136,7 +136,7 @@ export class ParticlesService {
 							random: true,
 							straight: false,
 							outModes: {
-								default: "out"
+								default: "bounce"
 							},
 						},
 						twinkle: {

@@ -363,7 +363,7 @@ export class NotifService {
 	 * et l'ajoute à la fenêtre de notifications.
 	 *
 	 * Cette méthode crée un élément HTML avec la classe 'default-notif' et le texte
-	 * "No notification yet", puis l'ajoute à la fenêtre de notifications.
+	 * "No new notifications.", puis l'ajoute à la fenêtre de notifications.
 	 */
 	private displayDefaultNotif() {
 		const displayedNotifsLength = this.getDisplayedNotifsCount();
