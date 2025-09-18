@@ -33,6 +33,7 @@ export class Player {
     public inputDown: boolean = false;
     public waitingInvite: boolean = false;
     public inviterId: number = 0;
+    public invitedId: number = 0;
     public alias?: string;
 
     
@@ -53,6 +54,7 @@ export class Player {
         this.matchMaking = false;
         this.waitingInvite = false;
         this.inviterId = 0;
+        this.invitedId = 0;
         this.width = 0.02;
         this.height = 0.40;
     }

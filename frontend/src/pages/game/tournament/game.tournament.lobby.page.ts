@@ -121,8 +121,8 @@ export class GameTournamentLobby extends BasePage {
 
         animateCSS(redirectDialogOverlay, "fadeIn");
         redirectDialogOverlay.classList.remove("hidden", "opacity-0");
-        document.getElementById("redirect-btn")?.addEventListener("click", () => {
-            router.navigate("/game/tournaments");
+        document.getElementById("redirect-btn")?.addEventListener("click", async () => {
+            await router.navigate("/game/tournaments");
         })
     }
 
@@ -324,7 +324,7 @@ export class GameTournamentLobby extends BasePage {
             this.handleRedirectModal();
         } else if (data.type == "start_tournament_signal")
         {
-            router.navigate(`/game/tournaments/:${this.tournamentID}/overview`)
+            await router.navigate(`/game/tournaments/:${this.tournamentID}/overview`)
             // fetch appel a la db pour stocker le tournoi avec les joueurs ?
             // + choper ce qu il y a en lobby ? 
         }

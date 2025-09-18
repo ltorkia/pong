@@ -95,6 +95,16 @@ export async function getUserStatus(id: number) {
 	return snakeToCamel(user) as SafeUserBasic;
 }
 
+export async function setInvitedPlayer(userId: number, playerId?: number): Promise<void> {
+	const db = await getDb();
+	const id = playerId ?? 0;
+	await db.run(`
+		UPDATE User
+		SET invited_player_id = ?
+		WHERE id = ?
+	`, [id, userId]);
+}
+
 /* -------------------------------------------------------------------------- */
 /*      REQUÊTES USER POUR SETTINGS AUTHENTIFICATION CÔTE BACK UNIQUEMENT     */
 /* -------------------------------------------------------------------------- */

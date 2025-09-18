@@ -41,7 +41,8 @@ export class User {
 		public registerFrom: RegisterMethod,
 		public active2Fa: TwoFaMethod,
 		public notifications: AppNotification[],
-		public friendStatus: FriendStatus | ''
+		public friendStatus: FriendStatus | '',
+		public invitedPlayerId: number
 	) {}
 
 	// ============================================================================
@@ -191,6 +192,7 @@ export class User {
 			data.active2Fa ?? DB_CONST.USER.ACTIVE_2FA.DISABLED,
 			data.notifications ?? [],
 			data.friendStatus ?? '',
+			data.invitedPlayerId ?? 0
 		);
 	}
 
@@ -235,7 +237,8 @@ export class User {
 			DB_CONST.USER.REGISTER_FROM.LOCAL, // registerFrom par défaut
 			DB_CONST.USER.ACTIVE_2FA.DISABLED, // active2Fa à disabled par défaut,
 			[], // notifications vides par défaut
-			'' // friendStatus vide par défaut
+			'', // friendStatus vide par défaut
+			0
 		);
 	}
 

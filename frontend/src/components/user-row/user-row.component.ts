@@ -363,6 +363,7 @@ export class UserRowComponent extends BaseComponent {
 			}
 			await notifService.handleChallengeClick(event);
 			console.log(`Challenge request sent to ${this.user!.username}`);
+			await router.navigate("/game/multi");
 		}
 		else if (this.friend.challengedBy === this.friend.id) {
 			await notifService.handlePlayClick(event);

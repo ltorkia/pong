@@ -10,6 +10,7 @@ import { getUser, getUserStats } from '../db/user';
 import { Tournament } from '../types/game.types';
 import { FRIEND_REQUEST_ACTIONS } from '../shared/config/constants.config';
 import { JwtPayload } from '../types/user.types';
+import { setInvitedPlayer } from '../db/user';
 
 export async function gameRoutes(app: FastifyInstance) {
 	app.post('/playgame', async (request: FastifyRequest, reply: FastifyReply) => {
@@ -126,7 +127,9 @@ export async function gameRoutes(app: FastifyInstance) {
 
 			// 2. Mettre inviter en attente
 			inviter.waitingInvite = true;
+			inviter.invitedId = invitedId;
 			invited.inviterId = inviterId;
+			setInvitedPlayer(inviterId, invitedId);
 
 			reply.code(200).send("Invite sent, waiting for acceptance");		
 		}
@@ -144,7 +147,9 @@ export async function gameRoutes(app: FastifyInstance) {
 			}
 
 			inviter.waitingInvite = false;
+			inviter.invitedId = 0;
 			invited.inviterId = 0;
+			setInvitedPlayer(inviter.ID);
 
 			// Supprimer les deux joueurs de la liste d’attente
 			const playerIdx1 = allPlayers.findIndex((player: Player) => player.ID == inviter.ID);

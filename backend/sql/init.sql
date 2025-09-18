@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS User (
 	game_loose INTEGER DEFAULT 0,
 	time_played INTEGER DEFAULT 0,
 	n_friends INTEGER DEFAULT 0,
+	invited_player_id INTEGER DEFAULT 0,
 	status TEXT DEFAULT 'offline' CHECK (status IN ('online', 'offline', 'in-game')),
 	is_desactivated INTEGER DEFAULT 0 CHECK (is_desactivated IN (0, 1)),
 	register_from TEXT DEFAULT 'local' CHECK (register_from IN ('local', 'google')),

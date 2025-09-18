@@ -12,6 +12,13 @@ export class GameMenuMulti extends GamePage {
 		this.webSocket = webSocketService.getWebSocket();
 	}
 
+	protected async beforeMount(): Promise<void> {
+		if (this.currentUser!.invitedPlayerId) {
+			this.sendMatchMakingRequest("invite", undefined, this.currentUser!.invitedPlayerId);
+			this.appendWaitText();
+		}
+	}
+
 	private appendWaitText(): void {
 		const waitDiv: HTMLElement | null = document.getElementById("wait-div");
 		if (!waitDiv) {

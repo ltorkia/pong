@@ -22,13 +22,26 @@ export class GameTournamentOverview extends GamePage { //changement de basepage 
     private winner: Player | undefined;
 
 
-    protected async beforeMount(): Promise<void> {
+	/**
+	 * Procède aux vérifications nécessaires avant le montage de la page.
+	 * Exécute les vérifications de base de la classe parente (`BasePage`).
+	 *
+	 * @returns {Promise<boolean>} Une promesse qui se résout lorsque les vérifications sont terminées.
+	 */
+	protected async preRenderCheck(): Promise<boolean> {
+		if (!super.preRenderCheck())
+			return false;
         // Check si le tournoi existe ou redirection
         this.tournament = await TournamentService.fetchTournament(this.tournamentID);
-        if (!this.tournament) {
+		if (!this.tournament) {
             console.error("Tournament not found");
-            router.navigate("/game/tournaments");
-        }
+            this.redirectRoute = "/game/tournaments";
+			return false;
+		}
+		return true;
+	}
+
+    protected async beforeMount(): Promise<void> {
         // Fetch du html qui va etre reutilise plusieurs fois
         this.pastilleHTML = await this.fetchHTML("../../../../public/templates/game/tournament_pastille.html", "#tournament-pastille");
         this.toolTipHTML = await this.fetchHTML("../../../../public/templates/game/tournament_tooltip.html", "#tooltip");

@@ -1,6 +1,6 @@
 import { BasePage } from '../base/base.page';
 import { RouteConfig } from '../../types/routes.types';
-import { translateService, currentService } from '../../services/index.service';
+import { webSocketService, translateService, currentService } from '../../services/index.service';
 import { gameApi } from '../../api/game/game.api';
 import { MatchMakingReq } from '../../shared/types/websocket.types';
 import { MultiPlayerGame } from '../../components/game/BaseGame.component';
@@ -22,7 +22,6 @@ export class GamePage extends BasePage {
 	protected adversary: SafeUserModel | undefined; 
 	protected webSocket: WebSocket | undefined;
 
-
 	protected insertNetworkError(): void {
 		const errorDiv = document.createElement("div");
 		errorDiv.setAttribute("data-ts", "game.networkError");
@@ -30,12 +29,13 @@ export class GamePage extends BasePage {
 		document.getElementById("pong-section")!.append(errorDiv);
 	}
 
-    protected async sendMatchMakingRequest(type : string, tournamentID?: number | undefined): Promise<void> {
+    protected async sendMatchMakingRequest(type : string, tournamentID?: number | undefined, invitedId?: number): Promise<void> {
         const message = type;
         const matchMakingReq: MatchMakingReq = {
             type: message,
             playerID: this.currentUser!.id,
             tournamentID: tournamentID,
+			invitedId: invitedId
         }
 		await gameApi.matchMake(matchMakingReq);
     }
@@ -110,7 +110,7 @@ export class GamePage extends BasePage {
 
 	constructor(config: RouteConfig) {
 		super(config);
-		// this.webSocket = webSocketService.getWebSocket();
+		this.webSocket = webSocketService.getWebSocket();
 	}
 	
 	protected async mount(): Promise<void> {

@@ -28,9 +28,9 @@ export class GameMenuTournament extends BasePage {
                 document.getElementById("btn-counter-nb")!.textContent = this.playersNb.toString();
             }
         });
-        document.getElementById("tournament-start-btn")!.addEventListener("click", () => {
+        document.getElementById("tournament-start-btn")!.addEventListener("click", async () => {
             sessionStorage.setItem("fromRedirect", "true");
-            router.navigate(`/game/tournament/register/:${this.playersNb}`);
+            await router.navigate(`/game/tournament/register/:${this.playersNb}`);
         })
     }
 }

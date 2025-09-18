@@ -31,6 +31,7 @@ export abstract class BasePage {
 	protected components?: Partial<Record<ComponentName, ComponentConfig>>;
 	protected componentInstances: Record<ComponentName | string, BaseComponent> = {};
 	protected removeListenersFlag: boolean = true;
+	protected redirectRoute: string = DEFAULT_ROUTE;
 
 	/**
 	 * Constructeur de la classe de base des pages.
@@ -85,7 +86,7 @@ export abstract class BasePage {
 			console.log(`[${this.constructor.name}] Début du rendu...`);
 			if (!await this.preRenderCheck()) {
 				this.removeListenersFlag = false;
-				await router.redirect(DEFAULT_ROUTE);
+				await router.redirect(this.redirectRoute);
 				return;
 			};
 			await this.loadTemplate();
