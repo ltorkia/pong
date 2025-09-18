@@ -51,6 +51,8 @@ export class Player {
         this.inGame = false;
         this.ready = false;
         this.matchMaking = false;
+        this.waitingInvite = false;
+        this.inviterId = 0;
         this.width = 0.02;
         this.height = 0.40;
     }

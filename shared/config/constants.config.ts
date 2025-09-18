@@ -151,6 +151,8 @@ export const GAME_TYPE_MSG = {
 	DISMANTLE_SIGNAL: 'dismantle_signal',
 	MATCHMAKING_REQUEST: 'matchmaking_request',
 	DECOUNT_GAME: 'decount_game',
+	GAMEDATA: "GameData",
+	END: 'end',
 }
 
 export const TOURNAMENT_TYPE_MSG = {

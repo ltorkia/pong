@@ -20,6 +20,7 @@ export class GamePage extends BasePage {
 	protected controlNodesDown!: NodeListOf<HTMLElement>;
 	protected isSearchingGame: boolean = false;
 	protected adversary: SafeUserModel | undefined; 
+	protected webSocket: WebSocket | undefined;
 
 
 	protected insertNetworkError(): void {

@@ -92,6 +92,7 @@ export function isNotificationModel(obj: any): obj is NotificationModel {
  * `false` sinon.
  */
 export function isValidGameType(type: string): type is AllGameMsgType {
+	console.log('ON EST DANS ISVALIDGAMETYPE');
 	return GAME_TYPES.includes(type as AllGameMsgType);
 }
 
@@ -103,6 +104,7 @@ export function isValidGameType(type: string): type is AllGameMsgType {
  * valide, `false` sinon.
  */
 export function isGameMsg(type: string): type is GameTypeMsg {
+	console.log('ON EST DANS ISGAMEMSG');
 	return Object.values(GAME_TYPE_MSG).includes(type as GameTypeMsg);
 }
 
@@ -118,6 +120,7 @@ export function isGameMsg(type: string): type is GameTypeMsg {
  * valide, `false` sinon.
  */
 export function isTournamentMsg(type: string): type is TournamentTypeMsg {
+	console.log('ON EST DANS ISTOURNAMENTMSG');
 	return Object.values(TOURNAMENT_TYPE_MSG).includes(type as TournamentTypeMsg);
 }
 

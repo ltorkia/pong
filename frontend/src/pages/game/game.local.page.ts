@@ -59,6 +59,7 @@ export class GameMenuLocal extends GamePage {
 
     constructor(config: RouteConfig) {
         super(config);
+        this.webSocket = webSocketService.getWebSocket();
     }
 
     private appendWaitText(): void {
