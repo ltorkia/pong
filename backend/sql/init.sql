@@ -28,7 +28,7 @@ CREATE TABLE IF NOT EXISTS Notif (
 	id INTEGER PRIMARY KEY AUTOINCREMENT,
 	"from" INTEGER NOT NULL,
 	"to" INTEGER NOT NULL,
-	type TEXT NOT NULL CHECK (type IN ('add', 'invite', 'accept', 'decline', 'unfriend', 'cancel', 'delete', 'block', 'unblock', 'online', 'offline', 'in-game')),
+	type TEXT NOT NULL CHECK (type IN ('add', 'accept', 'decline', 'unfriend', 'cancel', 'delete', 'block', 'unblock', 'online', 'offline', 'in-game', 'invite', 'invite-accept')),
 	created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 	content TEXT,
 	read INTEGER DEFAULT 0 CHECK (read IN (0, 1)),													

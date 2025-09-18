@@ -41,7 +41,7 @@ export class User {
 		public registerFrom: RegisterMethod,
 		public active2Fa: TwoFaMethod,
 		public notifications: AppNotification[],
-		public friendStatus: FriendStatus | '',
+		public friendStatus: FriendStatus | ''
 	) {}
 
 	// ============================================================================

@@ -68,6 +68,7 @@ export async function notificationsRoutes(app: FastifyInstance) {
 		notifData.read = data.read ?? 0;
 		const notif = await insertNotification(notifData);
 		if (!notif || "errorMessage" in notif) {
+			console.log('ON EST LAAAAAA');
 			return reply.code(500).send({ errorMessage: notif.errorMessage || 'Error inserting notification'});
 		}
 		sendToSocket(app, [ notif ]);

@@ -10,13 +10,16 @@ import { NotificationModel } from '../../shared/types/notification.types';
  * Classe de gestion de l'utilisateur courant
  * en local storage (singleton).
  *
- * Stocke l'utilisateur courant en en local storage (sans email).
+ * Stocke l'utilisateur courant en en local storage (sans email) + notifs
  * sous forme de JSON. Cela permet de le récupérer
  * même après fermeture du navigateur.
  */
 export class StorageService {
 	private storedUser: SafeUserModel | null = null;
 
+	// -------------------------------
+	// USER
+	// -------------------------------
 	/**
 	 * Stocke l'utilisateur courant en local storage.
 	 * 
@@ -28,20 +31,6 @@ export class StorageService {
 	public setCurrentUser(user: User) {
 		this.storedUser = user.toSafeJSON();
 		localStorage.setItem('currentUser', JSON.stringify(this.storedUser));
-	}
-
-	/**
-	 * Stocke les notifications de l'utilisateur courant en local storage.
-	 * 
-	 * - Sérialise les notifications en un tableau de JSON.
-	 * - Enregistre les données sérialisées dans le localStorage sous le nom "notifs".
-	 * 
-	 * @param {AppNotification[]} notifications Les notifications à définir comme notifications courantes.
-	 */
-	public setCurrentNotifs(notifications: AppNotification[]) {
-		const rawData: NotificationModel[] = notifications.map(n => n.toJSON());
-		this.storedUser!.notifications = rawData as unknown as AppNotification[];
-		localStorage.setItem('notifs', JSON.stringify(rawData));
 	}
 
 	/**
@@ -75,5 +64,22 @@ export class StorageService {
 		}
 		this.storedUser = JSON.parse(storedUserStr);
 		return this.storedUser;
+	}
+
+	// -------------------------------
+	// NOTIFS
+	// -------------------------------
+	/**
+	 * Stocke les notifications de l'utilisateur courant en local storage.
+	 * 
+	 * - Sérialise les notifications en un tableau de JSON.
+	 * - Enregistre les données sérialisées dans le localStorage sous le nom "notifs".
+	 * 
+	 * @param {AppNotification[]} notifications Les notifications à définir comme notifications courantes.
+	 */
+	public setCurrentNotifs(notifications: AppNotification[]) {
+		const rawData: NotificationModel[] = notifications.map(n => n.toJSON());
+		this.storedUser!.notifications = rawData as unknown as AppNotification[];
+		localStorage.setItem('notifs', JSON.stringify(rawData));
 	}
 }

@@ -1,15 +1,24 @@
 import { User } from '../../shared/models/user.model';
 import { UserModel, SafeUserModel } from '../../shared/types/user.types';
-import { storageService, webSocketService, animationService, pageService } from '../index.service';
+import { storageService, webSocketService, pageService } from '../index.service';
+import { MultiPlayerGame } from '../../components/game/BaseGame.component';
 
 // ===========================================
 // CURRENT SERVICE
 // ===========================================
 /**
- * Classe de gestion de l'utilisateur courant (singleton).
+ * Classe de stockage / gestion de l'utilisateur courant
+ * en local storage, activation du WebSocket 
+ * et affichage des éléments de navigation en fonction de l'état de connexion.
+ * Si un jeu online est en cours, il est stocké en mémoire vive.
  */
 export class CurrentService {
 	private currentUser: User | null = null;
+	private currentGame: MultiPlayerGame | null = null;
+
+	// -------------------------------
+	// USER
+	// -------------------------------
 
 	/**
 	 * Vérifie si l'utilisateur courant existe.
@@ -35,8 +44,6 @@ export class CurrentService {
 		// Ouvre WS si pas déjà ouvert, avec gestion d'erreur
 		await this.ensureWebSocketOpen();
 
-		// Animation de transition des barres de navigation
-		// animationService.animateNavbarOut = true;
 		if (pageService.homebarInstance)
 			pageService.homebarInstance.destroy();
 	}
@@ -53,8 +60,6 @@ export class CurrentService {
 		// Ouvre WS après que l'utilisateur est complètement restauré et valide
 		await this.ensureWebSocketOpen();
 
-		// Animation de transition des barres de navigation
-		// animationService.animateNavbarOut = true;
 		if (pageService.homebarInstance)
 			pageService.homebarInstance.destroy();
 
@@ -79,8 +84,6 @@ export class CurrentService {
 		// Ouvre WS si pas déjà ouvert
 		await this.ensureWebSocketOpen();
 
-		// Animation de transition des barres de navigation
-		// animationService.animateNavbarOut = true;
 		if (pageService.homebarInstance)
 			pageService.homebarInstance.destroy();
 
@@ -99,8 +102,6 @@ export class CurrentService {
 		storageService.clearCurrentUser();
 		webSocketService.closeWebSocket();
 
-		// Animation de transition des barres de navigation
-		// animationService.animateHomebarOut = true;
 		if (pageService.navbarInstance)
 			pageService.navbarInstance.destroy();
 	}
@@ -140,6 +141,10 @@ export class CurrentService {
 		}
 	}
 
+	// -------------------------------
+	// WEBSOCKET
+	// -------------------------------
+
 	/**
 	 * Méthode privée pour gérer l'ouverture du WebSocket de manière sécurisée
 	 */
@@ -152,5 +157,19 @@ export class CurrentService {
 		} catch (err) {
 			console.warn(`[${this.constructor.name}] Impossible d'ouvrir le WebSocket:`, err);
 		}
+	}
+
+	// -------------------------------
+	// ONLINE GAME
+	// -------------------------------
+
+	public setCurrentGame(game: MultiPlayerGame) {
+		this.currentGame = game;
+	}
+	public getCurrentGame(): MultiPlayerGame | null {
+		return this.currentGame;
+	}
+	public clearCurrentGame() {
+		this.currentGame = null;
 	}
 }

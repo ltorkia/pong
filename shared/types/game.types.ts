@@ -32,7 +32,7 @@ export class Player {
     public inputUp: boolean = false;
     public inputDown: boolean = false;
     public waitingInvite: boolean = false;
-    public invitedId: number = 0;
+    public inviterId: number = 0;
     public alias?: string;
 
     

@@ -12,14 +12,13 @@ export class GameService {
 	 * Si le joueur actuel essaye d'inviter lui-meme, une erreur est levée.
 	 * 
 	 * @param {string} type Le type de partie (matchmaking, invite, tournament).
-	 * @param {number} playerID L'ID du joueur a inviter.
 	 * @param {number} invitedId L'ID du joueur invite.
 	 * @param {number} [tournamentID] L'ID du tournoi si la partie est un tournoi.
 	 * @returns {Promise<void>} La promesse qui se résout lorsque la partie est lancee.
 	 */
-	public async invitePlayer(type: string, playerID: number, invitedId: number, tournamentID?: number): Promise<void> {
+	public async invitePlayer(type: string, invitedId: number, tournamentID?: number): Promise<void> {
 		const currentUser = currentService.getCurrentUser();
-		if (currentUser!.id === playerID) {
+		if (currentUser!.id === invitedId) {
 			throw new Error("You cannot play with yourself.");
 		}
 		const matchMakingReq: MatchMakingReq = {
@@ -28,6 +27,6 @@ export class GameService {
 			tournamentID: tournamentID,
 			invitedId: invitedId
 		}
-		await gameApi.playGame(matchMakingReq);
+		await gameApi.matchMake(matchMakingReq);
 	}
 }

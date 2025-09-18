@@ -528,7 +528,7 @@ export class NotifService {
 	// ===========================================
 
 	public handleAddClick = async (event: Event): Promise<void> => {
-  		const target = event.currentTarget as HTMLElement;
+		const target = event.target as HTMLElement;
 		this.setFriendId(target);
 		let res = await friendApi.addFriend(this.friendId!);
 		if ('errorMessage' in res) {
@@ -542,7 +542,7 @@ export class NotifService {
 
 	public handleCancelClick = async (event: Event): Promise<void> => {
 		const type: NotificationType = FRIEND_REQUEST_ACTIONS.CANCEL;
-  		const target = event.currentTarget as HTMLElement;
+		const target = event.target as HTMLElement;
 		this.setFriendId(target);
 		this.setNotifData(type, 1);
 		await this.handleDelete(type);
@@ -550,7 +550,7 @@ export class NotifService {
 
 	public handleDeclineClick = async (event: Event): Promise<void> => {
 		const type: NotificationType = FRIEND_REQUEST_ACTIONS.DECLINE;
-  		const target = event.currentTarget as HTMLElement;
+		const target = event.target as HTMLElement;
 		this.setFriendId(target);
 		this.setNotifData(type, 1);
 		await this.handleDelete(type);
@@ -558,7 +558,7 @@ export class NotifService {
 
 	public handleAcceptClick = async (event: Event): Promise<void> => {
 		const type: NotificationType = FRIEND_REQUEST_ACTIONS.ACCEPT;
-  		const target = event.currentTarget as HTMLElement;
+		const target = event.target as HTMLElement;
 		this.setFriendId(target);
 		this.setNotifData(type);
 		await this.handleUpdate(type);
@@ -566,7 +566,7 @@ export class NotifService {
 
 	public handleBlockClick = async (event: Event): Promise<void> => {
 		const type: NotificationType = FRIEND_REQUEST_ACTIONS.BLOCK;
-  		const target = event.currentTarget as HTMLElement;
+		const target = event.target as HTMLElement;
 		this.setFriendId(target);
 		this.setNotifData(type, 1);
 		await this.handleUpdate(type);
@@ -574,7 +574,7 @@ export class NotifService {
 
 	public handleUnblockClick = async (event: Event): Promise<void> => {
 		const type: NotificationType = FRIEND_REQUEST_ACTIONS.UNBLOCK;
-		const target = event.currentTarget as HTMLElement;
+		const target = event.target as HTMLElement;
 		this.setFriendId(target);
 		this.setNotifData(type, 1);
 		await this.handleUpdate(type);
@@ -582,40 +582,40 @@ export class NotifService {
 
 	public handleUnfriendClick = async (event: Event): Promise<void> => {
 		const type: NotificationType = FRIEND_REQUEST_ACTIONS.UNFRIEND;
-		const target = event.currentTarget as HTMLElement;
+		const target = event.target as HTMLElement;
 		this.setFriendId(target);
 		this.setNotifData(type, 1);
 		await this.handleDelete(type);
 	}
 
 	public handleChallengeClick = async (event: Event): Promise<void> => {
-		// const type: NotificationType = FRIEND_REQUEST_ACTIONS.INVITE;
-		// const target = event.currentTarget as HTMLElement;
-		// this.setFriendId(target);
-		// this.setNotifData(type, 1);
-		// await this.handleUpdate(type);
-
-		const target = event.currentTarget as HTMLElement;
-		this.setFriendId(target);
 		const type: NotificationType = FRIEND_REQUEST_ACTIONS.INVITE;
-		const res = await friendApi.updateFriend(this.friendId!, type);
-		if ('errorMessage' in res) {
-			console.error(res.errorMessage);
-			return;
-		}
-		await this.refreshFriendButtons();
+		const target = event.target as HTMLElement;
+		this.setFriendId(target);
 		this.setNotifData(type);
-		await notifApi.addNotification(this.notifData!);
+		await this.handleUpdate(type);
+
+		// const target = event.target as HTMLElement;
+		// this.setFriendId(target);
+		// const type: NotificationType = FRIEND_REQUEST_ACTIONS.INVITE;
+		// const res = await friendApi.updateFriend(this.friendId!, type);
+		// if ('errorMessage' in res) {
+		// 	console.error(res.errorMessage);
+		// 	return;
+		// }
+		// await this.refreshFriendButtons();
+		// this.setNotifData(type);
+		// await notifApi.addNotification(this.notifData!);
 	}
 
 	public handlePlayClick = async (event: Event): Promise<void> => {
 		const type: NotificationType = FRIEND_REQUEST_ACTIONS.INVITE_ACCEPT;
-		const target = event.currentTarget as HTMLElement;
+		const target = event.target as HTMLElement;
 		this.setFriendId(target);
 		this.setNotifData(type);
 		await this.handleUpdate(type);
 		try {
-			await gameService.invitePlayer(FRIEND_REQUEST_ACTIONS.INVITE_ACCEPT, this.currentUser!.id, this.friendId);
+			await gameService.invitePlayer(FRIEND_REQUEST_ACTIONS.INVITE_ACCEPT, this.friendId!);
 		} catch (err) {
 			console.error(err);
 		}
@@ -650,11 +650,12 @@ export class NotifService {
 	 * @param {HTMLElement} target - Bouton cliqué.
 	 */
 	private setFriendId(target: HTMLElement): void { 
-		const friendId = target.getAttribute("data-friend-id");
-		if (!friendId) {
-			console.error("Pas de friendId sur le bouton");
+		const button = target.closest('button[data-friend-id]') as HTMLElement | null;
+		if (!button) {
+			console.error("Pas de friendId sur le bouton ou parent");
 			return;
 		}
+		const friendId = button.getAttribute("data-friend-id");
 		this.friendId = Number(friendId);
 	}
 

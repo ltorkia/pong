@@ -357,7 +357,7 @@ export class UserRowComponent extends BaseComponent {
 		}
 		if (!this.friend.challengedBy) {
 			try {
-				await gameService.invitePlayer(FRIEND_REQUEST_ACTIONS.INVITE, this.currentUser!.id, this.friend.id);
+				await gameService.invitePlayer(FRIEND_REQUEST_ACTIONS.INVITE, this.friend.id);
 			} catch (err) {
 				console.error(err);
 			}

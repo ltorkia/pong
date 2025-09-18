@@ -7,13 +7,14 @@ export const TournamentService = new TournamentAPI();
 class GameAPI {
 
 	/**
-	 * Lance une partie avec les informations fournies dans l'objet `data`.
-	 * (matchmaking, invite, tournament...)
+	 * Envoie une requête POST à la route API `/api/game/playgame` pour lancer une partie
+	 * dans le contexte d'un matchmaking (aléatoire / invite / tournoi).
 	 * 
-	 * @param {MatchMakingReq} data Informations de la partie a lancer.
-	 * @returns {Promise<void>} Promesse qui se résolution lorsque la partie est lancee.
+	 * @param {MatchMakingReq} data Les informations de la partie à lancer.
+	 * @returns {Promise<void>} La promesse qui se résout lorsque la partie est lancée.
+	 * @throws {Error} Si la requête échoue, lance une erreur avec le message d'erreur.
 	 */
-	public async playGame(data: MatchMakingReq): Promise<void> {
+	public async matchMake(data: MatchMakingReq): Promise<void> {
 		const res = await secureFetch(`/api/game/playgame`, {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },

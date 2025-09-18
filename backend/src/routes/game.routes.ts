@@ -8,6 +8,8 @@ import { UserWS } from '../types/user.types';
 import {addGame, getResultGame, cancelledGame } from '../db/game';
 import { getUser, getUserStats } from '../db/user';
 import { Tournament } from '../types/game.types';
+import { FRIEND_REQUEST_ACTIONS } from '../shared/config/constants.config';
+import { JwtPayload } from '../types/user.types';
 
 export async function gameRoutes(app: FastifyInstance) {
 	app.post('/playgame', async (request: FastifyRequest, reply: FastifyReply) => {
@@ -19,6 +21,11 @@ export async function gameRoutes(app: FastifyInstance) {
 		const { allPlayers } = app.lobby;
 		console.log("LOBBY : ",app.lobby);
 
+		// On vérifie que le player est bien le current user
+		const playerID = matchMakingReq.data.playerID;
+		const jwtUser = request.user as JwtPayload;
+		if (playerID != jwtUser.id)
+			return reply.status(403).send({ errorMessage: 'Forbidden' });
 
 		// TOURNAMENT REQUEST POUR REMOTE
 		// TODO : les gens peuvent relancer un game non stop -> creer condition pour l empecher une fois le 1er jeu termine ici ou dans le front
@@ -63,12 +70,12 @@ export async function gameRoutes(app: FastifyInstance) {
 		}
 		if (matchMakingReq.data.type === "matchmaking_request")
 		{
-			if (!allPlayers.find((p: Player) => p.ID == matchMakingReq.data.playerID))
+			if (!allPlayers.find((p: Player) => p.ID == playerID))
 			{
-				allPlayers.push(new Player(matchMakingReq.data.playerID));
-				console.log(`ADDED USER ID = ${matchMakingReq.data.playerID}`);
+				allPlayers.push(new Player(playerID));
+				console.log(`ADDED USER ID = ${playerID}`);
 			}
-			const newPlayer = allPlayers.find((p: Player) => p.ID == matchMakingReq.data.playerID);
+			const newPlayer = allPlayers.find((p: Player) => p.ID == playerID);
 			// console.log("allplayersssss     ----------------------------", allPlayers);
 			if (!newPlayer)
 				return reply.code(404).send({ error: "Player not found" });
@@ -89,54 +96,55 @@ export async function gameRoutes(app: FastifyInstance) {
 		}
 		else if (matchMakingReq.data.type === "local") //jeu en local
 		{
-			const playerOne = new Player(matchMakingReq.data.playerID);
+			const playerOne = new Player(playerID);
 			const playerID2 = generateUniqueID(allPlayers);
 			const playerTwo = new Player(playerID2);
 			if (playerOne && playerTwo)
-				startGame(app, [playerOne, playerTwo], "local"); //TODO: a securiser avec l id du currentuser
+				startGame(app, [playerOne, playerTwo], "local");
 		} 
-		else if (matchMakingReq.data.type === "invite") {
-			const inviterID = matchMakingReq.data.playerID;
+		else if (matchMakingReq.data.type === FRIEND_REQUEST_ACTIONS.INVITE)
+		{
+			const inviterId = playerID;
 			const invitedId = matchMakingReq.data.invitedId;
-			if (!inviterID || !invitedId)
+			if (!invitedId)
 				return reply.code(400).send({ error: "Invalid invite request" });
 
 			// 1. ajouter / retrouver les deux joueurs
-			let inviter = allPlayers.find((p: Player) => p.ID == inviterID);
+			let inviter = allPlayers.find((p: Player) => p.ID == inviterId);
 			if (!inviter) {
-				inviter = new Player(inviterID);
+				inviter = new Player(inviterId);
 				allPlayers.push(inviter);
+				console.log(`ADDED USER ID = ${inviterId}`);
 			}
 
 			let invited = allPlayers.find((p: Player) => p.ID == invitedId);
 			if (!invited) {
 				invited = new Player(invitedId);
 				allPlayers.push(invited);
+				console.log(`ADDED USER ID = ${inviterId}`);
 			}
 
 			// 2. Mettre inviter en attente
 			inviter.waitingInvite = true;
-			inviter.invitedId = invitedId;
+			invited.inviterId = inviterId;
 
 			reply.code(200).send("Invite sent, waiting for acceptance");		
 		}
-		else if (matchMakingReq.data.type === "invite_accept") 
+		else if (matchMakingReq.data.type === FRIEND_REQUEST_ACTIONS.INVITE_ACCEPT) 
 		{
 			// 1. ajouter / retrouver les deux joueurs
-			const inviterID = matchMakingReq.data.playerID;
-			const invitedId = matchMakingReq.data.invitedId;
-			if (!inviterID || !invitedId)
-				return reply.code(400).send({ error: "Invalid invite request" });
-
-			const inviter = allPlayers.find((p: Player) => p.ID == inviterID);
+			const invitedId = playerID;
 			const invited = allPlayers.find((p: Player) => p.ID == invitedId);
+			if (!invited)
+				return reply.code(404).send({ error: "Player not found" });
 
-			if (!inviter || !invited || !inviter.waitingInvite || inviter.invitedId !== invitedId) {
+			const inviter = allPlayers.find((p: Player) => p.ID == invited.inviterId);
+			if (!inviter || !inviter.waitingInvite || invited.inviterId !== inviter.ID) {
 				return reply.code(400).send({ error: "Invalid invitation" });
 			}
 
 			inviter.waitingInvite = false;
-			inviter.invitedId = 0;
+			invited.inviterId = 0;
 
 			// Supprimer les deux joueurs de la liste d’attente
 			const playerIdx1 = allPlayers.findIndex((player: Player) => player.ID == inviter.ID);
@@ -151,7 +159,7 @@ export async function gameRoutes(app: FastifyInstance) {
 		else //si on quitte la page de matchmaking
 		{
 			// const { usersWS } = app;
-			if (allPlayers.find((p: Player) => p.ID == matchMakingReq.data.playerID))
+			if (allPlayers.find((p: Player) => p.ID == playerID))
 			{
 				const playerIdx1 = allPlayers.findIndex((player: Player) => player.ID == matchMakingReq.data.playerID);
 				allPlayers.splice(playerIdx1, 1);

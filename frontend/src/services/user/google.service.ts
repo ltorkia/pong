@@ -59,6 +59,7 @@ export class GoogleService {
 		const hiddenContainer = document.createElement('div');
 		hiddenContainer.id = 'google-signin-container';
 		hiddenContainer.style.display = 'none';
+
 		document.body.appendChild(hiddenContainer);
 		google.accounts.id.initialize({
 			client_id: clientId,

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { FRIEND_REQUEST_ACTIONS } from '../../shared/config/constants.config';
 
 export const PlayerSchema = z.object({
     ID: z.number().max(Number.MAX_SAFE_INTEGER),
@@ -49,7 +50,14 @@ export const DismantleTournamentSchema = z.object({
 });
 
 export const MatchMakingReqSchema = z.object({
-    type: z.enum(["matchmaking_request", "no_matchmaking_request", "invite", "invite_accept", "local", "tournament"]),
+    type: z.enum([
+        "matchmaking_request", 
+        "no_matchmaking_request", 
+        FRIEND_REQUEST_ACTIONS.INVITE, 
+        FRIEND_REQUEST_ACTIONS.INVITE_ACCEPT, 
+        "local", 
+        "tournament"
+    ]),
     playerID: z.number(),
     tournamentID: z.number().optional(),
     invitedId: z.number().optional(),

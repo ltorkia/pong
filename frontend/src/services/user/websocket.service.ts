@@ -1,4 +1,4 @@
-import { currentService, notifService } from './user.service';
+import { notifService, pageService } from '../index.service';
 import { AppNotification } from '../../shared/models/notification.model';
 import type { NotificationModel } from '../../shared/types/notification.types';
 import { isNotificationModel } from '../../shared/utils/app.utils';
@@ -99,21 +99,27 @@ export class WebSocketService {
 
 		/**
 		 * Événement déclenché lors de la réception d'un message WebSocket,
-		 * pour traiter les notifications.
+		 * pour traiter les notifications et les messages liés aux jeux.
 		 */
-		this.webSocket.onmessage = async (event) => {
+		this.webSocket.addEventListener("message", async (event) => {
+		// this.webSocket.onmessage = async (event) => {
 			try {
-				const dataArray = JSON.parse(event.data);
-				if (Array.isArray(dataArray) && dataArray.every(isNotificationModel)) {
-					const data = dataArray as NotificationModel[];
+				const receivedData = JSON.parse(event.data);
+				if (Array.isArray(receivedData) && receivedData.every(isNotificationModel)) {
+					const data = receivedData as NotificationModel[];
 					const formatedData = AppNotification.fromJSONArray(data) as AppNotification[];
 					console.log('Notification reçue:', formatedData);
 					await notifService.handleNotifications(formatedData);
+				} else {
+					if (!pageService.currentPage || typeof pageService.currentPage.handleGameMessage !== "function")
+						console.error("Aucune page de jeu actuellement ouverte.");
+					pageService.currentPage.handleGameMessage(receivedData);
 				}
 			} catch (error) {
 				console.error("Erreur lors du traitement du message WebSocket:", error);
 			}
-		};
+		// };
+		});
 
 		this.webSocket.onclose = () => {
 			console.log("WebSocket fermé");
