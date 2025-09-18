@@ -1,5 +1,6 @@
 import { Player } from './game.types';
 import { SafeUserModel} from './user.types';
+import { GAME_TYPE_MSG, TOURNAMENT_TYPE_MSG } from '../config/constants.config';
 
 export type StartGame = {
     type: "start_game",
@@ -53,3 +54,9 @@ export type decountgame = {
     message: number, //pour le decompte
     gameID: number,
 }
+
+export type GameTypeMsg =
+    typeof GAME_TYPE_MSG[keyof typeof GAME_TYPE_MSG];
+export type TournamentTypeMsg =
+    typeof TOURNAMENT_TYPE_MSG[keyof typeof TOURNAMENT_TYPE_MSG];
+export type AllGameMsgType = GameTypeMsg | TournamentTypeMsg;

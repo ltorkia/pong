@@ -1,5 +1,6 @@
 // import { UserSortField, SortOrder } from "../types/user.types";
 import { NotificationType } from "../types/notification.types";
+import { AllGameMsgType } from "../types/websocket.types";
 
 // ===========================================
 // CONSTANTS CONFIG
@@ -139,7 +140,34 @@ export const FRIEND_NOTIF_CONTENT = {
 export const NOTIFICATION_TYPES: NotificationType[] = [
 	...Object.values(FRIEND_REQUEST_ACTIONS),
 	...Object.values(USER_ONLINE_STATUS),
-	// à compléter si d'autres types de notifications sont ajoutées
+	// à compléter si d'autres types de notifications sont ajoutés
+];
+
+/**
+ * Définit les messages socket liés au jeu.
+ */
+export const GAME_TYPE_MSG = {
+	START: 'start_game',
+	DISMANTLE_SIGNAL: 'dismantle_signal',
+	MATCHMAKING_REQUEST: 'matchmaking_request',
+	DECOUNT_GAME: 'decount_game',
+}
+
+export const TOURNAMENT_TYPE_MSG = {
+	START: 'start_tournament',
+	START_SIGNAL: 'start_tournament_signal',
+	DISMANTLE: 'dismantle_tournament',
+	LOBBY_UPDATE: 'tournament_lobby_update',
+	PLAYER_READY_UPDATE: 'player_ready_update',
+}
+
+/**
+ * Typage des messages socket.
+ */
+export const GAME_TYPES: AllGameMsgType[] = [
+	...Object.values(GAME_TYPE_MSG),
+	...Object.values(TOURNAMENT_TYPE_MSG),
+	// à compléter si d'autres types sont ajoutés
 ];
 
 /**

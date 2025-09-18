@@ -9,7 +9,6 @@ export class GameMenuMulti extends GamePage {
 
 	constructor(config: RouteConfig) {
 		super(config);
-		// this.webSocket = webSocketService.getWebSocket();
 	}
 
 	private appendWaitText(): void {

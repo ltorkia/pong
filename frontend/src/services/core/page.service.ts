@@ -25,7 +25,7 @@ export class PageService {
 	 *   et sa transition lorsque nécessaire.
 	 * - Initialisée à null, elle est mise à jour lors du rendu d'une nouvelle page.
 	 */
-	private currentPage: PageInstance | null = null;
+	public currentPage: PageInstance | null = null;
 
 	/**
 	 * Référence à la navbar ou homebar actuellement affichée.

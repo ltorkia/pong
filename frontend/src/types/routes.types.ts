@@ -2,7 +2,6 @@ import { BasePage } from '../pages/base/base.page';
 import { ComponentName, ComponentConfig } from './components.types';
 import { PAGE_NAMES, ROUTE_PATHS, TEMPLATE_PATHS } from '../config/routes.config';
 import { UserRowComponent } from '../components/user-row/user-row.component';
-import { AppNotification } from '../shared/models/notification.model';
 import { User } from '../shared/models/user.model';
 
 // ===========================================
@@ -86,6 +85,7 @@ export interface RouteParams {
  * - injectUser: fonction pour injecter un utilisateur dans la liste des utilisateurs
  * - removeUser: fonction pour supprimer un utilisateur de la liste des utilisateurs
  * - handleGameMessage: fonction pour traiter un message de jeu via WebSocket
+ * - handleTournamentMessage: fonction pour traiter un message de tournoi via WebSocket
  */
 export interface PageInstance {
 	config: RouteConfig;
@@ -97,6 +97,7 @@ export interface PageInstance {
 	injectUser?: (user: User) => Promise<void>;
 	removeUser?: (user: User) => Promise<void>;
 	handleGameMessage?: (data: any) => Promise<void>;
+	handleTournamentMessage?: (data: any) => Promise<void>;
 }
 
 /**

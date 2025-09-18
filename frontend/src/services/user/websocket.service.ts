@@ -1,7 +1,7 @@
 import { notifService, pageService } from '../index.service';
 import { AppNotification } from '../../shared/models/notification.model';
 import type { NotificationModel } from '../../shared/types/notification.types';
-import { isNotificationModel } from '../../shared/utils/app.utils';
+import { isNotificationModel, isValidGameType, isGameMsg, isTournamentMsg } from '../../shared/utils/app.utils';
 
 export class WebSocketService {
 	private webSocket: WebSocket | undefined;
@@ -105,15 +105,32 @@ export class WebSocketService {
 		// this.webSocket.onmessage = async (event) => {
 			try {
 				const receivedData = JSON.parse(event.data);
+
+				// NOTIFICATIONS MSG
 				if (Array.isArray(receivedData) && receivedData.every(isNotificationModel)) {
 					const data = receivedData as NotificationModel[];
 					const formatedData = AppNotification.fromJSONArray(data) as AppNotification[];
 					console.log('Notification reçue:', formatedData);
 					await notifService.handleNotifications(formatedData);
-				} else {
-					if (!pageService.currentPage || typeof pageService.currentPage.handleGameMessage !== "function")
-						console.error("Aucune page de jeu actuellement ouverte.");
-					pageService.currentPage.handleGameMessage(receivedData);
+					return;
+				}
+
+				// GAME MSG
+				if (isValidGameType(receivedData.type)) {
+					if (isGameMsg(receivedData.type)) {
+						if (!pageService.currentPage || typeof pageService.currentPage.handleGameMessage !== "function") {
+							console.error("Aucune page de jeu actuellement ouverte.");
+							return;
+						}
+						await pageService.currentPage.handleGameMessage(receivedData);
+					}
+					if (isTournamentMsg(receivedData.type)) {
+						if (!pageService.currentPage || typeof pageService.currentPage.handleTournamentMessage !== "function") {
+							console.error("Aucune page de jeu actuellement ouverte.");
+							return;
+						}
+						await pageService.currentPage.handleTournamentMessage(receivedData);
+					}
 				}
 			} catch (error) {
 				console.error("Erreur lors du traitement du message WebSocket:", error);

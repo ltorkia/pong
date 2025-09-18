@@ -1,6 +1,12 @@
-import { FRIEND_REQUEST_ACTIONS, NOTIFICATION_TYPES, USER_ONLINE_STATUS } from '../config/constants.config';
+import { FRIEND_REQUEST_ACTIONS, NOTIFICATION_TYPES, USER_ONLINE_STATUS, GAME_TYPE_MSG, TOURNAMENT_TYPE_MSG, GAME_TYPES } from '../config/constants.config';
 import { NotificationType, FriendRequestAction, UserOnlineStatus } from '../types/notification.types';
 import type { NotificationModel } from '../types/notification.types';
+import { GameTypeMsg, TournamentTypeMsg, AllGameMsgType } from '../types/websocket.types';
+
+// ===========================================
+// NOTIFICATIONS SOCKET TYPE CHECK
+// ===========================================
+
 /**
  * Vérifie si `type` est un type de notification valide.
  *
@@ -70,6 +76,54 @@ export function isNotificationModel(obj: any): obj is NotificationModel {
 		NOTIFICATION_TYPES.includes(obj.type as NotificationType)
 	);
 }
+
+// ===========================================
+// GAME SOCKET TYPE CHECK
+// ===========================================
+
+/**
+ * Vérifie si `type` est un type valide pour message socket lié au jeu ou tournoi.
+ *
+ * Un type de jeu de partie valide est un type de jeu de partie qui appartient à
+ * la liste des types de jeu de partie valides définie dans `GAME_TYPES`.
+ *
+ * @param {string} type - Le type de jeu de partie à vérifier.
+ * @returns {type is AllGameMsgType} - `true` si `type` est un type de jeu de partie valide,
+ * `false` sinon.
+ */
+export function isValidGameType(type: string): type is AllGameMsgType {
+	return GAME_TYPES.includes(type as AllGameMsgType);
+}
+
+/**
+ * Vérifie si `type` est un type valide pour message socket lié au jeu.
+ *
+ * @param {string} type - Le type de message de jeu de partie à vérifier.
+ * @returns {type is GameTypeMsg} - `true` si `type` est un type de message de jeu de partie
+ * valide, `false` sinon.
+ */
+export function isGameMsg(type: string): type is GameTypeMsg {
+	return Object.values(GAME_TYPE_MSG).includes(type as GameTypeMsg);
+}
+
+/**
+ * Vérifie si `type` est un type valide pour message socket lié au tournoi.
+ *
+ * Un type de message de tournoi valide est un type de message de tournoi qui
+ * appartient à la liste des types de message de tournoi valides définie dans
+ * `TOURNAMENT_TYPE_MSG`.
+ *
+ * @param {string} type - Le type de message de tournoi à vérifier.
+ * @returns {type is TournamentTypeMsg} - `true` si `type` est un type de message de tournoi
+ * valide, `false` sinon.
+ */
+export function isTournamentMsg(type: string): type is TournamentTypeMsg {
+	return Object.values(TOURNAMENT_TYPE_MSG).includes(type as TournamentTypeMsg);
+}
+
+// ===========================================
+// FORMAT DATE
+// ===========================================
 
 /**
  * Formatte une date en une chaîne de caractères relative, en fonction de la

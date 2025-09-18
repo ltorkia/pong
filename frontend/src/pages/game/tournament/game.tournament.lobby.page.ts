@@ -259,24 +259,6 @@ export class GameTournamentLobby extends BasePage {
     // }
 
     protected async attachListeners(): Promise<void> {
-        webSocketService.getWebSocket()?.addEventListener("message", (event) => {
-            const lobbyUpdate = JSON.parse(event.data);
-            console.log(lobbyUpdate);
-            if (!lobbyUpdate)
-                return;
-            if (lobbyUpdate.type == "tournament_lobby_update" && lobbyUpdate.tournamentID == this.tournamentID) {
-                this.checkPlayersDifference(lobbyUpdate.players);
-                this.tournament!.players = lobbyUpdate.players;
-            } else if (lobbyUpdate.type == "dismantle_signal") {
-                this.handleRedirectModal();
-            } else if (lobbyUpdate.type == "start_tournament_signal")
-            {
-                router.navigate(`/game/tournaments/:${this.tournamentID}/overview`)
-                // fetch appel a la db pour stocker le tournoi avec les joueurs ?
-                // + choper ce qu il y a en lobby ? 
-            }
-        });
-
         document.getElementById("tournament-join-leave-btn")?.addEventListener("click", async (event) => {
             
             const btn = event.target as HTMLElement;
@@ -325,5 +307,26 @@ export class GameTournamentLobby extends BasePage {
         //         console.error(error.message);
         //     }
         // });
+    }
+
+	/**
+	 * Gestionnaire d'événement pour les messages WebSocket reçus durant un tournoi.
+	 * Méthode appelée dans le service centralisé dédié: `webSocketService`.
+	 * 
+	 * @param data Les informations du tournoi.
+	 * @returns La promesse qui se résout lorsque le gestionnaire d'événement a fini de traiter les informations.
+	 */
+    public async handleTournamentMessage(data: any): Promise<void> {
+        if (data.type == "tournament_lobby_update" && data.tournamentID == this.tournamentID) {
+            this.checkPlayersDifference(data.players);
+            this.tournament!.players = data.players;
+        } else if (data.type == "dismantle_signal") {
+            this.handleRedirectModal();
+        } else if (data.type == "start_tournament_signal")
+        {
+            router.navigate(`/game/tournaments/:${this.tournamentID}/overview`)
+            // fetch appel a la db pour stocker le tournoi avec les joueurs ?
+            // + choper ce qu il y a en lobby ? 
+        }
     }
 }

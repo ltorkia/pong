@@ -1,6 +1,6 @@
 import { BasePage } from '../base/base.page';
 import { RouteConfig } from '../../types/routes.types';
-import { webSocketService, translateService, currentService } from '../../services/index.service';
+import { translateService, currentService } from '../../services/index.service';
 import { gameApi } from '../../api/game/game.api';
 import { MatchMakingReq } from '../../shared/types/websocket.types';
 import { MultiPlayerGame } from '../../components/game/BaseGame.component';
@@ -13,7 +13,6 @@ import { Tournament } from 'src/types/game.types';
 // GAME PAGE
 // ===========================================
 export class GamePage extends BasePage {
-	protected webSocket!: WebSocket | undefined;
 	protected gameStarted: boolean = false;
 	protected game?: MultiPlayerGame;
 	protected finalScore: number[] = [];
@@ -135,7 +134,7 @@ export class GamePage extends BasePage {
 	}
 
 	/**
-	 * Gestionnaire d'événement pour les messages WebSocket reçues durant une partie.
+	 * Gestionnaire d'événement pour les messages WebSocket reçus durant une partie.
 	 * Méthode appelée dans le service centralisé dédié: `webSocketService`.
 	 * 
 	 * @param data Les informations de la partie à lancer.
