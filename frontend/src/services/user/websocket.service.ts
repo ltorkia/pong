@@ -102,7 +102,6 @@ export class WebSocketService {
 		 * pour traiter les notifications et les messages liés aux jeux.
 		 */
 		this.webSocket.addEventListener("message", async (event) => {
-		// this.webSocket.onmessage = async (event) => {
 			try {
 				const receivedData = JSON.parse(event.data);
 
@@ -135,7 +134,6 @@ export class WebSocketService {
 			} catch (error) {
 				console.error("Erreur lors du traitement du message WebSocket:", error);
 			}
-		// };
 		});
 
 		this.webSocket.onclose = () => {
