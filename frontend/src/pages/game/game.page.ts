@@ -1,6 +1,7 @@
 import { BasePage } from '../base/base.page';
 import { RouteConfig } from '../../types/routes.types';
 import { webSocketService, translateService } from '../../services/index.service';
+import { gameApi } from '../../api/game/game.api';
 import { MatchMakingReq } from '../../shared/types/websocket.types';
 import { MultiPlayerGame } from '../../components/game/BaseGame.component';
 import { Player } from '../../../../shared/types/game.types';
@@ -85,17 +86,18 @@ export class GamePage extends BasePage {
             tournamentID: tournamentID,
         }
         console.log("matchMakingReq = ", matchMakingReq);
-        const res = await fetch("/api/game/playgame", {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(matchMakingReq),
-            credentials: 'include',
-        });
-        if (!res.ok) {
-            const error = await res.json();
-            console.error(error.error);
-            return;
-        }
+		await gameApi.playGame(matchMakingReq);
+        // const res = await fetch("/api/game/playgame", {
+        //     method: 'POST',
+        //     headers: { 'Content-Type': 'application/json' },
+        //     body: JSON.stringify(matchMakingReq),
+        //     credentials: 'include',
+        // });
+        // if (!res.ok) {
+        //     const error = await res.json();
+        //     console.error(error.error);
+        //     return;
+        // }
     }
 
 

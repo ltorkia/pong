@@ -153,7 +153,8 @@
 		"noNew": "Pas de nouvelles notifications.",
 		"friendRequest": "vous a envoyé une demande d'ami.",
 		"friendAccept": "vous a accepté en tant qu'ami.",
-		"friendInvite": "vous a invité à jouer."
+		"friendInvite": "vous a invité à jouer.",
+		"friendInviteAccept": "a accepté votre invitation à jouer."
 	},
 
 	"dashboard": {

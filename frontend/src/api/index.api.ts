@@ -1,4 +1,5 @@
 import { authApi, dataApi, friendApi, notifApi } from './user/user.api';
+import { gameApi } from './game/game.api';
 
 // ===========================================
 // INDEX API - SINGLETONS
@@ -7,4 +8,4 @@ import { authApi, dataApi, friendApi, notifApi } from './user/user.api';
  * Gèrent les requêtes API de l'application.
  */
 
-export { authApi, dataApi, friendApi, notifApi };
+export { authApi, dataApi, friendApi, notifApi, gameApi };

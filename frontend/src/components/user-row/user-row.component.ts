@@ -6,9 +6,9 @@ import { BaseComponent } from '../base/base.component';
 import { RouteConfig } from '../../types/routes.types';
 import { router } from '../../router/router';
 import { ComponentConfig } from '../../types/components.types';
-import { dataService, notifService, friendService, translateService } from '../../services/index.service';
+import { dataService, notifService, friendService, translateService, gameService } from '../../services/index.service';
 import { getHTMLElementByClass } from '../../utils/dom.utils';
-import { DB_CONST } from '../../shared/config/constants.config';
+import { DB_CONST, FRIEND_REQUEST_ACTIONS } from '../../shared/config/constants.config';
 import { User } from '../../shared/models/user.model';
 import { Friend } from '../../../../shared/models/friend.model';
 
@@ -356,10 +356,16 @@ export class UserRowComponent extends BaseComponent {
 			return;
 		}
 		if (!this.friend.challengedBy) {
+			try {
+				await gameService.invitePlayer(FRIEND_REQUEST_ACTIONS.INVITE, this.currentUser!.id, this.friend.id);
+			} catch (err) {
+				console.error(err);
+			}
 			await notifService.handleChallengeClick(event);
 			console.log(`Challenge request sent to ${this.user!.username}`);
 		}
-		// else if (this.friend.challengedBy === this.friend.id)
-			// méthode pour rejoindre le jeu où l'autre joueur attend
+		else if (this.friend.challengedBy === this.friend.id) {
+			await notifService.handlePlayClick(event);
+		}
 	}
 }

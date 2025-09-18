@@ -31,6 +31,8 @@ export class Player {
     public width: number;
     public inputUp: boolean = false;
     public inputDown: boolean = false;
+    public waitingInvite: boolean = false;
+    public invitedId: number = 0;
     public alias?: string;
 
     

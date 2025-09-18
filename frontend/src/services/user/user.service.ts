@@ -7,6 +7,7 @@ import { DataService } from './data.service';
 import { FriendService } from './friend.service';
 import { WebSocketService } from './websocket.service';
 import { NotifService } from './notif.service';
+import { GameService } from './game.service';
 
 // ===========================================
 // USER SERVICE - SINGLETONS
@@ -26,3 +27,4 @@ export const dataService = new DataService();
 export const friendService = new FriendService();
 export const webSocketService = new WebSocketService();
 export const notifService = new NotifService();
+export const gameService = new GameService();

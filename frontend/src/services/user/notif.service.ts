@@ -5,7 +5,6 @@ import { PageInstance } from '../../types/routes.types';
 import { COMPONENT_NAMES } from '../../config/components.config';
 import { NavbarComponent } from '../../components/navbar/navbar.component';
 import { UserRowComponent } from '../../components/user-row/user-row.component';
-import { currentService, storageService } from './user.service';
 import { User } from '../../shared/models/user.model';
 import { AppNotification } from '../../shared/models/notification.model';
 import { NotifResponse } from '../../shared/types/response.types';
@@ -13,7 +12,7 @@ import { FRIEND_REQUEST_ACTIONS, FRIEND_NOTIF_CONTENT } from '../../shared/confi
 import { isValidNotificationType, isFriendRequestAction, isUserOnlineStatus } from '../../shared/utils/app.utils';
 import { getHTMLElementById } from '../../utils/dom.utils';
 import { FriendRequestAction, NotificationModel, NotificationType } from '../../shared/types/notification.types';
-import { translateService } from '../index.service';
+import { currentService, storageService, gameService, translateService } from '../index.service';
 
 // ============================================================================
 // NOTIF SERVICE
@@ -413,6 +412,10 @@ export class NotifService {
 		if (declineBtn) {
 			declineBtn.addEventListener('click', this.handleDeclineClick as (ev: Event) => void);
 		}
+		const playBtn = this.notifItem!.querySelector('button[data-action="play"]');
+		if (playBtn) {
+			playBtn.addEventListener('click', this.handlePlayClick as (ev: Event) => void);
+		}
 		const delBtn = this.notifItem!.querySelector('div.notif-del');
 		if (delBtn) {
 			const notifId = this.currentNotif!.id;
@@ -456,6 +459,10 @@ export class NotifService {
 		const declineBtn = this.notifItem!.querySelector('button[data-action="decline"]');
 		if (declineBtn) {
 			declineBtn.removeEventListener('click', this.handleDeclineClick as (ev: Event) => void);
+		}
+		const playBtn = this.notifItem!.querySelector('button[data-action="play"]');
+		if (playBtn) {
+			playBtn.removeEventListener('click', this.handlePlayClick as (ev: Event) => void);
 		}
 		const delBtn = this.notifItem!.querySelector('div.notif-del');
 		if (delBtn) {
@@ -582,6 +589,12 @@ export class NotifService {
 	}
 
 	public handleChallengeClick = async (event: Event): Promise<void> => {
+		// const type: NotificationType = FRIEND_REQUEST_ACTIONS.INVITE;
+		// const target = event.currentTarget as HTMLElement;
+		// this.setFriendId(target);
+		// this.setNotifData(type, 1);
+		// await this.handleUpdate(type);
+
 		const target = event.currentTarget as HTMLElement;
 		this.setFriendId(target);
 		const type: NotificationType = FRIEND_REQUEST_ACTIONS.INVITE;
@@ -595,13 +608,18 @@ export class NotifService {
 		await notifApi.addNotification(this.notifData!);
 	}
 
-	// public handlePlayClick = async (event: Event): Promise<void> => {
-	// 	const type: NotificationType = FRIEND_REQUEST_ACTIONS.PLAY;
-	// 	const target = event.currentTarget as HTMLElement;
-	// 	this.setFriendId(target);
-	// 	this.setNotifData(type, 1);
-	// 	await this.handleUpdate(type);
-	// }
+	public handlePlayClick = async (event: Event): Promise<void> => {
+		const type: NotificationType = FRIEND_REQUEST_ACTIONS.INVITE_ACCEPT;
+		const target = event.currentTarget as HTMLElement;
+		this.setFriendId(target);
+		this.setNotifData(type);
+		await this.handleUpdate(type);
+		try {
+			await gameService.invitePlayer(FRIEND_REQUEST_ACTIONS.INVITE_ACCEPT, this.currentUser!.id, this.friendId);
+		} catch (err) {
+			console.error(err);
+		}
+	}
 
 	// ===========================================
 	// UTILS
@@ -696,7 +714,7 @@ export class NotifService {
 				break;
 			case FRIEND_REQUEST_ACTIONS.INVITE:
 				html += `
-					<button class="btn smaller-btn" data-ts="notif.invite" data-action="invite" data-friend-id="${this.currentNotif!.from}">
+					<button class="btn smaller-btn" data-ts="notif.invite" data-action="play" data-friend-id="${this.currentNotif!.from}">
 						Play
 					</button>
 				`;
@@ -720,6 +738,8 @@ export class NotifService {
 			return 'notif.friendAccept';
 		if (content.includes(FRIEND_NOTIF_CONTENT.INVITE)) 
 			return 'notif.friendInvite';
+		if (content.includes(FRIEND_NOTIF_CONTENT.INVITE_ACCEPT)) 
+			return 'notif.friendInviteAccept';
 		return '';
 	}
 }

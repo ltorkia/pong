@@ -145,6 +145,9 @@ export function addNotifContent<T extends NotificationInput | NotificationModel>
 		case FRIEND_REQUEST_ACTIONS.INVITE:
 			notif = FRIEND_NOTIF_CONTENT.INVITE;
 			break;
+		case FRIEND_REQUEST_ACTIONS.INVITE_ACCEPT:
+			notif = FRIEND_NOTIF_CONTENT.INVITE_ACCEPT;
+			break;
 		// case FRIEND_REQUEST_ACTIONS.DELETE:
 		// 	break;
 		// case FRIEND_REQUEST_ACTIONS.BLOCK:

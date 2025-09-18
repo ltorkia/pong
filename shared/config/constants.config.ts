@@ -120,6 +120,7 @@ export const FRIEND_REQUEST_ACTIONS = {
 	UNFRIEND: 'unfriend',
 	CANCEL: 'cancel',
 	INVITE: 'invite',
+	INVITE_ACCEPT: 'invite-accept',
 } as const;
 
 /**
@@ -129,6 +130,7 @@ export const FRIEND_NOTIF_CONTENT = {
 	ADD: `has sent you a friend request.`,
 	ACCEPT: `has accepted your friend request.`,
 	INVITE: `has invited you to a game.`,
+	INVITE_ACCEPT: `has accepted your game invite.`,
 }
 
 /**
