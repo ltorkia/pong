@@ -595,6 +595,7 @@ export class NotifService {
 		this.setFriendId(target);
 		this.setNotifData(type);
 		await this.handleUpdate(type);
+		await router.navigate(`/game/multi/${this.friendId!}`);
 
 		// const target = event.target as HTMLElement;
 		// this.setFriendId(target);

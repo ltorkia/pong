@@ -32,16 +32,27 @@ export class GameMenuMulti extends GamePage {
 	protected async beforeMount(): Promise<void> {
 		if (this.isInvitationGame) {
 			if (this.currentUser!.id === this.relation.challengedBy) {
-				this.sendMatchMakingRequest("invite", undefined, this.friendId, this.currentUser!.id);
+				await this.sendMatchMakingRequest("invite", undefined, this.friendId, this.currentUser!.id);
 				this.appendWaitText();
 			} else if (this.currentUser!.id === this.relation.isChallenged) {
-				this.sendMatchMakingRequest("invite-accept", undefined, this.currentUser!.id, this.friendId);
+				await this.sendMatchMakingRequest("invite-accept", undefined, this.currentUser!.id, this.friendId);
 				this.appendWaitText();
 			} else {
 				console.error("Erreur de matchmaking dans l'invite.");
 				return;
 			}
-		}
+			this.gameType = "invite";
+		} 
+		else if (window.location.pathname === "/game/local")
+			this.gameType = "local";
+		else if (this.isPartOfTournament)
+			// TODO: la méthode pour passer this.isPartOfTournament à true est à implémenter,
+			// ? ou alors, voir avec les données du jeu si c'est pas déjà dispo quelque part.
+			// ! -> Savoir si on est dans un tournoi nous permettrait d'afficher 
+			// ! ou non le bouton "Replay" à la fin d'une partie. (voir méthode handleReplayBtnClick dans GamePage)
+			this.gameType = "tournament";
+		else
+			this.gameType = "matchmaking_request";
 	}
 
 	private appendWaitText(): void {
@@ -58,11 +69,11 @@ export class GameMenuMulti extends GamePage {
 		}
 	}
 
-	protected handleKeyDown = (event: KeyboardEvent): void => {
+	protected handleKeyDown = async (event: KeyboardEvent): Promise<void> => {
 		this.controlNodesDown = document.querySelectorAll(".control");
-		if (event.key == " " && this.isSearchingGame === false) { //TODO : creer un bouton pour lancer le jeu et replay pour sendmatchmaquingrequest pour eviter de le lancer en dehors de la page jeu
+		if (event.key == " " && this.isSearchingGame === false) {
 			this.isSearchingGame = true;                
-			this.sendMatchMakingRequest("matchmaking_request");
+			await this.sendMatchMakingRequest("matchmaking_request");
 			this.appendWaitText();
 		}
 		for (const node of this.controlNodesDown) {

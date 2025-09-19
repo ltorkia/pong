@@ -181,7 +181,8 @@
 		"resultText": "あなた ",
 		"loseMessage": "失敗！",
 		"winMessage": "勝利！",
-		"finalScore": "最終スコア:"
+		"finalScore": "最終スコア: ",
+		"replay": "再プレイ"
 	},
 
 	"tournament": {

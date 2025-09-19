@@ -64,12 +64,12 @@ export class GameMenuLocal extends GamePage {
         document.getElementById("pong-section")?.append(lobby);
     }
 
-    protected handleKeyDown = (event: KeyboardEvent): void => {
+    protected handleKeyDown = async (event: KeyboardEvent): Promise<void> => {
         event.preventDefault();
         this.controlNodesDown = document.querySelectorAll(".control");
         if (event.key == " " && this.isSearchingGame === false) { //TODO : creer un bouton pour lancer le jeu et replay pour sendmatchmaquingrequest pour eviter de le lancer en dehors de la page jeu
             this.isSearchingGame = true;          
-            this.sendMatchMakingRequest("local");
+            await this.sendMatchMakingRequest("local");
             this.appendWaitText();
         }
         for (const node of this.controlNodesDown) {

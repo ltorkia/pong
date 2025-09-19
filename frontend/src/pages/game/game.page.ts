@@ -1,11 +1,11 @@
 import { BasePage } from '../base/base.page';
 import { RouteConfig } from '../../types/routes.types';
-import { webSocketService, translateService, currentService } from '../../services/index.service';
+import { webSocketService, translateService, currentService, gameService, notifService } from '../../services/index.service';
 import { gameApi } from '../../api/game/game.api';
 import { MatchMakingReq } from '../../shared/types/websocket.types';
 import { MultiPlayerGame } from '../../components/game/BaseGame.component';
 import { SafeUserModel } from '../../../../shared/types/user.types';
-
+import { loadTemplate, getHTMLElementByClass, getHTMLElementById } from '../../utils/dom.utils';
 
 // ===========================================
 // GAME PAGE
@@ -20,6 +20,8 @@ export class GamePage extends BasePage {
 	protected adversary: SafeUserModel | undefined; 
 	protected webSocket: WebSocket | undefined;
 	protected friendId: number = 0;
+	protected gameType?: string;
+	protected isPartOfTournament: boolean = false;
 
 	protected insertNetworkError(): void {
 		const errorDiv = document.createElement("div");
@@ -50,42 +52,64 @@ export class GamePage extends BasePage {
 
 	// Les span avec attribut "data-ts" sont automatiquement traduits par le service de traduction
 	// ! Si modif du texte, penser à mettre à jour les fichiers de traduction (frontend/src/services/core/translation/*.json)
-	protected showEndGamePanel(): void {
+	protected async showEndGamePanel(): Promise<void> {
 		const panel = document.getElementById("pong-section")!;
 		panel.innerHTML = "";
 
-		const wrapper = document.createElement("div");
-		const divWinLose = document.createElement("span");
-		const divResScore = document.createElement("div");
+		let endGamePanel = await this.fetchEndGameItem();
+		if (!endGamePanel) {
+			console.error("Failed to fetch end game panel");
+			this.insertNetworkError();
+			return;
+		}
+		endGamePanel = endGamePanel.cloneNode(true) as Element;
+
+		const resMessage = getHTMLElementByClass('res-message', endGamePanel) as HTMLElement;
+		const resScore = getHTMLElementByClass('res-score', endGamePanel) as HTMLElement;
 		const spanRes = document.createElement("span");
 		const spanScore = document.createElement("span");
 		const spanAdversary = document.createElement("span");
 
 		if (this.adversary && this.finalScore[0] < this.finalScore[1]) {
-			divWinLose.setAttribute("data-ts", "game.loseMessage");
-			divWinLose.textContent = "You lose !";
-			divWinLose.classList.add("lose-message");
+			resMessage.setAttribute("data-ts", "game.loseMessage");
+			resMessage.textContent = "You lose !";
+			resMessage.classList.add("lose-message");
 		} else if (this.adversary && this.finalScore[0] > this.finalScore[1]) {
-			divWinLose.setAttribute("data-ts", "game.winMessage");
-			divWinLose.textContent = "You win !";
-			divWinLose.classList.add("win-message");
+			resMessage.setAttribute("data-ts", "game.winMessage");
+			resMessage.textContent = "You win !";
+			resMessage.classList.add("win-message");
 		}
 
 		if (this.adversary && this.finalScore[0] !== this.finalScore[1]) {
 			spanRes.setAttribute("data-ts", "game.resultText");
 			spanRes.textContent = "You ";
 		}
-		spanScore.textContent = `${this.finalScore[0]} : ${this.finalScore[1]}`;
+		spanScore.textContent = `: ${this.finalScore[0]} - ${this.finalScore[1]} :`;
 		if (this.adversary && this.finalScore[0] !== this.finalScore[1]) {
 			spanAdversary.textContent = ` ${this.adversary?.username}`;
 		}
+		resScore.append(spanRes, spanScore, spanAdversary);
 
-		wrapper.classList.add("end-game-panel");
-		divResScore.append(spanRes, spanScore, spanAdversary);
-		wrapper.append(divWinLose, divResScore);
-		panel.appendChild(wrapper);
+		const replayBtn = getHTMLElementById('replay-button', endGamePanel) as HTMLElement;
+		// Masquer le bouton replay si la partie fait partie d'un tournoi ?
+		if (this.gameType === "tournament") {
+			replayBtn.classList.add("hidden");
+		} else {
+			if (this.friendId)
+				replayBtn.setAttribute("data-friend-id", this.friendId!.toString());
+			document.addEventListener("click", this.handleReplayBtnClick);
+		}
+
+		panel.appendChild(endGamePanel);
 		translateService.updateLanguage(undefined, panel);
 		panel.classList.remove("hidden");
+	}
+
+	private async fetchEndGameItem(): Promise<Element | null> {
+		const html = await loadTemplate("/templates/game/endgame_panel.html");
+		const parser = new DOMParser();
+		const doc = parser.parseFromString(html, "text/html");
+		return doc.querySelector(".endgame-panel");
 	}
 
 	protected showTimer(time: number): void {
@@ -122,6 +146,41 @@ export class GamePage extends BasePage {
 	protected removeListeners(): void {
 		document.removeEventListener("keydown", this.handleKeyDown);
 		document.removeEventListener("keyup", this.handleKeyup);
+		document.removeEventListener("click", this.handleReplayBtnClick);
+	}
+
+	private async handleReplayBtnClick(event: MouseEvent): Promise<void> {
+		event.preventDefault();
+		console.log(this.gameType);
+		switch (this.gameType) {
+
+			// case "local":
+			// 	this.isSearchingGame = true;          
+			// 	await this.sendMatchMakingRequest("local");
+			// 	this.appendWaitText();
+			// 	break;
+
+			case "invite":
+				console.log("replay invite btn click");
+				if (!this.friendId) {
+					console.error("No friend id");
+					return;
+				}
+				try {
+					await gameService.invitePlayer("invite", this.friendId);
+				} catch (err) {
+					console.error(err);
+				}
+				await notifService.handleChallengeClick(event);
+				await this.sendMatchMakingRequest("invite", undefined, this.friendId, this.currentUser!.id);
+				break;
+
+			case "matchmaking_request":
+				console.log("replay matchmaking request btn click");
+				await this.sendMatchMakingRequest("matchmaking_request");
+				break;
+		}
+		// await this.initGame(this.currentUser!.id, this.game!.gameID);
 	}
 
 	/**
@@ -162,7 +221,7 @@ export class GamePage extends BasePage {
 				document.querySelector("canvas")?.remove();
 				// document.querySelector("#pong-section")!.remove(); //pour permettre de voir le jeu si on decide de le relancer direct avec le meme joueur
 				this.finalScore = this.game!.getScore(); //TODO = clean le final score je sais pas ou et le show en haut
-				this.showEndGamePanel();
+				await this.showEndGamePanel();
 				currentService.clearCurrentGame();
 				break;
 
@@ -184,7 +243,7 @@ export class GamePage extends BasePage {
 
 	public async cleanup(): Promise<void> {
 		super.cleanup();
-		this.sendMatchMakingRequest("clean_request", undefined, this.friendId, this.currentUser!.id);
+		await this.sendMatchMakingRequest("clean_request", undefined, this.friendId, this.currentUser!.id);
 		currentService.clearCurrentGame();
 	}
 }

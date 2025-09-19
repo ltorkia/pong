@@ -21,7 +21,6 @@ export class GameTournamentOverview extends GamePage { //changement de basepage 
     private users: UserModel[] = [];
     private winner: Player | undefined;
 
-
 	/**
 	 * Procède aux vérifications nécessaires avant le montage de la page.
 	 * Exécute les vérifications de base de la classe parente (`BasePage`).
@@ -168,7 +167,7 @@ export class GameTournamentOverview extends GamePage { //changement de basepage 
         //     throw new Error(error.error);
         // }
             // await fetch("/update_tournament_games")
-            this.sendMatchMakingRequest("tournament", this.tournamentID); // On passe par cette fonction pour lancer le tournoi et les game
+            await this.sendMatchMakingRequest("tournament", this.tournamentID); // On passe par cette fonction pour lancer le tournoi et les game
             // this.startGame(); // fonction qui fetch avec les infos en contenu des joueurs
         });
             // await this.attachPastilleListeners();
