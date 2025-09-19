@@ -64,11 +64,9 @@ export async function notificationsRoutes(app: FastifyInstance) {
 			return reply.code(404).send({ errorMessage: 'No user found'});
 
 		let notifData: NotificationInput = addNotifContent(data);
-		console.log(notifData);
 		notifData.read = data.read ?? 0;
 		const notif = await insertNotification(notifData);
 		if (!notif || "errorMessage" in notif) {
-			console.log('ON EST LAAAAAA');
 			return reply.code(500).send({ errorMessage: notif.errorMessage || 'Error inserting notification'});
 		}
 		sendToSocket(app, [ notif ]);

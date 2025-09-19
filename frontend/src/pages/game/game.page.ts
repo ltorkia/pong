@@ -136,8 +136,6 @@ export class GamePage extends BasePage {
 
 			case "start_game":
 				console.log(`game starts ! id = ${data.gameID}`);
-				console.log("message is :", data);
-				
 				this.adversary = data.otherPlayer; // TODO : possibilite de recuperer l'avatar de l autre joueur si on veut l afficher ici
 				// this.game!.clearScreen(); 
 				// document.querySelector("endgame-panel")?.remove();

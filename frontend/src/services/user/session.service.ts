@@ -81,7 +81,6 @@ export class SessionService {
 				console.log(`[${this.constructor.name}] Utilisateur localStorage trouvé, validation serveur en cours...`);
 				const validatedUser = await this.validateAndReturn(user);
 				if (validatedUser) {
-					// animationService.animateNavbarOut = true;
 					if (pageService.homebarInstance)
 						pageService.homebarInstance.destroy();
 					return validatedUser;
@@ -96,7 +95,6 @@ export class SessionService {
 			console.log(`[${this.constructor.name}] Tentative de récupération via API...`);
 			const apiUser = await authApi.getMe();
 			if (apiUser && apiUser.id) {
-				// animationService.animateNavbarOut = true;
 				if (pageService.homebarInstance)
 					pageService.homebarInstance.destroy();
 				console.log(`[${this.constructor.name}] Utilisateur chargé via API`);
@@ -107,6 +105,7 @@ export class SessionService {
 		}
 
 		console.log(`[${this.constructor.name}] Aucune méthode de restauration n'a fonctionné`);
+		currentService.clearCurrentUser();
 		return null;
 	}
 

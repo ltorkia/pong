@@ -120,6 +120,10 @@ export class WebSocketService {
 				if (isValidGameType(receivedData.type)) {
 					if (isGameMsg(receivedData.type)) {
 						const isGameInit = currentService.getGameInit();
+						console.log("message is :", receivedData);
+						console.log('isGameInit', isGameInit);
+						console.log('pageService.currentPage instanceof GamePage', pageService.currentPage instanceof GamePage);
+
 						if (!isGameInit || !pageService.currentPage || !(pageService.currentPage instanceof GamePage))
 							return;
 						await pageService.currentPage.handleGameMessage(receivedData);
