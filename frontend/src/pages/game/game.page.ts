@@ -41,7 +41,6 @@ export class GamePage extends BasePage {
 		await gameApi.matchMake(matchMakingReq);
     }
 
-
 	protected async initGame(playerID: number, gameID: number): Promise<void> {
 		const allChildren = document.getElementById("pong-section");
 		while (allChildren?.firstChild)
@@ -129,10 +128,6 @@ export class GamePage extends BasePage {
 	protected removeListeners(): void {
 		document.removeEventListener("keydown", this.handleKeyDown);
 		document.removeEventListener("keyup", this.handleKeyup);
-		this.sendMatchMakingRequest("no_matchmaking_request"); //peut etre optionnel
-		// fetch game interrupt
-		console.log("@@@@@@@@@@@@@@@@@@@ romove");
-
 	}
 
 	/**
@@ -179,6 +174,4 @@ export class GamePage extends BasePage {
 
 		// }
 	}
-
-	// Amuse-toi biiiiiiennnnnnn ! =D
 }

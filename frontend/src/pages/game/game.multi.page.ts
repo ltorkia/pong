@@ -2,12 +2,16 @@ import { BasePage } from '../base/base.page';
 import { RouteConfig, RouteParams } from '../../types/routes.types';
 import { MatchMakingReq } from '../../shared/types/websocket.types';
 import { MultiPlayerGame } from '../../components/game/BaseGame.component';
+import { Friend } from '../../shared/models/friend.model';
 import { webSocketService, translateService } from '../../services/index.service';
 import { friendApi } from '../../api/index.api';
 import { GamePage } from './game.page';
 
 export class GameMenuMulti extends GamePage {
 	private challengedFriendId?: number | RouteParams;
+	private friendId?: number;
+	private relation?: Friend;
+	private isInvitationGame: boolean = false;
 
 	constructor(config: RouteConfig, userId?: number | RouteParams) {
 		super(config);
@@ -16,24 +20,27 @@ export class GameMenuMulti extends GamePage {
 			this.challengedFriendId = userId;
 	}
 
-	protected async beforeMount(): Promise<void> {
-		if (!this.challengedFriendId)
-			return;
-
-		const friendId: number = Number(this.challengedFriendId);
-		const relation = await friendApi.getRelation(this.currentUser!.id, friendId);
-		if (!relation || "errorMessage" in relation) {
-			console.error(relation.errorMessage || "Relation introuvable.");
-			return;
+	protected async preRenderCheck(): Promise<boolean> {
+		if (!super.preRenderCheck())
+			return false;
+		if (this.challengedFriendId) {
+			this.friendId = Number(this.challengedFriendId);
+			this.relation = await friendApi.getRelation(this.currentUser!.id, this.friendId);
+			if (!this.relation || "errorMessage" in this.relation || !this.relation.waitingInvite)
+				return false;
+			this.isInvitationGame = true;
 		}
-		if (!relation.waitingInvite) {
-			if (this.currentUser!.id === relation.challengedBy) {
-				this.sendMatchMakingRequest("invite", undefined, friendId, this.currentUser!.id);
-				this.appendWaitText();
-			} else if (this.currentUser!.id === relation.isChallenged) {
-				this.sendMatchMakingRequest("invite_accept", undefined, this.currentUser!.id, friendId);
-				this.appendWaitText();
+		return true;
+	}
 
+	protected async beforeMount(): Promise<void> {
+		if (this.isInvitationGame) {
+			if (this.currentUser!.id === this.relation.challengedBy) {
+				this.sendMatchMakingRequest("invite", undefined, this.friendId, this.currentUser!.id);
+				this.appendWaitText();
+			} else if (this.currentUser!.id === this.relation.isChallenged) {
+				this.sendMatchMakingRequest("invite-accept", undefined, this.currentUser!.id, this.friendId);
+				this.appendWaitText();
 			} else {
 				console.error("Erreur de matchmaking dans l'invite.");
 				return;
@@ -44,12 +51,12 @@ export class GameMenuMulti extends GamePage {
 	private appendWaitText(): void {
 		const waitDiv: HTMLElement | null = document.getElementById("wait-div");
 		if (!waitDiv) {
+			const pongSection = document.getElementById("pong-section")!;
+			pongSection.innerHTML = "";
 			const lobby: HTMLElement = document.createElement("div");
 			lobby.setAttribute("data-ts", "game.lobbyWaiting");
 			lobby.textContent = "Waiting for other players to connect...";
 			lobby.id = "wait-div";
-			const pongSection = document.getElementById("pong-section")!;
-			pongSection.innerHTML = "";
 			pongSection.append(lobby);
 			translateService.updateLanguage(undefined, pongSection);
 		}
