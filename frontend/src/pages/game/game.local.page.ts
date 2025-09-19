@@ -48,10 +48,7 @@
 // peut se check en checkant si le joueur est tjrs dans le lobby ? ->dans ce vas, modifier le back pour que ce soit la variable qui definisse qui est dispo pour jouer et on splice quand on change de page
 // // TODO = affichage result -> le remettre au milieu ? 
 
-import { BasePage } from '../base/base.page';
 import { RouteConfig } from '../../types/routes.types';
-import { MatchMakingReq } from '../../shared/types/websocket.types';
-import { MultiPlayerGame } from '../../components/game/BaseGame.component';
 import { webSocketService } from '../../services/user/user.service';
 import { GamePage } from './game.page';
 
@@ -63,22 +60,16 @@ export class GameMenuLocal extends GamePage {
     }
 
     private appendWaitText(): void {
-        // const waitDiv: HTMLElement | null = document.getElementById("wait-div");
-        // if (!waitDiv) {
-            const lobby: HTMLElement = document.createElement("div");
-        //     lobby.textContent = "Waiting for other players to connect...";
-        //     lobby.id = "wait-div";
-            document.getElementById("pong-section")?.append(lobby);
-        // }
+        const lobby: HTMLElement = document.createElement("div");
+        document.getElementById("pong-section")?.append(lobby);
     }
 
     protected handleKeyDown = (event: KeyboardEvent): void => {
-        event.preventDefault(); //permet de skip un event par defaut supose en cas de besoin
+        event.preventDefault();
         this.controlNodesDown = document.querySelectorAll(".control");
         if (event.key == " " && this.isSearchingGame === false) { //TODO : creer un bouton pour lancer le jeu et replay pour sendmatchmaquingrequest pour eviter de le lancer en dehors de la page jeu
             this.isSearchingGame = true;          
             this.sendMatchMakingRequest("local");
-            // document.getElementById("pong-section")?.append(lobby);
             this.appendWaitText();
         }
         for (const node of this.controlNodesDown) {

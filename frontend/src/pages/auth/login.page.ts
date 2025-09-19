@@ -144,9 +144,7 @@ export class LoginPage extends BasePage {
 		event.preventDefault();
 		const formData = new FormData(this.form);
 		const data = Object.fromEntries(formData.entries()) as Record<string, string>;
-		console.log(`[${this.constructor.name}] AVANT LOGIN`);
 		const loginResult = await authService.login(data);
-		console.log(`[${this.constructor.name}] APRES LOGIN`);
 
 		// Affiche le modal 2FA seulement si login OK et 2FA activé
 		if (!loginResult || loginResult.errorMessage || loginResult.user!.active2Fa === DB_CONST.USER.ACTIVE_2FA.DISABLED) {

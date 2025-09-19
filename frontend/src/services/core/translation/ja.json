@@ -153,7 +153,8 @@
 		"friendRequest": "友達申請を送りました。",
 		"friendAccept": "友達になりました。",
 		"friendInvite": "対戦を招待しました。",
-		"friendInviteAccept": "対戦に参加しました。"
+		"friendInviteAccept": "対戦に参加しました。",
+		"friendInviteCancel": "対戦をキャンセルしました。"
 	},
 
 	"dashboard": {

@@ -1,7 +1,4 @@
-import { BasePage } from '../base/base.page';
 import { RouteConfig, RouteParams } from '../../types/routes.types';
-import { MatchMakingReq } from '../../shared/types/websocket.types';
-import { MultiPlayerGame } from '../../components/game/BaseGame.component';
 import { Friend } from '../../shared/models/friend.model';
 import { webSocketService, translateService } from '../../services/index.service';
 import { friendApi } from '../../api/index.api';
@@ -9,7 +6,6 @@ import { GamePage } from './game.page';
 
 export class GameMenuMulti extends GamePage {
 	private challengedFriendId?: number | RouteParams;
-	private friendId?: number;
 	private relation?: Friend;
 	private isInvitationGame: boolean = false;
 

@@ -11,6 +11,9 @@ import { Tournament } from '../types/game.types';
 import { FRIEND_REQUEST_ACTIONS } from '../shared/config/constants.config';
 import { JwtPayload } from '../types/user.types';
 import { updateInvitePlayer, getRelation } from '../db/friend';
+import { insertNotification } from '../db/notification';
+import { sendToSocket, addNotifContent } from '../helpers/notifications.helpers';
+import { NotificationInput } from '../types/zod/app.zod';
 
 export async function gameRoutes(app: FastifyInstance) {
 	app.post('/playgame', async (request: FastifyRequest, reply: FastifyReply) => {
@@ -69,8 +72,8 @@ export async function gameRoutes(app: FastifyInstance) {
 		//     // lancer le tournoi
 		// // } adapter la suite pour rentrer dans la logique matchmaking multi mais avec dans db tournoi 
 		}
-		if (matchMakingReq.data.type === "matchmaking_request")
-		{
+
+		if (matchMakingReq.data.type === "matchmaking_request") {
 			if (!allPlayers.find((p: Player) => p.ID == playerID))
 			{
 				allPlayers.push(new Player(playerID));
@@ -94,26 +97,23 @@ export async function gameRoutes(app: FastifyInstance) {
 				allPlayers.splice(playerIdx2, 1);
 				startGame(app, [newPlayer, playerTwo], "multi");
 			}
-		}
-		else if (matchMakingReq.data.type === "local") //jeu en local
-		{
+		} 
+		else if (matchMakingReq.data.type === "local") {
 			const playerOne = new Player(playerID);
 			const playerID2 = generateUniqueID(allPlayers);
 			const playerTwo = new Player(playerID2);
 			if (playerOne && playerTwo)
 				startGame(app, [playerOne, playerTwo], "local");
 		} 
-		else if (matchMakingReq.data.type === FRIEND_REQUEST_ACTIONS.INVITE)
-		{
+		else if (matchMakingReq.data.type === FRIEND_REQUEST_ACTIONS.INVITE) {
 			const inviterId = playerID;
 			const invitedId = matchMakingReq.data.invitedId;
 			if (!invitedId || inviterId != matchMakingReq.data.inviterId)
 				return reply.code(400).send({ error: "Invalid invite request" });
 			invitePlayer(allPlayers, inviterId, invitedId);
 			reply.code(200).send("Invite sent, waiting for acceptance");		
-		}
-		else if (matchMakingReq.data.type === FRIEND_REQUEST_ACTIONS.INVITE_ACCEPT) 
-		{
+		} 
+		else if (matchMakingReq.data.type === FRIEND_REQUEST_ACTIONS.INVITE_ACCEPT) {
 			const invitedId = playerID;
 			const inviterId = matchMakingReq.data.inviterId;
 			if (!inviterId || invitedId != matchMakingReq.data.invitedId)
@@ -133,15 +133,14 @@ export async function gameRoutes(app: FastifyInstance) {
 			startGame(app, [inviter, invited], "multi");
 			reply.code(200).send("Game started!");
 		}
-		else //si on quitte la page de matchmaking
-		{
-			// const { usersWS } = app;
-			if (allPlayers.find((p: Player) => p.ID == playerID))
-			{
-				const playerIdx1 = allPlayers.findIndex((player: Player) => player.ID == matchMakingReq.data.playerID);
-				allPlayers.splice(playerIdx1, 1);
-				console.log(`DELETED USER ID = ${matchMakingReq.data.playerID}`);
+		else {
+			await cleanInvite(app, playerID, matchMakingReq.data.inviterId, matchMakingReq.data.invitedId);
+			const playerIdx = allPlayers.findIndex((p: Player) => p.ID === playerID);
+			if (playerIdx !== -1) {
+				allPlayers.splice(playerIdx, 1);
+				console.log(`DELETED USER ID = ${playerID}`);
 			}
+			reply.code(200).send("Game cleaned up");
 		}
 	});
 }
@@ -168,6 +167,25 @@ function acceptInvite(allPlayers: Player[], inviter: Player, invited: Player) {
 	const playerIdx2 = allPlayers.findIndex((player: Player) => player.ID == invited.ID);
 	allPlayers.splice(playerIdx1, 1);
 	allPlayers.splice(playerIdx2, 1);
+}
+
+async function cleanInvite(app: FastifyInstance, playerID: number, inviterId?: number, invitedId?: number) {
+	if (inviterId && invitedId && (inviterId === playerID || invitedId === playerID)) {
+		const friendId = inviterId === playerID ? invitedId : inviterId;
+		updateInvitePlayer(friendId, playerID, true);
+
+		let notifData: NotificationInput = {
+			type: FRIEND_REQUEST_ACTIONS.INVITE_CANCEL,
+			from: playerID,
+			to: friendId,
+			read: 0
+		};
+		notifData = addNotifContent(notifData);
+		const notif = await insertNotification(notifData);
+		if (!notif || 'errorMessage' in notif)
+			return;
+		sendToSocket(app, [ notif ]);
+	}
 }
 
 async function decount(app: FastifyInstance, players: Player[], gameID: number)

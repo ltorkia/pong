@@ -738,6 +738,8 @@ export class NotifService {
 			return 'notif.friendInvite';
 		if (content.includes(FRIEND_NOTIF_CONTENT.INVITE_ACCEPT)) 
 			return 'notif.friendInviteAccept';
+		if (content.includes(FRIEND_NOTIF_CONTENT.INVITE_CANCEL)) 
+			return 'notif.friendInviteCancel';
 		return '';
 	}
 }

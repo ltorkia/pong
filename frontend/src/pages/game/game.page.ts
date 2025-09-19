@@ -4,9 +4,7 @@ import { webSocketService, translateService, currentService } from '../../servic
 import { gameApi } from '../../api/game/game.api';
 import { MatchMakingReq } from '../../shared/types/websocket.types';
 import { MultiPlayerGame } from '../../components/game/BaseGame.component';
-import { Player } from '../../../../shared/types/game.types';
 import { SafeUserModel } from '../../../../shared/types/user.types';
-import { Tournament } from 'src/types/game.types';
 
 
 // ===========================================
@@ -21,6 +19,7 @@ export class GamePage extends BasePage {
 	protected isSearchingGame: boolean = false;
 	protected adversary: SafeUserModel | undefined; 
 	protected webSocket: WebSocket | undefined;
+	protected friendId: number = 0;
 
 	protected insertNetworkError(): void {
 		const errorDiv = document.createElement("div");
@@ -112,10 +111,6 @@ export class GamePage extends BasePage {
 		super(config);
 		this.webSocket = webSocketService.getWebSocket();
 	}
-	
-	protected async mount(): Promise<void> {
-		// this.initGame();
-	}
 
 	protected handleKeyDown = (event: KeyboardEvent): void => {};
 	protected handleKeyup = (event: KeyboardEvent): void => {};
@@ -173,5 +168,10 @@ export class GamePage extends BasePage {
 			// fetch post db changement jeu statut
 
 		// }
+	}
+
+	public async cleanup(): Promise<void> {
+		super.cleanup();
+		this.sendMatchMakingRequest("no_matchmaking_request", undefined, this.friendId, this.currentUser!.id);
 	}
 }

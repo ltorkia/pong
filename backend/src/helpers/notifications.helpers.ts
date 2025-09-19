@@ -2,7 +2,6 @@ import { FastifyInstance } from 'fastify';
 import { UserWS } from '../types/user.types';
 import { NotificationModel, UserOnlineStatus } from '../shared/types/notification.types';
 import { FRIEND_REQUEST_ACTIONS, FRIEND_NOTIF_CONTENT } from '../shared/config/constants.config';
-import { getUser } from '../db/user';
 import { NotificationInput } from '../types/zod/app.zod';
 import { getTwinNotifications, updateNotification, deleteNotification } from '../db/notification';
 import { isValidNotificationType } from '../shared/utils/app.utils';
@@ -148,10 +147,9 @@ export function addNotifContent<T extends NotificationInput | NotificationModel>
 		case FRIEND_REQUEST_ACTIONS.INVITE_ACCEPT:
 			notif = FRIEND_NOTIF_CONTENT.INVITE_ACCEPT;
 			break;
-		// case FRIEND_REQUEST_ACTIONS.DELETE:
-		// 	break;
-		// case FRIEND_REQUEST_ACTIONS.BLOCK:
-		// 	break;
+		case FRIEND_REQUEST_ACTIONS.INVITE_CANCEL:
+			notif = FRIEND_NOTIF_CONTENT.INVITE_CANCEL;
+			break;
 		default:
 			notifData.content = '';
 			return notifData;

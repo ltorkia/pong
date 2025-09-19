@@ -122,6 +122,7 @@ export const FRIEND_REQUEST_ACTIONS = {
 	CANCEL: 'cancel',
 	INVITE: 'invite',
 	INVITE_ACCEPT: 'invite-accept',
+	INVITE_CANCEL: 'invite-cancel',
 } as const;
 
 /**
@@ -132,6 +133,7 @@ export const FRIEND_NOTIF_CONTENT = {
 	ACCEPT: `has accepted your friend request.`,
 	INVITE: `has invited you to a game.`,
 	INVITE_ACCEPT: `has accepted your game invite.`,
+	INVITE_CANCEL: `has cancelled game invite.`,
 }
 
 /**
@@ -153,6 +155,7 @@ export const GAME_TYPE_MSG = {
 	DECOUNT_GAME: 'decount_game',
 	GAMEDATA: "GameData",
 	END: 'end',
+	MSG: 'msg',
 }
 
 export const TOURNAMENT_TYPE_MSG = {

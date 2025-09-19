@@ -154,7 +154,8 @@
 		"friendRequest": "has sent you a friend request.",
 		"friendAccept": "has accepted your friend request.",
 		"friendInvite": "has invited you to a game.",
-		"friendInviteAccept": "has accepted your game invite."
+		"friendInviteAccept": "has accepted your game invite.",
+		"friendInviteCancel": "has cancelled game invite."
 	},
 
 	"dashboard": {
