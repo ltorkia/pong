@@ -45,7 +45,6 @@ export class GamePage extends BasePage {
 		while (allChildren?.firstChild)
 			allChildren.firstChild.remove();
 		this.game = new MultiPlayerGame(2, playerID, gameID);
-		currentService.setCurrentGame(this.game);
 		await this.game.initGame();
 	}
 
@@ -133,45 +132,61 @@ export class GamePage extends BasePage {
 	 * @returns La promesse qui se résout lorsque le gestionnaire d'événement a fini de traiter les informations.
 	 */
 	public async handleGameMessage(data: any): Promise<void> {
-		if (data.type == "start_game") {
-			console.log(`game starts ! id = ${data.gameID}`);
-			console.log("message is :", data);
-			
-			this.adversary = data.otherPlayer; // TODO : possibilite de recuperer l'avatar de l autre joueur si on veut l afficher ici
-			// this.game!.clearScreen(); 
-			// document.querySelector("endgame-panel")?.remove();
-			// this
-			this.gameStarted = true;
-		}
-		else if (data.type == "decount_game") 
-		{
-			this.showTimer(data.message);
-			if (data.message == 0)
-				await this.initGame(this.currentUser!.id, data.gameID);
-		} else if (data.type == "end" && this.gameStarted) {
-			this.game!.gameStarted = false;
-			this.isSearchingGame = false;
-			this.game!.setScore(data.score);
-			console.log("END GAME DETECTED")
-			this.game!.clearScreen();
-			document.querySelector("canvas")?.remove();
-			// document.querySelector("#pong-section")!.remove(); //pour permettre de voir le jeu si on decide de le relancer direct avec le meme joueur
-			this.finalScore = this.game!.getScore(); //TODO = clean le final score je sais pas ou et le show en haut
-			this.showEndGamePanel();
-		} else if (data.type == "GameData") {
-			this.game!.registerGameData(data);
-			this.game!.setScore(data.score);
-		} else if (data.type == "msg")
-			console.log(data.msg);
-		// else if (data.type == "hasQuit")
-		// {
-			// fetch post db changement jeu statut
+		switch (data.type) {
 
-		// }
+			case "start_game":
+				console.log(`game starts ! id = ${data.gameID}`);
+				console.log("message is :", data);
+				
+				this.adversary = data.otherPlayer; // TODO : possibilite de recuperer l'avatar de l autre joueur si on veut l afficher ici
+				// this.game!.clearScreen(); 
+				// document.querySelector("endgame-panel")?.remove();
+				// this
+				this.gameStarted = true;
+				break;
+
+			case "decount_game":
+				this.showTimer(data.message);
+				if (data.message == 0) {
+					await this.initGame(this.currentUser!.id, data.gameID);
+					currentService.setGameRunning(true);
+				}
+				break;
+
+			case "end":
+				if (!this.gameStarted)
+					return;
+				this.game!.gameStarted = false;
+				this.isSearchingGame = false;
+				this.game!.setScore(data.score);
+				console.log("END GAME DETECTED")
+				this.game!.clearScreen();
+				document.querySelector("canvas")?.remove();
+				// document.querySelector("#pong-section")!.remove(); //pour permettre de voir le jeu si on decide de le relancer direct avec le meme joueur
+				this.finalScore = this.game!.getScore(); //TODO = clean le final score je sais pas ou et le show en haut
+				this.showEndGamePanel();
+				currentService.clearCurrentGame();
+				break;
+
+			case "game_data":
+				this.game!.registerGameData(data);
+				this.game!.setScore(data.score);
+				break;
+
+			case "msg":
+				console.log(data.msg);
+				break;
+
+			default:
+				// Si le jeu est quitté ? Exemple: data.type == "hasQuit" ?
+				// fetch post db changement jeu statut
+				// currentService.clearCurrentGame();
+		}
 	}
 
 	public async cleanup(): Promise<void> {
 		super.cleanup();
 		this.sendMatchMakingRequest("clean_request", undefined, this.friendId, this.currentUser!.id);
+		currentService.clearCurrentGame();
 	}
 }

@@ -15,6 +15,8 @@ import { MultiPlayerGame } from '../../components/game/BaseGame.component';
 export class CurrentService {
 	private currentUser: User | null = null;
 	private currentGame: MultiPlayerGame | null = null;
+	private isGameInit: boolean = false;
+	private isGameRunning: boolean = false;
 
 	// -------------------------------
 	// USER
@@ -163,6 +165,18 @@ export class CurrentService {
 	// ONLINE GAME
 	// -------------------------------
 
+	public setGameInit(isInit: boolean = false) {
+		this.isGameInit = isInit;
+	}
+	public getGameInit(): boolean {
+		return this.isGameInit;
+	}
+	public setGameRunning(isRunning: boolean = false) {
+		this.isGameRunning = isRunning;
+	}
+	public getGameRunning(): boolean {
+		return this.isGameRunning;
+	}
 	public setCurrentGame(game: MultiPlayerGame) {
 		this.currentGame = game;
 	}
@@ -170,6 +184,8 @@ export class CurrentService {
 		return this.currentGame;
 	}
 	public clearCurrentGame() {
+		this.isGameInit = false;
+		this.isGameRunning = false;
 		this.currentGame = null;
 	}
 }

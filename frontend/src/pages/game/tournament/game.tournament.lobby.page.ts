@@ -317,16 +317,27 @@ export class GameTournamentLobby extends BasePage {
 	 * @returns La promesse qui se résout lorsque le gestionnaire d'événement a fini de traiter les informations.
 	 */
     public async handleTournamentMessage(data: any): Promise<void> {
-        if (data.type == "tournament_lobby_update" && data.tournamentID == this.tournamentID) {
-            this.checkPlayersDifference(data.players);
-            this.tournament!.players = data.players;
-        } else if (data.type == "dismantle_signal") {
-            this.handleRedirectModal();
-        } else if (data.type == "start_tournament_signal")
-        {
-            await router.navigate(`/game/tournaments/:${this.tournamentID}/overview`)
-            // fetch appel a la db pour stocker le tournoi avec les joueurs ?
-            // + choper ce qu il y a en lobby ? 
+        switch (data.type) {
+
+            case "tournament_lobby_update":
+                if (data.tournamentID != this.tournamentID)
+                    return;
+                this.checkPlayersDifference(data.players);
+                this.tournament!.players = data.players;
+                break;
+
+            case "dismantle_signal":
+                this.handleRedirectModal();
+                break;
+
+            case "start_tournament_signal":
+                await router.navigate(`/game/tournaments/:${this.tournamentID}/overview`)
+                // fetch appel a la db pour stocker le tournoi avec les joueurs ?
+                // + choper ce qu il y a en lobby ?
+                break;
+            
+            default:
+                console.error("Message type inconnu: ", data.type);
         }
     }
 }

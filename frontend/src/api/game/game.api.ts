@@ -1,5 +1,6 @@
 import { secureFetch } from "../../utils/app.utils";
 import { MatchMakingReq } from '../../shared/types/websocket.types';
+import { currentService } from "../../services/index.service";
 import { TournamentAPI } from "./tournament.api";
 
 export const TournamentService = new TournamentAPI();
@@ -25,6 +26,7 @@ class GameAPI {
 			const error = await res.json();
 			throw new Error(error.error);
 		}
+		currentService.setGameInit(true);
 	}
 
 }

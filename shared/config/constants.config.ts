@@ -155,6 +155,7 @@ export const GAME_TYPE_MSG = {
 	DECOUNT_GAME: 'decount_game',
 	GAMEDATA: "GameData",
 	END: 'end',
+	CLEAN_REQUEST: 'clean_request',
 	MSG: 'msg',
 }
 

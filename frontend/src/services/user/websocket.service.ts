@@ -1,6 +1,8 @@
-import { notifService, pageService } from '../index.service';
+import { notifService, pageService, currentService } from '../index.service';
 import { AppNotification } from '../../shared/models/notification.model';
 import type { NotificationModel } from '../../shared/types/notification.types';
+import { GamePage } from '../../pages/game/game.page';
+import { GameTournamentLobby } from '../../pages/game/tournament/game.tournament.lobby.page';
 import { isNotificationModel, isValidGameType, isGameMsg, isTournamentMsg } from '../../shared/utils/app.utils';
 
 export class WebSocketService {
@@ -101,7 +103,7 @@ export class WebSocketService {
 		 * Événement déclenché lors de la réception d'un message WebSocket,
 		 * pour traiter les notifications et les messages liés aux jeux.
 		 */
-		this.webSocket.addEventListener("message", async (event) => {
+		this.webSocket.onmessage = async (event: MessageEvent) => {
 			try {
 				const receivedData = JSON.parse(event.data);
 
@@ -117,23 +119,20 @@ export class WebSocketService {
 				// GAME MSG
 				if (isValidGameType(receivedData.type)) {
 					if (isGameMsg(receivedData.type)) {
-						if (!pageService.currentPage || typeof pageService.currentPage.handleGameMessage !== "function") {
-							console.error("Aucune page de jeu actuellement ouverte.");
+						const isGameInit = currentService.getGameInit();
+						if (!isGameInit || !pageService.currentPage || !(pageService.currentPage instanceof GamePage))
 							return;
-						}
 						await pageService.currentPage.handleGameMessage(receivedData);
 					} else if (isTournamentMsg(receivedData.type)) {
-						if (!pageService.currentPage || typeof pageService.currentPage.handleTournamentMessage !== "function") {
-							console.error("Aucune page de tournoi actuellement ouverte.");
+						if (!pageService.currentPage || !(pageService.currentPage instanceof GameTournamentLobby))
 							return;
-						}
 						await pageService.currentPage.handleTournamentMessage(receivedData);
 					}
 				}
 			} catch (error) {
 				console.error("Erreur lors du traitement du message WebSocket:", error);
 			}
-		});
+		};
 
 		this.webSocket.onclose = () => {
 			console.log("WebSocket fermé");

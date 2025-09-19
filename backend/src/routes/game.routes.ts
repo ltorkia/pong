@@ -138,9 +138,11 @@ export async function gameRoutes(app: FastifyInstance) {
 		}
 		else {
 
-			// CLEANING A LA DESTRUCTION DE LA PAGE GAME
+			// CLEANING A LA DESTRUCTION DE LA PAGE GAME 
+			// (pour l'instant on tombe là quand matchMakingReq.data.type === 'clean_request')
 			// à potentiellement déplacer dans une fonction à part dédiée et plus complète
-			// à rappeler dans tous les cas de figure où un game est terminé / cancel
+			// et à rappeler dans tous les cas de figure où un game est 
+			// terminé / cancel ou qu'on quitte la page abruptement ?
 			await cleanInvite(app, playerID, matchMakingReq.data.inviterId, matchMakingReq.data.invitedId);
 			const playerIdx = allPlayers.findIndex((p: Player) => p.ID === playerID);
 			if (playerIdx !== -1) {
@@ -177,7 +179,7 @@ function acceptInvite(allPlayers: Player[], inviter: Player, invited: Player) {
 }
 
 async function cleanInvite(app: FastifyInstance, playerID: number, inviterId?: number, invitedId?: number) {
-	if (inviterId && invitedId && (inviterId === playerID || invitedId === playerID)) {
+	if (inviterId && invitedId && inviterId === playerID) {
 		const friendId = inviterId === playerID ? invitedId : inviterId;
 		updateInvitePlayer(friendId, playerID, true);
 
