@@ -172,6 +172,6 @@ export class GamePage extends BasePage {
 
 	public async cleanup(): Promise<void> {
 		super.cleanup();
-		this.sendMatchMakingRequest("no_matchmaking_request", undefined, this.friendId, this.currentUser!.id);
+		this.sendMatchMakingRequest("clean_request", undefined, this.friendId, this.currentUser!.id);
 	}
 }

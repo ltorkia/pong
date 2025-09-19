@@ -108,7 +108,6 @@ export async function resultGame(gameId: number, winnerId: number, looserId: num
 
 }
 
-
 export async function cancelledGame(gameId: number, winnerId: number, looserId: number, score: number[]){
     const db = await getDb();
     const minScore = Math.min(score[0], score[1]);
