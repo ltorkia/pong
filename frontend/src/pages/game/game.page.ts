@@ -166,7 +166,7 @@ export class GamePage extends BasePage {
 				currentService.clearCurrentGame();
 				break;
 
-			case "game_data":
+			case "GameData":
 				this.game!.registerGameData(data);
 				this.game!.setScore(data.score);
 				break;

@@ -106,6 +106,8 @@ export class WebSocketService {
 		this.webSocket.onmessage = async (event: MessageEvent) => {
 			try {
 				const receivedData = JSON.parse(event.data);
+				if (!receivedData)
+					return;
 
 				// NOTIFICATIONS MSG
 				if (Array.isArray(receivedData) && receivedData.every(isNotificationModel)) {
@@ -120,10 +122,6 @@ export class WebSocketService {
 				if (isValidGameType(receivedData.type)) {
 					if (isGameMsg(receivedData.type)) {
 						const isGameInit = currentService.getGameInit();
-						console.log("message is :", receivedData);
-						console.log('isGameInit', isGameInit);
-						console.log('pageService.currentPage instanceof GamePage', pageService.currentPage instanceof GamePage);
-
 						if (!isGameInit || !pageService.currentPage || !(pageService.currentPage instanceof GamePage))
 							return;
 						await pageService.currentPage.handleGameMessage(receivedData);

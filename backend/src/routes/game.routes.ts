@@ -181,8 +181,11 @@ function acceptInvite(allPlayers: Player[], inviter: Player, invited: Player) {
 async function cleanInvite(app: FastifyInstance, playerID: number, inviterId?: number, invitedId?: number) {
 	if (inviterId && invitedId && inviterId === playerID) {
 		const friendId = inviterId === playerID ? invitedId : inviterId;
-		updateInvitePlayer(friendId, playerID, true);
+		const relation = await getRelation(invitedId, inviterId);
+		if (!relation || !relation.waitingInvite)
+			return;
 
+		updateInvitePlayer(friendId, playerID, true);
 		let notifData: NotificationInput = {
 			type: FRIEND_REQUEST_ACTIONS.INVITE_CANCEL,
 			from: playerID,
