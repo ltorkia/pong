@@ -137,6 +137,7 @@ export async function friendsRoutes(app: FastifyInstance) {
 				relation = await updateFriendChallenged(friendId, jwtUser.id);
 				break;
 			case FRIEND_REQUEST_ACTIONS.INVITE_ACCEPT:
+			case FRIEND_REQUEST_ACTIONS.INVITE_CANCEL:
 				relation = await updateFriendChallenged(0, jwtUser.id);
 				break;
 		}

@@ -110,6 +110,11 @@ export async function gameRoutes(app: FastifyInstance) {
 			const invitedId = matchMakingReq.data.invitedId;
 			if (!invitedId || inviterId != matchMakingReq.data.inviterId)
 				return reply.code(400).send({ error: "Invalid invite request" });
+			const relation = await getRelation(invitedId, inviterId);
+			if (!relation)
+				return reply.code(404).send({ errorMessage: 'No relation found'});
+			if (relation.blockedBy)
+				return reply.code(400).send({ errorMessage: 'Relation blocked'});
 			invitePlayer(allPlayers, inviterId, invitedId);
 			reply.code(200).send("Invite sent, waiting for acceptance");		
 		} 
@@ -122,18 +127,20 @@ export async function gameRoutes(app: FastifyInstance) {
 			if (!invited)
 				return reply.code(404).send({ error: "Player not found" });
 			const relation = await getRelation(invitedId, inviterId);
-			if (!relation) {
+			if (!relation)
 				return reply.code(404).send({ errorMessage: 'No relation found'});
-			}
 			const inviter = allPlayers.find((p: Player) => p.ID == inviterId);
-			if (!inviter || !relation.waitingInvite || relation.challengedBy !== inviter.ID || relation.isChallenged !== invited.ID) {
+			if (!inviter || !relation.waitingInvite || relation.challengedBy !== inviter.ID || relation.isChallenged !== invited.ID)
 				return reply.code(400).send({ error: "Invalid invitation" });
-			}
 			acceptInvite(allPlayers, inviter, invited);
 			startGame(app, [inviter, invited], "multi");
 			reply.code(200).send("Game started!");
 		}
 		else {
+
+			// CLEANING A LA DESTRUCTION DE LA PAGE GAME
+			// à potentiellement déplacer dans une fonction à part dédiée et plus complète
+			// à rappeler dans tous les cas de figure où un game est terminé / cancel
 			await cleanInvite(app, playerID, matchMakingReq.data.inviterId, matchMakingReq.data.invitedId);
 			const playerIdx = allPlayers.findIndex((p: Player) => p.ID === playerID);
 			if (playerIdx !== -1) {
