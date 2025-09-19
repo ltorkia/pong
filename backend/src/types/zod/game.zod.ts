@@ -61,5 +61,6 @@ export const MatchMakingReqSchema = z.object({
     playerID: z.number(),
     tournamentID: z.number().optional(),
     invitedId: z.number().optional(),
+    inviterId: z.number().optional(),
 });
  

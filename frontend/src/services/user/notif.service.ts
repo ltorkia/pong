@@ -12,7 +12,8 @@ import { FRIEND_REQUEST_ACTIONS, FRIEND_NOTIF_CONTENT } from '../../shared/confi
 import { isValidNotificationType, isFriendRequestAction, isUserOnlineStatus } from '../../shared/utils/app.utils';
 import { getHTMLElementById } from '../../utils/dom.utils';
 import { FriendRequestAction, NotificationModel, NotificationType } from '../../shared/types/notification.types';
-import { currentService, storageService, gameService, translateService } from '../index.service';
+import { currentService, storageService, translateService } from '../index.service';
+import { router } from '../../router/router';
 
 // ============================================================================
 // NOTIF SERVICE
@@ -614,11 +615,7 @@ export class NotifService {
 		this.setFriendId(target);
 		this.setNotifData(type);
 		await this.handleUpdate(type);
-		try {
-			await gameService.invitePlayer(FRIEND_REQUEST_ACTIONS.INVITE_ACCEPT, this.friendId!);
-		} catch (err) {
-			console.error(err);
-		}
+		await router.navigate(`/game/multi/${this.friendId!}`);
 	}
 
 	// ===========================================

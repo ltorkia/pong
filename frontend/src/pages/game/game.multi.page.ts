@@ -1,21 +1,43 @@
 import { BasePage } from '../base/base.page';
-import { RouteConfig } from '../../types/routes.types';
+import { RouteConfig, RouteParams } from '../../types/routes.types';
 import { MatchMakingReq } from '../../shared/types/websocket.types';
 import { MultiPlayerGame } from '../../components/game/BaseGame.component';
 import { webSocketService, translateService } from '../../services/index.service';
+import { friendApi } from '../../api/index.api';
 import { GamePage } from './game.page';
 
 export class GameMenuMulti extends GamePage {
+	private challengedFriendId?: number | RouteParams;
 
-	constructor(config: RouteConfig) {
+	constructor(config: RouteConfig, userId?: number | RouteParams) {
 		super(config);
 		this.webSocket = webSocketService.getWebSocket();
+		if (userId)
+			this.challengedFriendId = userId;
 	}
 
 	protected async beforeMount(): Promise<void> {
-		if (this.currentUser!.invitedPlayerId) {
-			this.sendMatchMakingRequest("invite", undefined, this.currentUser!.invitedPlayerId);
-			this.appendWaitText();
+		if (!this.challengedFriendId)
+			return;
+
+		const friendId: number = Number(this.challengedFriendId);
+		const relation = await friendApi.getRelation(this.currentUser!.id, friendId);
+		if (!relation || "errorMessage" in relation) {
+			console.error(relation.errorMessage || "Relation introuvable.");
+			return;
+		}
+		if (!relation.waitingInvite) {
+			if (this.currentUser!.id === relation.challengedBy) {
+				this.sendMatchMakingRequest("invite", undefined, friendId, this.currentUser!.id);
+				this.appendWaitText();
+			} else if (this.currentUser!.id === relation.isChallenged) {
+				this.sendMatchMakingRequest("invite_accept", undefined, this.currentUser!.id, friendId);
+				this.appendWaitText();
+
+			} else {
+				console.error("Erreur de matchmaking dans l'invite.");
+				return;
+			}
 		}
 	}
 

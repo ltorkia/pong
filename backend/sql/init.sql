@@ -14,7 +14,6 @@ CREATE TABLE IF NOT EXISTS User (
 	game_loose INTEGER DEFAULT 0,
 	time_played INTEGER DEFAULT 0,
 	n_friends INTEGER DEFAULT 0,
-	invited_player_id INTEGER DEFAULT 0,
 	status TEXT DEFAULT 'offline' CHECK (status IN ('online', 'offline', 'in-game')),
 	is_desactivated INTEGER DEFAULT 0 CHECK (is_desactivated IN (0, 1)),
 	register_from TEXT DEFAULT 'local' CHECK (register_from IN ('local', 'google')),
@@ -44,7 +43,9 @@ CREATE TABLE IF NOT EXISTS Friends (
 	requester_id INTEGER NOT NULL,												-- user qui a fait la demande d'ami
 	friend_status TEXT DEFAULT 'pending' CHECK (friend_status IN ('pending', 'accepted', 'blocked')),	-- pour checker le status, oui, non, en attente
 	blocked_by INTEGER DEFAULT 0,
+	waiting_invite INTEGER DEFAULT 0 CHECK (waiting_invite IN (0, 1)),
 	challenged_by INTEGER DEFAULT 0,
+	is_challenged INTEGER DEFAULT 0,
 	meet_date DATETIME DEFAULT CURRENT_TIMESTAMP,
 	FOREIGN KEY (user1_id) REFERENCES User(id) ON DELETE CASCADE,
 	FOREIGN KEY (user2_id) REFERENCES User(id) ON DELETE CASCADE,

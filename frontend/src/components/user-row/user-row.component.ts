@@ -352,7 +352,6 @@ export class UserRowComponent extends BaseComponent {
 	private challengeClick = async (event: Event): Promise<void> => {
 		event.preventDefault();
 		if (!this.friend || !this.friend.isOnline()) {
-			// Notifier message erreur -> ami hors ligne ou inexistant
 			return;
 		}
 		if (!this.friend.challengedBy) {
@@ -363,7 +362,7 @@ export class UserRowComponent extends BaseComponent {
 			}
 			await notifService.handleChallengeClick(event);
 			console.log(`Challenge request sent to ${this.user!.username}`);
-			await router.navigate("/game/multi");
+			await router.navigate(`/game/multi/${this.friend.id}`);
 		}
 		else if (this.friend.challengedBy === this.friend.id) {
 			await notifService.handlePlayClick(event);

@@ -5,7 +5,7 @@ import { FRIEND_REQUEST_ACTIONS } from '../shared/config/constants.config';
 import { getUser } from '../db/user';
 import { UserModel } from '../shared/types/user.types';
 import { FriendModel } from '../shared/types/friend.types';	// en rouge car dossier local 'shared' != dossier conteneur
-import { getRelation, getUserFriends, getAllRelations } from '../db/friend'
+import { getRelation, getUserFriends, getAllRelations, getUserFriendStats } from '../db/friend'
 import { addUserFriend, updateRelationshipConfirmed, updateRelationshipBlocked, updateFriendChallenged, updateRelationshipDelete } from '../db/friend'
 import { FriendResponse } from '../shared/types/response.types';
 
@@ -59,7 +59,24 @@ export async function friendsRoutes(app: FastifyInstance) {
 		if (userId != jwtUser.id)
 			return reply.status(403).send({ errorMessage: 'Forbidden' });
 
-		const friend: FriendModel = await getRelation(userId, friendId);
+		const friend: FriendModel = await getRelation(friendId, userId);
+		if (!friend)
+			return reply.code(404).send({ errorMessage : 'No user found'});
+		return reply.status(200).send({ user: friend });
+	})
+
+	app.get('/:userId/:friendId/stats', async(request: FastifyRequest, reply: FastifyReply): Promise<FriendResponse> => {
+		let { userId, friendId } = request.params as { userId: number; friendId: number };
+		userId = Number(userId), friendId = Number(friendId);
+		if (!Number.isInteger(userId) || userId <= 0
+			|| !Number.isInteger(friendId) || friendId <= 0) {
+			return reply.status(403).send({ errorMessage: 'Forbidden' });
+		}
+		const jwtUser = request.user as JwtPayload;
+		if (userId != jwtUser.id)
+			return reply.status(403).send({ errorMessage: 'Forbidden' });
+
+		const friend: FriendModel = await getUserFriendStats(friendId, userId);
 		if (!friend)
 			return reply.code(404).send({ errorMessage : 'No user found'});
 		return reply.status(200).send({ user: friend });
@@ -80,7 +97,7 @@ export async function friendsRoutes(app: FastifyInstance) {
 		if (!friend)
 			return reply.code(404).send({ errorMessage: 'No user found'});
 
-		const relation: FriendModel = await getRelation(jwtUser.id, data.id);
+		const relation: FriendModel = await getRelation(data.id, jwtUser.id);
 		if (relation)
 			return reply.code(404).send({ errorMessage: 'Already friends'});
 
@@ -100,7 +117,7 @@ export async function friendsRoutes(app: FastifyInstance) {
 			return reply.status(400).send(friendDataCheck);
 
 		const data = friendDataCheck as FriendActionInput;
-		let relation: FriendModel = await getRelation(jwtUser.id, friendId);
+		let relation: FriendModel = await getRelation(friendId, jwtUser.id);
 		if (!relation)
 			return reply.code(404).send({ errorMessage: 'No relation found'});
 		if (!isFriendRequestValid(data, relation.friendStatus))
@@ -139,7 +156,7 @@ export async function friendsRoutes(app: FastifyInstance) {
 			return reply.status(400).send({ errorMessage: 'Invalid action' });
 
 		const action = actionCheck.data as FriendActionInput;
-		let relation: FriendModel = await getRelation(jwtUser.id, friendId);
+		let relation: FriendModel = await getRelation(friendId, jwtUser.id);
 		if (!relation)
 			return reply.code(404).send({ errorMessage: 'No relation found'});
 		if (!isFriendRequestValid(action, relation.friendStatus))
@@ -176,7 +193,7 @@ export async function friendsRoutes(app: FastifyInstance) {
 // 		if (id1 !== jwtUser.id)
 // 			return reply.status(403).send({ errorMessage: 'Forbidden' });
 // 		const { id2 } = request.params as { id2: number };		//check si id2 = ami ? -> non car doit recevoir a posteriori si blocke aussi ? 
-// 		const friend = await getRelation(id1, id2) as FriendModel;
+// 		const friend = await getRelation(id2, id1) as FriendModel;
 		
 // 		if (friend.friendStatus === 'accepted')
 // 			await addMessageToChat(id1, id2, request.body);

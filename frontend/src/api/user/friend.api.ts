@@ -1,3 +1,4 @@
+import { currentService } from '../../services/index.service';
 import { Friend } from '../../shared/models/friend.model';
 import { AppNotification } from '../../shared/models/notification.model';
 import { FriendModel } from '../../shared/types/friend.types';	// en rouge car dossier local 'shared' != dossier conteneur
@@ -39,6 +40,37 @@ export class FriendApi {
 		}
 		const data: FriendModel[] = await res.json();
 		return Friend.fromJSONArray(data) as Friend[];
+	}
+
+	/**
+	 * Récupère la relation entre deux utilisateurs.
+	 *
+	 * Envoie une requête GET à la route API `/api/friends/:userId/:friendId` pour récupérer
+	 * la relation entre l'utilisateur d'identifiant `userId` et l'utilisateur d'identifiant `friendId`.
+	 *
+	 * Si la requête réussit, renvoie un objet contenant les informations de la relation
+	 * entre les deux utilisateurs, stockées en base de données, sans email (type `Friend`).
+	 * Sinon, renvoie un objet contenant un message d'erreur.
+	 *
+	 * @param {number} userId - Identifiant de l'utilisateur pour lequel récupérer la relation.
+	 * @param {number} friendId - Identifiant de l'utilisateur avec qui récupérer la relation.
+	 * @returns {Promise<Friend | { errorMessage: string }>} - Promesse qui se résout
+	 * avec un objet contenant les informations de la relation ou un message d'erreur.
+	 */
+	public async getRelation(userId: number, friendId: number): Promise<Friend | { errorMessage: string }> {
+		try {
+			const res: Response = await secureFetch(`/api/friends/${userId}/${friendId}`, {
+				method: "GET"
+			});
+			const data = await res.json();
+			if (!res.ok || 'errorMessage' in data || !data.user) {
+				return { errorMessage: data.errorMessage || data.message || "Erreur inconnue" };
+			}
+			return Friend.fromJSON(data.user) as Friend;
+		} catch (err) {
+			console.error("Erreur dans getRelation:", err);
+			return { errorMessage: "Erreur réseau ou serveur" };
+		}
 	}
 
 	/**

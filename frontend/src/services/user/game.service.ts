@@ -25,7 +25,8 @@ export class GameService {
 			type: type,
 			playerID: currentUser!.id,
 			tournamentID: tournamentID,
-			invitedId: invitedId
+			invitedId: invitedId,
+			inviterId: currentUser!.id
 		}
 		await gameApi.matchMake(matchMakingReq);
 	}

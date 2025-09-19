@@ -21,7 +21,7 @@ export async function getUserFriends(userId: number): Promise<FriendModel[]> {
 	const db = await getDb();
 	const friends = await db.all(`
 		SELECT u.id, u.username, u.avatar, u.begin_log, u.end_log, u.status,
-		f.requester_id, f.friend_status, f.blocked_by, f.challenged_by, f.meet_date
+		f.requester_id, f.friend_status, f.blocked_by, f.challenged_by, f.is_challenged, f.waiting_invite, f.meet_date
 		FROM Friends f
 		JOIN User u ON (
 			(f.user1_id = ? AND f.user2_id = u.id)
@@ -36,22 +36,19 @@ export async function getUserFriends(userId: number): Promise<FriendModel[]> {
 
 /**
  * Cette fonction récupère les informations sur la relation entre deux utilisateurs dans la table Friends.
- * @param {number} userId1 - Identifiant du premier utilisateur.
- * @param {number} userId2 - Identifiant du second utilisateur.
+ * @param {number} userId1 - Identifiant du friend.
+ * @param {number} userId2 - Identifiant du current user.
  * @returns {Promise<FriendModel>} - Promesse qui se résout avec les informations sur la relation entre les deux utilisateurs.
  */
 export async function getRelation(userId1: number, userId2: number): Promise<FriendModel> {
 	const db = await getDb();
 	const relation = await db.get(`
 		SELECT u.id, u.username, u.avatar, u.begin_log, u.end_log, u.status,
-			f.requester_id, f.friend_status, f.blocked_by, f.challenged_by, f.meet_date
+		       f.requester_id, f.friend_status, f.blocked_by, f.challenged_by, f.is_challenged, f.waiting_invite, f.meet_date
 		FROM Friends f
-		JOIN User u ON (
-			(f.user1_id = u.id OR f.user2_id = u.id)
-			AND u.id != ?
-		)
+		JOIN User u ON u.id = ?
 		WHERE (f.user1_id = ? AND f.user2_id = ?)
-		OR (f.user1_id = ? AND f.user2_id = ?)
+		   OR (f.user1_id = ? AND f.user2_id = ?)
 	`, [userId1, userId1, userId2, userId2, userId1]);
 	return snakeToCamel(relation) as FriendModel;
 }
@@ -86,19 +83,47 @@ export async function getUserFriendStats(userId1: number, userId2: number): Prom
 			SUM(ut.losses) AS tournament_losses,
 			MAX(ut.round_reached) AS last_round_reached
 
+
 		FROM Friends f
-		JOIN User u ON (
-			(u.id = f.user1_id OR u.id = f.user2_id)
-			AND u.id != ?
-		)
+		JOIN User u ON u.id = ?
 		LEFT JOIN User_Game ug ON ug.user_id = u.id
 		LEFT JOIN User_Tournament ut ON ut.user_id = u.id
 		WHERE (f.user1_id = ? AND f.user2_id = ?)
-			OR (f.user1_id = ? AND f.user2_id = ?)
+		   OR (f.user1_id = ? AND f.user2_id = ?)
 		GROUP BY u.id
 	`, [userId1, userId1, userId2, userId2, userId1]);
 
 	return snakeToCamel(stats) as FriendModel;
+}
+
+/**
+ * Met à jour l'invitation de joueur entre deux utilisateurs.
+ * Si le paramètre reset est vrai, alors les identifiants des deux utilisateurs sont mis à zéro
+ * et l'invitation est annulée.
+ * Si le paramètre reset est faux, alors l'invitation est mise à jour en fonction des identifiants
+ * des deux utilisateurs.
+ * @param {number} userId1 - Identifiant du premier utilisateur.
+ * @param {number} userId2 - Identifiant du second utilisateur.
+ * @param {boolean} reset - Booléen indiquant si l'invitation doit être annulée.
+ * @returns {Promise<void>} - Promesse qui se résout après avoir mis à jour l'invitation de joueur.
+ */
+export async function updateInvitePlayer(userId1: number, userId2: number, reset: boolean = false): Promise<void> {
+	const db = await getDb();
+	const [user1, user2] = userId1 < userId2
+		? [userId1, userId2]
+		: [userId2, userId1];
+
+	let waitingInvite = 1;
+	if (reset) {
+		userId1 = userId2 = 0;
+		waitingInvite = 0;
+	}
+
+	await db.run(`
+		UPDATE Friends
+		SET is_challenged = ?, challenged_by = ?, waiting_invite = ?
+		WHERE user1_id = ? AND user2_id = ?
+	`, [userId1, userId2, waitingInvite, user1, user2]);
 }
 
 /**

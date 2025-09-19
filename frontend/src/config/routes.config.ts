@@ -85,7 +85,7 @@ export const ROUTE_PATHS = {
 	REGISTER: '/register',
 	LOGIN: '/login',
 	GAME_LOCAL: '/game/local',
-	GAME_MULTI: '/game/multi',
+	GAME_MULTI: '/game/multi/:id',
 	GAME_TOURNAMENT: '/game/tournament',
 	GAME_TOURNAMENT_LIST: "/game/tournaments",
 	GAME_TOURNAMENT_LOBBY: '/game/tournaments/:id/lobby',

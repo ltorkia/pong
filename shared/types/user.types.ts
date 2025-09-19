@@ -59,7 +59,6 @@ export interface SafeUserModel {
 	status: UserStatus;
 	registerFrom: RegisterMethod;
 	isDesactivated: number;
-	invitedPlayerId: number;
 	notifications?: AppNotification[];
 	friendStatus?: FriendStatus | null;
 }

@@ -11,7 +11,9 @@ export interface FriendModel {
 	tournament: number;
 	friendStatus: FriendStatus;
 	blockedBy: number;
+	waitingInvite: number;
 	challengedBy: number;
+	isChallenged: number;
 	meetDate: string;
 	status: UserStatus;
 	gamePlayed: number;

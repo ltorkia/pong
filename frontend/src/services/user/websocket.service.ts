@@ -115,30 +115,18 @@ export class WebSocketService {
 				}
 
 				// GAME MSG
-				console.log('1 - MESSAGE COMING', receivedData);
 				if (isValidGameType(receivedData.type)) {
-					console.log('2 - VALID MSG');
 					if (isGameMsg(receivedData.type)) {
 						if (!pageService.currentPage || typeof pageService.currentPage.handleGameMessage !== "function") {
 							console.error("Aucune page de jeu actuellement ouverte.");
 							return;
 						}
-						console.log('3 - VALID GAME MSG');
 						await pageService.currentPage.handleGameMessage(receivedData);
-					// } else if (isTournamentMsg(receivedData.type)) {
-					// 	if (!pageService.currentPage || typeof pageService.currentPage.handleTournamentMessage !== "function") {
-					// 		console.error("Aucune page de tournoi actuellement ouverte.");
-					// 		return;
-					// 	}
-					// 	console.log('VALID TOURNAMENT MESSAGE');
-					// 	await pageService.currentPage.handleTournamentMessage(receivedData);
-					// }
-					} else {
+					} else if (isTournamentMsg(receivedData.type)) {
 						if (!pageService.currentPage || typeof pageService.currentPage.handleTournamentMessage !== "function") {
 							console.error("Aucune page de tournoi actuellement ouverte.");
 							return;
 						}
-						console.log('VALID TOURNAMENT MESSAGE');
 						await pageService.currentPage.handleTournamentMessage(receivedData);
 					}
 				}

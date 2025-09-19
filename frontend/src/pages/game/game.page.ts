@@ -29,13 +29,14 @@ export class GamePage extends BasePage {
 		document.getElementById("pong-section")!.append(errorDiv);
 	}
 
-    protected async sendMatchMakingRequest(type : string, tournamentID?: number | undefined, invitedId?: number): Promise<void> {
+    protected async sendMatchMakingRequest(type : string, tournamentID?: number, invitedId?: number, inviterId?: number): Promise<void> {
         const message = type;
         const matchMakingReq: MatchMakingReq = {
             type: message,
             playerID: this.currentUser!.id,
             tournamentID: tournamentID,
-			invitedId: invitedId
+			invitedId: invitedId,
+			inviterId: inviterId
         }
 		await gameApi.matchMake(matchMakingReq);
     }
