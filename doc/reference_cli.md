@@ -1,21 +1,28 @@
 # API & WebSocket Reference
 
-## Api
+## Auth
 - GET /api/me
 - GET /api/validate-session/:id
 - POST /api/auth/register
-- POST /api/auth/2FAsend/:method
-- POST /api/auth/2FAreceive/:method
-- POST /api/auth/google
+- POST /api/auth/login
+<!-- - POST /api/auth/2FAsend/:method -->
+<!-- - POST /api/auth/2FAreceive/:method -->
+<!-- - POST /api/auth/google -->
 - POST /api/auth/logout
 
 ## Game
 - POST /api/game/playgame
 - GET /api/user/:id/games
 
-## Tournament
-- POST /api/tournament/dismantle_tournament
+<!-- ## Tournament
+- POST /api/game/new_tournament
+- POST /api/game/start_tournament
+- POST /api/game/dismantle_tournament
 - POST /api/tournament/update_tournament_games
+- POST /api/game/leave_tournament
+- POST /api/game/join_tournament
+- POST /api/game/player_ready
+- GET /api/game/tournaments/:tournamentID -->
 
 ## WebSocket Messages
 - start_game
@@ -25,6 +32,29 @@
 - msg
 
 ---
+
+
+
+
+
+
+
+- GET /api/users/:userID
+
+
+### GET /api/users/:userID
+Fetches a user by their ID.
+
+**Params:**  
+- `userID`: User ID
+
+**Returns:**  
+- 200 OK: User object
+- 404 Not Found: User not found
+
+---
+
+
 
 ## Auth
 
@@ -151,8 +181,8 @@ Logs out the current user.
 ---
 
 ## Game
-
-### POST /api/game/playgame
+<!-- a adapter ppour juste game local -->
+### POST /api/game/playgame 
 Starts matchmaking or a game.
 **Body:**  
 ```json
@@ -180,16 +210,50 @@ Gets all games for a user.
 
 ## Tournament
 
-### POST /api/tournament/dismantle_tournament
-Dismantles a tournament (owner only).
+  
+  
+### POST /api/game/new_tournament
+Creates a new tournament.
+
+**Body:**  
+Tournament object (see your Tournament type for details)
+
+**Returns:**  
+- 200 OK: Tournament created
+- 400 Bad Request: Error message
+
+---
+
+
+### POST /api/game/start_tournament
+Starts a tournament.
+
 **Body:**  
 ```json
 {
-  "tournamentID": number,
-  "playerID": number
+  "type": "start_tournament",
+  "playerID": number,
+  "tournamentID": number
 }
 ```
 **Returns:**  
+- 200 OK: Tournament started
+- 400 Bad Request: Error message
+
+---
+
+### POST /api/game/dismantle_tournament
+Dismantles a tournament (owner only).
+
+**Body:**  
+```json
+{
+  "type": "dismantle_tournament",
+  "playerID": number,
+  "tournamentID": number
+}
+```
+**Returns:**    
 - 200 OK: Tournament deleted
 - 403 Forbidden: Not owner
 - 404 Not Found: Tournament not found
@@ -212,7 +276,137 @@ Updates tournament games after a round.
 
 ---
 
+### POST /api/game/leave_tournament
+Removes a user from a tournament lobby.
+
+**Body:**  
+```json
+{
+  "type": "tournament_lobby_update",
+  "playerID": number,
+  "tournamentID": number,
+  "players": []
+}
+```
+**Returns:**  
+- 200 OK: User removed from tournament
+- 400 Bad Request: Error message
+
+---
+
+
+### POST /api/game/join_tournament
+Adds a user to a tournament lobby.
+
+**Body:**  
+```json
+{
+  "type": "tournament_lobby_update",
+  "playerID": number,
+  "tournamentID": number,
+  "players": []
+}
+```
+**Returns:**  
+- 200 OK: User joined tournament
+- 400 Bad Request: Error message
+
+  ---
+
+
+### POST /api/game/player_ready
+Sets a user's ready status in a tournament.
+
+**Body:**  
+```json
+{
+  "type": "player_ready_update",
+  "playerID": number,
+  "tournamentID": number,
+  "ready": boolean
+}
+```
+**Returns:**  
+- 200 OK: Ready status updated
+- 400 Bad Request: Error message
+
+---
+
+  
+
+### GET /api/game/tournaments/:tournamentID
+Fetches a tournament by its ID.
+
+**Params:**  
+- `tournamentID`: Tournament ID
+
+**Returns:**  
+- 200 OK: Tournament object
+- 404 Not Found: Tournament not found
+
+---
+
+
+
 ## WebSocket Messages
+
+
+### Endpoint
+- `GET /ws` (WebSocket connection)
+
+**Description:**  
+Establishes a WebSocket connection for real-time communication (game events, player actions, etc.).
+
+**Authentication:**  
+- Requires user to be authenticated (session or JWT).
+
+**On Connect:**  
+- Adds the user to the server's WebSocket user list.
+
+**On Close:**  
+- Removes the user and player from the server lists.
+
+**On Message:**  
+- Receives and logs messages from the client (for game controls, chat, etc.).
+
+---
+
+### Example Usage (Node.js CLI)
+```javascript
+const WebSocket = require('ws');
+const ws = new WebSocket('ws://localhost:4883/ws', {
+  headers: { /* authentication headers if needed */ }
+});
+
+ws.on('open', () => {
+  ws.send(JSON.stringify({ type: 'move', direction: 'up' }));
+});
+
+ws.on('message', (msg) => {
+  console.log('Received:', msg);
+});
+```
+
+---
+
+### Message Types
+
+- **move**: Send paddle movement
+  ```json
+  { "type": "move", "direction": "up" }
+  ```
+- **start_game**: Game started
+- **decount_game**: Countdown before game starts
+- **end**: Game ended
+- **GameData**: Game state update
+- **msg**: Informational message
+
+---
+
+**Summary:**  
+- Reference `/ws` in your CLI docs if you use real-time features.
+- Explain connection, authentication, and message types.
+- Provide example usage for CLI/WebSocket clients.
 
 ### start_game
 Sent when the game starts.
@@ -287,4 +481,4 @@ Informational message.
 }
 ```
 **Client should:**  
-- Display message to
+- Display message to...

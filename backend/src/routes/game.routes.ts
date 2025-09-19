@@ -22,64 +22,64 @@ export async function gameRoutes(app: FastifyInstance) {
 
 
 
-    // MATCHMAKING REQUEST POUR LOCAL
-    if (matchMakingReq.data.type === "tournament") //localtorunament
-    {
-        console.log("LOCAL TOURNAMENT REQUEST RECEIVED : ", matchMakingReq.data);
-        const tournament = app.lobby.allTournaments.find((t: Tournament) => t.ID === matchMakingReq.data.tournamentID)!;
-        console.log("LOBBY TOURNOI : ", tournament);
-        const players = tournament.players;
-        console.log("LOBBY PLAYERS dans tournois: ", players);
-        let game = tournament.stageOneGames[0];
-        if (tournament.stageOneGames[0].launched)
+        // MATCHMAKING REQUEST POUR LOCAL
+        if (matchMakingReq.data.type === "tournament") //localtorunament
         {
-            if (!tournament.stageOneGames[1].launched)
+            console.log("LOCAL TOURNAMENT REQUEST RECEIVED : ", matchMakingReq.data);
+            const tournament = app.lobby.allTournaments.find((t: Tournament) => t.ID === matchMakingReq.data.tournamentID)!;
+            console.log("LOBBY TOURNOI : ", tournament);
+            const players = tournament.players;
+            console.log("LOBBY PLAYERS dans tournois: ", players);
+            let game = tournament.stageOneGames[0];
+            if (tournament.stageOneGames[0].launched)
             {
-                console.log("DEJA LANCE, ON CHECK LE RESULTAT POUR LANCER LE 2EME ROUND");
-                const result = await getResultGame(tournament.stageOneGames[0].gameIDforDB);
-                if (result){
-                    console.log("RESULT TROUVE DANS LA DB POUR LE JEU 1 : ", result);
-                    const playerWinner = players.find((p: Player) => p.ID === result.winnerId); // a foutre ailleurs
-                    tournament.stageTwoGames[0].players.push(playerWinner!);
-                    console.log("RESULTAT DU JEU : ", result);
+                if (!tournament.stageOneGames[1].launched)
+                {
+                    console.log("DEJA LANCE, ON CHECK LE RESULTAT POUR LANCER LE 2EME ROUND");
+                    const result = await getResultGame(tournament.stageOneGames[0].gameIDforDB);
+                    if (result){
+                        console.log("RESULT TROUVE DANS LA DB POUR LE JEU 1 : ", result);
+                        const playerWinner = players.find((p: Player) => p.ID === result.winnerId); // a foutre ailleurs
+                        tournament.stageTwoGames[0].players.push(playerWinner!);
+                        console.log("RESULTAT DU JEU : ", result);
+                    }
+                    else
+                        return (console.log("Pas de result dans la db pour ce jeu, pb quelque part..."));
+                    game = tournament.stageOneGames[1];
                 }
-                else
-                    return (console.log("Pas de result dans la db pour ce jeu, pb quelque part..."));
-                game = tournament.stageOneGames[1];
+                if(tournament.stageOneGames[1].launched)
+                {
+                    await getResultGame(tournament.stageOneGames[1].gameIDforDB).then((result) => {
+                        const playerWinner = players.find((p: Player) => p.ID === result.winnerId);
+                        tournament.stageTwoGames[0].players.push(playerWinner!);
+                        console.log("RESULTAT DU JEU : ", result);
+                    });
+                    game = tournament.stageTwoGames[0];
+                }
             }
-            if(tournament.stageOneGames[1].launched)
+            if ((game != tournament.stageTwoGames[0]) || (game == tournament.stageTwoGames[0] && !game.launched))
             {
-                await getResultGame(tournament.stageOneGames[1].gameIDforDB).then((result) => {
-                    const playerWinner = players.find((p: Player) => p.ID === result.winnerId);
-                    tournament.stageTwoGames[0].players.push(playerWinner!);
-                    console.log("RESULTAT DU JEU : ", result);
-                });
-                game = tournament.stageTwoGames[0];
-            }
+                console.log("GAME TO LAUNCH : ", game);
+                startGame(app, game.players, "local", game, tournament.masterPlayerID); //pas envoye a la bnne personne : ajout de l id du chef du tournoi ?
+                game.launched = true;
+            } //add dans la db l id du tournament -> game
+            else
+                return reply.code(400).send({ error: "All games in this tournament are already launched" });
+            // requete speciale tournoi -> on rajoute ensuite dans le lobby tournoi ?
+            // chaque requete sera envoyee une fois que la personne se sera register dans le front
+            // dans la data : alias + user_name;
+            // si username : check db + register avec alias + username
+            // si alias : creation d un joueur avec ID unique
+
+            // on arrive ici une fois les verifs faites + recheck si bien 4 personnes de dispo dans le tournoi
+            // jeux deja crees ? -> lancement au fur et a mesure -> si 1er deja fait -> 2eme round...
+
+            // cote front maj du html pour afficher les joueurs
+            // ...
+
+            // 
+
         }
-        if ((game != tournament.stageTwoGames[0]) || (game == tournament.stageTwoGames[0] && !game.launched))
-        {
-            console.log("GAME TO LAUNCH : ", game);
-            startGame(app, game.players, "local", game, tournament.masterPlayerID); //pas envoye a la bnne personne : ajout de l id du chef du tournoi ?
-            game.launched = true;
-        } //add dans la db l id du tournament -> game
-        else
-            return reply.code(400).send({ error: "All games in this tournament are already launched" });
-        // requete speciale tournoi -> on rajoute ensuite dans le lobby tournoi ?
-        // chaque requete sera envoyee une fois que la personne se sera register dans le front
-        // dans la data : alias + user_name;
-        // si username : check db + register avec alias + username
-        // si alias : creation d un joueur avec ID unique
-
-        // on arrive ici une fois les verifs faites + recheck si bien 4 personnes de dispo dans le tournoi
-        // jeux deja crees ? -> lancement au fur et a mesure -> si 1er deja fait -> 2eme round...
-
-        // cote front maj du html pour afficher les joueurs
-        // ...
-
-        // 
-
-    }
 
 
         // // TOURNAMENT REQUEST POUR REMOTE
@@ -228,9 +228,17 @@ const startGame = async (app: FastifyInstance, players: Player[], mode: string, 
         if (user && user.WS) {
             user.WS.send(JSON.stringify(WSToSend));
             user.WS.onmessage = (event: MessageEvent) => {
-                const msg: any = JSON.parse(event.data);
+                let msg;
+                try {
+                    msg = JSON.parse(event.data); 
+                } catch (err) {
+                    console.error("Invalid JSON received from WebSocket:", event.data, err);
+                    return; // Ignore invalid messages
+                }
+                // const msg: any = JSON.parse(event.data);
                 if (msg.type == "movement")
                     {
+                        // console.log("message recu dans game.routes : ", msg);
                         if (mode === "multi")
                             newGame.registerInput(msg.playerID, msg.key, msg.status);
                         if (mode === "local")
@@ -254,7 +262,9 @@ const startGame = async (app: FastifyInstance, players: Player[], mode: string, 
 
 }
 
-
+// TODO : faire une securite si on game ou no ?
+// TODO : securser les ids playgame
+// TODO : gerer ws quand ferme ou jeu interrompu
 
 // quand on appui dans le pret pour le tournoi -> fetch un playgame avec option tournament 
 // -> on mate si le joueur est dans le lobby tournoi ->et game pour ca. quand le 2eme ok -> launch game

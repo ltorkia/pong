@@ -1,0 +1,52 @@
+{
+  "_type": "export",
+  "__export_format": 4,
+  "__export_date": "2024-06-07T12:00:00.000Z",
+  "__export_source": "insomnia.desktop.app:v2024.2.0",
+  "resources": [
+    {
+      "_id": "wrk_local_pong",
+      "name": "Transcendence Local Game",
+      "_type": "workspace"
+    },
+    {
+      "_id": "env_local_pong",
+      "parentId": "wrk_local_pong",
+      "_type": "environment",
+      "data": {
+        "base_url": "https://localhost:8443"
+      }
+    },
+    {
+      "_id": "req_play_local_game",
+      "parentId": "wrk_local_pong",
+      "name": "Play Local Game",
+      "description": "Start a local Pong game (REST API)",
+      "_type": "request",
+      "method": "POST",
+      "url": "{{ base_url }}/api/game/playgame",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"type\": \"local\",\n  \"playerID\": 1\n}"
+      },
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" }
+      ]
+    },
+    {
+      "_id": "req_ws_local_game",
+      "parentId": "wrk_local_pong",
+      "name": "WS Local Game",
+      "description": "Connect to WebSocket for local Pong game",
+      "_type": "websocket_request",
+      "url": "wss://localhost:8443/api/ws/",
+      "headers": [],
+      "messages": [
+        {
+          "content": "{ \"type\": \"move\", \"direction\": \"up\" }",
+          "contentType": "application/json"
+        }
+      ]
+    }
+  ]
+}

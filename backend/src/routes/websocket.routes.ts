@@ -9,8 +9,8 @@ export async function webSocketRoutes(app: FastifyInstance) {
         const allPlayers = app.lobby.allPlayers;
         allUsers.push(new UserWS(req.user.id, connection));
         // allPlayers.push(new Player(req.user.id));
-        // console.log(`ADDED USER ID = ${req.user.id}`);
-        console.log(allUsers);
+        console.log(`ADDED USER ID = ${req.user.id}`);
+        // console.log(allUsers);
 
         connection.onclose = () => {
             const userIdx = allUsers.findIndex((user: UserWS) => user.id == req.user.id);
@@ -31,4 +31,3 @@ export async function webSocketRoutes(app: FastifyInstance) {
     })
 }
 
-  

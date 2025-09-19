@@ -76,8 +76,8 @@ export class GameMenuLocal extends GamePage {
         event.preventDefault(); //permet de skip un event par defaut supose en cas de besoin
         this.controlNodesDown = document.querySelectorAll(".control");
         if (event.key == " " && this.isSearchingGame === false) { //TODO : creer un bouton pour lancer le jeu et replay pour sendmatchmaquingrequest pour eviter de le lancer en dehors de la page jeu
-            this.isSearchingGame = true;          
-            this.sendMatchMakingRequest("local");
+            this.isSearchingGame = true;
+            this.gameService.sendMatchMakingRequest("local", this.currentUser!.id); // On passe par cette fonction pour lancer le matchmaking
             // document.getElementById("pong-section")?.append(lobby);
             this.appendWaitText();
         }
