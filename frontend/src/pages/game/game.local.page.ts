@@ -14,7 +14,6 @@ export class GameMenuLocal extends GamePage {
         if (event.key == " " && this.isSearchingGame === false) { 
             this.isSearchingGame = true;
             await this.sendMatchMakingRequest("local");
-            // this.appendWaitText();
         }
         for (const node of this.controlNodesDown) {
             if (node.dataset.key == event.key)

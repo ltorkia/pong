@@ -13,7 +13,6 @@ import { loadTemplate, getHTMLElementByClass, getHTMLElementById } from '../../u
 // GAME PAGE
 // ===========================================
 export abstract class GamePage extends BasePage {
-	protected gameStarted: boolean = false;
 	protected game?: MultiPlayerGame;
 	protected finalScore: number[] = [];
 	protected controlNodesUp!: NodeListOf<HTMLElement>;
@@ -155,7 +154,6 @@ export abstract class GamePage extends BasePage {
 				// this.game!.clearScreen(); 
 				// document.querySelector("endgame-panel")?.remove();
 				// this
-				this.gameStarted = true;
 				break;
 
 			case "decount_game":
@@ -167,13 +165,11 @@ export abstract class GamePage extends BasePage {
 				break;
 
 			case "end":
-				console.log("END GAME DETECTED")
-				if (!this.gameStarted)
+				if (!this.game!.gameStarted)
 					return;
-				this.game!.gameStarted = false;
+				console.log("END GAME DETECTED")
 				this.isSearchingGame = false;
 				this.game!.setScore(data.score);
-				console.log("END GAME DETECTED")
 				this.game!.clearScreen();
 				document.querySelector("canvas")?.remove();
 				// document.querySelector("#pong-section")!.remove(); //pour permettre de voir le jeu si on decide de le relancer direct avec le meme joueur
@@ -272,15 +268,21 @@ export abstract class GamePage extends BasePage {
 			resMessage.setAttribute("data-ts", "game.winMessage");
 			resMessage.textContent = "You win !";
 			resMessage.classList.add("win-message");
-		}
+		} else if (!this.adversary)
+			resMessage.classList.add("hidden");
 
-		if (this.adversary && this.finalScore[0] !== this.finalScore[1]) {
-			spanRes.setAttribute("data-ts", "game.resultText");
-			spanRes.textContent = "You ";
-		}
-		spanScore.textContent = `: ${this.finalScore[0]} - ${this.finalScore[1]} :`;
-		if (this.adversary && this.finalScore[0] !== this.finalScore[1]) {
-			spanAdversary.textContent = ` ${this.adversary?.username}`;
+		spanScore.textContent = ` : ${this.finalScore[0]} - ${this.finalScore[1]} : `;
+		if (this.finalScore[0] !== this.finalScore[1]) {
+			if (this.adversary) {
+				spanRes.setAttribute("data-ts", "game.resultText");
+				spanRes.textContent = "You";
+				spanAdversary.textContent = `${this.adversary?.username}`;
+			} else {
+				spanRes.setAttribute("data-ts", "game.player1");
+				spanRes.textContent = "Player 1";
+				spanAdversary.setAttribute("data-ts", "game.player2");
+				spanAdversary.textContent = `Player 2`;
+			}
 		}
 		resScore.append(spanRes, spanScore, spanAdversary);
 
