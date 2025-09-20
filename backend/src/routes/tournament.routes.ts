@@ -1,7 +1,7 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { TournamentSchema, TournamentReqSchema, TournamentPlayerReadySchema, StartTournamentSchema, DismantleTournamentSchema, TournamentLocalSchema } from '../types/zod/game.zod';
 import { Player } from '../shared/types/game.types';
-import { Tournament, TournamentLocal } from '../types/game.types';
+import { Game, Tournament, TournamentLocal } from '../types/game.types';
 import { TournamentLobbyUpdate, StartTournamentSignal, DismantleSignal } from '../shared/types/websocket.types'
 import { UserWS } from '../types/user.types';
 import { generateUniqueID } from '../shared/functions'
@@ -22,7 +22,7 @@ export async function tournamentRoutes(app: FastifyInstance) {
         return reply.send(app.lobby.allTournaments);
     });
 
-    // retourne un tournoi en particulier
+    // retourne un tournoi remote en particulier
     app.get("/tournaments/:id", async (request: FastifyRequest, reply: FastifyReply) => {
         const { id } = request.params as { id: string };
         const tournamentID = Number(id.slice(1));
@@ -35,6 +35,45 @@ export async function tournamentRoutes(app: FastifyInstance) {
             return reply.code(404).send({ error: "Tournament not found" });
         }
     });
+
+    // retourne un tournoi local en particulier
+    app.get("/tournaments_local/:id", async (request: FastifyRequest, reply: FastifyReply) => {
+        const { id } = request.params as { id: string };
+        const tournamentID = Number(id.slice(1));
+
+        const { allTournamentsLocal } = app.lobby;
+
+        const tournament = allTournamentsLocal.find((t: TournamentLocal) => t.ID == tournamentID);
+        if (tournament) {
+            return reply.code(200).send(tournament);
+        } else {
+            return reply.code(404).send({ error: "Tournament not found" });
+        }
+    });
+
+    // retourne une game de tournoi local en particulier
+    app.get("/tournaments_local/game/:id", async (request: FastifyRequest, reply: FastifyReply) => {
+        const { id } = request.params as { id: string };
+        const gameID = Number(id.slice(1));
+
+        const { allTournamentsLocal } = app.lobby;
+
+        let game;
+
+        // cherche l'id de la game dans les tournois locaux
+        for (const tournamentLocal of allTournamentsLocal) {
+            if (tournamentLocal.stageTwo && gameID == tournamentLocal.stageTwo.gameIDforDB) {
+                game = tournamentLocal.stageTwo;
+                break ;
+            }
+            game = tournamentLocal.stageOne.find((g: Game) => g.gameIDforDB == gameID);
+        }
+
+        if (game)
+            return reply.code(200).send(game);
+        else
+            return reply.code(404).send({ error: "Game not found in local tournaments"});
+    })
 
     // Cree un nouveau tournoi
     app.post("/new_tournament", async (request: FastifyRequest, reply: FastifyReply) => {
@@ -62,30 +101,33 @@ export async function tournamentRoutes(app: FastifyInstance) {
     app.post("/new_tournament_local", async (request: FastifyRequest, reply: FastifyReply) => {
         const tournamentParse = TournamentLocalSchema.safeParse(request.body);
 
-        const allPlayers = app.lobby.allPlayers;
-        const allTournamentsLocal = app.lobby.allTournamentsLocal;
-        
+        const { allPlayers, allTournamentsLocal } = app.lobby;
+
         console.log(request.body);
         // Validation de donnees
-        if (!tournamentParse.success){
+        if (!tournamentParse.success) {
             console.log(tournamentParse.error.errors[0].message);
             return reply.code(400).send({ error: tournamentParse.error.errors[0].message });
         }
-        
+
         const players: Player[] = [];
 
+        // -1 pour joueur temporaire (non enregistre, envoye par le front)
         for (const player of tournamentParse.data.players) {
             if (player.ID == -1)
-                players.push(new Player(generateUniqueID(allPlayers)));
+                players.push(new Player(generateUniqueID(allPlayers), player.alias));
             else
-                players.push(new Player(player.ID));
+                players.push(new Player(player.ID, player.alias));
         }
         const newTournament: TournamentLocal = new TournamentLocal(
             players,
             tournamentParse.data.maxPlayers,
+            tournamentParse.data.masterPlayerID,
             generateUniqueID(allTournamentsLocal),
         );
         app.lobby.allTournamentsLocal.push(newTournament);
+        await newTournament.startTournament();
+        console.log(newTournament);
         reply.code(200).send(newTournament.ID);
     });
 

@@ -32,6 +32,7 @@ export const TournamentLocalSchema = z.object({
         ID: z.number(),
         alias: z.string(), 
     })),
+    masterPlayerID: z.number(),
     maxPlayers: z.number().min(4).max(4),
 });
 
@@ -64,5 +65,5 @@ export const DismantleTournamentSchema = z.object({
 export const MatchMakingReqSchema = z.object({
     type: z.enum(["matchmaking_request", "no_matchmaking_request", "local", "tournament"]),
     playerID: z.number(),
+    gameID: z.number().optional(),
 });
-

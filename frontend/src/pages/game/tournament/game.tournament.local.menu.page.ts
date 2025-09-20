@@ -19,7 +19,7 @@ const MAX_PLAYERS = 4;
 export class GameMenuTournamentLocal extends BasePage {
     private tournament: Tournament[] = [];
     private playersNb: number = MAX_PLAYERS; // Minimum players required
-    private players: {ID: number, alias?: string}[] = [];
+    private players: { ID: number, alias?: string }[] = [];
     private dataApi = new DataService();
     private pastilleHTML: Node | undefined;
     // private tournamentToCancel: number = 0;
@@ -132,9 +132,9 @@ export class GameMenuTournamentLocal extends BasePage {
         if (this.players.find(player => player.alias == alias))
             return (this.printError("Player already exists in tournament!"), null);
         if (user)
-            this.players.push({ID: user.id, alias: alias});
+            this.players.push({ ID: user.id, alias: alias });
         else
-            this.players.push({ID: -1, alias: alias}); // unique ID a generer une fois en backend
+            this.players.push({ ID: -1, alias: alias }); // unique ID a generer une fois en backend
         return (true);
     }
 
@@ -172,7 +172,7 @@ export class GameMenuTournamentLocal extends BasePage {
         }
     }
 
-    // Handler du champ alias / email / password
+    // Handler du champ email / password (+ alias)
     private accountInputHandler = async (event?: KeyboardEvent) => {
         const aliasInput = document.getElementById("alias-name-input") as HTMLInputElement;
         const usernameInput = document.getElementById("username-input")! as HTMLInputElement;
@@ -191,7 +191,7 @@ export class GameMenuTournamentLocal extends BasePage {
         aliasInput.value = usernameInput.value = pwdInput.value = "";
     }
 
-    // Juste pour utiliser le handler sur le bouton
+    // Juste pour utiliser le meme handler sur le bouton add player
     private btnHandler = () => {
         this.accountInputHandler();
     }
@@ -199,14 +199,13 @@ export class GameMenuTournamentLocal extends BasePage {
     private startTournamentHandler = async () => {
         if (this.players.length != MAX_PLAYERS)
             return (this.printError("Not enough players to start!"));
-        const newTournament = new TournamentLocal(MAX_PLAYERS, this.players);
+        const newTournament = new TournamentLocal(MAX_PLAYERS, this.currentUser.id, this.players);
         try {
             const tournamentID = await TournamentService.postNewLocalTournament(newTournament);
-            console.log(tournamentID);
+            router.navigate(`/game/tournaments_local/:${tournamentID}/overview`);
         } catch (error: any) {
             this.printError(error.error);
         }
-
     }
 
     protected attachListeners(): void {

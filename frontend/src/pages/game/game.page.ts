@@ -74,11 +74,12 @@ export class GamePage extends BasePage {
         document.getElementById("pong-section")!.append(errorDiv);
     }
 
-    protected async sendMatchMakingRequest(type : string): Promise<void> {
+    protected async sendMatchMakingRequest(type : string, gameID?: number): Promise<void> {
         const message = type;         
         const matchMakingReq: MatchMakingReq = {
             type: message,
             playerID: this.currentUser!.id,
+            gameID: gameID,
         }
         // console.log("matchMakingReq = ", matchMakingReq);
         const res = await fetch("/api/game/playgame", {
@@ -93,7 +94,6 @@ export class GamePage extends BasePage {
             return;
         }
     }
-
 
     protected async initGame(playerID: number, gameID: number): Promise<void> {
         const allChildren = document.getElementById("pong-section");
@@ -154,7 +154,6 @@ export class GamePage extends BasePage {
 	protected handleKeyDown = (event: KeyboardEvent): void => {};
 	protected handleKeyup = (event: KeyboardEvent): void => {};
 
-    
     protected attachListeners() {
         webSocketService.getWebSocket()!.addEventListener("message", async (event) => {
             const msg = JSON.parse(event.data);

@@ -73,7 +73,7 @@ export class GameMenuLocal extends GamePage {
     }
 
     protected handleKeyDown = (event: KeyboardEvent): void => {
-        event.preventDefault(); //permet de skip un event par defaut supose en cas de besoin
+        // event.preventDefault(); //permet de skip un event par defaut supose en cas de besoin // faire ca desactive les inputs clavier (ex: impossible d;ouvrir la console avec ctrl shift i)
         this.controlNodesDown = document.querySelectorAll(".control");
         if (event.key == " " && this.isSearchingGame === false) { //TODO : creer un bouton pour lancer le jeu et replay pour sendmatchmaquingrequest pour eviter de le lancer en dehors de la page jeu
             this.isSearchingGame = true;          

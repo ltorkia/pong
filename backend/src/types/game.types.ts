@@ -85,7 +85,7 @@ export class Ball {
 
 export class Game {
     private duration: number = 0;
-    private players: Player[] = [];
+    public  players: Player[] = [];
     private ball = new Ball();
     private playersCount: number = 0;
     private gameStarted: boolean = false;
@@ -257,14 +257,16 @@ export class Game {
 export class TournamentLocal {
     public players: Player[] = [];
     public maxPlayers: number;
+    public masterPlayerID: number;
     public ID?: number;
     protected IDforDB?: number;
     public stageOne: Game[] = [];
     public stageTwo: Game | undefined;
 
-    constructor(players: Player[], maxPlayers: number, ID?: number) {
+    constructor(players: Player[], maxPlayers: number, masterPlayerID: number, ID?: number) {
         this.players = players;
         this.maxPlayers = maxPlayers;
+        this.masterPlayerID = masterPlayerID;
         this.ID = ID ?? 0;
     }
 
@@ -276,15 +278,14 @@ export class TournamentLocal {
         console.log("game at start tournament is ?", this.stageOne);
 
         for (const player of this.players)
-        {
             await registerUserTournament(player.ID, this.IDforDB);
-        }
-        
+
         // this.players est melange pour avoir des matchs aleatoire
         shuffleArray(this.players);
-        let playerIdx = 0;
         this.stageOne[0] = new Game(2, [this.players[0], this.players[1]]);
+        this.stageOne[0].gameIDforDB = await addGame(this.players[0].ID, this.players[1].ID, true);
         this.stageOne[1] = new Game(2, [this.players[2], this.players[3]]);
+        this.stageOne[1].gameIDforDB = await addGame(this.players[2].ID, this.players[3].ID, true);
     }
 }
 
