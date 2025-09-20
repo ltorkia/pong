@@ -137,6 +137,68 @@ export abstract class GamePage extends BasePage {
 	}
 
 	// ===========================================
+	// HANDLER PUBLIC POUR MESSAGES SOCKET
+	// ===========================================
+	/**
+	 * Gestionnaire d'événement pour les messages WebSocket reçus durant une partie.
+	 * Méthode appelée dans le service centralisé dédié: `webSocketService`.
+	 * 
+	 * @param data Les informations de la partie à lancer.
+	 * @returns La promesse qui se résout lorsque le gestionnaire d'événement a fini de traiter les informations.
+	 */
+	public async handleGameMessage(data: any): Promise<void> {
+		switch (data.type) {
+
+			case "start_game":
+				console.log(`game starts ! id = ${data.gameID}`);
+				this.adversary = data.otherPlayer; // TODO : possibilite de recuperer l'avatar de l autre joueur si on veut l afficher ici
+				// this.game!.clearScreen(); 
+				// document.querySelector("endgame-panel")?.remove();
+				// this
+				this.gameStarted = true;
+				break;
+
+			case "decount_game":
+				this.showTimer(data.message);
+				if (data.message == 0) {
+					await this.initGame(this.currentUser!.id, data.gameID);
+					currentService.setGameRunning(true);
+				}
+				break;
+
+			case "end":
+				console.log("END GAME DETECTED")
+				if (!this.gameStarted)
+					return;
+				this.game!.gameStarted = false;
+				this.isSearchingGame = false;
+				this.game!.setScore(data.score);
+				console.log("END GAME DETECTED")
+				this.game!.clearScreen();
+				document.querySelector("canvas")?.remove();
+				// document.querySelector("#pong-section")!.remove(); //pour permettre de voir le jeu si on decide de le relancer direct avec le meme joueur
+				this.finalScore = this.game!.getScore(); //TODO = clean le final score je sais pas ou et le show en haut
+				await this.showEndGamePanel();
+				currentService.clearCurrentGame();
+				break;
+
+			case "GameData":
+				this.game!.registerGameData(data);
+				this.game!.setScore(data.score);
+				break;
+
+			case "msg":
+				console.log(data.msg);
+				break;
+
+			default:
+				// Si le jeu est quitté ? Exemple: data.type == "hasQuit" ?
+				// fetch post db changement jeu statut
+				// currentService.clearCurrentGame();
+		}
+	}
+
+	// ===========================================
 	// METHODES COMMUNES AU JEU
 	// ===========================================
 	protected insertNetworkError(): void {
@@ -260,67 +322,6 @@ export abstract class GamePage extends BasePage {
 		panel.appendChild(wrapper);
 		translateService.updateLanguage(undefined, panel);
 		panel.classList.remove("hidden");
-	}
-
-	// ===========================================
-	// HANDLER PUBLIC POUR MESSAGES SOCKET
-	// ===========================================
-	/**
-	 * Gestionnaire d'événement pour les messages WebSocket reçus durant une partie.
-	 * Méthode appelée dans le service centralisé dédié: `webSocketService`.
-	 * 
-	 * @param data Les informations de la partie à lancer.
-	 * @returns La promesse qui se résout lorsque le gestionnaire d'événement a fini de traiter les informations.
-	 */
-	public async handleGameMessage(data: any): Promise<void> {
-		switch (data.type) {
-
-			case "start_game":
-				console.log(`game starts ! id = ${data.gameID}`);
-				this.adversary = data.otherPlayer; // TODO : possibilite de recuperer l'avatar de l autre joueur si on veut l afficher ici
-				// this.game!.clearScreen(); 
-				// document.querySelector("endgame-panel")?.remove();
-				// this
-				this.gameStarted = true;
-				break;
-
-			case "decount_game":
-				this.showTimer(data.message);
-				if (data.message == 0) {
-					await this.initGame(this.currentUser!.id, data.gameID);
-					currentService.setGameRunning(true);
-				}
-				break;
-
-			case "end":
-				if (!this.gameStarted)
-					return;
-				this.game!.gameStarted = false;
-				this.isSearchingGame = false;
-				this.game!.setScore(data.score);
-				console.log("END GAME DETECTED")
-				this.game!.clearScreen();
-				document.querySelector("canvas")?.remove();
-				// document.querySelector("#pong-section")!.remove(); //pour permettre de voir le jeu si on decide de le relancer direct avec le meme joueur
-				this.finalScore = this.game!.getScore(); //TODO = clean le final score je sais pas ou et le show en haut
-				await this.showEndGamePanel();
-				currentService.clearCurrentGame();
-				break;
-
-			case "GameData":
-				this.game!.registerGameData(data);
-				this.game!.setScore(data.score);
-				break;
-
-			case "msg":
-				console.log(data.msg);
-				break;
-
-			default:
-				// Si le jeu est quitté ? Exemple: data.type == "hasQuit" ?
-				// fetch post db changement jeu statut
-				// currentService.clearCurrentGame();
-		}
 	}
 
 	// ===========================================
