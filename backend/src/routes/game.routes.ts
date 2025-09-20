@@ -147,7 +147,7 @@ export async function gameRoutes(app: FastifyInstance) {
 			const playerIdx = allPlayers.findIndex((p: Player) => p.ID === playerID);
 			if (playerIdx !== -1) {
 				allPlayers.splice(playerIdx, 1);
-				console.log(`DELETED USER ID = ${playerID}`);
+				console.log(`DELETED PLAYER ID = ${playerID}`);
 			}
 			reply.code(200).send("Game cleaned up");
 		}
@@ -159,13 +159,13 @@ function invitePlayer(allPlayers: Player[], inviterId: number, invitedId: number
 	if (!inviter) {
 		inviter = new Player(inviterId);
 		allPlayers.push(inviter);
-		console.log(`ADDED USER ID = ${inviterId}`);
+		console.log(`ADDED PLAYER ID = ${inviterId}`);
 	}
 	let invited = allPlayers.find((p: Player) => p.ID == invitedId);
 	if (!invited) {
 		invited = new Player(invitedId);
 		allPlayers.push(invited);
-		console.log(`ADDED USER ID = ${invitedId}`);
+		console.log(`ADDED PLAYER ID = ${invitedId}`);
 	}
 	updateInvitePlayer(invitedId, inviterId);
 }

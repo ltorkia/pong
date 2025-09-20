@@ -1,16 +1,18 @@
 import { BasePage } from '../base/base.page';
-import { RouteConfig } from '../../types/routes.types';
-import { webSocketService, translateService, currentService, gameService, notifService } from '../../services/index.service';
+import { RouteConfig, RouteParams } from '../../types/routes.types';
+import { translateService, currentService, gameService, notifService } from '../../services/index.service';
 import { gameApi } from '../../api/game/game.api';
 import { MatchMakingReq } from '../../shared/types/websocket.types';
 import { MultiPlayerGame } from '../../components/game/BaseGame.component';
 import { SafeUserModel } from '../../../../shared/types/user.types';
+import { Friend } from '../../shared/models/friend.model';
+import { friendApi } from '../../api/index.api';
 import { loadTemplate, getHTMLElementByClass, getHTMLElementById } from '../../utils/dom.utils';
 
 // ===========================================
 // GAME PAGE
 // ===========================================
-export class GamePage extends BasePage {
+export abstract class GamePage extends BasePage {
 	protected gameStarted: boolean = false;
 	protected game?: MultiPlayerGame;
 	protected finalScore: number[] = [];
@@ -18,16 +20,144 @@ export class GamePage extends BasePage {
 	protected controlNodesDown!: NodeListOf<HTMLElement>;
 	protected isSearchingGame: boolean = false;
 	protected adversary: SafeUserModel | undefined; 
-	protected webSocket: WebSocket | undefined;
-	protected friendId: number = 0;
+
 	protected gameType?: string;
 	protected isPartOfTournament: boolean = false;
 
+	protected challengedFriendId?: number | RouteParams;
+	protected friendId: number = 0;
+	protected relation?: Friend;
+	protected isInvitationGame: boolean = false;
+
+	constructor(config: RouteConfig) {
+		super(config);
+	}
+
+	// ===========================================
+	// METHODES REUTILISEES DANS RENDER DE BASEPAGE
+	// ===========================================
+	protected async preRenderCheck(): Promise<boolean> {
+		if (!super.preRenderCheck())
+			return false;
+		if (this.challengedFriendId) {
+			this.friendId = Number(this.challengedFriendId);
+			this.relation = await friendApi.getRelation(this.currentUser!.id, this.friendId);
+			if (!this.relation || "errorMessage" in this.relation || !this.relation.waitingInvite)
+				return false;
+			this.isInvitationGame = true;
+		}
+		return true;
+	}
+
+	protected async beforeMount(): Promise<void> {
+		if (this.isInvitationGame) {
+			console.log("BEFORE MOUNT Invite game");
+			if (this.currentUser!.id === this.relation.challengedBy) {
+				await this.sendMatchMakingRequest("invite", undefined, this.friendId, this.currentUser!.id);
+				this.appendWaitText();
+			} else if (this.currentUser!.id === this.relation.isChallenged) {
+				await this.sendMatchMakingRequest("invite-accept", undefined, this.currentUser!.id, this.friendId);
+				this.appendWaitText();
+			} else {
+				console.error("Erreur de matchmaking dans l'invite.");
+				return;
+			}
+			this.gameType = "invite";
+		} 
+		else if (window.location.pathname === "/game/local")
+			// console.log("BEFORE MOUNT Local game")
+			this.gameType = "local";
+		else if (this.isPartOfTournament)
+			// TODO: la méthode pour passer this.isPartOfTournament à true est à implémenter,
+			// ? ou alors, voir avec les données du jeu si c'est pas déjà dispo quelque part.
+			// ! -> Savoir si on est dans un tournoi nous permettrait d'afficher 
+			// ! ou non le bouton "Replay" à la fin d'une partie. (voir méthode handleReplayBtnClick dans GamePage)
+			// console.log("BEFORE MOUNT Tournament game")
+			this.gameType = "tournament";
+		else
+			// console.log("BEFORE MOUNT matchmaking request game")
+			this.gameType = "matchmaking_request";
+	}
+
+	protected attachListeners() {
+		document.addEventListener("keydown", this.handleKeyDown);
+		document.addEventListener("keyup", this.handleKeyUp);
+	}
+
+	protected removeListeners(): void {
+		document.removeEventListener("keydown", this.handleKeyDown);
+		document.removeEventListener("keyup", this.handleKeyUp);
+		document.removeEventListener("click", this.handleReplayBtnClick);
+	}
+
+	// ===========================================
+	// LISTENERS HANDLERS
+	// ===========================================
+	protected abstract handleKeyDown(event: KeyboardEvent): Promise<void>;
+    protected handleKeyUp = async (event: KeyboardEvent): Promise<void> => {
+        this.controlNodesUp = document.querySelectorAll(".control");
+        for (const node of this.controlNodesUp) {
+            if (node.dataset.key == event.key)
+                node.classList.remove("button-press");
+        }
+    }
+	
+	private async handleReplayBtnClick(event: MouseEvent): Promise<void> {
+		event.preventDefault();
+		console.log(this.gameType);
+		switch (this.gameType) {
+
+			// case "local":
+			// 	this.isSearchingGame = true;          
+			// 	await this.sendMatchMakingRequest("local");
+			// 	this.appendWaitText();
+			// 	break;
+
+			case "invite":
+				console.log("replay invite btn click");
+				if (!this.friendId) {
+					console.error("No friend id");
+					return;
+				}
+				try {
+					await gameService.invitePlayer("invite", this.friendId);
+				} catch (err) {
+					console.error(err);
+				}
+				await notifService.handleChallengeClick(event);
+				await this.sendMatchMakingRequest("invite", undefined, this.friendId, this.currentUser!.id);
+				break;
+
+			case "matchmaking_request":
+				console.log("replay matchmaking request btn click");
+				await this.sendMatchMakingRequest("matchmaking_request");
+				break;
+		}
+		// await this.initGame(this.currentUser!.id, this.game!.gameID);
+	}
+
+	// ===========================================
+	// METHODES COMMUNES AU JEU
+	// ===========================================
 	protected insertNetworkError(): void {
 		const errorDiv = document.createElement("div");
 		errorDiv.setAttribute("data-ts", "game.networkError");
 		errorDiv.textContent = "Network error. Please try again later";
 		document.getElementById("pong-section")!.append(errorDiv);
+	}
+
+	protected appendWaitText(): void {
+		const waitDiv: HTMLElement | null = document.getElementById("wait-div");
+		if (!waitDiv) {
+			const pongSection = document.getElementById("pong-section")!;
+			pongSection.innerHTML = "";
+			const lobby: HTMLElement = document.createElement("div");
+			lobby.setAttribute("data-ts", "game.lobbyWaiting");
+			lobby.textContent = "Waiting for other players to connect...";
+			lobby.id = "wait-div";
+			pongSection.append(lobby);
+			translateService.updateLanguage(undefined, pongSection);
+		}
 	}
 
     protected async sendMatchMakingRequest(type : string, tournamentID?: number, invitedId?: number, inviterId?: number): Promise<void> {
@@ -40,6 +170,8 @@ export class GamePage extends BasePage {
 			inviterId: inviterId
         }
 		await gameApi.matchMake(matchMakingReq);
+		if (type !== "clean_request")
+			currentService.setGameInit(true);
     }
 
 	protected async initGame(playerID: number, gameID: number): Promise<void> {
@@ -130,59 +262,9 @@ export class GamePage extends BasePage {
 		panel.classList.remove("hidden");
 	}
 
-	constructor(config: RouteConfig) {
-		super(config);
-		this.webSocket = webSocketService.getWebSocket();
-	}
-
-	protected handleKeyDown = (event: KeyboardEvent): void => {};
-	protected handleKeyup = (event: KeyboardEvent): void => {};
-
-	protected attachListeners() {
-		document.addEventListener("keydown", this.handleKeyDown);
-		document.addEventListener("keyup", this.handleKeyup);
-	}
-
-	protected removeListeners(): void {
-		document.removeEventListener("keydown", this.handleKeyDown);
-		document.removeEventListener("keyup", this.handleKeyup);
-		document.removeEventListener("click", this.handleReplayBtnClick);
-	}
-
-	private async handleReplayBtnClick(event: MouseEvent): Promise<void> {
-		event.preventDefault();
-		console.log(this.gameType);
-		switch (this.gameType) {
-
-			// case "local":
-			// 	this.isSearchingGame = true;          
-			// 	await this.sendMatchMakingRequest("local");
-			// 	this.appendWaitText();
-			// 	break;
-
-			case "invite":
-				console.log("replay invite btn click");
-				if (!this.friendId) {
-					console.error("No friend id");
-					return;
-				}
-				try {
-					await gameService.invitePlayer("invite", this.friendId);
-				} catch (err) {
-					console.error(err);
-				}
-				await notifService.handleChallengeClick(event);
-				await this.sendMatchMakingRequest("invite", undefined, this.friendId, this.currentUser!.id);
-				break;
-
-			case "matchmaking_request":
-				console.log("replay matchmaking request btn click");
-				await this.sendMatchMakingRequest("matchmaking_request");
-				break;
-		}
-		// await this.initGame(this.currentUser!.id, this.game!.gameID);
-	}
-
+	// ===========================================
+	// HANDLER PUBLIC POUR MESSAGES SOCKET
+	// ===========================================
 	/**
 	 * Gestionnaire d'événement pour les messages WebSocket reçus durant une partie.
 	 * Méthode appelée dans le service centralisé dédié: `webSocketService`.
@@ -241,8 +323,13 @@ export class GamePage extends BasePage {
 		}
 	}
 
+	// ===========================================
+	// CLEANUP PAGE (OVERRIDE CLEANUP BASEPAGE)
+	// ===========================================
 	public async cleanup(): Promise<void> {
 		super.cleanup();
+		// if (this.game)
+		// 	this.game.clearScreen();
 		await this.sendMatchMakingRequest("clean_request", undefined, this.friendId, this.currentUser!.id);
 		currentService.clearCurrentGame();
 	}

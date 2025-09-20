@@ -26,7 +26,6 @@ class GameAPI {
 			const error = await res.json();
 			throw new Error(error.error);
 		}
-		currentService.setGameInit(true);
 	}
 
 }
