@@ -20,9 +20,13 @@ export abstract class GamePage extends BasePage {
 	protected isSearchingGame: boolean = false;
 	protected adversary: SafeUserModel | undefined; 
 
-	protected gameType?: string;
+	// TODO: la méthode pour passer this.isPartOfTournament à true est à implémenter,
+	// ? ou alors, voir avec les données du jeu si c'est pas déjà dispo quelque part.
+	// -> permettrait d'afficher ou non le message de fin de partie selon la logique d'affichage du tournoi
 	protected isPartOfTournament: boolean = false;
+	protected gameType?: string;
 
+	// Variables utiles si le jeu est dans le cadre d'une invitation entre amis
 	protected challengedFriendId?: number | RouteParams;
 	protected friendId: number = 0;
 	protected relation?: Friend;
@@ -35,6 +39,16 @@ export abstract class GamePage extends BasePage {
 	// ===========================================
 	// METHODES REUTILISEES DANS RENDER DE BASEPAGE
 	// ===========================================
+
+	/**
+	 * Avant le montage de la page, on vérifie que l'utilisateur est bien connecté.
+	 * On vérifie aussi si le jeu n'est pas dans le cadre d'une invitation entre amis.
+	 * Si c'est le cas, l'id de l'ami est présent en paramètre de l'URL courante.
+	 * et on charge la relation correspondante.
+	 * Si la relation n'existe pas ou si l'invitation n'existe pas, on retourne false.
+	 * Si la méthode retourne false, on redirige vers la page 'Home'.
+	 * @returns {Promise<boolean>} Une promesse qui se résout lorsque les vérifications sont terminées.
+	 */
 	protected async preRenderCheck(): Promise<boolean> {
 		if (!super.preRenderCheck())
 			return false;
@@ -48,6 +62,12 @@ export abstract class GamePage extends BasePage {
 		return true;
 	}
 
+	/**
+	 * On définit le type de jeu : local, invite, ou matchmaking_request (= online hors invite).
+	 * Dans le cas d'une invitation, on utilise 'this.sendMatchMakingRequest' avec des paramètres adaptés
+	 * différement, qui dépendent de si l'utilisateur courant est celui qui invite ou celui qui est invité.
+	 * @returns {Promise<void>} Une promesse qui se résout lorsque les vérifications sont terminées.
+	 */
 	protected async beforeMount(): Promise<void> {
 		if (this.isInvitationGame) {
 			if (this.currentUser!.id === this.relation.challengedBy) {
@@ -64,10 +84,8 @@ export abstract class GamePage extends BasePage {
 		} 
 		else if (window.location.pathname === "/game/local")
 			this.gameType = "local";
-		else if (this.isPartOfTournament)
-			// TODO: la méthode pour passer this.isPartOfTournament à true est à implémenter,
-			// ? ou alors, voir avec les données du jeu si c'est pas déjà dispo quelque part.
-			this.gameType = "tournament";
+		// else if (this.isPartOfTournament)
+		// 	this.gameType = "tournament";
 		else
 			this.gameType = "matchmaking_request";
 	}
@@ -95,8 +113,20 @@ export abstract class GamePage extends BasePage {
         }
     }
 	
+	/**
+	 * Gère l'événement de clic sur le bouton "Rejouer" dans la page du jeu.
+	 * 
+	 * - Empêche le comportement par défaut de l'événement.
+	 * - Si le jeu fait partie d'un tournoi, la fonction s'arrête immédiatement.
+	 * - Adapte les requêtes de matchmaking en fonction du type de jeu.
+	 * @param event - L'événement souris déclenché lors du clic sur le bouton "Rejouer".
+	 * @returns {Promise<void>} - Une promesse qui se résout lorsque le traitement du replay est terminé.
+	 */
 	protected handleReplayBtnClick = async (event: MouseEvent): Promise<void> => {
 		event.preventDefault();
+		if (this.isPartOfTournament)
+			return;
+
 		switch (this.gameType) {
 
 			case "local":
@@ -133,6 +163,14 @@ export abstract class GamePage extends BasePage {
 	/**
 	 * Gestionnaire d'événement pour les messages WebSocket reçus durant une partie.
 	 * Méthode appelée dans le service centralisé dédié: `webSocketService`.
+	 * Les vérifications se font dans ce service : 
+	 * - si un jeu est en cours, 
+	 * - si on est bien sur la page de jeu, 
+	 * - si le type de message est valide.
+	 * ! Si un nouveau type de message doit être détecté par la socket 
+	 * ! il faut l'ajouter dans constants.config.ts :
+	 * ! GAME_TYPE_MSG = pour les messages liés au jeu
+	 * ! TOURNAMENT_TYPE_MSG - pour les messages liés aux tournois
 	 * 
 	 * @param data Les informations de la partie à lancer.
 	 * @returns La promesse qui se résout lorsque le gestionnaire d'événement a fini de traiter les informations.
@@ -141,8 +179,7 @@ export abstract class GamePage extends BasePage {
 		switch (data.type) {
 
 			case "start_game":
-				this.adversary = data.otherPlayer; 
-				// TODO : possibilite de recuperer l'avatar de l autre joueur si on veut l afficher ici
+				this.adversary = data.otherPlayer;
 				break;
 
 			case "decount_game":
@@ -162,8 +199,8 @@ export abstract class GamePage extends BasePage {
 				document.querySelector("canvas")?.remove();
 				this.finalScore = this.game!.getScore();
 
-				// ! Skip le endgame panel si la partie fait partie d'un tournoi ?
-				// ! Voir comment Kiki s'organise pour l'affichage des scores dans le cadre d'un tournoi
+				// ? Skip le endgame panel si la partie est dans le cadre d'un tournoi ?
+				// ! Voir comment Kiki s'organise pour l'affichage des scores dans ce cas particulier
 				if (!this.isPartOfTournament) 
 					await this.showEndGamePanel();
 
@@ -181,7 +218,7 @@ export abstract class GamePage extends BasePage {
 
 			default:
 				// Si le jeu est quitté ? Exemple: data.type == "hasQuit" ?
-				// fetch post db changement jeu statut
+				// fetch post db changement jeu statut ?
 				// currentService.clearCurrentGame();
 		}
 	}
@@ -189,6 +226,13 @@ export abstract class GamePage extends BasePage {
 	// ===========================================
 	// METHODES COMMUNES AU JEU
 	// ===========================================
+	
+	/**
+	 * Insère un message d'erreur réseau dans le DOM, à l'intérieur de l'élément
+	 * ayant l'ID "pong-section". Le message d'erreur est affiché dans un nouvel
+	 * élément <div> avec un attribut data "data-ts" défini à "game.networkError"
+	 * pour le service de traduction.
+	 */
 	protected insertNetworkError(): void {
 		const errorDiv = document.createElement("div");
 		errorDiv.setAttribute("data-ts", "game.networkError");
@@ -196,6 +240,16 @@ export abstract class GamePage extends BasePage {
 		document.getElementById("pong-section")!.append(errorDiv);
 	}
 
+	/**
+	 * Envoie une requête POST à la route API `/api/game/playgame` pour lancer une partie
+	 * dans le contexte d'un matchmaking (aléatoire / invite / tournoi).
+	 * 
+	 * @param {string} type Le type de partie (matchmaking, invite, tournament).
+	 * @param {number} [tournamentID] L'ID du tournoi si la partie est un tournoi.
+	 * @param {number} [invitedId] L'ID du joueur invité si la partie est une invitation.
+	 * @param {number} [inviterId] L'ID du joueur qui invite si la partie est une invitation.
+	 * @returns {Promise<void>} La promesse qui se résout lorsque la partie est lancée.
+	 */
     protected async sendMatchMakingRequest(type : string, tournamentID?: number, invitedId?: number, inviterId?: number): Promise<void> {
         const message = type;
         const matchMakingReq: MatchMakingReq = {
@@ -206,10 +260,20 @@ export abstract class GamePage extends BasePage {
 			inviterId: inviterId
         }
 		await gameApi.matchMake(matchMakingReq);
+
 		if (type !== "clean_request")
 			currentService.setGameInit(true);
     }
 
+	/**
+	 * Initialise le jeu en supprimant les éléments HTML existants dans le container #pong-section.
+	 * Crée un objet MultiPlayerGame avec les paramètres du jeu (nombre de joueurs, ID du joueur actuel, ID du jeu).
+	 * Appelle la méthode initGame() de l'objet MultiPlayerGame pour initialiser le jeu.
+	 * 
+	 * @param {number} playerID L'ID du joueur actuel.
+	 * @param {number} gameID L'ID du jeu.
+	 * @returns {Promise<void>} La promesse qui se résout lorsque le jeu est initialisé.
+	 */
 	protected async initGame(playerID: number, gameID: number): Promise<void> {
 		const allChildren = document.getElementById("pong-section");
 		while (allChildren?.firstChild)
@@ -217,7 +281,16 @@ export abstract class GamePage extends BasePage {
 		this.game = new MultiPlayerGame(2, playerID, gameID);
 		await this.game.initGame();
 	}
-
+	
+	/**
+	 * Affiche un message d'attente dans le container #pong-section
+	 * en fonction du type de jeu (invite, matchmaking_request).
+	 * Pas de message d'attente pour un jeu local, on passe directement au décompte.
+	 * TODO: Voir si besoin d'afficher un autre message dans le cadre d'un tournoi ?
+	 * ( 'else if (this.isPartOfTournament)' en commentaire )
+	 * ! Les span avec attribut "data-ts" sont automatiquement traduits par le service de traduction.
+	 * ! Si modif du texte, penser à mettre à jour les fichiers de traduction (frontend/src/services/core/translation/*.json)
+	 */
 	protected appendWaitText(): void {
 		const waitDiv: HTMLElement | null = document.getElementById("wait-div");
 		if (!waitDiv) {
@@ -233,6 +306,7 @@ export abstract class GamePage extends BasePage {
 				waitingText1.textContent = "Waiting for ";
 				waitingUsername.textContent = this.relation!.username;
 				waitingText2.textContent = " to connect...";
+			// } else if (this.isPartOfTournament) {
 			} else {
 				waitingText1.textContent = "Waiting for ";
 				waitingUsername.textContent = "another player";
@@ -246,6 +320,15 @@ export abstract class GamePage extends BasePage {
 		}
 	}
 
+	/**
+	 * Affiche un timer dans le container #pong-section
+	 * en fonction du temps restant avant le démarrage du jeu.
+	 * Le timer est affiché dans un élément <div> avec un attribut "data-ts" défini à "game.timerText"
+	 * pour le service de traduction.
+	 * ! Si modif du texte, penser à mettre à jour les fichiers de traduction (frontend/src/services/core/translation/*.json)
+	 * 
+	 * @param {number} time Le temps restant avant le démarrage du jeu en secondes.
+	 */
 	protected showTimer(time: number): void {
 		const panel = document.getElementById("pong-section")!;
 		panel.innerHTML = "";
@@ -264,6 +347,11 @@ export abstract class GamePage extends BasePage {
 		panel.classList.remove("hidden");
 	}
 	
+	/**
+	 * Affiche le panel de fin de jeu, avec les scores et un bouton pour rejouer.
+	 * 
+	 * @returns {Promise<void>} Une promesse qui se résout lorsque le panel est affiché.
+	 */
 	protected async showEndGamePanel(): Promise<void> {
 		const panel = document.getElementById("pong-section")!;
 		panel.innerHTML = "";
@@ -283,16 +371,31 @@ export abstract class GamePage extends BasePage {
 		panel.classList.remove("hidden");
 	}
 
+	/**
+	 * Renvoie une promesse qui se résout avec l'élément HTML représentant le panel de fin de jeu.
+	 * Le panel est chargé depuis le template "/templates/game/endgame_panel.html".
+	 * La méthode parse le code HTML du template et retourne l'élément HTML ayant pour classe "endgame-panel".
+	 * Si le parsing échoue, la promesse se résout avec la valeur null.
+	 * @returns {Promise<Element | null>} Une promesse qui se résout avec l'élément HTML représentant le panel de fin de jeu.
+	 */
 	private async fetchEndGameItem(): Promise<Element | null> {
 		const html = await loadTemplate("/templates/game/endgame_panel.html");
 		const parser = new DOMParser();
 		const doc = parser.parseFromString(html, "text/html");
 		return doc.querySelector(".endgame-panel");
 	}
-
-
-	// Les span avec attribut "data-ts" sont automatiquement traduits par le service de traduction
-	// ! Si modif du texte, penser à mettre à jour les fichiers de traduction (frontend/src/services/core/translation/*.json)
+	
+	/**
+	 * Remplit la boîte de score dans le panneau de fin de jeu avec le message de résultat et les scores.
+	 *
+	 * Cette méthode met à jour l'élément `endGamePanel` fourni en :
+	 * - Affichant un message de victoire ou de défaite selon les scores finaux.
+	 * - Affichant le score au format "Vous : score1 - score2 : Adversaire" ou "Joueur 1 : score1 - score2 : Joueur 2" si aucun adversaire n'est présent.
+	 * - Définissant les attributs data-ts et les classes CSS appropriées pour la traduction et le style.
+	 * ! Si modif du texte, penser à mettre à jour les fichiers de traduction (frontend/src/services/core/translation/*.json)
+	 *
+	 * @param endGamePanel - L'élément DOM représentant le panneau de fin de jeu où le score et le message de résultat seront affichés.
+	 */
 	protected fillScoreBox(endGamePanel: Element): void {
 		const resMessage = getHTMLElementByClass('res-message', endGamePanel) as HTMLElement;
 		const resScore = getHTMLElementByClass('res-score', endGamePanel) as HTMLElement;
@@ -312,7 +415,6 @@ export abstract class GamePage extends BasePage {
 			}
 			resMessage.classList.remove("hidden");
 		}
-
 		spanScore.textContent = ` : ${this.finalScore[0]} - ${this.finalScore[1]} : `;
 
 		if (this.finalScore[0] !== this.finalScore[1]) {
@@ -330,6 +432,13 @@ export abstract class GamePage extends BasePage {
 		resScore.append(spanRes, spanScore, spanAdversary);
 	}
 
+	/**
+	 * Configure le bouton de replay dans le panneau de fin de jeu.
+	 * Si un ID d'ami est fourni, le bouton enverra une requête de jeu vers l'ami (= invitation).
+	 * Sinon, le bouton enverra une requête pour jouer en local ou online (avec matchmaking).
+	 * 
+	 * @param {Element} endGamePanel - L'élément DOM représentant le panneau de fin de jeu où le bouton de replay est placé.
+	 */
 	protected setReplayButton(endGamePanel: Element): void {
 		const replayBtn = getHTMLElementById('replay-button', endGamePanel) as HTMLElement;
 		if (this.friendId)
