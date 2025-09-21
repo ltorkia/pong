@@ -6,9 +6,11 @@ import { webSocketService } from '../../services/user/user.service';
 import { GamePage } from './game.page';
 import { TournamentService } from '../../api/game/game.api';
 import { Game } from '../../types/game.types';
+import { router } from '../../router/router';
 
 export class GameMenuLocalID extends GamePage {
     private gameID: number;
+    private tournamentID: number = 0;
     private gameInfos: Game | undefined;
 
     constructor(config: RouteConfig) {
@@ -18,7 +20,10 @@ export class GameMenuLocalID extends GamePage {
     }
 
     protected async beforeMount(): Promise<void> {
-        this.gameInfos = await TournamentService.fetchLocalTournamentGame(this.gameID);
+        const gameData: {tournamentID: number, game: Game} | undefined
+            = await TournamentService.fetchLocalTournamentGame(this.gameID);
+        this.tournamentID = gameData!.tournamentID;
+        this.gameInfos = gameData!.game;
         console.log(this.gameInfos);
         this.insertPlayerNames();
     }
@@ -31,23 +36,23 @@ export class GameMenuLocalID extends GamePage {
         playerTwo.textContent = this.gameInfos?.players[1].alias;
     }
 
-    private appendWaitText(): void {
-        // const waitDiv: HTMLElement | null = document.getElementById("wait-div");
-        // if (!waitDiv) {
-            const lobby: HTMLElement = document.createElement("div");
-        //     lobby.textContent = "Waiting for other players to connect...";
-        //     lobby.id = "wait-div";
-            document.getElementById("pong-section")?.append(lobby);
-        // }
+    protected async endGameAftermatch(): Promise<void> {
+        this.showEndGamePanel();
+        const btn = document.createElement("button");
+        const panel = document.getElementById("pong-section");
+        
+        btn.innerText = "BACK TO TOURNAMENT";
+        console.log()
+        btn.addEventListener("click", () => router.navigate(`/game/tournaments_local/:${this.tournamentID}/overview`));
+        panel?.append(btn);
+        await TournamentService.updateTournamentRequest(this.tournamentID);
     }
 
     protected handleKeyDown = (event: KeyboardEvent): void => {
         this.controlNodesDown = document.querySelectorAll(".control");
         if (event.key == " " && this.isSearchingGame === false) { //TODO : creer un bouton pour lancer le jeu et replay pour sendmatchmaquingrequest pour eviter de le lancer en dehors de la page jeu
-            this.isSearchingGame = true;          
+            this.isSearchingGame = true;
             this.sendMatchMakingRequest("tournament", this.gameID);
-            // document.getElementById("pong-section")?.append(lobby);
-            this.appendWaitText();
         }
         for (const node of this.controlNodesDown) {
             if (node.dataset.key == event.key)
@@ -63,6 +68,5 @@ export class GameMenuLocalID extends GamePage {
         }
     }
 }
-
 // TODO = gerer les parties interrompues en cours de jeu -> ajout du score des 2 utilisateurs + check ? Ou juste refetch quand actualisation et maj des parties abandonnees ? jsp
 // TODO = affichage result -> le remettre au milieu ? 

@@ -160,18 +160,23 @@ export class TournamentAPI {
         }
     }
 
-    public async fetchLocalTournamentGame(gameID: number): Promise<Game | undefined> {
+    public async fetchLocalTournamentGame(gameID: number): Promise<{ tournamentID: number, game: Game } | undefined> {
         const res = await fetch(`/api/game/tournaments_local/game/:${gameID}`);
         if (res.ok) {
-            const gameJSON: Game = await res.json();
-            return new Game(
-                gameJSON.players,
-                gameJSON.gameIDforDB,
-                gameJSON.playersCount,
-                gameJSON.gameStarted,
-                gameJSON.isOver,
-                gameJSON.score,
-            );
+            const data = await res.json();
+            console.log(data);
+            return ({
+                tournamentID: data.tournamentID, game: new Game(
+                    data.game.players,
+                    data.game.gameIDforDB,
+                    data.game.playersCount,
+                    data.game.gameStarted,
+                    data.game.isOver,
+                    data.game.score,
+                )
+            })
+        } else {
+            return undefined;
         }
     }
 
@@ -189,7 +194,24 @@ export class TournamentAPI {
             );
         } else {
             console.error("Tournament not found");
+            console.error(res.json());
             return undefined;
+        }
+    }
+
+    public async updateTournamentRequest(tournamentID: number): Promise<boolean> {
+        const res = await fetch(`/api/game/tournaments_local/update`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json'},
+            body: JSON.stringify({tournamentID: tournamentID}),
+            credentials: 'include',
+        });
+        if (res.ok) {
+            return true;
+        }
+        else {
+            console.log("PROBLEME UPDATE");
+            return false;
         }
     }
 

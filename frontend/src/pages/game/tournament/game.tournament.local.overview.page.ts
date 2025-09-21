@@ -27,7 +27,7 @@ export class GameTournamentLocalOverview extends GamePage {
         this.tournament = await TournamentService.fetchLocalTournament(this.tournamentID);
         if (!this.tournament) {
             console.error("Tournament not found");
-            router.navigate("/game/tournaments");
+            router.navigate("/game/tournament_local");
         }
         // Fetch du html qui va etre reutilise plusieurs fois
         this.pastilleHTML = await this.fetchHTML("../../../../public/templates/game/tournament/tournament_pastille.html", "#tournament-pastille");
@@ -75,8 +75,8 @@ export class GameTournamentLocalOverview extends GamePage {
         const firstStage: HTMLElement = document.getElementById("first-stage")!;
         const secondStage: HTMLElement = document.getElementById("second-stage")!;
 
-        await this.displayStage(this.tournament?.stageOne!, 4, firstStage);
-        await this.displayStage(this.tournament?.stageTwo!, 2, secondStage);
+        await this.displayStage(this.tournament?.stageOne!, firstStage);
+        await this.displayStage(this.tournament?.stageTwo!, secondStage);
         await this.displayWinner();
         this.displayNextGameAndSetNavigate();
 
@@ -93,10 +93,8 @@ export class GameTournamentLocalOverview extends GamePage {
             if (!game.isOver)
                 return game;
         }
-        for (const game of this.tournament!.stageTwo!) {
-            if (!game.isOver)
-                return game;
-        }
+        if (!this.tournament?.stageTwo?.isOver)
+            return this.tournament?.stageTwo;
         return undefined;
     }
 
@@ -127,56 +125,66 @@ export class GameTournamentLocalOverview extends GamePage {
         document.getElementById("winner")?.append(playerPastille);
     }
 
+    private async displayGamePlayers(players: Player[], container: HTMLDivElement, tooltip: HTMLElement) {
+        const playerPastille = this.pastilleHTML?.cloneNode(true) as HTMLElement;
+        for (let i = 0; i < 2; i++) {
+            const player = players[i];
+            const user = this.users.find((u: UserModel) => u.id == player.ID)
+            const pastille = playerPastille.querySelector("#pastille-name")!;
+            const img = playerPastille.querySelector("#user-avatar") as HTMLImageElement;
+            const name = player.alias || user?.username;
+
+            if (user)
+                img.src = await this.dataApi.getUserAvatarURL(user! as User);
+            else
+                img.src = await this.dataApi.returnDefaultAvatarURL();
+
+            pastille.textContent = name;
+            tooltip.querySelector(`#player-${i}`)!.textContent = name;
+        }
+        console.log(container)
+        container.append(playerPastille);
+    }
+
     // Afficher chaque etape du tournoi, pas tres joli sorry
-    private async displayStage(stage: Game[], playerNb: number, container: HTMLElement): Promise<void> {
+    private async displayStage(stage: Game[], container: HTMLElement): Promise<void> {
         // Loop pour le nombre de match par stage 
-        for (let i = 0; i < playerNb / 2; i++) {
+        for (let i = 0; i < 2; i++) {
             const div = document.createElement("div");
             div.id = "match-container";
             div.classList.add("relative");
             const newTooltip = this.toolTipHTML?.cloneNode(true) as HTMLElement;
             // Loop pour le nombre de joueur par match, cherche le user approprie, lui cree un container et l'affiche
-            for (let j = 0; j < 2; j++) {
-                const playerPastille = this.pastilleHTML?.cloneNode(true) as HTMLElement;
-                if (stage && stage[i]) {
-                    const player = stage[i].players[j];
-                    const user = this.users.find((u: UserModel) => u.id == player.ID)
-                    const pastille = playerPastille.querySelector("#pastille-name")!;
-                    const img = playerPastille.querySelector("#user-avatar") as HTMLImageElement;
-                    const name = player.alias || user?.username;
+            this.displayGamePlayers(stage[i].players, div, newTooltip);
+            // for (let j = 0; j < 2; j++) {
+            //     const playerPastille = this.pastilleHTML?.cloneNode(true) as HTMLElement;
+            //     if (stage && stage[i]) {
+            //         const player = stage[i].players[j];
+            //         const user = this.users.find((u: UserModel) => u.id == player.ID)
+            //         const pastille = playerPastille.querySelector("#pastille-name")!;
+            //         const img = playerPastille.querySelector("#user-avatar") as HTMLImageElement;
+            //         const name = player.alias || user?.username;
 
-                    if (user)
-                        img.src = await this.dataApi.getUserAvatarURL(user! as User);
-                    else
-                        img.src = await this.dataApi.returnDefaultAvatarURL();
+            //         if (user)
+            //             img.src = await this.dataApi.getUserAvatarURL(user! as User);
+            //         else
+            //             img.src = await this.dataApi.returnDefaultAvatarURL();
 
-                    pastille.textContent = name;
-                    newTooltip.querySelector(`#player-${j}`)!.textContent = name;
-                } else
-                    playerPastille.textContent = "?";
-                div.append(playerPastille);
-            }
+            //         pastille.textContent = name;
+            //         newTooltip.querySelector(`#player-${j}`)!.textContent = name;
+            //     } else
+            //         playerPastille.textContent = "?";
+            //     div.append(playerPastille);
+            // }
             container.append(div);
             div.append(newTooltip);
         }
     }
 
+    // private async displayStageTwo()
+
     protected async mount(): Promise<void> {
         await this.displayTournament();
-        // // Création du bouton
-        // const btn = document.createElement("button");
-        // btn.id = "start-game-btn";
-        // btn.textContent = "Lancer la partie";
-        // btn.classList.add("px-4", "py-2", "bg-blue-900", "text-white", "rounded", "mt-4");
-
-        // document.getElementById("tournament-overview")?.append(btn);
-
-        // // Ajout du listener
-        // btn.addEventListener("click", () => {
-        //      console.log("okeeaiii");
-        //     // this.startGame(); // fonction qui fetch avec les infos en contenu des joueurs
-        // });
-        //     // await this.attachPastilleListeners();
     }
 
     private getGameByPlayerID(id: number, stage: Game[]): Game | undefined {

@@ -49,6 +49,9 @@ export const TournamentPlayerReadySchema = z.object({
     tournamentID: z.number(),
 });
 
+export const TournamentUpdateSchema = z.object({
+    tournamentID: z.number(),
+})
 
 export const StartTournamentSchema = z.object({
     type: z.literal("start_tournament"),

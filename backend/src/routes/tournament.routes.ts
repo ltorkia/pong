@@ -1,5 +1,5 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
-import { TournamentSchema, TournamentReqSchema, TournamentPlayerReadySchema, StartTournamentSchema, DismantleTournamentSchema, TournamentLocalSchema } from '../types/zod/game.zod';
+import { TournamentSchema, TournamentReqSchema, TournamentPlayerReadySchema, StartTournamentSchema, DismantleTournamentSchema, TournamentLocalSchema, TournamentUpdateSchema } from '../types/zod/game.zod';
 import { Player } from '../shared/types/game.types';
 import { Game, Tournament, TournamentLocal } from '../types/game.types';
 import { TournamentLobbyUpdate, StartTournamentSignal, DismantleSignal } from '../shared/types/websocket.types'
@@ -58,21 +58,42 @@ export async function tournamentRoutes(app: FastifyInstance) {
 
         const { allTournamentsLocal } = app.lobby;
 
-        let game;
+        let game, tournament;
 
         // cherche l'id de la game dans les tournois locaux
         for (const tournamentLocal of allTournamentsLocal) {
             if (tournamentLocal.stageTwo && gameID == tournamentLocal.stageTwo.gameIDforDB) {
                 game = tournamentLocal.stageTwo;
-                break ;
+                tournament = tournamentLocal;
+                break;
             }
             game = tournamentLocal.stageOne.find((g: Game) => g.gameIDforDB == gameID);
+            tournament = tournamentLocal;
         }
 
-        if (game)
-            return reply.code(200).send(game);
+        if (game && tournament)
+            return reply.code(200).send({ tournamentID: tournament.ID, game });
         else
-            return reply.code(404).send({ error: "Game not found in local tournaments"});
+            return reply.code(404).send({ error: "Game not found in local tournaments" });
+    })
+
+    app.post("/tournaments_local/update", async (request: FastifyRequest, reply: FastifyReply) => {
+        const updateReq = TournamentUpdateSchema.safeParse(request.body);
+
+        if (!updateReq.success)
+            return reply.code(400).send({ error: updateReq.error.errors[0].message });
+
+        const { tournamentID } = updateReq.data;
+        const { allTournamentsLocal } = app.lobby;
+
+        console.log("TO FIND ID = ", tournamentID);
+        const tournament = allTournamentsLocal.find((t: TournamentLocal) => t.ID = tournamentID);
+        if (tournament) {
+            tournament.update();
+            reply.code(200);
+        } else {
+            reply.code(404).send({ error: "Tournament not found" });
+        }
     })
 
     // Cree un nouveau tournoi

@@ -151,6 +151,10 @@ export class GamePage extends BasePage {
 		// this.initGame();
 	}
 
+    protected endGameAftermatch(): void {
+        this.showEndGamePanel();
+    }
+
 	protected handleKeyDown = (event: KeyboardEvent): void => {};
 	protected handleKeyup = (event: KeyboardEvent): void => {};
 
@@ -181,8 +185,9 @@ export class GamePage extends BasePage {
                 document.querySelector("canvas")?.remove();
                 // document.querySelector("#pong-section")!.remove(); //pour permettre de voir le jeu si on decide de le relancer direct avec le meme joueur
                 this.finalScore = this.game!.getScore(); //TODO = clean le final score je sais pas ou et le show en haut
-                this.showEndGamePanel();
+                this.endGameAftermatch();
             } else if (msg.type == "GameData") {
+                // console.log(msg);
                 this.game!.registerGameData(msg);
                 this.game!.setScore(msg.score);
             } else if (msg.type == "msg")

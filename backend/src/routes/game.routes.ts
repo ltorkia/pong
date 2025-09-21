@@ -144,6 +144,7 @@ const startGame = async (app: FastifyInstance, players: Player[], mode: string) 
             user.WS.send(JSON.stringify(WSToSend));
             user.WS.onmessage = (event: MessageEvent) => {
                 const msg: any = JSON.parse(event.data);
+                console.log(msg);
                 if (msg.type == "movement") {
                     if (mode === "multi")
                         newGame.registerInput(msg.playerID, msg.key, msg.status);
@@ -171,7 +172,6 @@ const startTournamentGame = async (app: FastifyInstance, gameID: number, hostID:
     const { allTournamentsLocal, allPlayers } = app.lobby;
     let tournament, game;
 
-    console.log("started tournament game");
     // cherche l'id de la game dans les tournois locaux
     for (const tournamentLocal of allTournamentsLocal) {
         if (tournamentLocal.stageTwo && gameID == tournamentLocal.stageTwo.gameIDforDB) {
@@ -188,19 +188,21 @@ const startTournamentGame = async (app: FastifyInstance, gameID: number, hostID:
         return;
     }
 
+    // envoi des donnees du jeu au host (= celui qui a lance le tournoi)
+    // qui n'est pas forcement un joueur de la game mais juste le pc
+
     const host = app.usersWS.find((u: UserWS) => u.id == hostID);
     if (host) {
         host.WS.send(JSON.stringify({ type: "start_game", gameID: gameID } as StartGame));
         host.WS.onmessage = (event: MessageEvent) => {
             const msg: any = JSON.parse(event.data);
+            console.log(msg);
             if (msg.type == "movement") {
                 console.log(msg.type);
-                game.registerInputLocal(msg.playerID, msg.key, msg.status);
+                game.registerInputLocalTournament(msg.key, msg.status);
             }
         }
-        game.players[0].webSocket = host.WS;
-        game.players[1].webSocket = host.WS;
-        // game.players[1].webSocket = host.WS;
+        game.players[0].webSocket = host.WS; 
         await decountWS(host.WS, gameID);
     }
     game.initGame();

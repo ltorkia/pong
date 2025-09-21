@@ -31,7 +31,7 @@ export class TournamentLocal implements TournamentInterface {
     masterPlayerID: number;
     players: Player[];
     stageOne?: GameInterface[] | undefined;
-    stageTwo?: GameInterface[] | undefined;
+    stageTwo?: GameInterface | undefined;
 
     constructor(maxPlayers: number, masterPlayerID: number, players: Player[],
         stageOne?: Game[], stageTwo?: Game[]

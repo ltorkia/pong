@@ -85,7 +85,7 @@ export class Ball {
 
 export class Game {
     private duration: number = 0;
-    public  players: Player[] = [];
+    public players: Player[] = [];
     private ball = new Ball();
     private playersCount: number = 0;
     private gameStarted: boolean = false;
@@ -192,30 +192,29 @@ export class Game {
         }
         let winner = this.players[1];
         let looser = this.players[0];
-        if ((this.score[0] = 3) | (this.score[1] = 3))
-        {
+        if ((this.score[0] = 3) | (this.score[1] = 3)) {
             console.log("iiiiiiiiiiiiiiiiiiciiiii dans condition endgsameeee ")
             winner = this.players[0];
             looser = this.players[1];
             // if multiplayer si on veut garder que en db le multiplayer
             await resultGame(this.gameIDforDB, winner.ID, looser.ID, this.score);
         }
-        else
-        {
+        else {
             console.log("iiiiiiiiiiiiiiiiiiciiiii dans else endgsameeee ")
             await cancelledGame(this.gameIDforDB, winner.ID, looser.ID, this.score);
         }
         // allPlayers.splice(playerIdx, 1);
         winner.matchMaking = false;
         looser.matchMaking = false;
+        for (const player of this.players) // clean des websockets si besoin de renvoyer tournoi au front (crash si websocket a l'interieur de JSON)
+            player.webSocket = undefined;
     }
 
     private sendGameUpdate() {
         const gameUpdate = new GameData(this.players, this.ball, this.score);
         for (const player of this.players) {
-            if (this.players[1] == player)
-            {
-                gameUpdate.ball.x *=-1;
+            if (this.players[1] == player) {
+                gameUpdate.ball.x *= -1;
                 gameUpdate.players[1].pos.x *= -1;
                 gameUpdate.players[0].pos.x *= -1;
                 gameUpdate.score = [this.score[1], this.score[0]];
@@ -227,8 +226,9 @@ export class Game {
 
     public registerInputLocal(playerID: number, key: string, status: boolean): void { //peut etre ajouter le type de jeu jsp
         for (const player of this.players) {
-             if (player.ID == playerID) {
-        //     if (player.sidePlayer === "left") {
+            console.log("both ids are : ", player.ID, playerID);
+            if (player.ID == playerID) {
+                //     if (player.sidePlayer === "left") {
                 if (key == "w" && player.inputUp != status) player.inputUp = status;
                 else if (key == "s" && player.inputDown != status) player.inputDown = status;
             }
@@ -237,10 +237,22 @@ export class Game {
                 if (key == "ArrowUp" && player.inputUp != status) player.inputUp = status;
                 else if (key == "ArrowDown" && player.inputDown != status) player.inputDown = status;
             }
-            }
+        }
         // }
         // }
     };
+
+    public registerInputLocalTournament(key: string, status: boolean): void {
+        if (key == "w" && this.players[0].inputUp != status)
+            this.players[0].inputUp = status;
+        else if (key == "s" && this.players[0].inputDown != status)
+            this.players[0].inputDown = status;
+
+        if (key == "ArrowUp" && this.players[1].inputUp != status)
+            this.players[1].inputUp = status;
+        else if (key == "ArrowDown" && this.players[1].inputDown != status)
+            this.players[1].inputDown = status;
+    }
 
     public registerInput(playerID: number, key: string, status: boolean): void { //peut etre ajouter le type de jeu jsp
         for (const player of this.players) {
@@ -250,6 +262,10 @@ export class Game {
             }
         }
     };
+
+    public getIsOver() { return this.isOver };
+
+    public getScore() { return this.score };
 
     public setGameStarted(started: boolean) { this.gameStarted = started };
 };
@@ -270,9 +286,17 @@ export class TournamentLocal {
         this.ID = ID ?? 0;
     }
 
+    public getWinner(game: Game): Player {
+        const score = game.getScore();
+        if (score[0] == 3)
+            return game.players[0];
+        else
+            return game.players[1];
+    }
+
     public async startTournament(): Promise<void> {
         console.log("iciiii starttournament baaaackkkk /////")
-        this.IDforDB = await createTournament(this.maxPlayers, this.maxPlayers/2);
+        this.IDforDB = await createTournament(this.maxPlayers, this.maxPlayers / 2);
         if (this.IDforDB === undefined)
             return; //TODO : put some error
         console.log("game at start tournament is ?", this.stageOne);
@@ -287,8 +311,17 @@ export class TournamentLocal {
         this.stageOne[1] = new Game(2, [this.players[2], this.players[3]]);
         this.stageOne[1].gameIDforDB = await addGame(this.players[2].ID, this.players[3].ID, true);
     }
-}
 
+    // si les games du premier tour sont finies, update pour determiner la derniere game
+    public async update(): Promise<void> {
+        if (this.stageOne[0].getIsOver() && this.stageOne[1].getIsOver()) {
+            const playerOne = this.getWinner(this.stageOne[0]);
+            const playerTwo = this.getWinner(this.stageOne[1]);
+            this.stageTwo = new Game(2, [playerOne, playerTwo]);
+            this.stageTwo.gameIDforDB = await addGame(playerOne.ID, playerTwo.ID, true);
+        }
+    }
+}
 
 export class Tournament {
     public name: string;
@@ -324,16 +357,15 @@ export class Tournament {
 
     public async startTournament(): Promise<void> {
         console.log("iciiii starttournament baaaackkkk /////")
-        this.IDforDB = await createTournament(this.maxPlayers, this.maxPlayers/2);
+        this.IDforDB = await createTournament(this.maxPlayers, this.maxPlayers / 2);
         if (this.IDforDB === undefined)
             return; //TODO : put some error
         console.log("game at start tournament is ?", this.stageOneGames);
 
-        for (const player of this.players)
-        {
+        for (const player of this.players) {
             await registerUserTournament(player.ID, this.IDforDB);
         }
-        
+
         // this.players est melange pour avoir des matchs aleatoire
         shuffleArray(this.players);
         let playerIdx = 0;

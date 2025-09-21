@@ -1,6 +1,6 @@
 import { webSocketService } from "../../services/user/user.service";
 import { GameData } from "../../shared/types/game.types"
-import {PlayerBar, Ball} from "./ToolsGame.component";
+import { PlayerBar, Ball } from "./ToolsGame.component";
 
 const lerp = (a: number, b: number, t: number) => { return a + t * (b - a) };
 const getTargetTimestamp = (arr: number[], target: number) => {
@@ -13,72 +13,6 @@ const getTargetTimestamp = (arr: number[], target: number) => {
     return arr.length >= 2 ? arr.length - 2 : 0;
 }
 const BUFFER_DELAY = 100; // ms
-
-// export class PlayerBar {
-//     public oldState = { time: 0, x: 0, y: 0 };
-//     public newState = { time: 0, x: 0, y: 0 };
-//     public x: number;
-//     public y: number;
-//     public w: number;
-//     public h: number;
-//     public moveUnit: number;
-//     private ctx: CanvasRenderingContext2D;
-
-//     public draw(): void {
-//         const xPixels = ((this.x + 1) / 2) * this.ctx.canvas.clientWidth;
-//         const yPixels = (1 - ((this.y + 1) / 2)) * this.ctx.canvas.clientHeight;
-//         const pixelWidth = this.w * (this.ctx.canvas.width / 2);
-//         const pixelHeight = this.h * (this.ctx.canvas.clientHeight / 2);
-//         this.ctx.fillStyle = "rgba(255, 255, 255)";
-//         this.ctx.fillRect(
-//             xPixels - pixelWidth / 2,
-//             yPixels - pixelHeight / 2,
-//             pixelWidth,
-//             pixelHeight);
-//     };
-
-//     constructor(ctx: CanvasRenderingContext2D) {
-//         this.x = 0;
-//         this.y = 0;
-//         this.w = 0;
-//         this.h = 0;
-//         this.moveUnit = 0;
-//         this.ctx = ctx;
-//     }
-// };
-
-// export class Ball {
-//     public oldState = { time: 0, x: 0, y: 0 };
-//     public newState = { time: 0, x: 0, y: 0 };
-//     public x: number;
-//     public y: number;
-//     public radius: number;
-//     public moveUnit: number;
-//     private ctx: CanvasRenderingContext2D;
-
-//     draw() {
-//         const xPixels = ((this.x + 1) / 2) * this.ctx.canvas.width;
-//         const yPixels = (1 - ((this.y + 1) / 2)) * this.ctx.canvas.height;
-//         const radiusPix = this.radius * (Math.min(this.ctx.canvas.width, this.ctx.canvas.height) / 2);
-//         this.ctx.beginPath();
-//         this.ctx.arc(
-//             xPixels,
-//             yPixels,
-//             radiusPix, 0, Math.PI * 2, true
-//         );
-//         this.ctx.closePath();
-//         this.ctx.fillStyle = "rgba(255, 255, 255)";
-//         this.ctx.fill();
-//     };
-
-//     constructor(ctx: CanvasRenderingContext2D) {
-//         this.x = 0;
-//         this.y = 0;
-//         this.moveUnit = 0;
-//         this.radius = 0.03;
-//         this.ctx = ctx;
-//     }
-// };
 
 export class MultiPlayerGame {
     private gameCanvas: HTMLCanvasElement = document.createElement('canvas');
@@ -102,7 +36,6 @@ export class MultiPlayerGame {
     private stutterCount = 0;
     private kindOfGame: string = "multi";
 
-
     constructor(playersCount: number, playerID: number, gameID: number) {
         // const inputs: string[] = ["w", "s", "ArrowUp", "ArrowDown"];
         this.playersCount = playersCount;
@@ -118,6 +51,28 @@ export class MultiPlayerGame {
         }
     }
 
+    private sendMovementMsg(key: string, status: boolean): void {
+        this.playerWebSocket.send(JSON.stringify({
+            type: "movement",
+            playerID: this.playerID,
+            gameID: this.gameID,
+            key: key,
+            status: status,
+        }))
+    }
+
+    private inputKeyDown = (event: KeyboardEvent) => {
+        if ((event.key == "w" && this.inputUp == true) || (event.key == "s" && this.inputDown == true))
+            return;
+        if (event.key == "w" || event.key == "s" || event.key == "ArrowUp" || event.key == "ArrowDown")
+            this.sendMovementMsg(event.key, true);
+    }
+
+    private inputKeyUp = (event: KeyboardEvent) => {
+        if (event.key == "w" || event.key == "s" || event.key == "ArrowUp" || event.key == "ArrowDown")
+            this.sendMovementMsg(event.key, false);
+    }
+
     public clearScreen(): void {
         this.canvasCtx.clearRect(0, 0, this.gameCanvas.width, this.gameCanvas.height)
         // this.canvasCtx.globalCompositeOperation = 'destination-out';
@@ -127,28 +82,8 @@ export class MultiPlayerGame {
     };
 
     protected attachListeners(): void {
-        document.addEventListener("keydown", (event) => {
-            if ((event.key == "w" && this.inputUp == true) || (event.key == "s" && this.inputDown == true))
-                return;
-            this.playerWebSocket.send(JSON.stringify({
-                type: "movement",
-                playerID: this.playerID,
-                gameID: this.gameID,
-                key: event.key,
-                status: true,
-            }))
-        });
-        document.addEventListener("keyup", (event) => {
-            if ((event.key == "w" && this.inputUp == true) || (event.key == "s" && this.inputDown == true))
-                return;
-            this.playerWebSocket.send(JSON.stringify({
-                type: "movement",
-                playerID: this.playerID,
-                gameID: this.gameID,
-                key: event.key,
-                status: false,
-            }))
-        });
+        document.addEventListener("keydown", this.inputKeyDown);
+        document.addEventListener("keyup", this.inputKeyUp);
     };
 
     public counter(): Promise<void> {
@@ -266,7 +201,11 @@ export class MultiPlayerGame {
         // }
         // // === TEST DE FLUIDITÉ - FIN ===
 
-        if (!this.gameStarted) return;
+        if (!this.gameStarted) {
+            document.removeEventListener("keydown", this.inputKeyDown)
+            document.removeEventListener("keyup", this.inputKeyUp);
+            return;
+        }
         this.clearScreen();
         this.setAllPositions()
         for (const player of this.players)
