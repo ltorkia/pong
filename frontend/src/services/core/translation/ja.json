@@ -186,7 +186,8 @@
 		"loseMessage": "失敗！",
 		"winMessage": "勝利！",
 		"finalScore": "最終スコア: ",
-		"replay": "再プレイ"
+		"replay": "再プレイ",
+		"replayUser": "友達と再プレイ "
 	},
 
 	"tournament": {

@@ -187,7 +187,8 @@
 		"loseMessage": "Echec !",
 		"winMessage": "Victoire !",
 		"finalScore": "Score final : ",
-		"replay": "Rejouer"
+		"replay": "Rejouer",
+		"replayUser": "Rejouer avec "
 	},
 
 	"tournament": {

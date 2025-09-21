@@ -9,7 +9,6 @@ export class GameMenuLocal extends GamePage {
 
     protected handleKeyDown = async (event: KeyboardEvent): Promise<void> => {
         event.preventDefault();
-        console.log(this.gameType);
         this.controlNodesDown = document.querySelectorAll(".control");
         if (event.key == " " && this.isSearchingGame === false) { 
             this.isSearchingGame = true;

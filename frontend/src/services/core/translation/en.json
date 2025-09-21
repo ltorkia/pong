@@ -187,7 +187,8 @@
 		"loseMessage": "You lose !",
 		"winMessage": "You win !",
 		"finalScore": "Final Score : ",
-		"replay": "Replay"
+		"replay": "Replay",
+		"replayUser": "Replay "
 	},
 
 	"tournament": {

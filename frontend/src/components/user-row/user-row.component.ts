@@ -158,8 +158,8 @@ export class UserRowComponent extends BaseComponent {
 			if (logDate)
 				this.logCell.innerHTML = logDate;
 		}
-		this.setButtonDataAttribut();
 		await this.toggleFriendButton();
+		this.setButtonDataAttribut();
 	}
 
 	/**

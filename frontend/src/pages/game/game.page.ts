@@ -24,13 +24,14 @@ export abstract class GamePage extends BasePage {
 	// ? ou alors, voir avec les données du jeu si c'est pas déjà dispo quelque part.
 	// -> permettrait d'afficher ou non le message de fin de partie selon la logique d'affichage du tournoi
 	protected isPartOfTournament: boolean = false;
-	protected gameType?: string;
+	protected requestType?: string;
 
 	// Variables utiles si le jeu est dans le cadre d'une invitation entre amis
 	protected challengedFriendId?: number | RouteParams;
 	protected friendId: number = 0;
 	protected relation?: Friend;
 	protected isInvitationGame: boolean = false;
+	protected replayInvite: boolean = false;
 
 	constructor(config: RouteConfig) {
 		super(config);
@@ -43,8 +44,8 @@ export abstract class GamePage extends BasePage {
 	/**
 	 * Avant le montage de la page, on vérifie que l'utilisateur est bien connecté.
 	 * On vérifie aussi si le jeu n'est pas dans le cadre d'une invitation entre amis.
-	 * Si c'est le cas, l'id de l'ami est présent en paramètre de l'URL courante.
-	 * et on charge la relation correspondante.
+	 * Si c'est le cas, l'id de l'ami est présent en paramètre de l'URL courante
+	 * et on charge la relation correspondante dans 'handleInviteSettings()'.
 	 * Si la relation n'existe pas ou si l'invitation n'existe pas, on retourne false.
 	 * Si la méthode retourne false, on redirige vers la page 'Home'.
 	 * @returns {Promise<boolean>} Une promesse qui se résout lorsque les vérifications sont terminées.
@@ -53,41 +54,32 @@ export abstract class GamePage extends BasePage {
 		if (!super.preRenderCheck())
 			return false;
 		if (this.challengedFriendId) {
-			this.friendId = Number(this.challengedFriendId);
-			this.relation = await friendApi.getRelation(this.currentUser!.id, this.friendId);
-			if (!this.relation || "errorMessage" in this.relation || !this.relation.waitingInvite)
+			const isInviteSet = await this.handleInviteSettings();
+			if (!isInviteSet)
 				return false;
-			this.isInvitationGame = true;
 		}
 		return true;
 	}
 
 	/**
-	 * On définit le type de jeu : local, invite, ou matchmaking_request (= online hors invite).
-	 * Dans le cas d'une invitation, on utilise 'this.sendMatchMakingRequest' avec des paramètres adaptés
+	 * On définit le type de requête : local, invite, ou matchmaking_request (= online hors invite).
+	 * Dans le cas d'une invitation, dans 'handleInviteRequest()' on utilise 'this.sendMatchMakingRequest' avec des paramètres adaptés
 	 * différement, qui dépendent de si l'utilisateur courant est celui qui invite ou celui qui est invité.
 	 * @returns {Promise<void>} Une promesse qui se résout lorsque les vérifications sont terminées.
 	 */
 	protected async beforeMount(): Promise<void> {
 		if (this.isInvitationGame) {
-			if (this.currentUser!.id === this.relation.challengedBy) {
-				await this.sendMatchMakingRequest("invite", undefined, this.friendId, this.currentUser!.id);
-				this.appendWaitText();
-			} else if (this.currentUser!.id === this.relation.isChallenged) {
-				await this.sendMatchMakingRequest("invite-accept", undefined, this.currentUser!.id, this.friendId);
-				this.appendWaitText();
-			} else {
-				console.error("Erreur de matchmaking dans l'invite.");
+			this.requestType = "invite";
+			const isRequestSet = await this.handleInviteRequest();
+			if (!isRequestSet)
 				return;
-			}
-			this.gameType = "invite";
 		} 
 		else if (window.location.pathname === "/game/local")
-			this.gameType = "local";
+			this.requestType = "local";
 		// else if (this.isPartOfTournament)
-		// 	this.gameType = "tournament";
+		// 	this.requestType = "tournament";
 		else
-			this.gameType = "matchmaking_request";
+			this.requestType = "matchmaking_request";
 	}
 
 	protected attachListeners() {
@@ -127,7 +119,7 @@ export abstract class GamePage extends BasePage {
 		if (this.isPartOfTournament)
 			return;
 
-		switch (this.gameType) {
+		switch (this.requestType) {
 
 			case "local":
 				this.isSearchingGame = true;          
@@ -135,18 +127,25 @@ export abstract class GamePage extends BasePage {
 				break;
 
 			case "invite":
-				if (!this.friendId) {
-					console.error("No friend id");
+				this.relation = await friendApi.getRelation(this.currentUser!.id, this.friendId);
+				if (!this.relation || "errorMessage" in this.relation)
 					return;
-				}
-				try {
-					await gameService.invitePlayer("invite", this.friendId);
-				} catch (err) {
-					console.error(err);
-				}
-				await notifService.handleChallengeClick(event);
-				await this.sendMatchMakingRequest("invite", undefined, this.friendId, this.currentUser!.id);
-				this.appendWaitText();
+				if (!this.relation.waitingInvite) {
+					try {
+						await gameService.invitePlayer("invite", this.friendId);
+					} catch (err) {
+						console.error(err);
+					}
+					await notifService.handleChallengeClick(event);
+				} else
+					await notifService.handlePlayClick(event);
+
+				event.stopImmediatePropagation();
+				
+				const isInviteSet = await this.handleInviteSettings();
+				const isRequestSet = await this.handleInviteRequest();
+				if (!isInviteSet || !isRequestSet)
+					return;
 				break;
 
 			case "matchmaking_request":
@@ -226,6 +225,42 @@ export abstract class GamePage extends BasePage {
 	// ===========================================
 	// METHODES COMMUNES AU JEU
 	// ===========================================
+
+	/**
+	 * Gère les paramètres de l'invitation.
+	 * Renvoie la promesse résolue si l'utilisateur est bien dans le contexte d'une invitation.
+	 * 
+	 * @returns {Promise<boolean>} La promesse qui se résout lorsque les vérifications sont terminées.
+	 */
+	protected async handleInviteSettings(): Promise<boolean> {
+		this.friendId = Number(this.challengedFriendId);
+		this.relation = await friendApi.getRelation(this.currentUser!.id, this.friendId);
+		if (!this.relation || "errorMessage" in this.relation || !this.relation.waitingInvite)
+			return false;
+		this.isInvitationGame = true;
+		return true;
+	}
+
+	/**
+	 * Gère les requêtes d'invitation.
+	 * Si l'utilisateur courant est l'expéditeur initial, envoie une requête de type "invite".
+	 * Sinon, si l'utilisateur courant est l'expéditeur ciblé, envoie une requête de type "invite-accept".
+	 * Si l'utilisateur n'est pas dans le contexte d'une invitation, lance une erreur.
+	 * @returns {Promise<boolean>} La promesse qui se résout lorsque les vérifications sont terminées.
+	 */
+	protected async handleInviteRequest(): Promise<boolean> {
+		if (this.currentUser!.id === this.relation.challengedBy) {
+			await this.sendMatchMakingRequest("invite", undefined, this.friendId, this.currentUser!.id);
+			this.appendWaitText();
+		} else if (this.currentUser!.id === this.relation.isChallenged) {
+			await this.sendMatchMakingRequest("invite-accept", undefined, this.currentUser!.id, this.friendId);
+			this.appendWaitText();
+		} else {
+			console.error("Erreur de matchmaking dans l'invite.");
+			return false;
+		}
+		return true;
+	}
 	
 	/**
 	 * Insère un message d'erreur réseau dans le DOM, à l'intérieur de l'élément
@@ -286,7 +321,7 @@ export abstract class GamePage extends BasePage {
 	 * Affiche un message d'attente dans le container #pong-section
 	 * en fonction du type de jeu (invite, matchmaking_request).
 	 * Pas de message d'attente pour un jeu local, on passe directement au décompte.
-	 * TODO: Voir si besoin d'afficher un autre message dans le cadre d'un tournoi ?
+	 * TODO: Voir si besoin d'afficher un message dans le cadre d'un tournoi ?
 	 * ( 'else if (this.isPartOfTournament)' en commentaire )
 	 * ! Les span avec attribut "data-ts" sont automatiquement traduits par le service de traduction.
 	 * ! Si modif du texte, penser à mettre à jour les fichiers de traduction (frontend/src/services/core/translation/*.json)
@@ -302,7 +337,7 @@ export abstract class GamePage extends BasePage {
 			const waitingText2: HTMLElement = document.createElement("span");
 			waitingText1.setAttribute("data-ts", "game.waitingText1");
 			waitingText2.setAttribute("data-ts", "game.waitingText2");
-			if (this.gameType === "invite") {
+			if (this.requestType === "invite") {
 				waitingText1.textContent = "Waiting for ";
 				waitingUsername.textContent = this.relation!.username;
 				waitingText2.textContent = " to connect...";
@@ -433,16 +468,27 @@ export abstract class GamePage extends BasePage {
 	}
 
 	/**
-	 * Configure le bouton de replay dans le panneau de fin de jeu.
-	 * Si un ID d'ami est fourni, le bouton enverra une requête de jeu vers l'ami (= invitation).
-	 * Sinon, le bouton enverra une requête pour jouer en local ou online (avec matchmaking).
-	 * 
-	 * @param {Element} endGamePanel - L'élément DOM représentant le panneau de fin de jeu où le bouton de replay est placé.
+	 * Met à jour le bouton de replay dans le panneau de fin de jeu.
+	 * Si un ID d'ami est fourni (donc que le jeu est issu d'une invitation), le bouton est mis à jour avec le texte "Replay with <nom d'ami>".
+	 * Sinon (dans le cas d'un matchmaking aléatoire online ou d'un jeu en local), le bouton est mis à jour avec le texte "Replay".
+	 * Le bouton est également équipé d'un écouteur d'événement pour gérer le clic.
+	 * @param endGamePanel - L'élément DOM représentant le panneau de fin de jeu où le bouton de replay sera affiché.
 	 */
-	protected setReplayButton(endGamePanel: Element): void {
+	protected setReplayButton(endGamePanel?: Element): void {
+		if (!endGamePanel && !this.replayInvite)
+			return;
 		const replayBtn = getHTMLElementById('replay-button', endGamePanel) as HTMLElement;
-		if (this.friendId)
+		if (this.friendId) {
+			const replayWithSpan = getHTMLElementById('replay-with', endGamePanel) as HTMLElement;
+			const friendNameSpan = getHTMLElementById('friend-username', endGamePanel) as HTMLElement;
+			replayWithSpan.classList.remove("hidden");
+			friendNameSpan.classList.remove("hidden");
+			friendNameSpan.textContent = this.adversary!.username;
 			replayBtn.setAttribute("data-friend-id", this.friendId!.toString());
+		} else {
+			const replaySpan = getHTMLElementById('replay', endGamePanel) as HTMLElement;
+			replaySpan.classList.remove("hidden");
+		}
 		document.addEventListener("click", this.handleReplayBtnClick);
 	}
 
