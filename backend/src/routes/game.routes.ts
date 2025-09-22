@@ -104,6 +104,7 @@ export async function gameRoutes(app: FastifyInstance) {
 			const playerTwo = new Player(playerID2);
 			if (playerOne && playerTwo)
 				startGame(app, [playerOne, playerTwo], "local");
+			reply.code(200).send({ message: "Local game started" });	
 		} 
 		else if (matchMakingReq.data.type === FRIEND_REQUEST_ACTIONS.INVITE) {
 			const inviterId = playerID;
@@ -166,25 +167,20 @@ function acceptInvite(allPlayers: Player[], inviter: Player, invited: Player) {
 }
 
 async function cleanInvite(app: FastifyInstance, playerID: number, inviterId?: number, invitedId?: number) {
-	if (inviterId && invitedId && inviterId === playerID) {
-		const friendId = inviterId === playerID ? invitedId : inviterId;
-		const relation = await getRelation(invitedId, inviterId);
-		if (!relation || !relation.waitingInvite)
-			return;
-
-		updateInvitePlayer(friendId, playerID, true);
-		let notifData: NotificationInput = {
-			type: FRIEND_REQUEST_ACTIONS.INVITE_CANCEL,
-			from: playerID,
-			to: friendId,
-			read: 0
-		};
-		notifData = addNotifContent(notifData);
-		const notif = await insertNotification(notifData);
-		if (!notif || 'errorMessage' in notif)
-			return;
-		sendToSocket(app, [ notif ]);
-	}
+	if (!inviterId || !invitedId || playerID != inviterId)
+		return;
+	await updateInvitePlayer(invitedId, playerID, true);
+	let notifData: NotificationInput = {
+		type: FRIEND_REQUEST_ACTIONS.INVITE_CANCEL,
+		from: playerID,
+		to: invitedId,
+		read: 0
+	};
+	notifData = addNotifContent(notifData);
+	const notif = await insertNotification(notifData);
+	if (!notif || 'errorMessage' in notif)
+		return;
+	sendToSocket(app, [ notif ]);
 }
 
 async function decount(app: FastifyInstance, players: Player[], gameID: number)

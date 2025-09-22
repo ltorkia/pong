@@ -8,7 +8,6 @@ import { SafeUserModel } from '../../../../shared/types/user.types';
 import { Friend } from '../../shared/models/friend.model';
 import { friendApi } from '../../api/index.api';
 import { loadTemplate, getHTMLElementByClass, getHTMLElementById } from '../../utils/dom.utils';
-import { FRIEND_REQUEST_ACTIONS } from '../../shared/config/constants.config';
 
 // ===========================================
 // GAME PAGE
@@ -532,12 +531,20 @@ export abstract class GamePage extends BasePage {
 	// ===========================================
 	public async cleanup(): Promise<void> {
 		await super.cleanup();
+		let invitedId, inviterId;
+		if (this.requestType === "invite" && this.relation && this.relation.waitingInvite) {
+			invitedId = this.friendId;
+			inviterId = this.currentUser!.id;
+		} else {
+			invitedId = undefined;
+			inviterId = undefined;
+		}
 		const matchMakingReq = new Blob([JSON.stringify({
 			type: "clean_request",
 			playerID: this.currentUser!.id,
 			tournamentID: undefined,
-			invitedId: this.relation!.isChallenged,
-			inviterId: this.relation!.challengedBy
+			invitedId: invitedId,
+			inviterId: inviterId
 		})], { type: 'application/json' });
 		navigator.sendBeacon("/api/game/playgame", matchMakingReq);
 		currentService.clearCurrentGame();
