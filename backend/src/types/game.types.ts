@@ -199,8 +199,6 @@ export class Game {
             await cancelledGame(this.gameID, 0, 0, this.score);
             return;
         }
-        // const winner = this.score[0] > this.score[1] ? this.players[0] : this.players[1];
-        // const looser = this.score[0] < this.score[1] ? this.players[0] : this.players[1];
         const winner = this.getWinner();
         const looser = this.getLooser();
 

@@ -164,6 +164,7 @@ export class TournamentAPI {
     public async fetchLocalTournamentGame(gameID: number): Promise<Game | undefined> {
         const res = await fetch(`/api/game/tournaments_local/game/${gameID}`);
         if (res.ok) {
+<<<<<<< HEAD
             const gameJSON: Game = await res.json();
             return new Game(
                 gameJSON.players,
@@ -173,6 +174,22 @@ export class TournamentAPI {
                 gameJSON.isOver,
                 gameJSON.score,
             );
+=======
+            const data = await res.json();
+            // console.log(data);
+            return ({
+                tournamentID: data.tournamentID, game: new Game(
+                    data.game.players,
+                    data.game.gameIDforDB,
+                    data.game.playersCount,
+                    data.game.gameStarted,
+                    data.game.isOver,
+                    data.game.score,
+                )
+            })
+        } else {
+            return undefined;
+>>>>>>> 9b577e3 (more tournament)
         }
         else
             return undefined;
