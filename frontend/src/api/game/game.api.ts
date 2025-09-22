@@ -2,6 +2,7 @@ import { secureFetch } from "../../utils/app.utils";
 import { MatchMakingReq } from '../../shared/types/websocket.types';
 import { currentService } from "../../services/index.service";
 import { TournamentAPI } from "./tournament.api";
+import { FRIEND_REQUEST_ACTIONS } from "../../../../shared/config/constants.config";
 
 export const TournamentService = new TournamentAPI();
 
@@ -12,20 +13,23 @@ class GameAPI {
 	 * dans le contexte d'un matchmaking (aléatoire / invite / tournoi).
 	 * 
 	 * @param {MatchMakingReq} data Les informations de la partie à lancer.
-	 * @returns {Promise<void>} La promesse qui se résout lorsque la partie est lancée.
+	 * @returns {Promise<any>} La promesse qui se résout lorsque la partie est lancée ou avec une erreur.
 	 * @throws {Error} Si la requête échoue, lance une erreur avec le message d'erreur.
 	 */
-	public async matchMake(data: MatchMakingReq): Promise<void> {
+	public async matchMake(data: MatchMakingReq): Promise<any> {
+		if (data.type !== "clean_request")
+			currentService.setGameInit(true);
 		const res = await secureFetch(`/api/game/playgame`, {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify(data),
 			credentials: 'include',
 		});
-		if (!res.ok) {
-			const error = await res.json();
-			throw new Error(error.error);
+		const result = await res.json();
+		if (!res.ok || 'errorMessage' in result || 'error' in result) {
+			return { errorMessage: data.errorMessage || data.error || 'Erreur lors du matchmaking.' };
 		}
+		return data;
 	}
 
 }

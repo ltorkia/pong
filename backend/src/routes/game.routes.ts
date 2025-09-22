@@ -58,7 +58,7 @@ export async function gameRoutes(app: FastifyInstance) {
 			}
 			playerOne!.readyforTournament = true;
 			console.log("PLAYER ONE READY : ", playerOne);
-			reply.code(200).send("Successfully added to tournament matchmaking");
+			reply.code(200).send({ message: "Successfully added to tournament matchmaking" });
 			//vérifier si tous les joueurs sont prêts // a ajuster pour bloquer si 1ere manche deja faite ptet en regardantsi dj resultat dans la db ? 
 			const isReady = tournament.players.every((p: Player) => p.readyforTournament);
 			if (isReady)
@@ -84,7 +84,7 @@ export async function gameRoutes(app: FastifyInstance) {
 			if (!newPlayer)
 				return reply.code(404).send({ error: "Player not found" });
 			
-			reply.code(200).send("Successfully added to matchmaking");
+			reply.code(200).send({ message: "Successfully added to matchmaking" });
 			
 			newPlayer.matchMaking = true;
 			const playerTwo = allPlayers.find((p: Player) => p.matchMaking === true && p.ID !== newPlayer.ID);
@@ -109,35 +109,24 @@ export async function gameRoutes(app: FastifyInstance) {
 			const inviterId = playerID;
 			const invitedId = matchMakingReq.data.invitedId;
 			if (!invitedId || inviterId != matchMakingReq.data.inviterId)
-				return reply.code(400).send({ error: "Invalid invite request" });
-			const relation = await getRelation(invitedId, inviterId);
-			if (!relation)
-				return reply.code(404).send({ errorMessage: 'No relation found'});
-			if (relation.blockedBy)
-				return reply.code(400).send({ errorMessage: 'Relation blocked'});
+				return reply.code(400).send({ errorMessage: "Invalid invite request" });
 			invitePlayer(allPlayers, inviterId, invitedId);
-			reply.code(200).send("Invite sent, waiting for acceptance");		
+			reply.code(200).send({ message: "Invite sent, waiting for acceptance" });		
 		} 
 		else if (matchMakingReq.data.type === FRIEND_REQUEST_ACTIONS.INVITE_ACCEPT) {
 			const invitedId = playerID;
 			const inviterId = matchMakingReq.data.inviterId;
 			if (!inviterId || invitedId != matchMakingReq.data.invitedId)
-				return reply.code(400).send({ error: "Invalid invite request" });
+				return reply.code(400).send({ errorMessage: "Invalid invite request" });
 			const invited = allPlayers.find((p: Player) => p.ID == invitedId);
-			if (!invited)
-				return reply.code(404).send({ error: "Player not found" });
-			const relation = await getRelation(invitedId, inviterId);
-			if (!relation)
-				return reply.code(404).send({ errorMessage: 'No relation found'});
 			const inviter = allPlayers.find((p: Player) => p.ID == inviterId);
-			if (!inviter || !relation.waitingInvite || relation.challengedBy !== inviter.ID || relation.isChallenged !== invited.ID)
-				return reply.code(400).send({ error: "Invalid invitation" });
+			if (!invited || !inviter)
+				return reply.code(404).send({ errorMessage: "Players not found" });
 			acceptInvite(allPlayers, inviter, invited);
 			startGame(app, [inviter, invited], "multi");
-			reply.code(200).send("Game started!");
+			reply.code(200).send({ message: "Game started!" });
 		}
 		else {
-
 			// CLEANING A LA DESTRUCTION DE LA PAGE GAME 
 			// (pour l'instant on tombe là quand matchMakingReq.data.type === 'clean_request')
 			// à potentiellement déplacer dans une fonction à part dédiée et plus complète
@@ -149,7 +138,7 @@ export async function gameRoutes(app: FastifyInstance) {
 				allPlayers.splice(playerIdx, 1);
 				console.log(`DELETED PLAYER ID = ${playerID}`);
 			}
-			reply.code(200).send("Game cleaned up");
+			reply.code(200).send({ message: "Game cleaned up" });
 		}
 	});
 }
@@ -167,11 +156,9 @@ function invitePlayer(allPlayers: Player[], inviterId: number, invitedId: number
 		allPlayers.push(invited);
 		console.log(`ADDED PLAYER ID = ${invitedId}`);
 	}
-	updateInvitePlayer(invitedId, inviterId);
 }
 
 function acceptInvite(allPlayers: Player[], inviter: Player, invited: Player) {
-	updateInvitePlayer(invited.ID, inviter.ID, true);
 	const playerIdx1 = allPlayers.findIndex((player: Player) => player.ID == inviter.ID);
 	const playerIdx2 = allPlayers.findIndex((player: Player) => player.ID == invited.ID);
 	allPlayers.splice(playerIdx1, 1);

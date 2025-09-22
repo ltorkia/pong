@@ -187,7 +187,8 @@
 		"winMessage": "勝利！",
 		"finalScore": "最終スコア: ",
 		"replay": "再プレイ",
-		"replayUser": "友達と再プレイ "
+		"replayUser": "友達と再プレイ ",
+		"accept-invitation-from": "対戦を受け入れる "
 	},
 
 	"tournament": {

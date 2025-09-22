@@ -39,6 +39,8 @@ export abstract class BasePage {
 	 * Initialise les propriétés de la classe avec la configuration de la route,
 	 * l'utilisateur actuellement connecté, et prépare le conteneur DOM pour
 	 * l'injection de contenu HTML.
+	 * onPageUnload() permet de nettoyer la page lorsque l'utilisateur la ferme 
+	 * ou effectue un refresh.
 	 *
 	 * @param {RouteConfig} config La configuration de la route actuelle, 
 	 * contenant des informations telles que le chemin du template et les
@@ -51,6 +53,10 @@ export abstract class BasePage {
 		this.templatePath = this.config.templatePath;
 		this.components = this.config.components;
 		this.componentInstances = {};
+
+		window.addEventListener("beforeunload", async () => {
+			this.onPageUnload();
+		});
 	}
 
 	/**
@@ -370,6 +376,28 @@ export abstract class BasePage {
 				}
 				instance.cleanup();
 			}
+		}
+	}
+
+	/**
+	 * Méthode appelée lorsque l'utilisateur ferme la page ou effectue un refresh.
+	 * 
+	 * Nettoie la page courante en appelant la méthode cleanup() pour supprimer
+	 * les ressources et les composants.
+	 * ! Voir s'il faut faire un refresh côté back dans certains cas.
+	 */
+	protected async onPageUnload(): Promise<void> {
+		try {
+			console.log(`[${this.constructor.name}] Détection d’un refresh/fermeture`);
+			// if (this.currentUser) {
+			// 	navigator.sendBeacon(
+			// 		"/api/clean",
+			// 		JSON.stringify({ userId: this.currentUser.id })
+			// 	);
+			// }
+			await this.cleanup();
+		} catch (err) {
+			console.error("Erreur dans onPageUnload :", err);
 		}
 	}
 

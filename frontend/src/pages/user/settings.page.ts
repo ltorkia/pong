@@ -67,7 +67,8 @@ export class SettingsPage extends BasePage {
 	 * @returns {Promise<boolean>} Une promesse qui se résout lorsque les vérifications sont terminées.
 	 */
 	protected async preRenderCheck(): Promise<boolean> {
-		if (!super.preRenderCheck())
+		const isPreRenderChecked = await super.preRenderCheck();
+		if (!isPreRenderChecked)
 			return false;
 		if (this.currentUser!.registerFrom === DB_CONST.USER.REGISTER_FROM.GOOGLE) {
 			console.error('La page des paramètres est inaccessible depuis un compte Google.');

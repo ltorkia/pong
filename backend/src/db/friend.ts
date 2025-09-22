@@ -97,36 +97,6 @@ export async function getUserFriendStats(userId1: number, userId2: number): Prom
 }
 
 /**
- * Met à jour l'invitation de joueur entre deux utilisateurs.
- * Si le paramètre reset est vrai, alors les identifiants des deux utilisateurs sont mis à zéro
- * et l'invitation est annulée.
- * Si le paramètre reset est faux, alors l'invitation est mise à jour en fonction des identifiants
- * des deux utilisateurs.
- * @param {number} userId1 - Identifiant du premier utilisateur.
- * @param {number} userId2 - Identifiant du second utilisateur.
- * @param {boolean} reset - Booléen indiquant si l'invitation doit être annulée.
- * @returns {Promise<void>} - Promesse qui se résout après avoir mis à jour l'invitation de joueur.
- */
-export async function updateInvitePlayer(userId1: number, userId2: number, reset: boolean = false): Promise<void> {
-	const db = await getDb();
-	const [user1, user2] = userId1 < userId2
-		? [userId1, userId2]
-		: [userId2, userId1];
-
-	let waitingInvite = 1;
-	if (reset) {
-		userId1 = userId2 = 0;
-		waitingInvite = 0;
-	}
-
-	await db.run(`
-		UPDATE Friends
-		SET is_challenged = ?, challenged_by = ?, waiting_invite = ?
-		WHERE user1_id = ? AND user2_id = ?
-	`, [userId1, userId2, waitingInvite, user1, user2]);
-}
-
-/**
  * Cette fonction met à jour une relation entre deux utilisateurs en bloquant cette relation.
  * @param {number} userId1 - Identifiant du premier utilisateur.
  * @param {number} userId2 - Identifiant du second utilisateur.
@@ -192,25 +162,39 @@ export async function updateRelationshipDelete(userId1: number, userId2: number)
 }
 
 /**
- * Met à jour le statut de défi entre deux utilisateurs en marquant que le premier utilisateur a été défié par le second.
+ * Met à jour l'invitation de joueur entre deux utilisateurs.
+ * Si le paramètre reset est vrai, alors les identifiants des deux utilisateurs sont mis à zéro
+ * et l'invitation est annulée.
+ * Si le paramètre reset est faux, alors l'invitation est mise à jour en fonction des identifiants
+ * des deux utilisateurs.
  * @param {number} userId1 - Identifiant du premier utilisateur.
  * @param {number} userId2 - Identifiant du second utilisateur.
- * @returns {Promise<void>} - Promesse qui se résout après avoir mis à jour le statut de défi entre les deux utilisateurs.
+ * @param {boolean} reset - Booléen indiquant si l'invitation doit être annulée.
+ * @returns {Promise<void>} - Promesse qui se résout après avoir mis à jour l'invitation de joueur.
  */
-export async function updateFriendChallenged(userId1: number, userId2: number): Promise<FriendModel> {
+export async function updateInvitePlayer(userId1: number, userId2: number, reset: boolean = false): Promise<FriendModel> {
 	const db = await getDb();
-
 	const [user1, user2] = userId1 < userId2
 		? [userId1, userId2]
 		: [userId2, userId1];
 
+	let isChallenged = userId1;
+	let challengedBy = userId2;
+	let waitingInvite = 1;
+
+	if (reset) {
+		isChallenged = 0;
+		challengedBy = 0;
+		waitingInvite = 0;
+	}
+
 	await db.run(`
 		UPDATE Friends
-		SET challenged_by = ?
+		SET is_challenged = ?, challenged_by = ?, waiting_invite = ?
 		WHERE user1_id = ? AND user2_id = ?
-	`, [userId2, user1, user2]);
+	`, [isChallenged, challengedBy, waitingInvite, user1, user2]);
 
-	const relation = await getRelation(userId1, userId2);
+	const relation = await getRelation(user1, user2);
 	return snakeToCamel(relation) as FriendModel;
 }
 

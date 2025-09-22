@@ -69,7 +69,8 @@ export class NavbarComponent extends BaseComponent {
 	 * @returns {Promise<boolean>} Une promesse qui se résout lorsque les vérifications sont terminées.
 	 */
 	protected async preRenderCheck(): Promise<boolean> {
-		if (!super.preRenderCheck())
+		const isPreRenderChecked = await super.preRenderCheck();
+		if (!isPreRenderChecked)
 			return false;
 		await this.loadTemplateDev();
 		return true;
@@ -380,7 +381,6 @@ export class NavbarComponent extends BaseComponent {
 	 * @returns {Promise<void>} Une promesse qui se résout lorsque la fenêtre est basculée.
 	 */
 	private toggleNotifsMenu = async (event: MouseEvent): Promise<void> => {
-		event.stopPropagation();
 		const allNotifs = this.notifsWindow.querySelectorAll('.notif-item');
 		const defaultNotif = this.notifsWindow.querySelector('.default-notif');
 		if (allNotifs && allNotifs.length > 0 && defaultNotif) {

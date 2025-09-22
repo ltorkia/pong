@@ -1,18 +1,19 @@
 import DOMPurify from "dompurify";
-import { ROUTE_PATHS } from '../../config/routes.config';
+import { DEFAULT_ROUTE, ROUTE_PATHS } from '../../config/routes.config';
 import { notifApi, friendApi, dataApi } from '../../api/index.api';
 import { PageInstance } from '../../types/routes.types';
 import { COMPONENT_NAMES } from '../../config/components.config';
 import { NavbarComponent } from '../../components/navbar/navbar.component';
 import { UserRowComponent } from '../../components/user-row/user-row.component';
 import { User } from '../../shared/models/user.model';
+import { GamePage } from '../../pages/game/game.page';
 import { AppNotification } from '../../shared/models/notification.model';
 import { NotifResponse } from '../../shared/types/response.types';
 import { FRIEND_REQUEST_ACTIONS, FRIEND_NOTIF_CONTENT } from '../../shared/config/constants.config'; // en rouge car dossier local 'shared' != dossier conteneur
 import { isValidNotificationType, isFriendRequestAction, isUserOnlineStatus } from '../../shared/utils/app.utils';
 import { getHTMLElementById } from '../../utils/dom.utils';
 import { FriendRequestAction, NotificationModel, NotificationType } from '../../shared/types/notification.types';
-import { currentService, storageService, translateService } from '../index.service';
+import { currentService, storageService, translateService, gameService } from '../index.service';
 import { router } from '../../router/router';
 
 // ============================================================================
@@ -176,7 +177,7 @@ export class NotifService {
 	 * - Si la notification n'est pas chargée, la stocke dans `notifs`, la sauvegarde en local,
 	 *   affiche la notification et met à jour le compteur de notifications.
 	 * - Sinon, selon le type de la notification, supprime ou remplace la notification existante.
-	 * - Met à jour les boutons d'amitié si la page des utilisateurs est affichée.
+	 * - Dans le cas d'une nouvelle invitation à jouer, met à jour le bouton 'Replay' en 'Accept new game'.
 	 * 
 	 * @returns {Promise<void>} Une promesse qui est résolue lorsque la notification est traitée.
 	 */
@@ -187,6 +188,18 @@ export class NotifService {
 			storageService.setCurrentNotifs(this.notifs);
 			this.displayNotif();
 			await this.deleteAllNotifsFromUser(this.currentNotif!.from, this.currentNotif!.id);
+			// console.log('CHECK CONDITION NOTIF: ', this.currentNotif);
+			// console.log('this.currentNotif!.type === FRIEND_REQUEST_ACTIONS.INVITE', this.currentNotif!.type === FRIEND_REQUEST_ACTIONS.INVITE);
+			// console.log('this.currentPage.config.path === ROUTE_PATHS.GAME_MULTI', this.currentPage.config.path === ROUTE_PATHS.GAME_MULTI);
+			// console.log('this.currentPage instanceof GamePage', this.currentPage instanceof GamePage);
+			// console.log('this.currentPage.challengedFriendId === this.currentNotif!.from', this.currentPage.challengedFriendId === this.currentNotif!.from);
+			if (this.currentNotif!.type === FRIEND_REQUEST_ACTIONS.INVITE
+				&& this.currentPage.config.path === ROUTE_PATHS.GAME_MULTI
+				&& this.currentPage instanceof GamePage
+				&& this.currentPage.challengedFriendId === this.currentNotif!.from) {
+				console.log('ON EST DANS LA CONDITION DE handleNotification');
+				this.currentPage.changeReplayButtonForInvite()!;
+			}
 		};
 	}
 
@@ -481,6 +494,8 @@ export class NotifService {
 	 * Si la mise à jour réussit, met à jour les boutons d'amitié correspondant à l'utilisateur
 	 * qui a envoyé la demande d'amitié.
 	 * Sinon, affiche un message d'erreur.
+	 * ! Dans le cas d'une invitation à jouer, 'handleUpdate' n'est pas appelée car 
+	 * ! la mise à jour en db + envoi de la notif se font directement dans le back.
 	 *
 	 * @param {FriendRequestAction} action - Action à réaliser sur la demande d'amitié.
 	 * @returns {Promise<void>}
@@ -513,7 +528,11 @@ export class NotifService {
 	 * @returns {Promise<void>}
 	 */
 	public async handleDelete(action: FriendRequestAction): Promise<void> {
-		let res = await friendApi.removeFriend(this.friendId!, action);
+		if (!this.friendId || !this.notifData) {
+			console.warn("FriendId et/ou notifData manquant(s)");
+			return;
+		}
+		let res = await friendApi.removeFriend(this.friendId, action);
 		if ('errorMessage' in res) {
 			console.error(res.errorMessage);
 			return;
@@ -594,19 +613,22 @@ export class NotifService {
 		const target = event.target as HTMLElement;
 		this.setFriendId(target);
 		this.setNotifData(type);
+		const relation = await friendApi.getRelation(this.currentUser!.id, this.friendId!);
+		if (!relation || "errorMessage" in relation || relation.challengedBy) {
+			console.error(relation.errorMessage || "Invitation invalide.");
+			return;
+		}
 		await this.handleUpdate(type);
-
-		// const target = event.target as HTMLElement;
-		// this.setFriendId(target);
-		// const type: NotificationType = FRIEND_REQUEST_ACTIONS.INVITE;
-		// const res = await friendApi.updateFriend(this.friendId!, type);
-		// if ('errorMessage' in res) {
-		// 	console.error(res.errorMessage);
-		// 	return;
-		// }
-		// await this.refreshFriendButtons();
-		// this.setNotifData(type);
-		// await notifApi.addNotification(this.notifData!);
+		if (this.currentPage.config.path !== ROUTE_PATHS.GAME_MULTI
+			&& !(this.currentPage instanceof GamePage)) {
+			try {
+				await gameService.invitePlayer(FRIEND_REQUEST_ACTIONS.INVITE, this.friendId!);
+			} catch (err) {
+				console.error(err);
+			}
+			await router.navigate(`/game/multi/${this.friendId!}`);
+		} else if (this.currentPage.challengedFriendId! === this.friendId!)
+			await this.currentPage.checkInviteReplayRequest!();
 	}
 
 	public handlePlayClick = async (event: Event): Promise<void> => {
@@ -614,8 +636,23 @@ export class NotifService {
 		const target = event.target as HTMLElement;
 		this.setFriendId(target);
 		this.setNotifData(type);
+		const relation = await friendApi.getRelation(this.currentUser!.id, this.friendId!);
+		if (!relation || "errorMessage" in relation || relation.challengedBy != this.friendId!) {
+			console.error(relation.errorMessage || "Invitation invalide.");
+			return;
+		}
+		if (this.currentPage.config.path !== ROUTE_PATHS.GAME_MULTI && !(this.currentPage instanceof GamePage))
+			await router.navigate(`/game/multi/${this.friendId!}`);
+		else if (this.currentPage.challengedFriendId! === this.friendId!)
+			await this.currentPage.checkInviteReplayRequest!();
 		await this.handleUpdate(type);
-		await router.navigate(`/game/multi/${this.friendId!}`);
+	}
+
+	public handleCancelInvite = async (friendId: number): Promise<void> => {
+		const type: NotificationType = FRIEND_REQUEST_ACTIONS.INVITE_CANCEL;
+		this.setFriendId(friendId);
+		this.setNotifData(type);
+		await this.handleUpdate(type);
 	}
 
 	// ===========================================
@@ -646,7 +683,11 @@ export class NotifService {
 	 *
 	 * @param {HTMLElement} target - Bouton cliqué.
 	 */
-	private setFriendId(target: HTMLElement): void { 
+	private setFriendId(target: HTMLElement | number): void { 
+		if (typeof target === 'number') {
+			this.friendId = target;
+			return;
+		}
 		const button = target.closest('button[data-friend-id]') as HTMLElement | null;
 		if (!button) {
 			console.error("Pas de friendId sur le bouton ou parent");

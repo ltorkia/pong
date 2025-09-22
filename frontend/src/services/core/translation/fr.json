@@ -188,7 +188,8 @@
 		"winMessage": "Victoire !",
 		"finalScore": "Score final : ",
 		"replay": "Rejouer",
-		"replayUser": "Rejouer avec "
+		"replayUser": "Rejouer avec ",
+		"accept-invitation-from": "Accepter l'invitation de "
 	},
 
 	"tournament": {

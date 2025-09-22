@@ -80,7 +80,8 @@ export class UserRowComponent extends BaseComponent {
 	 * @returns {Promise<boolean>} Une promesse qui se résout lorsque les vérifications sont terminées.
 	 */
 	protected async preRenderCheck(): Promise<boolean> {
-		if (!super.preRenderCheck())
+		const isPreRenderChecked = await super.preRenderCheck();
+		if (!isPreRenderChecked)
 			return false;
 		await this.loadTemplateDev();
 		if (!this.user) {
@@ -351,19 +352,10 @@ export class UserRowComponent extends BaseComponent {
 
 	private challengeClick = async (event: Event): Promise<void> => {
 		event.preventDefault();
-		if (!this.friend || !this.friend.isOnline()) {
+		if (!this.friend || !this.friend.isOnline())
 			return;
-		}
-		if (!this.friend.challengedBy) {
-			try {
-				await gameService.invitePlayer(FRIEND_REQUEST_ACTIONS.INVITE, this.friend.id);
-			} catch (err) {
-				console.error(err);
-			}
+		if (!this.friend.challengedBy) 
 			await notifService.handleChallengeClick(event);
-			console.log(`Challenge request sent to ${this.user!.username}`);
-			await router.navigate(`/game/multi/${this.friend.id}`);
-		}
 		else if (this.friend.challengedBy === this.friend.id) {
 			await notifService.handlePlayClick(event);
 		}

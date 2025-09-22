@@ -61,7 +61,8 @@ export class TwofaModalComponent extends BaseComponent {
 	 * @returns {Promise<boolean>} Une promesse qui se résout lorsque les vérifications sont terminées.
 	 */
 	protected async preRenderCheck(): Promise<boolean> {
-		if (!super.preRenderCheck())
+		const isPreRenderChecked = await super.preRenderCheck();
+		if (!isPreRenderChecked)
 			return false;
 		await this.loadTemplateDev();
 		return true;

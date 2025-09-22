@@ -1,4 +1,4 @@
-import { currentService } from './user.service';
+import { currentService } from '../index.service';
 import { gameApi } from '../../api/index.api';
 import { MatchMakingReq } from '../../shared/types/websocket.types';
 

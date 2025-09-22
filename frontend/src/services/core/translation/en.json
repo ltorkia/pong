@@ -188,7 +188,8 @@
 		"winMessage": "You win !",
 		"finalScore": "Final Score : ",
 		"replay": "Replay",
-		"replayUser": "Replay "
+		"replayUser": "Replay ",
+		"accept-invitation-from": "Accept invite from "
 	},
 
 	"tournament": {

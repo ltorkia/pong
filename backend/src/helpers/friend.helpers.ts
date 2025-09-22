@@ -20,6 +20,7 @@ export function isFriendRequestValid(action: FriendRequestAction, friendStatus: 
 		case FRIEND_REQUEST_ACTIONS.UNFRIEND:
 		case FRIEND_REQUEST_ACTIONS.INVITE:
 		case FRIEND_REQUEST_ACTIONS.INVITE_ACCEPT:
+		case FRIEND_REQUEST_ACTIONS.INVITE_CANCEL:
 			return friendStatus === DB_CONST.FRIENDS.STATUS.ACCEPTED;
 		case FRIEND_REQUEST_ACTIONS.UNBLOCK:
 			return friendStatus === DB_CONST.FRIENDS.STATUS.BLOCKED;
@@ -50,6 +51,8 @@ export function isValidRequester(action: FriendRequestAction, relation: FriendMo
 			return relation.requesterId == currUserId;
 		case FRIEND_REQUEST_ACTIONS.INVITE_ACCEPT:
 			return relation.challengedBy == relation.id;
+		case FRIEND_REQUEST_ACTIONS.INVITE_CANCEL:
+			return relation.challengedBy == currUserId;
 		case FRIEND_REQUEST_ACTIONS.BLOCK:
 		case FRIEND_REQUEST_ACTIONS.UNFRIEND:
 		case FRIEND_REQUEST_ACTIONS.INVITE:

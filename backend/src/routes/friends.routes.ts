@@ -6,7 +6,7 @@ import { getUser } from '../db/user';
 import { UserModel } from '../shared/types/user.types';
 import { FriendModel } from '../shared/types/friend.types';	// en rouge car dossier local 'shared' != dossier conteneur
 import { getRelation, getUserFriends, getAllRelations, getUserFriendStats } from '../db/friend'
-import { addUserFriend, updateRelationshipConfirmed, updateRelationshipBlocked, updateFriendChallenged, updateRelationshipDelete } from '../db/friend'
+import { addUserFriend, updateRelationshipConfirmed, updateRelationshipBlocked, updateRelationshipDelete, updateInvitePlayer } from '../db/friend'
 import { FriendResponse } from '../shared/types/response.types';
 
 import { IdInputSchema, IdInput, FriendActionInputSchema, FriendActionInput } from '../types/zod/app.zod';
@@ -134,11 +134,11 @@ export async function friendsRoutes(app: FastifyInstance) {
 				relation = await updateRelationshipBlocked(friendId, jwtUser.id);
 				break;
 			case FRIEND_REQUEST_ACTIONS.INVITE:
-				relation = await updateFriendChallenged(friendId, jwtUser.id);
+				relation = await updateInvitePlayer(friendId, jwtUser.id);
 				break;
 			case FRIEND_REQUEST_ACTIONS.INVITE_ACCEPT:
 			case FRIEND_REQUEST_ACTIONS.INVITE_CANCEL:
-				relation = await updateFriendChallenged(0, jwtUser.id);
+				relation = await updateInvitePlayer(friendId, jwtUser.id, true);
 				break;
 		}
 		return reply.code(200).send({ message: 'Relation updated' });
