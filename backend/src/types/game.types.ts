@@ -1,4 +1,4 @@
-import { resultGame, addGame, addGamePlayers, cancelledGame, registerUserTournament } from "../db/game";
+import { resultGame, addGame, addGamePlayers, cancelledGame, registerUserTournament, createTournament } from "../db/game";
 import { GameData, Player } from "../shared/types/game.types"
 
 const DEG_TO_RAD = Math.PI / 180;
@@ -175,7 +175,6 @@ export class Game {
     }
 
     public async endGame(): Promise<void> {
-        console.log("coucou end !, score = ", this.score);
         this.gameStarted = false;
         this.isOver = true;
 
@@ -199,21 +198,26 @@ export class Game {
         if (this.score[0] === this.score[1]) {
             await cancelledGame(this.gameID, 0, 0, this.score);
             return;
-        }        
-        const winner = this.score[0] > this.score[1] ? this.players[0] : this.players[1];
-        const looser = this.score[0] < this.score[1] ? this.players[0] : this.players[1];
+        }
+        // const winner = this.score[0] > this.score[1] ? this.players[0] : this.players[1];
+        // const looser = this.score[0] < this.score[1] ? this.players[0] : this.players[1];
+        const winner = this.getWinner();
+        const looser = this.getLooser();
+
         if (this.score[0] === 3 || this.score[1] === 3)
             await resultGame(this.gameID, winner.ID, looser.ID, this.score);
         else
             await cancelledGame(this.gameID, winner.ID, looser.ID, this.score);
+
+        for (const player of this.players) // clean des websockets si besoin de renvoyer tournoi au front (crash si websocket a l'interieur de JSON)
+            player.webSocket = undefined;
     }
 
     private sendGameUpdate() {
         const gameUpdate = new GameData(this.players, this.ball, this.score);
         for (const player of this.players) {
-            if (!this.tournamentID && this.players[1] == player)
-            {
-                gameUpdate.ball.x *=-1;
+            if (!this.tournamentID && this.players[1] == player) {
+                gameUpdate.ball.x *= -1;
                 gameUpdate.players[1].pos.x *= -1;
                 gameUpdate.players[0].pos.x *= -1;
                 gameUpdate.score = [this.score[1], this.score[0]];
@@ -225,8 +229,8 @@ export class Game {
 
     public registerInputLocal(playerID: number, key: string, status: boolean): void { //peut etre ajouter le type de jeu jsp
         for (const player of this.players) {
-             if (player.ID == playerID) {
-        //     if (player.sidePlayer === "left") {
+            if (player.ID == playerID) {
+                //     if (player.sidePlayer === "left") {
                 if (key == "w" && player.inputUp != status) player.inputUp = status;
                 else if (key == "s" && player.inputDown != status) player.inputDown = status;
             }
@@ -235,7 +239,7 @@ export class Game {
                 if (key == "ArrowUp" && player.inputUp != status) player.inputUp = status;
                 else if (key == "ArrowDown" && player.inputDown != status) player.inputDown = status;
             }
-            }
+        }
         // }
         // }
     };
@@ -249,32 +253,50 @@ export class Game {
         }
     };
 
+    public getWinner() { return this.score[0] == 3 ? this.players[0] : this.players[1] };
+    public getLooser() { return this.score[1] == 3 ? this.players[1] : this.players[0] };
+    public getIsOver() { return this.isOver };
+    public getScore() { return this.score };
     public setGameStarted(started: boolean) { this.gameStarted = started };
 };
 
 export class TournamentLocal {
     public players: Player[] = [];
+    public winner: Player | undefined;
     public maxPlayers: number;
     public masterPlayerID: number;
     public ID: number;
     public stageOne: Game[] = [];
-    public stageTwo: Game | undefined;
+    public stageTwo!: Game;
 
     constructor(players: Player[], maxPlayers: number, masterPlayerID: number, ID: number) {
         this.players = players;
         this.maxPlayers = maxPlayers;
+        this.winner = undefined;
         this.masterPlayerID = masterPlayerID;
-        this.ID = ID;
+        this.ID = ID ?? 0;
+    }
+
+    public getWinner(game: Game): Player {
+        const score = game.getScore();
+        if (score[0] == 3)
+            return game.players[0];
+        else
+            return game.players[1];
     }
 
     public async startTournament(): Promise<void> {
+        const tournamentID = await createTournament(this.maxPlayers, this.maxPlayers / 2);
+        if (tournamentID === undefined)
+            return; //TODO : put some error
+        else this.ID = tournamentID;
 
         for (const player of this.players)
             await registerUserTournament(player.ID, this.ID);
 
         // this.players est melange pour avoir des matchs aleatoire
         shuffleArray(this.players);
-        
+
         const gameID1 = await addGame(true);
         await addGamePlayers(gameID1, this.players[0].ID, this.players[1].ID);
         this.stageOne[0] = new Game(gameID1, 2, [this.players[0], this.players[1]], this.ID);
@@ -282,6 +304,22 @@ export class TournamentLocal {
         const gameID2 = await addGame(true);
         await addGamePlayers(gameID2, this.players[2].ID, this.players[3].ID);
         this.stageOne[1] = new Game(gameID2, 2, [this.players[2], this.players[3]], this.ID);
+
+        const stageTwoID = await addGame(true)
+        this.stageTwo = new Game(stageTwoID, 2, []); // creee maintenant mais les joueurs sont ajoutes plus tard
+    }
+
+    // si les games du premier tour sont finies, update pour determiner la derniere game
+    public async update(): Promise<void> {
+        for (const game of this.stageOne) {
+            if (game.getIsOver() && !game.players.some((p: Player) => this.stageTwo?.players.includes(p)))
+                this.stageTwo?.players.push(this.getWinner(game));
+        }
+        if (this.stageTwo.players.length == 2)
+            await addGamePlayers(this.stageTwo.gameID, this.players[0].ID, this.players[1].ID);
+        if (this.stageTwo.getIsOver())
+            this.winner = this.getWinner(this.stageTwo);
+        console.log("SCORE : ", this.stageOne[0].getScore());
     }
 }
 
