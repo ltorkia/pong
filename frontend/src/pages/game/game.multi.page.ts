@@ -26,7 +26,7 @@ export class GameMenuMulti extends GamePage {
         this.controlNodesDown = document.querySelectorAll(".control");
         if (event.key == " " && this.isSearchingGame === false) { //TODO : creer un bouton pour lancer le jeu et replay pour sendmatchmaquingrequest pour eviter de le lancer en dehors de la page jeu
             this.isSearchingGame = true;                
-            this.gameService.sendMatchMakingRequest("matchmaking_request", this.currentUser!.id); // On passe par cette fonction pour lancer le matchmaking
+            this.sendMatchMakingRequest("matchmaking_request");
             this.appendWaitText();
         }
         for (const node of this.controlNodesDown) {

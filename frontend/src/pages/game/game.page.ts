@@ -2,11 +2,10 @@ import { BasePage } from '../base/base.page';
 import { RouteConfig } from '../../types/routes.types';
 import { webSocketService } from '../../services/user/user.service';
 import { MatchMakingReq } from '../../shared/types/websocket.types';
-import { SafeUserModel } from '../../shared/types/user.types';
 import { MultiPlayerGame } from '../../components/game/BaseGame.component';
 import { Player } from '../../../../shared/types/game.types';
+import { SafeUserModel } from '../../../../shared/types/user.types';
 import { Tournament } from 'src/types/game.types';
-import { GameService } from '../../api/game/game.api';
 
 
 // ===========================================
@@ -60,7 +59,6 @@ export class GamePage extends BasePage {
 	 * 
 	 * ! Voir les propriétés + méthodes de surcharge qui peuvent être utilisées ici.
 	 */
-
     protected webSocket!: WebSocket | undefined;
 	protected gameStarted: boolean = false;
 	protected game?: MultiPlayerGame;
@@ -69,7 +67,6 @@ export class GamePage extends BasePage {
 	protected controlNodesDown!: NodeListOf<HTMLElement>;
 	protected isSearchingGame: boolean = false;
     protected adversary: SafeUserModel | undefined; 
-    protected gameService: GameService = new GameService();
 
 
     protected insertNetworkError(): void {
@@ -78,28 +75,27 @@ export class GamePage extends BasePage {
         document.getElementById("pong-section")!.append(errorDiv);
     }
 
-
-    // protected async sendMatchMakingRequest(type : string, tournamentID?: number | undefined): Promise<void> {
-    //     const message = type;         
-    //     console.log(this.currentUser!);
-    //     const matchMakingReq: MatchMakingReq = {
-    //         type: message,
-    //         playerID: this.currentUser!.id,
-    //         tournamentID: tournamentID,
-    //     }
-    //     console.log("matchMakingReq = ", matchMakingReq);
-    //     const res = await fetch("/api/game/playgame", {
-    //         method: 'POST',
-    //         headers: { 'Content-Type': 'application/json' },
-    //         body: JSON.stringify(matchMakingReq),
-    //         credentials: 'include',
-    //     });
-    //     if (!res.ok) {
-    //         const error = await res.json();
-    //         console.error(error.error);
-    //         return;
-    //     }
-    // }
+    protected async sendMatchMakingRequest(type : string, tournamentID?: number | undefined): Promise<void> {
+        const message = type;         
+        console.log(this.currentUser!);
+        const matchMakingReq: MatchMakingReq = {
+            type: message,
+            playerID: this.currentUser!.id,
+            tournamentID: tournamentID,
+        }
+        console.log("matchMakingReq = ", matchMakingReq);
+        const res = await fetch("/api/game/playgame", {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(matchMakingReq),
+            credentials: 'include',
+        });
+        if (!res.ok) {
+            const error = await res.json();
+            console.error(error.error);
+            return;
+        }
+    }
 
 
     protected async initGame(playerID: number, gameID: number): Promise<void> {
@@ -109,17 +105,15 @@ export class GamePage extends BasePage {
         this.game = new MultiPlayerGame(2, playerID, gameID);
         await this.game.initGame();
     }
-
-    // app.get('/:id/games', async(request: FastifyRequest, reply: FastifyReply) => {
-    // 		const { id } = request.params as { id: number };
-    // 		if (isNaN(id))
-    // 			return reply.status(403).send({ errorMessage: 'Forbidden' });
-    // 		const games = await getUserGames(id);
-    // 		if (!games)
-    // 			return reply.code(404).send({ errorMessage: 'User not found'});
-    // 		return games;
-    // 	})
-
+// app.get('/:id/games', async(request: FastifyRequest, reply: FastifyReply) => {
+// 		const { id } = request.params as { id: number };
+// 		if (isNaN(id))
+// 			return reply.status(403).send({ errorMessage: 'Forbidden' });
+// 		const games = await getUserGames(id);
+// 		if (!games)
+// 			return reply.code(404).send({ errorMessage: 'User not found'});
+// 		return games;
+// 	})
     // protected async showEndGamePanel(userID: number, gameID: number): promise<game>{
     //     const panel = document.getElementById("pong-section")!;
     //     // const panel = document.getElementById("endgame-panel")!;
@@ -167,12 +161,14 @@ export class GamePage extends BasePage {
     protected attachListeners() {
         webSocketService.getWebSocket()!.addEventListener("message", async (event) => {
             const msg = JSON.parse(event.data);
-            console.log("message is :", msg);
+            // console.log("@@@@@@@@@@@@@@@@@@@@@@msg = ", msg);
             if (msg.type == "start_game") {
                 console.log(`game starts ! id = ${msg.gameID}`);
+                console.log("message is :", msg);
                 this.adversary = msg.otherPlayer; // TODO : possibilite de recuperer l'avatar de l autre joueur si on veut l afficher ici
                 // this.game!.clearScreen(); 
                 // document.querySelector("endgame-panel")?.remove();
+                // this
                 this.gameStarted = true;
             }
             else if (msg.type == "decount_game") 
@@ -212,8 +208,10 @@ export class GamePage extends BasePage {
     protected removeListeners(): void {
         document.removeEventListener("keydown", this.handleKeyDown);
         document.removeEventListener("keyup", this.handleKeyup);
-        this.gameService.sendMatchMakingRequest("no_matchmaking_request", this.currentUser!.id); //peut etre optionnel
-        console.log("@@@@@@@@@@@@@@@@@@@ remove listeners @@@@@@@@@@@@@@@@@@@");
+        this.sendMatchMakingRequest("no_matchmaking_request"); //peut etre optionnel
+        // fetch game interrupt
+        console.log("@@@@@@@@@@@@@@@@@@@ romove");
+
     }
 
 	// Amuse-toi biiiiiiennnnnnn ! =D

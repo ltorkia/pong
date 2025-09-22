@@ -234,15 +234,10 @@ export class Game {
 
     public registerInputLocal(playerID: number, key: string, status: boolean): void { //peut etre ajouter le type de jeu jsp
         for (const player of this.players) {
-            if (player.ID == playerID) {
+             if (player.ID == playerID) {
         //     if (player.sidePlayer === "left") {
-                if (key == "w" && player.inputUp != status) 
-                {
-                    player.inputUp = status;
-                    console.log("up registered", player.inputUp);  
-                }
-                else if (key == "s" && player.inputDown != status) 
-                    player.inputDown = status;
+                if (key == "w" && player.inputUp != status) player.inputUp = status;
+                else if (key == "s" && player.inputDown != status) player.inputDown = status;
             }
             // if (player.sidePlayer === "right") {
             else {
