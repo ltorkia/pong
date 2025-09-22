@@ -19,8 +19,9 @@ export async function gameRoutes(app: FastifyInstance) {
         const { allPlayers } = app.lobby;
         console.log("LOBBY : ",app.lobby);
 
-        
-        
+
+
+
         // MATCHMAKING REQUEST POUR LOCAL
         if (matchMakingReq.data.type === "tournament") //localtorunament
         {
@@ -31,56 +32,56 @@ export async function gameRoutes(app: FastifyInstance) {
             console.log("LOBBY PLAYERS dans tournois: ", players);
             let game = tournament.stageOneGames[0];
             if (tournament.stageOneGames[0].launched)
+            {
+                if (!tournament.stageOneGames[1].launched)
                 {
-                    if (!tournament.stageOneGames[1].launched)
-                        {
-                            console.log("DEJA LANCE, ON CHECK LE RESULTAT POUR LANCER LE 2EME ROUND");
-                            const result = await getResultGame(tournament.stageOneGames[0].gameIDforDB);
-                            if (result){
-                                console.log("RESULT TROUVE DANS LA DB POUR LE JEU 1 : ", result);
-                                const playerWinner = players.find((p: Player) => p.ID === result.winnerId); // a foutre ailleurs
-                                tournament.stageTwoGames[0].players.push(playerWinner!);
-                                console.log("RESULTAT DU JEU : ", result);
-                            }
-                            else
-                                return (console.log("Pas de result dans la db pour ce jeu, pb quelque part..."));
-                            game = tournament.stageOneGames[1];
-                        }
-                        if(tournament.stageOneGames[1].launched)
-                            {
-                                await getResultGame(tournament.stageOneGames[1].gameIDforDB).then((result) => {
-                                    const playerWinner = players.find((p: Player) => p.ID === result.winnerId);
-                                    tournament.stageTwoGames[0].players.push(playerWinner!);
-                                    console.log("RESULTAT DU JEU : ", result);
-                                });
-                                game = tournament.stageTwoGames[0];
-                            }
-                        }
-                        if ((game != tournament.stageTwoGames[0]) || (game == tournament.stageTwoGames[0] && !game.launched))
-                            {
-                                console.log("GAME TO LAUNCH : ", game);
-                                startGame(app, game.players, "local", game, tournament.masterPlayerID); //pas envoye a la bnne personne : ajout de l id du chef du tournoi ?
-                                game.launched = true;
-                            } //add dans la db l id du tournament -> game
-                            else
-                                return reply.code(400).send({ error: "All games in this tournament are already launched" });
-                            // requete speciale tournoi -> on rajoute ensuite dans le lobby tournoi ?
-                            // chaque requete sera envoyee une fois que la personne se sera register dans le front
-                            // dans la data : alias + user_name;
-                            // si username : check db + register avec alias + username
-                            // si alias : creation d un joueur avec ID unique
-                            
-                            // on arrive ici une fois les verifs faites + recheck si bien 4 personnes de dispo dans le tournoi
-                            // jeux deja crees ? -> lancement au fur et a mesure -> si 1er deja fait -> 2eme round...
-                            
-                            // cote front maj du html pour afficher les joueurs
-                            // ...
-                            
+                    console.log("DEJA LANCE, ON CHECK LE RESULTAT POUR LANCER LE 2EME ROUND");
+                    const result = await getResultGame(tournament.stageOneGames[0].gameIDforDB);
+                    if (result){
+                        console.log("RESULT TROUVE DANS LA DB POUR LE JEU 1 : ", result);
+                        const playerWinner = players.find((p: Player) => p.ID === result.winnerId); // a foutre ailleurs
+                        tournament.stageTwoGames[0].players.push(playerWinner!);
+                        console.log("RESULTAT DU JEU : ", result);
+                    }
+                    else
+                        return (console.log("Pas de result dans la db pour ce jeu, pb quelque part..."));
+                    game = tournament.stageOneGames[1];
+                }
+                if(tournament.stageOneGames[1].launched)
+                {
+                    await getResultGame(tournament.stageOneGames[1].gameIDforDB).then((result) => {
+                        const playerWinner = players.find((p: Player) => p.ID === result.winnerId);
+                        tournament.stageTwoGames[0].players.push(playerWinner!);
+                        console.log("RESULTAT DU JEU : ", result);
+                    });
+                    game = tournament.stageTwoGames[0];
+                }
+            }
+            if ((game != tournament.stageTwoGames[0]) || (game == tournament.stageTwoGames[0] && !game.launched))
+            {
+                console.log("GAME TO LAUNCH : ", game);
+                startGame(app, game.players, "local", game, tournament.masterPlayerID); //pas envoye a la bnne personne : ajout de l id du chef du tournoi ?
+                game.launched = true;
+            } //add dans la db l id du tournament -> game
+            else
+                return reply.code(400).send({ error: "All games in this tournament are already launched" });
+            // requete speciale tournoi -> on rajoute ensuite dans le lobby tournoi ?
+            // chaque requete sera envoyee une fois que la personne se sera register dans le front
+            // dans la data : alias + user_name;
+            // si username : check db + register avec alias + username
+            // si alias : creation d un joueur avec ID unique
+
+            // on arrive ici une fois les verifs faites + recheck si bien 4 personnes de dispo dans le tournoi
+            // jeux deja crees ? -> lancement au fur et a mesure -> si 1er deja fait -> 2eme round...
+
+            // cote front maj du html pour afficher les joueurs
+            // ...
+
             // 
 
         }
-        
-        
+
+
         // // TOURNAMENT REQUEST POUR REMOTE
         // // TODO : Kes gens peuvent relancer un game non stop -> creer condition pour l empecher une fois le 1er jeu termine ici ou dans le front
         // // TODO : gerer les cas d abandon de tournoi (maj db + msg a l autre joueur)
@@ -94,43 +95,43 @@ export async function gameRoutes(app: FastifyInstance) {
         //     console.log("LOBBY PLAYERS dans tournois: ", tournament.players);
         //     // if(tournament.stageTwoGames[0].players.length === 2) // TODO : lancer la 2eme manche
         //     // {
-            //     //     console.log("DEJA EN STAGE 2, ON LANCE LE JEU DIRECT");
-            //     //     startGame(app, tournament.stageTwoGames[0].players, "multi", tournament.stageTwoGames[0]);
-            //     //     return ;
-            //     // }
-            //     console.log("LOBBY PLAYERS DANS STAGE 1: ", tournament.stageOneGames[0].players);
-            //     let playerOne = tournament.stageOneGames[0].players.find((p: Player) => p.ID === matchMakingReq.data.playerID);
-            //     if (!playerOne)
-            //     {
-            //         playerOne = tournament.stageOneGames[1].players.find((p: Player) => p.ID === matchMakingReq.data.playerID);
-            //         if (!playerOne)
-            //         return reply.code(404).send({ error: "Player not found in tournament" });
-            //     }
-            //     playerOne!.readyforTournament = true;
-            //     console.log("PLAYER ONE READY : ", playerOne);
-            //     reply.code(200).send("Successfully added to tournament matchmaking");
-            //     //vérifier si tous les joueurs sont prêts // a ajuster pour bloquer si 1ere manche deja faite ptet en regardantsi dj resultat dans la db ? 
-            //     const isReady = tournament.players.every((p: Player) => p.readyforTournament);
-            //     if (isReady)
-            //     {
-            //         startGame(app, tournament.stageOneGames[0].players, "multi", tournament.stageOneGames[0]);
-            //         startGame(app, tournament.stageOneGames[1].players, "multi", tournament.stageOneGames[1]);
-            //         for (const player of tournament.players) {
-                //             player.readyforTournament = false;
-                //         }
-                //     }
-                // //     // lancer le tournoi
-                // // // } adapter la suite pour rentrer dans la logique matchmaking multi mais avec dans db tournoi 
-                
-                // }
-                if (matchMakingReq.data.type === "matchmaking_request")
-                    {
-                        if (!allPlayers.find((p: Player) => p.ID == matchMakingReq.data.playerID))
-                            {
-                                allPlayers.push(new Player(matchMakingReq.data.playerID));
-                                console.log(`ADDED USER ID = ${matchMakingReq.data.playerID}`);
-                            }
-                            const newPlayer = allPlayers.find((p: Player) => p.ID == matchMakingReq.data.playerID);
+        //     //     console.log("DEJA EN STAGE 2, ON LANCE LE JEU DIRECT");
+        //     //     startGame(app, tournament.stageTwoGames[0].players, "multi", tournament.stageTwoGames[0]);
+        //     //     return ;
+        //     // }
+        //     console.log("LOBBY PLAYERS DANS STAGE 1: ", tournament.stageOneGames[0].players);
+        //     let playerOne = tournament.stageOneGames[0].players.find((p: Player) => p.ID === matchMakingReq.data.playerID);
+        //     if (!playerOne)
+        //     {
+        //         playerOne = tournament.stageOneGames[1].players.find((p: Player) => p.ID === matchMakingReq.data.playerID);
+        //         if (!playerOne)
+        //         return reply.code(404).send({ error: "Player not found in tournament" });
+        //     }
+        //     playerOne!.readyforTournament = true;
+        //     console.log("PLAYER ONE READY : ", playerOne);
+        //     reply.code(200).send("Successfully added to tournament matchmaking");
+        //     //vérifier si tous les joueurs sont prêts // a ajuster pour bloquer si 1ere manche deja faite ptet en regardantsi dj resultat dans la db ? 
+        //     const isReady = tournament.players.every((p: Player) => p.readyforTournament);
+        //     if (isReady)
+        //     {
+        //         startGame(app, tournament.stageOneGames[0].players, "multi", tournament.stageOneGames[0]);
+        //         startGame(app, tournament.stageOneGames[1].players, "multi", tournament.stageOneGames[1]);
+        //         for (const player of tournament.players) {
+        //             player.readyforTournament = false;
+        //         }
+        //     }
+        // //     // lancer le tournoi
+        // // // } adapter la suite pour rentrer dans la logique matchmaking multi mais avec dans db tournoi 
+
+        // }
+        if (matchMakingReq.data.type === "matchmaking_request")
+        {
+            if (!allPlayers.find((p: Player) => p.ID == matchMakingReq.data.playerID))
+            {
+                allPlayers.push(new Player(matchMakingReq.data.playerID));
+                console.log(`ADDED USER ID = ${matchMakingReq.data.playerID}`);
+            }
+            const newPlayer = allPlayers.find((p: Player) => p.ID == matchMakingReq.data.playerID);
             // console.log("allplayersssss     ----------------------------", allPlayers);
             if (!newPlayer)
                 return reply.code(404).send({ error: "Player not found" });
@@ -160,32 +161,17 @@ export async function gameRoutes(app: FastifyInstance) {
         else //si on quitte la page de matchmaking
         {
             // const { usersWS } = app;
-            // console.log("elllllllllse");
             if (allPlayers.find((p: Player) => p.ID == matchMakingReq.data.playerID))
             {
                 const playerIdx1 = allPlayers.findIndex((player: Player) => player.ID == matchMakingReq.data.playerID);
                 allPlayers.splice(playerIdx1, 1);
                 console.log(`DELETED USER ID = ${matchMakingReq.data.playerID}`);
             }
-            // if (matchMakingReq.data.playerID)
-            // {
+        }
+    });
+}
 
-            // }
-
-                // if (matchMakingReq.data.type == "no_matchmaking_request")
-                // {
-                //     // check si deja en jeu ou en tournoi
-                //     if (this.currentUser.id
-                //     )
-                //     // maj de la db pour la partie correspondante
-                //     // envoi d un message aux autres joueurs
-                //     console.log("///////////////////quit calleeeeeeed");
-                // }
-            }
-        });
-    }
-
-    async function decount(app: FastifyInstance, players: Player[], gameID: number)
+async function decount(app: FastifyInstance, players: Player[], gameID: number)
 {
      const { usersWS } = app;
      const webSockets: WebSocket[] = [];
@@ -264,7 +250,7 @@ const startGame = async (app: FastifyInstance, players: Player[], mode: string, 
         }
         await decount(app, players, gameID);
     // if (mode === "multi")
-    // console.log("ici id 1 du players = ", players[1].ID);
+    console.log("ici id 1 du players = ", players[1].ID);
         newGame.gameIDforDB = await addGame(players[0].ID, players[1].ID, false);
     allGames.push(newGame);
     console.log(allGames);
@@ -272,14 +258,13 @@ const startGame = async (app: FastifyInstance, players: Player[], mode: string, 
     const gameIdx1 = allGames.findIndex((game: Game) => game.gameIDforDB == newGame.gameIDforDB);
     allGames.splice(gameIdx1, 1);
     console.log("////////////////////////////////////////////////////////imheeeere");
-
+    // if (msg.type == "quit")
 
 }
 
 // TODO : faire une securite si on game ou no ?
 // TODO : securser les ids playgame
 // TODO : gerer ws quand ferme ou jeu interrompu
-
 
 // quand on appui dans le pret pour le tournoi -> fetch un playgame avec option tournament 
 // -> on mate si le joueur est dans le lobby tournoi ->et game pour ca. quand le 2eme ok -> launch game
