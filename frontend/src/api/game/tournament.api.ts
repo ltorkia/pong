@@ -126,6 +126,7 @@ export class TournamentAPI {
     }
 
     public async postNewLocalTournament(newTournament: TournamentLocal): Promise<void> {
+        console.log(JSON.stringify(newTournament));
         const res: Response = await fetch('/api/game/new_tournament_local', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -164,7 +165,7 @@ export class TournamentAPI {
         const res = await fetch(`/api/game/tournaments_local/game/:${gameID}`);
         if (res.ok) {
             const data = await res.json();
-            console.log(data);
+            // console.log(data);
             return ({
                 tournamentID: data.tournamentID, game: new Game(
                     data.game.players,
@@ -187,6 +188,7 @@ export class TournamentAPI {
             console.log(tournamentJSON);
             return new TournamentLocal(
                 tournamentJSON.maxPlayers,
+                tournamentJSON.winner,
                 tournamentJSON.masterPlayerID,
                 tournamentJSON.players,
                 tournamentJSON?.stageOne,

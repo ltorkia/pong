@@ -199,7 +199,7 @@ export class GameMenuTournamentLocal extends BasePage {
     private startTournamentHandler = async () => {
         if (this.players.length != MAX_PLAYERS)
             return (this.printError("Not enough players to start!"));
-        const newTournament = new TournamentLocal(MAX_PLAYERS, this.currentUser.id, this.players);
+        const newTournament = new TournamentLocal(MAX_PLAYERS, undefined, this.currentUser.id, this.players);
         try {
             const tournamentID = await TournamentService.postNewLocalTournament(newTournament);
             router.navigate(`/game/tournaments_local/:${tournamentID}/overview`);

@@ -177,7 +177,6 @@ export class Game {
     }
 
     public async endGame(): Promise<void> {
-        console.log("coucou end !");
         this.gameStarted = false;
         this.isOver = true;
         for (const player of this.players) {
@@ -188,26 +187,32 @@ export class Game {
                     type: "end",
                     score: this.score
                 }));
-            // console.log("////////////////////////////////////////////////////////////////////////player = ", player, "score = ", this.score);
         }
-        let winner = this.players[1];
-        let looser = this.players[0];
-        if ((this.score[0] = 3) | (this.score[1] = 3)) {
-            console.log("iiiiiiiiiiiiiiiiiiciiiii dans condition endgsameeee ")
-            winner = this.players[0];
-            looser = this.players[1];
-            // if multiplayer si on veut garder que en db le multiplayer
-            await resultGame(this.gameIDforDB, winner.ID, looser.ID, this.score);
-        }
-        else {
-            console.log("iiiiiiiiiiiiiiiiiiciiiii dans else endgsameeee ")
-            await cancelledGame(this.gameIDforDB, winner.ID, looser.ID, this.score);
-        }
+        // ANCIEN CODE QUI METTAIT LE SCORE A [3,3] SANS JAMAIS ALLER DANS LE ELSE
+        // let winner = this.players[1];
+        // let looser = this.players[0];
+        // if ((this.score[0] = 3) | (this.score[1] = 3)) { // c'est un bordel
+        //     console.log("iiiiiiiiiiiiiiiiiiciiiii dans condition endgsameeee ")
+        //     winner = this.players[0];
+        //     looser = this.players[1];
+        //     // if multiplayer si on veut garder que en db le multiplayer
+        //     await resultGame(this.gameIDforDB, winner.ID, looser.ID, this.score);
+        // }
+        // else {
+        //     console.log("iiiiiiiiiiiiiiiiiiciiiii dans else endgsameeee ")
+        //     await cancelledGame(this.gameIDforDB, winner.ID, looser.ID, this.score);
+        // }
         // allPlayers.splice(playerIdx, 1);
+       
+        // NOUVEAU CODE, A RAJOUTER : cancelledGame() ?
+        const winner = this.getWinner();
+        const looser = this.getLooser();
+        await resultGame(this.gameIDforDB, winner.ID, looser.ID, this.score);
         winner.matchMaking = false;
         looser.matchMaking = false;
         for (const player of this.players) // clean des websockets si besoin de renvoyer tournoi au front (crash si websocket a l'interieur de JSON)
             player.webSocket = undefined;
+        console.log(this.score);
     }
 
     private sendGameUpdate() {
@@ -263,6 +268,9 @@ export class Game {
         }
     };
 
+    public getWinner() { return this.score[0] == 3 ? this.players[0] : this.players[1] };
+    public getLooser() { return this.score[1] == 3 ? this.players[1] : this.players[0] };
+
     public getIsOver() { return this.isOver };
 
     public getScore() { return this.score };
@@ -272,18 +280,21 @@ export class Game {
 
 export class TournamentLocal {
     public players: Player[] = [];
+    public winner: Player | undefined;
     public maxPlayers: number;
     public masterPlayerID: number;
     public ID?: number;
     protected IDforDB?: number;
     public stageOne: Game[] = [];
-    public stageTwo: Game | undefined;
+    public stageTwo: Game;
 
     constructor(players: Player[], maxPlayers: number, masterPlayerID: number, ID?: number) {
         this.players = players;
         this.maxPlayers = maxPlayers;
+        this.winner = undefined;
         this.masterPlayerID = masterPlayerID;
         this.ID = ID ?? 0;
+        this.stageTwo = new Game(2, []); // creee maintenant mais les joueurs sont ajoutes plus tard
     }
 
     public getWinner(game: Game): Player {
@@ -295,11 +306,9 @@ export class TournamentLocal {
     }
 
     public async startTournament(): Promise<void> {
-        console.log("iciiii starttournament baaaackkkk /////")
         this.IDforDB = await createTournament(this.maxPlayers, this.maxPlayers / 2);
         if (this.IDforDB === undefined)
             return; //TODO : put some error
-        console.log("game at start tournament is ?", this.stageOne);
 
         for (const player of this.players)
             await registerUserTournament(player.ID, this.IDforDB);
@@ -314,12 +323,15 @@ export class TournamentLocal {
 
     // si les games du premier tour sont finies, update pour determiner la derniere game
     public async update(): Promise<void> {
-        if (this.stageOne[0].getIsOver() && this.stageOne[1].getIsOver()) {
-            const playerOne = this.getWinner(this.stageOne[0]);
-            const playerTwo = this.getWinner(this.stageOne[1]);
-            this.stageTwo = new Game(2, [playerOne, playerTwo]);
-            this.stageTwo.gameIDforDB = await addGame(playerOne.ID, playerTwo.ID, true);
+        for (const game of this.stageOne) {
+            if (game.getIsOver() && !game.players.some((p: Player) => this.stageTwo?.players.includes(p)))
+                this.stageTwo?.players.push(this.getWinner(game));
         }
+        if (this.stageTwo.players.length == 2)
+            this.stageTwo.gameIDforDB = await addGame(this.stageTwo.players[0].ID, this.stageTwo.players[1].ID, true);
+        if (this.stageTwo.getIsOver())
+            this.winner = this.getWinner(this.stageTwo);
+        console.log("SCORE : ", this.stageOne[0].getScore());
     }
 }
 
