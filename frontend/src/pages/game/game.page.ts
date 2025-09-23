@@ -27,12 +27,88 @@ export abstract class GamePage extends BasePage {
 	protected endGamePanel?: Element;
 	protected requestType?: string;
 
+<<<<<<< HEAD
 	// Variables utiles si le jeu est dans le cadre d'une invitation entre amis
 	public friendId: number = 0;
 	protected challengedFriendId?: number | RouteParams;
 	protected relation?: Friend;
 	protected isInvitationGame: boolean = false;
 	protected replayInvite: boolean = false;
+=======
+    protected insertNetworkError(): void {
+        const errorDiv = document.createElement("div");
+        errorDiv.textContent = "Network error. Please try again later";
+        document.getElementById("pong-section")!.append(errorDiv);
+    }
+
+    protected async sendMatchMakingRequest(type : string, gameID?: number): Promise<void> {
+        const message = type;         
+        const matchMakingReq: MatchMakingReq = {
+            type: message,
+            playerID: this.currentUser!.id,
+            gameID: gameID,
+        }
+        // console.log("matchMakingReq = ", matchMakingReq);
+        const res = await fetch("/api/game/playgame", {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(matchMakingReq),
+            credentials: 'include',
+        });
+        if (!res.ok) {
+            const error = await res.json();
+            console.error(error.error);
+            return;
+        }
+    }
+
+    protected async initGame(playerID: number, gameID: number): Promise<void> {
+        const allChildren = document.getElementById("pong-section");
+        while (allChildren?.firstChild)
+            allChildren.firstChild.remove();
+        this.game = new MultiPlayerGame(2, playerID, gameID);
+        await this.game.initGame();
+    }
+// app.get('/:id/games', async(request: FastifyRequest, reply: FastifyReply) => {
+// 		const { id } = request.params as { id: number };
+// 		if (isNaN(id))
+// 			return reply.status(403).send({ errorMessage: 'Forbidden' });
+// 		const games = await getUserGames(id);
+// 		if (!games)
+// 			return reply.code(404).send({ errorMessage: 'User not found'});
+// 		return games;
+// 	})
+    // protected async showEndGamePanel(userID: number, gameID: number): promise<game>{
+    //     const panel = document.getElementById("pong-section")!;
+    //     // const panel = document.getElementById("endgame-panel")!;
+    //     panel.classList.remove("hidden");
+    //     panel.innerText = `Result = ${this.finalScore[0]} : ${this.finalScore[1]}`;
+    //        const res = await fetch(`/api/user/${userID}/games`, {
+    //         method: 'GET',
+    //         headers: { 'Content-Type': 'application/json' },
+    //         credentials: 'include',
+    //     });     
+    // }
+
+
+    // TODO = ADAPTER LES MESSAGES POUR LA TRAD
+    protected showEndGamePanel(): void {
+        const panel = document.getElementById("pong-section")!;
+        // const panel = document.getElementById("endgame-panel")!;
+        panel.classList.remove("hidden");
+        panel.innerText = `Result = ${this.finalScore[0]} : ${this.finalScore[1]}\n`;
+            if (this.adversary != undefined && this.finalScore[0] < this.finalScore[1])
+                panel.innerText += `You LOOOOOOSE against ${this.adversary?.username}`;
+            else if (this.adversary != undefined && this.finalScore[0] > this.finalScore[1])
+                panel.innerText += `You WIIIIIIIN against ${this.adversary?.username}`;
+    }
+
+    protected showTimer(time : number): void {
+        const panel = document.getElementById("pong-section")!;
+        panel.classList.remove("hidden");
+        panel.innerText = `Lets play in ... ${time}`;
+    }
+>>>>>>> elisa_tournoi_kiki_fork
 
 	constructor(config: RouteConfig) {
 		super(config);
@@ -190,12 +266,51 @@ export abstract class GamePage extends BasePage {
 	public async handleGameMessage(data: any): Promise<void> {
 		switch (data.type) {
 
+<<<<<<< HEAD
 			case "start_game":
 				this.gameId = data.gameID;
 				this.adversary = data.otherPlayer;
 				this.isPartOfTournament = data.mode === "tournament" ? true : false;
 				this.game = new MultiPlayerGame(2, this.currentUser!.id, this.gameId);
 				break;
+=======
+    protected attachListeners() {
+        webSocketService.getWebSocket()!.addEventListener("message", async (event) => {
+            const msg = JSON.parse(event.data);
+            // console.log("@@@@@@@@@@@@@@@@@@@@@@msg = ", msg);
+            if (msg.type == "start_game") {
+                console.log(`game starts ! id = ${msg.gameID}`);
+                console.log("message is :", msg);
+                this.adversary = msg.otherPlayer; // TODO : possibilite de recuperer l'avatar de l autre joueur si on veut l afficher ici
+                // this.game!.clearScreen(); 
+                // document.querySelector("endgame-panel")?.remove();
+                // this
+                this.gameStarted = true;
+            }
+            else if (msg.type == "decount_game") 
+            {
+                this.showTimer(msg.message);
+                if (msg.message == 0)
+                    await this.initGame(this.currentUser!.id, msg.gameID);
+            } else if (msg.type == "end" && this.gameStarted) {
+                this.game!.gameStarted = false;
+                this.isSearchingGame = false;
+                this.game!.setScore(msg.score);
+                console.log("END GAME DETECTED")
+                this.game!.clearScreen();
+                document.querySelector("canvas")?.remove();
+                // document.querySelector("#pong-section")!.remove(); //pour permettre de voir le jeu si on decide de le relancer direct avec le meme joueur
+                this.finalScore = this.game!.getScore(); //TODO = clean le final score je sais pas ou et le show en haut
+                this.showEndGamePanel();
+            } else if (msg.type == "GameData") {
+                this.game!.registerGameData(msg);
+                this.game!.setScore(msg.score);
+            } else if (msg.type == "msg")
+                console.log(msg.msg);
+            // else if (msg.type == "hasQuit")
+            // {
+                // fetch post db changement jeu statut
+>>>>>>> elisa_tournoi_kiki_fork
 
 			case "decount_game":
 				this.showTimer(data.message);

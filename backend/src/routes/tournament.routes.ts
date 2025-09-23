@@ -1,9 +1,10 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
-import { TournamentSchema, TournamentReqSchema, TournamentPlayerReadySchema, StartTournamentSchema, DismantleTournamentSchema } from '../types/zod/game.zod';
+import { TournamentSchema, TournamentReqSchema, TournamentPlayerReadySchema, StartTournamentSchema, DismantleTournamentSchema, TournamentLocalSchema } from '../types/zod/game.zod';
 import { Player } from '../shared/types/game.types';
-import { Tournament } from '../types/game.types';
+import { Game, Tournament, TournamentLocal } from '../types/game.types';
 import { TournamentLobbyUpdate, StartTournamentSignal, DismantleSignal } from '../shared/types/websocket.types'
 import { UserWS } from '../types/user.types';
+import { generateUniqueID } from '../shared/functions'
 import { findPlayerWebSocket } from '../helpers/query.helpers';
 import { addGame, addGamePlayers, getResultGame } from '../db/game';
 import { Game } from '../types/game.types';
@@ -21,7 +22,7 @@ export async function tournamentRoutes(app: FastifyInstance) {
         return reply.send(app.lobby.allTournaments);
     });
 
-    // retourne un tournoi en particulier
+    // retourne un tournoi remote en particulier
     app.get("/tournaments/:id", async (request: FastifyRequest, reply: FastifyReply) => {
         const { id } = request.params as { id: string };
         const tournamentID = Number(id.slice(1));
@@ -34,6 +35,45 @@ export async function tournamentRoutes(app: FastifyInstance) {
             return reply.code(404).send({ error: "Tournament not found" });
         }
     });
+
+    // retourne un tournoi local en particulier
+    app.get("/tournaments_local/:id", async (request: FastifyRequest, reply: FastifyReply) => {
+        const { id } = request.params as { id: string };
+        const tournamentID = Number(id.slice(1));
+
+        const { allTournamentsLocal } = app.lobby;
+
+        const tournament = allTournamentsLocal.find((t: TournamentLocal) => t.ID == tournamentID);
+        if (tournament) {
+            return reply.code(200).send(tournament);
+        } else {
+            return reply.code(404).send({ error: "Tournament not found" });
+        }
+    });
+
+    // retourne une game de tournoi local en particulier
+    app.get("/tournaments_local/game/:id", async (request: FastifyRequest, reply: FastifyReply) => {
+        const { id } = request.params as { id: string };
+        const gameID = Number(id.slice(1));
+
+        const { allTournamentsLocal } = app.lobby;
+
+        let game;
+
+        // cherche l'id de la game dans les tournois locaux
+        for (const tournamentLocal of allTournamentsLocal) {
+            if (tournamentLocal.stageTwo && gameID == tournamentLocal.stageTwo.gameIDforDB) {
+                game = tournamentLocal.stageTwo;
+                break ;
+            }
+            game = tournamentLocal.stageOne.find((g: Game) => g.gameIDforDB == gameID);
+        }
+
+        if (game)
+            return reply.code(200).send(game);
+        else
+            return reply.code(404).send({ error: "Game not found in local tournaments"});
+    })
 
     // Cree un nouveau tournoi
     app.post("/new_tournament", async (request: FastifyRequest, reply: FastifyReply) => {
@@ -58,6 +98,39 @@ export async function tournamentRoutes(app: FastifyInstance) {
         reply.code(200).send();
     });
 
+    app.post("/new_tournament_local", async (request: FastifyRequest, reply: FastifyReply) => {
+        const tournamentParse = TournamentLocalSchema.safeParse(request.body);
+
+        const { allPlayers, allTournamentsLocal } = app.lobby;
+
+        console.log(request.body);
+        // Validation de donnees
+        if (!tournamentParse.success) {
+            console.log(tournamentParse.error.errors[0].message);
+            return reply.code(400).send({ error: tournamentParse.error.errors[0].message });
+        }
+
+        const players: Player[] = [];
+
+        // -1 pour joueur temporaire (non enregistre, envoye par le front)
+        for (const player of tournamentParse.data.players) {
+            if (player.ID == -1)
+                players.push(new Player(generateUniqueID(allPlayers), player.alias));
+            else
+                players.push(new Player(player.ID, player.alias));
+        }
+        const newTournament: TournamentLocal = new TournamentLocal(
+            players,
+            tournamentParse.data.maxPlayers,
+            tournamentParse.data.masterPlayerID,
+            generateUniqueID(allTournamentsLocal),
+        );
+        app.lobby.allTournamentsLocal.push(newTournament);
+        await newTournament.startTournament();
+        console.log(newTournament);
+        reply.code(200).send(newTournament.ID);
+    });
+
     // Un player demande a join un tournoi
     app.post("/join_tournament", async (request: FastifyRequest, reply: FastifyReply) => {
         const joinTournamentReq = TournamentReqSchema.safeParse(request.body);
@@ -76,7 +149,7 @@ export async function tournamentRoutes(app: FastifyInstance) {
         console.log("allll tournaments in tournament : ", allTournaments);
         console.log("player ID in tournament : ", joinTournamentReq.data.playerID);
         const player = new Player(joinTournamentReq.data.playerID);
-        
+
         // Ce joueur existe deja dans ce tournoi ?
         if (tournament.players.find((p: Player) => p.ID == joinTournamentReq.data.playerID))
             return reply.code(404).send({ error: "Player already registered" });
@@ -156,9 +229,9 @@ export async function tournamentRoutes(app: FastifyInstance) {
         const player = tournament.players.find((p: Player) => p.ID == readyReq.data.playerID);
         if (!player)
             return reply.code(404).send({ error: "Player not found in tournament" });
- 
+
         player.ready = readyReq.data.ready;
-        
+
         // Update pour tous les joueurs participants au tournoi
         const playerData: TournamentLobbyUpdate = {
             type: "tournament_lobby_update",
@@ -203,7 +276,7 @@ export async function tournamentRoutes(app: FastifyInstance) {
             if (!player.ready)
                 return reply.code(412).send({ error: "Not all players are ready!" });
         }
-        
+
         tournament.isStarted = true;
         tournament.startTournament();
 
@@ -237,7 +310,7 @@ export async function tournamentRoutes(app: FastifyInstance) {
         //     return reply.code(404).send({ error: "Player not found" });
 
         // if (player.ID != tournament.masterPlayerID) {
-        
+
         // Ce joueur est-il le createur du tournoi ? 
         if (dismantleTournamentReq.data.playerID != tournament.masterPlayerID) {
             return reply.code(403).send({ error: "Can't dismantle tournament if not owner" });

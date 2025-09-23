@@ -5,7 +5,7 @@ import { Game } from '../types/game.types';
 import { generateUniqueID } from '../shared/functions'
 import { MatchMakingReqSchema } from '../types/zod/game.zod';
 import { UserWS } from '../types/user.types';
-import { getUserStats } from '../db/user';
+import {  getUserStats } from '../db/user';
 import { Tournament } from '../types/game.types';
 import { FRIEND_REQUEST_ACTIONS } from '../shared/config/constants.config';
 import { JwtPayload } from '../types/user.types';
@@ -32,43 +32,6 @@ export async function gameRoutes(app: FastifyInstance) {
 		if (playerID != jwtUser.id)
 			return reply.status(403).send({ errorMessage: 'Forbidden' });
 
-		// TOURNAMENT REQUEST POUR REMOTE
-		if (matchMakingReq.data.type === "tournament")
-		{
-			console.log("TOURNAMENT REQUEST RECEIVED : ", matchMakingReq.data);
-			const tournament = app.lobby.allTournaments.find((t: Tournament) => t.ID === matchMakingReq.data.tournamentID)!;
-			console.log("LOBBY TOURNOI : ", tournament);
-			// const { players } = tournament.players;
-			console.log("LOBBY PLAYERS dans tournois: ", tournament.players);
-			// if(tournament.stageTwoGames[0].players.length === 2) // TODO : lancer la 2eme manche
-			// {
-			//     console.log("DEJA EN STAGE 2, ON LANCE LE JEU DIRECT");
-			//     startGame(app, tournament.stageTwoGames[0].players, "multi", tournament.stageTwoGames[0]);
-			//     return ;
-			// }
-			console.log("LOBBY PLAYERS DANS STAGE 1: ", tournament.stageOneGames[0].players);
-			let playerOne = tournament.stageOneGames[0].players.find((p: Player) => p.ID === matchMakingReq.data.playerID);
-			if (!playerOne)
-			{
-				playerOne = tournament.stageOneGames[1].players.find((p: Player) => p.ID === matchMakingReq.data.playerID);
-				if (!playerOne)
-				return reply.code(404).send({ error: "Player not found in tournament" });
-			}
-			playerOne!.readyforTournament = true;
-			console.log("PLAYER ONE READY : ", playerOne);
-			reply.code(200).send({ message: "Successfully added to tournament matchmaking" });
-			//vérifier si tous les joueurs sont prêts // a ajuster pour bloquer si 1ere manche deja faite ptet en regardantsi dj resultat dans la db ? 
-			const isReady = tournament.players.every((p: Player) => p.readyforTournament);
-			if (isReady)
-			{
-				startGame(app, tournament.stageOneGames[0].players, "multi", tournament.stageOneGames[0]);
-				startGame(app, tournament.stageOneGames[1].players, "multi", tournament.stageOneGames[1]);
-				for (const player of tournament.players) {
-					player.readyforTournament = false;
-				}
-			}
-		}
-
 		if (matchMakingReq.data.type === "matchmaking_request") {
 			initPlayer(allPlayers, playerID);
 			const newPlayer = allPlayers.find((p: Player) => p.ID == playerID);
@@ -91,6 +54,13 @@ export async function gameRoutes(app: FastifyInstance) {
 				startGame(app, [playerOne, playerTwo], "local");
 			reply.code(200).send({ message: "Local game started" });	
 		} 
+        else if (matchMakingReq.data.type === "tournament") {
+            const hostID = matchMakingReq.data.playerID;
+            const gameID = matchMakingReq.data.gameID;
+            console.log(gameID);
+            if (gameID)
+                startTournamentGame(app, gameID, hostID);
+        }
 		else if (matchMakingReq.data.type === FRIEND_REQUEST_ACTIONS.INVITE) {
 			const inviterId = playerID;
 			const invitedId = matchMakingReq.data.invitedId;
@@ -178,25 +148,22 @@ async function cleanInvite(app: FastifyInstance, playerID: number, inviterId?: n
 	sendToSocket(app, [ notif ]);
 }
 
-async function decount(app: FastifyInstance, players: Player[], gameID: number)
-{
-	const { usersWS } = app;
-	for (let i = 3; i >= 0; i--)
-	{
-		for (const player of players)
-		{
-			const user = usersWS.find((user: UserWS) => user.id == player.ID);
-				if (user && user.WS) {
-					user.WS.send(JSON.stringify({
-						type: "decount_game",
-						message: i,
-						gameID: gameID,
-					}));
-				}       
-			}
-		if (i !== 0)
-			await new Promise(resolve => setTimeout(resolve, 1000));
-	}
+async function decount(app: FastifyInstance, players: Player[], gameID: number) {
+     const { usersWS } = app;
+     for (let i = 3; i >= 0; i--) {
+        for (const player of players) {
+            const user = usersWS.find((user: UserWS) => user.id == player.ID);
+                    if (user && user.WS) {
+                    user.WS.send(JSON.stringify({
+                        type: "decount_game",
+                        message: i,
+                        gameID: gameID,
+                    }));
+                }       
+            }
+        if (i !== 0)
+            await new Promise(resolve => setTimeout(resolve, 1000));
+    }
 }
 
 const startGame = async (app: FastifyInstance, players: Player[], mode: string, gameCreated?: Game) => {
@@ -251,6 +218,45 @@ const startGame = async (app: FastifyInstance, players: Player[], mode: string, 
 	console.log(allGames);
 	newGame.initGame();
 
+}
+
+const startTournamentGame = async (app: FastifyInstance, gameID: number, hostID: number) => {
+    const { allTournamentsLocal, allPlayers } = app.lobby;
+    let tournament, game;
+
+    console.log("started tournament game");
+    // cherche l'id de la game dans les tournois locaux
+    for (const tournamentLocal of allTournamentsLocal) {
+        if (tournamentLocal.stageTwo && gameID == tournamentLocal.stageTwo.gameIDforDB) {
+            game = tournamentLocal.stageTwo;
+            tournament = tournamentLocal;
+            break;
+        }
+        game = tournamentLocal.stageOne.find((g: Game) => g.gameID == gameID);
+        if (game)
+            tournament = tournamentLocal;
+    }
+    if (!game) {
+        console.log("Game not found. bye");
+        return;
+    }
+
+    const host = app.usersWS.find((u: UserWS) => u.id == hostID);
+    if (host) {
+        host.WS.send(JSON.stringify({ type: "start_game", gameID: gameID } as StartGame));
+        host.WS.onmessage = (event: MessageEvent) => {
+            const msg: any = JSON.parse(event.data);
+            if (msg.type == "movement") {
+                console.log(msg.type);
+                game.registerInputLocal(msg.playerID, msg.key, msg.status);
+            }
+        }
+        game.players[0].webSocket = host.WS;
+        game.players[1].webSocket = host.WS;
+        // game.players[1].webSocket = host.WS;
+        await decountWS(host.WS, gameID);
+    }
+    game.initGame();
 }
 
 // quand on appui dans le pret pour le tournoi -> fetch un playgame avec option tournament 

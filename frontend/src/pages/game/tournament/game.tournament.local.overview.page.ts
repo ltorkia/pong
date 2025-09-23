@@ -1,7 +1,7 @@
 import { BasePage } from '../../base/base.page';
 import { GamePage } from '../game.page';
 import { RouteConfig } from '../../../types/routes.types';
-import { Game, Tournament } from '../../../types/game.types';
+import { Game, TournamentLocal } from '../../../types/game.types';
 import { TournamentService } from '../../../api/game/game.api';
 import { router } from '../../../router/router';
 import { UserModel } from '../../../shared/types/user.types';
@@ -12,39 +12,26 @@ import { User } from '../../../shared/models/user.model';
 const MAX_PLAYERS = 4;
 const MIN_PLAYERS = 4;
 
-export class GameTournamentOverview extends GamePage { //changement de basepage mais a voir
+export class GameTournamentLocalOverview extends GamePage {
     private tournamentID: number;
     private pastilleHTML: HTMLElement | undefined;
     private toolTipHTML: HTMLElement | undefined;
-    private tournament: Tournament | undefined;
+    private tournament: TournamentLocal | undefined;
     private dataApi = new DataService();
     private users: UserModel[] = [];
     private winner: Player | undefined;
 
-	/**
-	 * Procède aux vérifications nécessaires avant le montage de la page.
-	 * Exécute les vérifications de base de la classe parente (`BasePage`).
-	 *
-	 * @returns {Promise<boolean>} Une promesse qui se résout lorsque les vérifications sont terminées.
-	 */
-	protected async preRenderCheck(): Promise<boolean> {
-		const isPreRenderChecked = await super.preRenderCheck();
-		if (!isPreRenderChecked)
-			return false;
-        // Check si le tournoi existe ou redirection
-        this.tournament = await TournamentService.fetchTournament(this.tournamentID);
-		if (!this.tournament) {
-            console.error("Tournament not found");
-            this.redirectRoute = "/game/tournaments";
-			return false;
-		}
-		return true;
-	}
 
     protected async beforeMount(): Promise<void> {
+        // Check si le tournoi existe ou redirection
+        this.tournament = await TournamentService.fetchLocalTournament(this.tournamentID);
+        if (!this.tournament) {
+            console.error("Tournament not found");
+            router.navigate("/game/tournaments");
+        }
         // Fetch du html qui va etre reutilise plusieurs fois
-        this.pastilleHTML = await this.fetchHTML("../../../../public/templates/game/tournament_pastille.html", "#tournament-pastille");
-        this.toolTipHTML = await this.fetchHTML("../../../../public/templates/game/tournament_tooltip.html", "#tooltip");
+        this.pastilleHTML = await this.fetchHTML("../../../../public/templates/game/tournament/tournament_pastille.html", "#tournament-pastille");
+        this.toolTipHTML = await this.fetchHTML("../../../../public/templates/game/tournament/tournament_tooltip.html", "#tooltip");
         await this.fetchUsers();
         console.log(this.tournament);
     }
@@ -88,14 +75,41 @@ export class GameTournamentOverview extends GamePage { //changement de basepage 
         const firstStage: HTMLElement = document.getElementById("first-stage")!;
         const secondStage: HTMLElement = document.getElementById("second-stage")!;
 
-        await this.displayStage(this.tournament?.stageTwoGames!, 2, secondStage);
-        await this.displayStage(this.tournament?.stageOneGames!, 4, firstStage);
+        await this.displayStage(this.tournament?.stageOne!, 4, firstStage);
+        await this.displayStage(this.tournament?.stageTwo!, 2, secondStage);
         await this.displayWinner();
+        this.displayNextGameAndSetNavigate();
 
         const allPastilles = document.querySelectorAll("#tournament-pastille");
         for (const pastille of allPastilles) {
             pastille.classList.remove("opacity-0");
             pastille.classList.add("opacity-100");
+        }
+    }
+
+    // Trouve la prochaine game a jouer pour continuer le tournoi
+    private getNextGame(): Game | undefined {
+        for (const game of this.tournament!.stageOne!) {
+            if (!game.isOver)
+                return game;
+        }
+        for (const game of this.tournament!.stageTwo!) {
+            if (!game.isOver)
+                return game;
+        }
+        return undefined;
+    }
+
+    // Affiche la next game a jouer et set le bouton pour naviguer a l'adresse de la prochaine game
+    private displayNextGameAndSetNavigate(): void {
+        const nextGame = this.getNextGame();
+        if (nextGame) {
+            console.log(nextGame.gameIDforDB);
+            document.getElementById("player-one")!.textContent = `${nextGame?.players[0].alias}`;
+            document.getElementById("player-two")!.textContent = `${nextGame?.players[1].alias}`;
+            document.getElementById("tournament-start-btn")!.addEventListener("click", () => {
+                router.navigate(`/game/local/:${nextGame.gameIDforDB}`);
+            })
         }
     }
 
@@ -113,7 +127,7 @@ export class GameTournamentOverview extends GamePage { //changement de basepage 
         document.getElementById("winner")?.append(playerPastille);
     }
 
-    // Afficher chaque etape du tournoi
+    // Afficher chaque etape du tournoi, pas tres joli sorry
     private async displayStage(stage: Game[], playerNb: number, container: HTMLElement): Promise<void> {
         // Loop pour le nombre de match par stage 
         for (let i = 0; i < playerNb / 2; i++) {
@@ -127,13 +141,17 @@ export class GameTournamentOverview extends GamePage { //changement de basepage 
                 if (stage && stage[i]) {
                     const player = stage[i].players[j];
                     const user = this.users.find((u: UserModel) => u.id == player.ID)
-                    playerPastille.querySelector("#pastille-name")!.textContent = user!.username;
-                    playerPastille.dataset.id = user?.id.toString();
+                    const pastille = playerPastille.querySelector("#pastille-name")!;
                     const img = playerPastille.querySelector("#user-avatar") as HTMLImageElement;
-                    img.src = await this.dataApi.getUserAvatarURL(user! as User);
-                    newTooltip.querySelector(`#player-${j}`)!.textContent = user!.username;
-                    if (this.currentUser.id == user.id)
-                        newTooltip.querySelector("button")!.classList.remove("hidden");
+                    const name = player.alias || user?.username;
+
+                    if (user)
+                        img.src = await this.dataApi.getUserAvatarURL(user! as User);
+                    else
+                        img.src = await this.dataApi.returnDefaultAvatarURL();
+
+                    pastille.textContent = name;
+                    newTooltip.querySelector(`#player-${j}`)!.textContent = name;
                 } else
                     playerPastille.textContent = "?";
                 div.append(playerPastille);
@@ -153,27 +171,6 @@ export class GameTournamentOverview extends GamePage { //changement de basepage 
 
         // document.getElementById("tournament-overview")?.append(btn);
 
-<<<<<<< HEAD
-        // Ajout du listener
-        btn.addEventListener("click", async () => {
-            this.isSearchingGame = true;
-            // const res = await fetch("/api/game/update_tournament_games", {
-            //     method: 'POST',
-            //     headers: { 'Content-Type': 'application/json' },
-            //     // body: JSON.stringify(lobbyUpdate),
-            //     credentials: 'include',
-            // });
-        // if (!res.ok) {
-        //     const error = await res.json();
-        //     throw new Error(error.error);
-        // }
-            // await fetch("/update_tournament_games")
-            await this.sendMatchMakingRequest("tournament", this.tournamentID); // On passe par cette fonction pour lancer le tournoi et les game
-            // this.startGame(); // fonction qui fetch avec les infos en contenu des joueurs
-        });
-            // await this.attachPastilleListeners();
-        }
-=======
         // // Ajout du listener
         // btn.addEventListener("click", () => {
         //      console.log("okeeaiii");
@@ -181,7 +178,6 @@ export class GameTournamentOverview extends GamePage { //changement de basepage 
         // });
         //     // await this.attachPastilleListeners();
     }
->>>>>>> elisa_tournoi_kiki_fork
 
     private getGameByPlayerID(id: number, stage: Game[]): Game | undefined {
         return stage.find((game: Game) => game.players.find((p: Player) => p.ID == id));
