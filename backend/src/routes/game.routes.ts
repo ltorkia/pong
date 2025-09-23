@@ -166,6 +166,17 @@ async function decount(app: FastifyInstance, players: Player[], gameID: number) 
     }
 }
 
+async function decountWS(ws: WebSocket, gameID: number) {
+    for (let i = 3; i >= 0; i--) {
+        ws.send(JSON.stringify({
+            type: "decount_game",
+            message: i,
+            gameID: gameID,
+        }));
+        await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+}
+
 const startGame = async (app: FastifyInstance, players: Player[], mode: string, gameCreated?: Game) => {
 	const { usersWS } = app;
 	const { allGames } = app.lobby;
@@ -258,6 +269,3 @@ const startTournamentGame = async (app: FastifyInstance, gameID: number, hostID:
     }
     game.initGame();
 }
-
-// quand on appui dans le pret pour le tournoi -> fetch un playgame avec option tournament 
-// -> on mate si le joueur est dans le lobby tournoi ->et game pour ca. quand le 2eme ok -> launch game
