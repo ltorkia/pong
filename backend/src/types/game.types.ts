@@ -1,3 +1,4 @@
+import { EventEmitter } from "node:stream";
 import { resultGame, addGame, cancelledGame, createTournament, registerUserTournament } from "../db/game";
 import { GameData, Player } from "../shared/types/game.types"
 
@@ -83,7 +84,7 @@ export class Ball {
     }
 };
 
-export class Game {
+export class Game extends EventEmitter {
     private duration: number = 0;
     public players: Player[] = [];
     private ball = new Ball();
@@ -98,6 +99,7 @@ export class Game {
     // private async resultGame(gameId: number, winnerId: number, looserId: number);
 
     constructor(playersCount: number, players: Player[]) {
+        super();
         this.playersCount = playersCount;
         this.players = players;
     }
@@ -212,6 +214,8 @@ export class Game {
         looser.matchMaking = false;
         for (const player of this.players) // clean des websockets si besoin de renvoyer tournoi au front (crash si websocket a l'interieur de JSON)
             player.webSocket = undefined;
+        // Permet de notifier d'un event, ici que la game est finie
+        this.emit("finished", this);
         console.log(this.score);
     }
 
@@ -319,19 +323,24 @@ export class TournamentLocal {
         this.stageOne[0].gameIDforDB = await addGame(this.players[0].ID, this.players[1].ID, true);
         this.stageOne[1] = new Game(2, [this.players[2], this.players[3]]);
         this.stageOne[1].gameIDforDB = await addGame(this.players[2].ID, this.players[3].ID, true);
+        
+        // Listeners pour etre notifie quand une game est finie
+        for (const game of this.stageOne)
+            game.on("finished", (g: Game) => this.update());
+        this.stageTwo.on("finished", (g: Game) => this.update());
     }
 
     // si les games du premier tour sont finies, update pour determiner la derniere game
     public async update(): Promise<void> {
         for (const game of this.stageOne) {
-            if (game.getIsOver() && !game.players.some((p: Player) => this.stageTwo?.players.includes(p)))
+            if (game.getIsOver() && !game.players.some((p: Player) => this.stageTwo?.players.includes(p))) {
                 this.stageTwo?.players.push(this.getWinner(game));
+            }
         }
         if (this.stageTwo.players.length == 2)
             this.stageTwo.gameIDforDB = await addGame(this.stageTwo.players[0].ID, this.stageTwo.players[1].ID, true);
         if (this.stageTwo.getIsOver())
             this.winner = this.getWinner(this.stageTwo);
-        console.log("SCORE : ", this.stageOne[0].getScore());
     }
 }
 

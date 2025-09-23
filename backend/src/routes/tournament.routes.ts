@@ -89,7 +89,7 @@ export async function tournamentRoutes(app: FastifyInstance) {
         console.log("TO FIND ID = ", tournamentID);
         const tournament = allTournamentsLocal.find((t: TournamentLocal) => t.ID = tournamentID);
         if (tournament) {
-            tournament.update();
+            await tournament.update();
             reply.code(200);
         } else {
             reply.code(404).send({ error: "Tournament not found" });

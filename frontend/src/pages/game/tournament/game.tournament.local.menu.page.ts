@@ -17,12 +17,10 @@ import { UserModel } from '../../../../../shared/types/user.types';
 const MAX_PLAYERS = 4;
 
 export class GameMenuTournamentLocal extends BasePage {
-    private tournament: Tournament[] = [];
     private playersNb: number = MAX_PLAYERS; // Minimum players required
-    private players: { ID: number, alias?: string }[] = [];
+    private players: { ID: number, alias: string, username?: string }[] = [];
     private dataApi = new DataService();
     private pastilleHTML: Node | undefined;
-    // private tournamentToCancel: number = 0;
 
     constructor(config: RouteConfig) {
         super(config);
@@ -42,7 +40,6 @@ export class GameMenuTournamentLocal extends BasePage {
     }
 
     protected async mount(): Promise<void> {
-        // this.getTournaments();
         this.applyAppClasses();
         await this.fetchPastille();
         console.log(this.pastilleHTML);
@@ -56,7 +53,6 @@ export class GameMenuTournamentLocal extends BasePage {
 
     // Recupere la pastille de HTML et l'ajoute visuellement a la partie
     private async appendPlayerPastille(player: { alias: string, user?: UserModel }): Promise<void> {
-        console.log(player);
         const pastille = this.pastilleHTML!.cloneNode(true) as HTMLElement;
         const h2 = pastille.querySelector("h2");
         if (player.alias)
@@ -84,20 +80,20 @@ export class GameMenuTournamentLocal extends BasePage {
             const toRemoveIdx = this.players.findIndex(p => p.alias == player.alias);
             this.players.splice(toRemoveIdx, 1);
             pastille.remove();
+            console.log(this.players);
         })
     }
 
     // Animation pour print une erreur
     private printError(error: string): void {
         const errorDiv = document.createElement("div");
-        const container = document.getElementById("alias-container");
         const tournamentBox = document.querySelectorAll("#input-box")[1];
         const startBtn = document.getElementById("tournament-start-btn");
         errorDiv.textContent = error;
         errorDiv.classList.add(
-            "absolute", "bottom-50", "left-0", "right-0", "translate-y-1/2", "-translate-y-7",
+            "absolute", "bottom-50", "left-0", "right-0", "-translate-y-1/2", "-translate-y-9",
             "border-2", "border-red-500", "rounded-md",
-            "bg-white", "bg-opacity-100", "m-2", "p-2", "text-center", "text-black",
+            "bg-black", "bg-opacity-70", "m-2", "p-2", "text-center", "text-white",
             "animate__animated", "animate__fadeIn"
         );
         const input = document.getElementById("input-box")!;
@@ -129,12 +125,18 @@ export class GameMenuTournamentLocal extends BasePage {
     private addPlayer(alias: string, user?: UserModel) {
         if (this.players.length >= this.playersNb)
             return (this.printError("Tournament is full!"), null);
+        if (user && (this.players.find(player => player.username == user.username ||
+            this.players.find(player => player.alias == user.username))))
+            return (this.printError("Player already exists in tournament!"), null);
         if (this.players.find(player => player.alias == alias))
             return (this.printError("Player already exists in tournament!"), null);
-        if (user)
-            this.players.push({ ID: user.id, alias: alias });
+        if (user && alias)
+            this.players.push({ ID: user.id, alias: alias, username: user.username });
+        else if (user && !alias)
+            this.players.push({ ID: user.id, alias: user.username, username: user.username });
         else
             this.players.push({ ID: -1, alias: alias }); // unique ID a generer une fois en backend
+        console.log(this.players);
         return (true);
     }
 
@@ -165,6 +167,8 @@ export class GameMenuTournamentLocal extends BasePage {
         if (event.key == "Enter") {
             if (!aliasInput.value)
                 return (this.printError("Please enter an alias."));
+            if (usernameInput.value || pwdInput.value)
+                return this.accountInputHandler(event);
             if (!this.addPlayer(aliasInput.value))
                 return;
             this.appendPlayerPastille({ alias: aliasInput.value });
@@ -196,6 +200,7 @@ export class GameMenuTournamentLocal extends BasePage {
         this.accountInputHandler();
     }
 
+    // Post du nouveau tournoi en back. Si reussi => go to overview du tournoi
     private startTournamentHandler = async () => {
         if (this.players.length != MAX_PLAYERS)
             return (this.printError("Not enough players to start!"));

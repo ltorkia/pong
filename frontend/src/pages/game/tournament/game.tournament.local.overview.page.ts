@@ -8,6 +8,7 @@ import { UserModel } from '../../../shared/types/user.types';
 import { DataService } from '../../../services/user/data.service';
 import { Player } from '../../../shared/types/game.types';
 import { User } from '../../../shared/models/user.model';
+import { animateCSS } from '../../../utils/animate.utils';
 
 const MAX_PLAYERS = 4;
 const MIN_PLAYERS = 4;
@@ -72,10 +73,11 @@ export class GameTournamentLocalOverview extends GamePage {
     private async displayTournament(): Promise<void> {
         const firstStage: HTMLElement = document.getElementById("first-stage")!;
         const secondStage: HTMLElement = document.getElementById("second-stage")!;
+        const winner: HTMLElement = document.getElementById("winner")!;
 
         await this.displayStageOne(this.tournament?.stageOne!, firstStage);
         await this.displayStageOne([this.tournament?.stageTwo!], secondStage);
-        await this.displayWinner();
+        await this.displayWinner(winner);
         this.displayNextGameAndSetNavigate();
 
         const allPastilles = document.querySelectorAll("#tournament-pastille");
@@ -110,54 +112,63 @@ export class GameTournamentLocalOverview extends GamePage {
     }
 
     // Afficher le winner
-    private async displayWinner(): Promise<void> {
-        const playerPastille = this.pastilleHTML?.cloneNode(true) as HTMLElement;
+    private async displayWinner(winnerContainer: HTMLElement): Promise<void> {
+        const playerPastille = await this.createAndFillPlayerPastille(this.tournament?.winner, 0);
+        winnerContainer.append(playerPastille);
+
         if (this.tournament?.winner) {
-            const user = this.users!.find((u: UserModel) => u.id == this.tournament?.winner!.ID)
-            playerPastille.querySelector("#pastille-name")!.textContent = user!.username;
-            const img = playerPastille.querySelector("#user-avatar") as HTMLImageElement;
-            img.src = await this.dataApi.getUserAvatarURL(user as User);
-        } else {
-            playerPastille.textContent = "?";
+            document.getElementById("next-game")!.classList.add("hidden");
+            setInterval(() => {
+                animateCSS(winnerContainer, "tada");
+            }, 1500);
+            setInterval(() => {
+                playerPastille.classList.toggle("border-yellow-500");
+            }, 500);
         }
-        document.getElementById("winner")?.append(playerPastille);
+    }
+
+    // Cree une pastille player, la remplie avec les infos du joueur et la retourne 
+    private async createAndFillPlayerPastille(player: Player, index: number, tooltipH2Name?: Element): Promise<HTMLElement> {
+        const playerPastille = this.pastilleHTML?.cloneNode(true) as HTMLElement;
+        const pastille = playerPastille.querySelector("#pastille-name")!;
+        const img = playerPastille.querySelector("#user-avatar") as HTMLImageElement;
+
+        if (!player) {
+            img.remove();
+            pastille.textContent = "?";
+            if (tooltipH2Name)
+                tooltipH2Name.textContent = "?";
+            return playerPastille;
+        }
+
+        const user = this.users.find((u: UserModel) => u.id == player.ID)
+        const name = player.alias || user?.username;
+
+        if (user)
+            img.src = await this.dataApi.getUserAvatarURL(user! as User);
+        else
+            img.src = await this.dataApi.returnDefaultAvatarURL();
+
+        pastille.textContent = name;
+        if (tooltipH2Name)
+            tooltipH2Name.textContent = name;
+        return playerPastille;
     }
 
     // Loop pour les joueurs du match, cherche le user approprie, lui cree un container et l'affiche
     private async displayGamePlayers(game: Game, container: HTMLDivElement) {
         const tooltip = this.toolTipHTML?.cloneNode(true) as HTMLElement;
 
-        // console.log(players);
         for (let i = 0; i < 2; i++) {
-            const playerPastille = this.pastilleHTML?.cloneNode(true) as HTMLElement;
-            const pastille = playerPastille.querySelector("#pastille-name")!;
-            const img = playerPastille.querySelector("#user-avatar") as HTMLImageElement;
             const player = game.players[i];
-            if (!player) {
-                img.remove();
-                pastille.textContent = "?";
-                tooltip.querySelector(`#player-${i}`)!.textContent = "?";
-                container.append(playerPastille);
-                continue ;
-            }
-            const user = this.users.find((u: UserModel) => u.id == player.ID)
-            const name = player.alias || user?.username;
+            const h2 = tooltip.querySelector(`#player-${i}`)!;
+            const playerPastille = await this.createAndFillPlayerPastille(player, i, h2);
 
-            if (user)
-                img.src = await this.dataApi.getUserAvatarURL(user! as User);
-            else
-                img.src = await this.dataApi.returnDefaultAvatarURL();
-
-            pastille.textContent = name;
-            tooltip.querySelector(`#player-${i}`)!.textContent = name;
-            
             if (game.isOver) {
-                console.log("GAME SCORE : ", game.score)
                 if (game.score[i] == 3) {
                     playerPastille.classList.remove("border-white");
                     playerPastille.classList.add("border-green-500");
                 } else {
-                    console.log("ELSE");
                     playerPastille.classList.remove("border-white");
                     playerPastille.classList.add("border-red-500");
                 }

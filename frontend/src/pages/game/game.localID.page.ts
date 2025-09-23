@@ -20,8 +20,10 @@ export class GameMenuLocalID extends GamePage {
     }
 
     protected async beforeMount(): Promise<void> {
-        const gameData: {tournamentID: number, game: Game} | undefined
+        console.log("GAME IDDDDD = ", this.gameID);
+        const gameData: { tournamentID: number, game: Game } | undefined
             = await TournamentService.fetchLocalTournamentGame(this.gameID);
+        console.log("GAME DATAAA =", gameData);
         this.tournamentID = gameData!.tournamentID;
         this.gameInfos = gameData!.game;
         console.log(this.gameInfos);
@@ -40,12 +42,19 @@ export class GameMenuLocalID extends GamePage {
         this.showEndGamePanel();
         const btn = document.createElement("button");
         const panel = document.getElementById("pong-section");
-        
+
         btn.innerText = "BACK TO TOURNAMENT";
-        console.log()
-        btn.addEventListener("click", () => router.navigate(`/game/tournaments_local/:${this.tournamentID}/overview`));
+        btn.id = "navigate-btn";
+
+        const navigateTournamentBtnHandler = () => {
+            console.log("TOURNAMENT IDDD = ", this.tournamentID);
+            document.getElementById("navigate-btn")!.removeEventListener("click", navigateTournamentBtnHandler);
+            router.navigate(`/game/tournaments_local/:${this.tournamentID}/overview`);
+        }
+
+        btn.addEventListener("click", navigateTournamentBtnHandler);
         panel?.append(btn);
-        await TournamentService.updateTournamentRequest(this.tournamentID);
+        // await TournamentService.updateTournamentRequest(this.tournamentID);
     }
 
     protected handleKeyDown = (event: KeyboardEvent): void => {
