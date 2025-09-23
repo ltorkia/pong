@@ -4,12 +4,10 @@ import { Player } from '../shared/types/game.types';
 
 export async function webSocketRoutes(app: FastifyInstance) {
     app.get('/ws', { websocket: true }, (connection: WebSocket, req: any) => {
-        console.log("OPENING WEBSOCKET AND ADDING PLAYER");
+        console.log("OPENING WEBSOCKET");
         const allUsers = app.usersWS;
         const allPlayers = app.lobby.allPlayers;
         allUsers.push(new UserWS(req.user.id, connection));
-        // allPlayers.push(new Player(req.user.id));
-        // console.log(`ADDED USER ID = ${req.user.id}`);
         console.log(allUsers);
 
         connection.onclose = () => {

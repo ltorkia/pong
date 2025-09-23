@@ -51,7 +51,7 @@ export class WebSocketService {
 				// Timeout pour éviter les blocages
 				const timeout = setTimeout(() => {
 					reject(new Error("WebSocket connection timeout"));
-				}, 10000);
+				}, 1000);
 
 				this.webSocket.onopen = () => {
 					clearTimeout(timeout);
@@ -119,6 +119,7 @@ export class WebSocketService {
 				}
 
 				// GAME MSG
+				console.log('Message reçu:', receivedData);
 				if (isValidGameType(receivedData.type)) {
 					if (isGameMsg(receivedData.type)) {
 						const isGameInit = currentService.getGameInit();

@@ -25,9 +25,9 @@ import { router } from '../../router/router';
 export class NotifService {
 	private currentUser: User | null = null;
 	private currentPage!: PageInstance;
-	private navbarInstance!: NavbarComponent | undefined;
+	public navbarInstance!: NavbarComponent | undefined;
 
-	private notifs: AppNotification[] = [];
+	public notifs: AppNotification[] = [];
 	private notifData: Partial<NotificationModel> | null = null;
 	private notifCount: number = 0;
 	private notifItem: HTMLDivElement | null = null;
@@ -185,20 +185,19 @@ export class NotifService {
 		const notifIndex = this.notifs.findIndex((notif) => notif.id === this.currentNotif!.id);
 		if (notifIndex === -1) {
 			this.notifs.push(this.currentNotif!);
-			storageService.setCurrentNotifs(this.notifs);
+			storageService.setCurrentNotifs([...this.notifs]);
 			this.displayNotif();
 			await this.deleteAllNotifsFromUser(this.currentNotif!.from, this.currentNotif!.id);
-			// console.log('CHECK CONDITION NOTIF: ', this.currentNotif);
-			// console.log('this.currentNotif!.type === FRIEND_REQUEST_ACTIONS.INVITE', this.currentNotif!.type === FRIEND_REQUEST_ACTIONS.INVITE);
-			// console.log('this.currentPage.config.path === ROUTE_PATHS.GAME_MULTI', this.currentPage.config.path === ROUTE_PATHS.GAME_MULTI);
-			// console.log('this.currentPage instanceof GamePage', this.currentPage instanceof GamePage);
-			// console.log('this.currentPage.challengedFriendId === this.currentNotif!.from', this.currentPage.challengedFriendId === this.currentNotif!.from);
-			if (this.currentNotif!.type === FRIEND_REQUEST_ACTIONS.INVITE
-				&& this.currentPage.config.path === ROUTE_PATHS.GAME_MULTI
+			if (this.currentPage.config.path === ROUTE_PATHS.GAME_MULTI
 				&& this.currentPage instanceof GamePage
 				&& this.currentPage.challengedFriendId === this.currentNotif!.from) {
-				console.log('ON EST DANS LA CONDITION DE handleNotification');
-				this.currentPage.changeReplayButtonForInvite()!;
+				switch (this.currentNotif!.type) {
+					case FRIEND_REQUEST_ACTIONS.INVITE:
+						// TODO: fix update bouton
+						// console.log('ON EST DANS LA CONDITION DE handleNotification');
+						this.currentPage.changeReplayButtonForInvite()!;
+						break;
+				}
 			}
 		};
 	}
@@ -236,7 +235,7 @@ export class NotifService {
 			this.notifs = [];
 			console.warn(result.errorMessage);
 		}
-		storageService.setCurrentNotifs(this.notifs);
+		storageService.setCurrentNotifs([...this.notifs]);
 		console.log('Notifications rechargées:', this.notifs);
 	}
 
@@ -278,29 +277,27 @@ export class NotifService {
 	private async deleteNotif(notifId?: number): Promise<void> {
 		const id = notifId ?? this.currentNotif!.id;
 		const notifIndex = this.notifs.findIndex((notif) => notif.id === id);
+
 		if (notifIndex === -1) {
-			console.warn(`[${this.constructor.name}] Aucune notification à supprimer`);
+			console.warn(`[${this.constructor.name}] Notification ${id} introuvable dans la liste`);
 			return;
 		}
-
-		this.notifItem = this.navbarInstance!.notifsWindow.querySelector<HTMLDivElement>(`#notif-${id}`);
-		if (!this.notifItem) {
-			console.warn(`[${this.constructor.name}] Aucune notification à supprimer`);
+		const notifItem = this.navbarInstance!.notifsWindow.querySelector<HTMLDivElement>(`#notif-${id}`);
+		if (!notifItem) {
+			console.warn(`[${this.constructor.name}] Élément DOM #notif-${id} introuvable`);
 			return;
 		}
-
 		await notifApi.deleteNotification(id);
 		this.notifs.splice(notifIndex, 1);
-		storageService.setCurrentNotifs(this.notifs);
+		storageService.setCurrentNotifs([...this.notifs]);
 		this.displayDefaultNotif();
-
 		this.removeListeners(id);
-		this.notifItem.classList.remove('animate-fade-in-up');
-		this.notifItem.classList.add('animate-fade-out-down');
-		
-		this.notifItem.addEventListener('animationend', () => {
-			this.notifItem?.remove();
-			this.navbarInstance!.notifsWindow.classList.add('scrolled');
+		notifItem.classList.remove("animate-fade-in-up");
+		notifItem.classList.add("animate-fade-out-down");
+
+		notifItem.addEventListener("animationend", () => {
+			notifItem!.remove();
+			this.navbarInstance!.notifsWindow.classList.add("scrolled");
 			this.updateNotifsCounter();
 		}, { once: true });
 	}
@@ -378,7 +375,7 @@ export class NotifService {
 	 * Cette méthode crée un élément HTML avec la classe 'default-notif' et le texte
 	 * "No new notifications.", puis l'ajoute à la fenêtre de notifications.
 	 */
-	private displayDefaultNotif() {
+	public displayDefaultNotif() {
 		const displayedNotifsLength = this.getDisplayedNotifsCount();
 		const defaultItem = this.navbarInstance!.notifsWindow.querySelector('.default-notif');
 		if (displayedNotifsLength > 0 || defaultItem)

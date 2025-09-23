@@ -180,15 +180,16 @@
 		"waitingText1": "En attente de ",
 		"waitingText2": " pour commencer...",
 		"waitingTextPlayer": "l'autre joueur",
-		"timerText": "Jeu dans ... ",
 		"resultText": "Vous",
 		"player1": "Joueur 1",
 		"player2": "Joueur 2",
 		"loseMessage": "Echec !",
 		"winMessage": "Victoire !",
+		"endMessage": "Partie terminée",
 		"finalScore": "Score final : ",
 		"replay": "Rejouer",
 		"replayUser": "Rejouer avec ",
+		"playBtn": "Commencer la partie",
 		"accept-invitation-from": "Accepter l'invitation de "
 	},
 

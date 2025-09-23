@@ -6,6 +6,7 @@ export type StartGame = {
     type: "start_game",
     otherPlayer?: SafeUserModel,
     gameID: number,
+    mode: string
 };
 
 export type StartTournament = { // master client request
@@ -47,7 +48,8 @@ export type MatchMakingReq = {
     playerID: number,
     tournamentID?: number,
     invitedId?: number,
-    inviterId?: number
+    inviterId?: number,
+    gameId?: number
 };
 
 export type decountgame = {

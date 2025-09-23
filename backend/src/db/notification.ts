@@ -168,3 +168,25 @@ export async function deleteNotification(notifId: number): Promise<NotifResponse
 		return { errorMessage: (error as Error).message };
 	}
 }
+
+/**
+ * Supprime les notifications envoyées par l'utilisateur d'identifiant `userId`.
+ * 
+ * Exécute une requête SQL pour supprimer les notifications spécifiées par `userId`.
+ * 
+ * @param {number} userId - Identifiant de l'utilisateur qui a envoyé les notifications.
+ * @returns {Promise<NotifResponse | void>} Une promesse qui se résout lorsque la suppression est terminée
+ * ou renvoie un message d'erreur.
+ */
+export async function deleteNotificationsFrom(userId: number): Promise<NotifResponse | void> {
+	const db = await getDb();
+	try {
+		await db.run(`
+			DELETE FROM Notif
+			WHERE (from = ?)
+			`,
+		[userId]);
+	} catch (error) {
+		return { errorMessage: (error as Error).message };
+	}
+}

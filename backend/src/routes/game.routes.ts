@@ -5,14 +5,15 @@ import { Game } from '../types/game.types';
 import { generateUniqueID } from '../shared/functions'
 import { MatchMakingReqSchema } from '../types/zod/game.zod';
 import { UserWS } from '../types/user.types';
-import {addGame, getResultGame, cancelledGame } from '../db/game';
-import { getUser, getUserStats } from '../db/user';
+import {addGame, addGamePlayers, cancelledGame } from '../db/game';
+import { getUserStats } from '../db/user';
 import { Tournament } from '../types/game.types';
 import { FRIEND_REQUEST_ACTIONS } from '../shared/config/constants.config';
 import { JwtPayload } from '../types/user.types';
-import { updateInvitePlayer, getRelation } from '../db/friend';
+import { updateInvitePlayer } from '../db/friend';
 import { insertNotification } from '../db/notification';
-import { sendToSocket, addNotifContent } from '../helpers/notifications.helpers';
+import { deleteNotificationsFrom } from '../db/notification';
+import { sendToSocket } from '../helpers/notifications.helpers';
 import { NotificationInput } from '../types/zod/app.zod';
 
 export async function gameRoutes(app: FastifyInstance) {
@@ -89,12 +90,6 @@ export async function gameRoutes(app: FastifyInstance) {
 			newPlayer.matchMaking = true;
 			const playerTwo = allPlayers.find((p: Player) => p.matchMaking === true && p.ID !== newPlayer.ID);
 			if (playerTwo) {
-				// playerTwo.matchMaking = false;
-				// newPlayer.matchMaking = false;
-				const playerIdx1 = allPlayers.findIndex((player: Player) => player.ID == newPlayer.ID);
-				const playerIdx2 = allPlayers.findIndex((player: Player) => player.ID == playerTwo.ID);
-				allPlayers.splice(playerIdx1, 1);
-				allPlayers.splice(playerIdx2, 1);
 				startGame(app, [newPlayer, playerTwo], "multi");
 			}
 		} 
@@ -127,18 +122,10 @@ export async function gameRoutes(app: FastifyInstance) {
 			startGame(app, [inviter, invited], "multi");
 			reply.code(200).send({ message: "Game started!" });
 		}
-		else {
-			// CLEANING A LA DESTRUCTION DE LA PAGE GAME 
-			// (pour l'instant on tombe là quand matchMakingReq.data.type === 'clean_request')
-			// à potentiellement déplacer dans une fonction à part dédiée et plus complète
-			// et à rappeler dans tous les cas de figure où un game est 
-			// terminé / cancel ou qu'on quitte la page abruptement ?
+		else if (matchMakingReq.data.type === "clean_request") { // CLEANING A LA DESTRUCTION DE LA PAGE GAME
 			await cleanInvite(app, playerID, matchMakingReq.data.inviterId, matchMakingReq.data.invitedId);
-			const playerIdx = allPlayers.findIndex((p: Player) => p.ID === playerID);
-			if (playerIdx !== -1) {
-				allPlayers.splice(playerIdx, 1);
-				console.log(`DELETED PLAYER ID = ${playerID}`);
-			}
+			await cleanGame(app, matchMakingReq.data.gameId);
+			cleanPlayer(allPlayers, playerID);
 			reply.code(200).send({ message: "Game cleaned up" });
 		}
 	});
@@ -169,30 +156,49 @@ function acceptInvite(allPlayers: Player[], inviter: Player, invited: Player) {
 async function cleanInvite(app: FastifyInstance, playerID: number, inviterId?: number, invitedId?: number) {
 	if (!inviterId || !invitedId || playerID != inviterId)
 		return;
+	await deleteNotificationsFrom(invitedId);
 	await updateInvitePlayer(invitedId, playerID, true);
 	let notifData: NotificationInput = {
 		type: FRIEND_REQUEST_ACTIONS.INVITE_CANCEL,
 		from: playerID,
 		to: invitedId,
-		read: 0
+		read: 1
 	};
-	notifData = addNotifContent(notifData);
 	const notif = await insertNotification(notifData);
 	if (!notif || 'errorMessage' in notif)
 		return;
 	sendToSocket(app, [ notif ]);
 }
 
+async function cleanGame(app: FastifyInstance, gameId?: number) {
+	if (!gameId)
+		return;
+	const { allGames } = app.lobby;
+	const game = allGames.find((game: Game) => game.gameID == gameId);
+	if (game) {
+		if (!game.isOver)
+			await game.endGame();
+		const idx = allGames.indexOf(game);
+		if (idx !== -1)
+			allGames.splice(idx, 1);
+	}
+}
+
+function cleanPlayer(allPlayers: Player[], playerID: number) {
+	const playerIdx = allPlayers.findIndex((p: Player) => p.ID === playerID);
+	if (playerIdx !== -1)
+		allPlayers.splice(playerIdx, 1);
+}
+
 async function decount(app: FastifyInstance, players: Player[], gameID: number)
 {
 	const { usersWS } = app;
-	const webSockets: WebSocket[] = [];
 	for (let i = 3; i >= 0; i--)
 	{
 		for (const player of players)
 		{
 			const user = usersWS.find((user: UserWS) => user.id == player.ID);
-					if (user && user.WS) {
+				if (user && user.WS) {
 					user.WS.send(JSON.stringify({
 						type: "decount_game",
 						message: i,
@@ -208,12 +214,14 @@ async function decount(app: FastifyInstance, players: Player[], gameID: number)
 const startGame = async (app: FastifyInstance, players: Player[], mode: string, gameCreated?: Game) => {
 	const { usersWS } = app;
 	const { allGames } = app.lobby;
-	const gameID = generateUniqueID(allGames);
-	const webSockets: WebSocket[] = [];
-	const newGame = gameCreated || new Game(2, players);
+	const isTournament = gameCreated ? true : false;
+	const gameType = gameCreated ? "tournament" : mode;
+	const gameID = await addGame(isTournament);
+	await addGamePlayers(gameID, players[0].ID, players[1].ID);
+	const newGame = gameCreated || new Game(gameID, 2, players);
+	allGames.push(newGame);
 
-	// const newGame = new Game(2, players);
-	let WSToSend = { type: "start_game", gameID: gameID} as StartGame;
+	let WSToSend = { type: "start_game", gameID: gameID, mode: gameType} as StartGame;
 	console.log("dans start game : players are", players);
 	
 	for (const player of players) {
@@ -224,9 +232,10 @@ const startGame = async (app: FastifyInstance, players: Player[], mode: string, 
 				otherUser = await getUserStats(players[1].ID);
 			else
 				otherUser = await getUserStats(players[0].ID);
-			WSToSend =  { type: "start_game", otherPlayer: otherUser ,gameID: gameID};
+			WSToSend =  { type: "start_game", otherPlayer: otherUser, gameID: gameID, mode: gameType};
 			console.log(WSToSend);
 		}
+
 		const user = usersWS.find((user: UserWS) => user.id == player.ID);
 
 		if (user && user.WS) {
@@ -245,16 +254,14 @@ const startGame = async (app: FastifyInstance, players: Player[], mode: string, 
 		}
 	}
 	await decount(app, players, gameID);
-	// if (mode === "multi")
-	console.log("ici id 1 du players = ", players[1].ID);
-	newGame.gameIDforDB = await addGame(players[0].ID, players[1].ID, false);
-	allGames.push(newGame);
+
+	// Vérifier si le jeu a été supprimé par une clean_request pendant le décompte
+	const gameIndex = allGames.findIndex((g: Game) => g.gameID === gameID);
+	if (gameIndex === -1)
+		return;
+
 	console.log(allGames);
 	newGame.initGame();
-	const gameIdx1 = allGames.findIndex((game: Game) => game.gameIDforDB == newGame.gameIDforDB);
-	allGames.splice(gameIdx1, 1);
-	console.log("////////////////////////////////////////////////////////imheeeere");
-	// if (msg.type == "quit")
 
 }
 

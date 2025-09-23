@@ -384,17 +384,10 @@ export abstract class BasePage {
 	 * 
 	 * Nettoie la page courante en appelant la méthode cleanup() pour supprimer
 	 * les ressources et les composants.
-	 * ! Voir s'il faut faire un refresh côté back dans certains cas.
 	 */
 	protected async onPageUnload(): Promise<void> {
 		try {
 			console.log(`[${this.constructor.name}] Détection d’un refresh/fermeture`);
-			// if (this.currentUser) {
-			// 	navigator.sendBeacon(
-			// 		"/api/clean",
-			// 		JSON.stringify({ userId: this.currentUser.id })
-			// 	);
-			// }
 			await this.cleanup();
 		} catch (err) {
 			console.error("Erreur dans onPageUnload :", err);

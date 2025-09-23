@@ -180,15 +180,16 @@
 		"waitingText1": "Waiting for ",
 		"waitingText2": " to connect...",
 		"waitingTextPlayer": "another player",
-		"timerText": "Lets play in ... ",
 		"resultText": "You",
 		"player1": "Player 1",
 		"player2": "Player 2",
 		"loseMessage": "You lose !",
 		"winMessage": "You win !",
+		"endMessage": "End of game",
 		"finalScore": "Final Score : ",
 		"replay": "Replay",
 		"replayUser": "Replay ",
+		"playBtn": "Start game",
 		"accept-invitation-from": "Accept invite from "
 	},
 

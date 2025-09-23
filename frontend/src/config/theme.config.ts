@@ -62,5 +62,7 @@ export const particleColors = {
  * Chaque clé représente un nom symbolique de l'image.
  */
 export const images = {
-    forestWallpaper: "url('/assets/img/design/forest-bg.webp')"
+    forestWallpaper: "url('/assets/img/design/forest-bg.webp')",
+    stardustPattern: "url('/assets/img/design/stardust.png')",
+    leavesPattern: "url('/assets/img/design/xv.png')"
 } as const;

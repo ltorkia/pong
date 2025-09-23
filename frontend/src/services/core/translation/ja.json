@@ -179,15 +179,16 @@
 		"waitingText1": "待機中 ",
 		"waitingText2": " 人",
 		"waitingTextPlayer": "相手",
-		"timerText": "ゲーム中 ",
 		"resultText": "あなた",
 		"player1": "プレイヤー1",
 		"player2": "プレイヤー2",
 		"loseMessage": "失敗！",
 		"winMessage": "勝利！",
+		"endMessage": "ゲーム終了",
 		"finalScore": "最終スコア: ",
 		"replay": "再プレイ",
 		"replayUser": "友達と再プレイ ",
+		"playBtn": "ゲームを始める",
 		"accept-invitation-from": "対戦を受け入れる "
 	},
 

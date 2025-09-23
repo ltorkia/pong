@@ -44,44 +44,50 @@ import { GameModel } from '../shared/types/game.types'; // en rouge car dossier 
 
 // export async function getResultGame 
 
-export async function addGame(userId1: number, userId2: number, tournament: boolean): Promise<number> {
+export async function addGame(tournament: boolean = false): Promise<number> {
     const db = await getDb();
 
     // Insérer le jeu et récupérer son id
     const result = await db.run(
-        `INSERT INTO Game (status, n_participants, tournament) VALUES ('in_progress', 2, ${tournament})`
+        `INSERT INTO Game (status, n_participants, tournament) VALUES ('in_progress', 2, ?)`,
+        [tournament ? 1 : 0]
     );
 
-    const gameId = result.lastID!; // id du jeu inséré
-
-    // Insérer les deux joueurs liés au jeu
-    await db.run(`INSERT INTO User_Game (game_id, user_id) VALUES (${gameId}, ${userId1})`);
-
-    await db.run(
-        `INSERT INTO User_Game (game_id, user_id) VALUES (${gameId}, ${userId2})`);
-
+    const gameId = result.lastID!;
     return gameId;
+}
+
+export async function addGamePlayers(gameId: number, userId1: number, userId2: number) {
+    const db = await getDb();
+    await db.run(
+        `INSERT INTO User_Game (game_id, user_id) VALUES (?, ?)`,
+        [gameId, userId1]
+    );
+    await db.run(
+        `INSERT INTO User_Game (game_id, user_id) VALUES (?, ?)`,
+        [gameId, userId2]
+    );
+}
+
+export async function updateGameStatus(gameId: number, status: string) {
+    const db = await getDb();
+    await db.run(
+        `UPDATE Game SET status = ? WHERE id = ?`,
+        [status, gameId]
+    );
+}
+
+export async function updateStartGame(gameId: number) {
+    const db = await getDb();
+    await db.run(
+        `UPDATE Game SET begin = CURRENT_TIMESTAMP WHERE id = ?`,
+        [gameId]
+    );
 }
 
 export async function resultGame(gameId: number, winnerId: number, looserId: number, score: number[]){
     const db = await getDb();
 
-    // await db.run(`
-    //     UPDATE Game SET status = 'finished', end = CURRENT_TIMESTAMP, winner_id = ? WHERE id = ?;
-
-    //     UPDATE User_Game
-    //     SET status_win = 1,
-    //     SET duration = CAST((strftime('%s', (SELECT end FROM Game WHERE id = ?)) - strftime('%s', (SELECT begin FROM Game WHERE id = ?))) AS INTEGER)
-    //     WHERE game_id = ? AND user_id = ?;
-
-    //     UPDATE User_Game
-    //     SET status_win = 0,
-    //     UPDATE User_Game SET duration = CAST((strftime('%s', (SELECT end FROM Game WHERE id = ?)) 
-    //                - strftime('%s', (SELECT begin FROM Game WHERE id = ?))) AS INTEGER)
-    //     WHERE game_id = ? AND user_id = ?;
-    // `,
-	// 	[winnerId, gameId, gameId, gameId, winnerId, gameId, gameId, gameId, looserId]
-	// );
     const minScore = Math.min(score[0], score[1]);
     console.log("resultGame,  score = ", score, " minScore = ", minScore);
 
@@ -111,7 +117,6 @@ export async function resultGame(gameId: number, winnerId: number, looserId: num
 export async function cancelledGame(gameId: number, winnerId: number, looserId: number, score: number[]){
     const db = await getDb();
     const minScore = Math.min(score[0], score[1]);
-
 
     await db.run(`
         UPDATE Game

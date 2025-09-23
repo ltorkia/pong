@@ -52,7 +52,9 @@ export default {
 			 * Les images de fond.
 			 */
 			backgroundImage: {
-				'body-bg-img': images.forestWallpaper
+				'body-bg-img': images.forestWallpaper,
+				'stardust-pattern': images.stardustPattern,
+				'leaves-pattern': images.leavesPattern
 			},
 			/**
 			 * Les padding et marges.

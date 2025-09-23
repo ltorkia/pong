@@ -95,7 +95,7 @@ export class MultiPlayerGame {
     public inputUp: boolean;
     public inputDown: boolean;
     private playerID: number;
-    private gameID: number;
+    public gameID: number;
     public gameStates: { states: GameData[], timestamps: number[] };
     private frameTimings: number[] = [];
     private testStartTime = 0;

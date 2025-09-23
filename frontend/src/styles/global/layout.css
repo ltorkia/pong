@@ -63,4 +63,7 @@
 	.mid-full-box {
 		@apply large-box rounded-2xl max-w-[800px];
 	}
+	.pong-box {
+		@apply bg-[#090909] bg-stardust-pattern;
+	}
 }

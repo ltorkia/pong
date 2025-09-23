@@ -1,4 +1,4 @@
-import { resultGame, addGame, cancelledGame, createTournament, registerUserTournament } from "../db/game";
+import { resultGame, addGame, addGamePlayers, cancelledGame, createTournament, registerUserTournament } from "../db/game";
 import { GameData, Player } from "../shared/types/game.types"
 
 const DEG_TO_RAD = Math.PI / 180;
@@ -85,22 +85,24 @@ export class Ball {
 
 export class Game {
     private duration: number = 0;
-    // private players: Player[] = [];
-    public players: Player[] = []; //TODO : plutot faire un getteur
+    public players: Player[] = [];
     private ball = new Ball();
     private playersCount: number = 0;
-    private gameStarted: boolean = false;
-    private isOver: boolean = false;
+
+    public gameStarted: boolean = false;
+    public isOver: boolean = false;
+
     private score: number[] = [];
-    public gameIDforDB: number = 0; // a voir
-    public tournamentID?: number; // a voir
+    public gameID: number = 0;
+    public tournamentID?: number;
     // protected tournamentIDforDB = null;
     // public type: string;
     // public sidePlayer: string; //dans player plutot
     // private async addGame(userId1: number, userId2: number): Promise<number> ;
     // private async resultGame(gameId: number, winnerId: number, looserId: number);
 
-    constructor(playersCount: number, players: Player[], tournamentID?: number) {
+    constructor(gameID: number, playersCount: number, players: Player[], tournamentID?: number) {
+        this.gameID = gameID;
         this.playersCount = playersCount;
         this.players = players;
         this.tournamentID = tournamentID;
@@ -141,8 +143,7 @@ export class Game {
             this.sendGameUpdate();
             then = Date.now();
         }
-        console.log("EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEND");
-        console.log("GAME ENDEED");
+        console.log("----------------- GAME ENDED -----------------");
     };
 
     private initSizePos(): void {
@@ -162,7 +163,6 @@ export class Game {
             if (score == 3)
                 return (this.endGame())
         });
-        // console.log("iiiciiiiiii", this.score);
         this.initRound();
     }
 
@@ -184,9 +184,13 @@ export class Game {
         console.log("coucou end !, score = ", this.score);
         this.gameStarted = false;
         this.isOver = true;
+
         for (const player of this.players) {
-            if (player === this.players[1])
+            if (!this.score || this.score.length === 0)
+                this.score = [0, 0];
+            else if (player === this.players[1])
                 this.score = [this.score[1], this.score[0]];
+
             if (player.webSocket)
                 player.webSocket.send(JSON.stringify({
                     type: "end",
@@ -194,26 +198,20 @@ export class Game {
                     // players: JSON.stringify(this.players.map(p => ({ ID: p.ID, alias: p.alias }))),
                     tournamentID: this.tournamentID || null
                 }));
-            // console.log("////////////////////////////////////////////////////////////////////////player = ", player, "score = ", this.score);
         }
-        let winner = this.players[1];
-        let looser = this.players[0];
-        if ((this.score[0] === 3) || (this.score[1] === 3))
-        {
-            console.log("iiiiiiiiiiiiiiiiiiciiiii dans condition endgsameeee,  score = ", this.score)
-            winner = this.players[0];
-            looser = this.players[1];
-            // if multiplayer si on veut garder que en db le multiplayer
-            await resultGame(this.gameIDforDB, winner.ID, looser.ID, this.score);
+        this.players[0].matchMaking = false;
+        this.players[1].matchMaking = false;
+
+        if (this.score[0] === this.score[1]) {
+            await cancelledGame(this.gameID, 0, 0, this.score);
+            return;
         }
+        const winner = this.score[0] > this.score[1] ? this.players[0] : this.players[1];
+        const looser = this.score[0] < this.score[1] ? this.players[0] : this.players[1];
+        if (this.score[0] === 3 || this.score[1] === 3)
+            await resultGame(this.gameID, winner.ID, looser.ID, this.score);
         else
-        {
-            console.log("iiiiiiiiiiiiiiiiiiciiiii dans else endgsameeee ")
-            await cancelledGame(this.gameIDforDB, winner.ID, looser.ID, this.score);
-        }
-        // allPlayers.splice(playerIdx, 1);
-        winner.matchMaking = false;
-        looser.matchMaking = false;
+            await cancelledGame(this.gameID, winner.ID, looser.ID, this.score);
     }
 
     private sendGameUpdate() {
@@ -308,10 +306,9 @@ export class Tournament {
         shuffleArray(this.players);
         let playerIdx = 0;
         for (let i = 0; i < 2; i++) {
-            // tu peux la changer sa mere si tu veux par game1 = new Game(2, this.players[0], this.players[1]);
-            // game2 = newGame(2, this.players[2], this.players[3])
-            // mais en soit ca marche deja
-            const newGame = new Game(2, [this.players[playerIdx], this.players[playerIdx + 1]], this.ID); // a changer sa mere
+            const gameID = await addGame(true);
+            await addGamePlayers(gameID, this.players[playerIdx].ID, this.players[playerIdx + 1].ID);
+            const newGame = new Game(gameID, 2, [this.players[playerIdx], this.players[playerIdx + 1]], this.ID); // a changer sa mere
             this.stageOneGames.push(newGame);
             playerIdx += 2;
         }

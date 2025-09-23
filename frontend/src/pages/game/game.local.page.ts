@@ -3,20 +3,12 @@ import { GamePage } from './game.page';
 
 export class GameMenuLocal extends GamePage {
 
-    constructor(config: RouteConfig) {
-        super(config);
-    }
+	constructor(config: RouteConfig) {
+		super(config);
+	}
 
-    protected handleKeyDown = async (event: KeyboardEvent): Promise<void> => {
-        event.preventDefault();
-        this.controlNodesDown = document.querySelectorAll(".control");
-        if (event.key == " " && this.isSearchingGame === false) { 
-            this.isSearchingGame = true;
-            await this.sendMatchMakingRequest("local");
-        }
-        for (const node of this.controlNodesDown) {
-            if (node.dataset.key == event.key)
-                node.classList.add("button-press");
-        }
-    }
+	protected async initMatchRequest(): Promise<void> {
+		this.isSearchingGame = true;
+		await this.sendMatchMakingRequest("local");
+	}
 }

@@ -1,3 +1,4 @@
+import DOMPurify from "dompurify";
 import { BasePage } from '../base/base.page';
 import { RouteConfig, RouteParams } from '../../types/routes.types';
 import { translateService, currentService, notifService } from '../../services/index.service';
@@ -17,13 +18,12 @@ export abstract class GamePage extends BasePage {
 	protected finalScore: number[] = [];
 	protected controlNodesUp!: NodeListOf<HTMLElement>;
 	protected controlNodesDown!: NodeListOf<HTMLElement>;
+	protected playButton!: HTMLElement;
 	protected isSearchingGame: boolean = false;
 	protected adversary: SafeUserModel | undefined; 
 
-	// TODO: la méthode pour passer this.isPartOfTournament à true est à implémenter,
-	// ? ou alors, voir avec les données du jeu si c'est pas déjà dispo quelque part.
-	// -> permettrait d'afficher ou non le message de fin de partie selon la logique d'affichage du tournoi
-	protected isPartOfTournament: boolean = false;
+	protected gameId: number = 0;
+	protected isPartOfTournament: boolean = false; // -> permettrait d'afficher ou non le message de fin de partie selon la logique d'affichage du tournoi
 	protected endGamePanel?: Element;
 	protected requestType?: string;
 
@@ -70,6 +70,7 @@ export abstract class GamePage extends BasePage {
 	 * @returns {Promise<void>} Une promesse qui se résout lorsque les vérifications sont terminées.
 	 */
 	protected async beforeMount(): Promise<void> {
+		this.playButton = getHTMLElementByClass("start-click");
 		if (this.isInvitationGame) {
 			this.requestType = "invite";
 			const isRequestSet = await this.handleInviteRequest();
@@ -78,27 +79,46 @@ export abstract class GamePage extends BasePage {
 		} 
 		else if (window.location.pathname === "/game/local")
 			this.requestType = "local";
-		// else if (this.isPartOfTournament)
-		// 	this.requestType = "tournament";
 		else
 			this.requestType = "matchmaking_request";
 	}
 
 	protected attachListeners() {
+		this.playButton.addEventListener("click", this.handlePlayClick);
 		document.addEventListener("keydown", this.handleKeyDown);
 		document.addEventListener("keyup", this.handleKeyUp);
 	}
 
 	protected removeListeners(): void {
+		this.playButton.removeEventListener("click", this.handlePlayClick);
 		document.removeEventListener("keydown", this.handleKeyDown);
 		document.removeEventListener("keyup", this.handleKeyUp);
-		document.removeEventListener("click", this.handleReplayBtnClick);
+
+		const replayBtn = document.querySelector('.replay-button');
+		if (replayBtn)
+			replayBtn.removeEventListener("click", this.handleReplayBtnClick);
 	}
 
 	// ===========================================
 	// LISTENERS HANDLERS
 	// ===========================================
-	protected abstract handleKeyDown(event: KeyboardEvent): Promise<void>;
+	protected abstract initMatchRequest(): Promise<void>;
+	
+	protected handlePlayClick = async (event: MouseEvent): Promise<void> => {
+		if (this.isSearchingGame === false)
+			await this.initMatchRequest();
+	}
+
+	protected handleKeyDown = async (event: KeyboardEvent): Promise<void> => {
+		event.preventDefault();
+		this.controlNodesDown = document.querySelectorAll(".control");
+		if (event.key == " " && this.isSearchingGame === false)
+			await this.initMatchRequest();
+		for (const node of this.controlNodesDown)
+			if (node.dataset.key == event.key)
+				node.classList.add("button-press");
+	}
+	
     protected handleKeyUp = async (event: KeyboardEvent): Promise<void> => {
         this.controlNodesUp = document.querySelectorAll(".control");
         for (const node of this.controlNodesUp) {
@@ -116,7 +136,7 @@ export abstract class GamePage extends BasePage {
 	 * @param event - L'événement souris déclenché lors du clic sur le bouton "Rejouer".
 	 * @returns {Promise<void>} - Une promesse qui se résout lorsque le traitement du replay est terminé.
 	 */
-	protected handleReplayBtnClick = async (event: MouseEvent): Promise<void> => {
+	protected handleReplayBtnClick = async (event: Event): Promise<void> => {
 		event.preventDefault();
 		if (this.isPartOfTournament)
 			return;
@@ -171,20 +191,21 @@ export abstract class GamePage extends BasePage {
 		switch (data.type) {
 
 			case "start_game":
+				this.gameId = data.gameID;
 				this.adversary = data.otherPlayer;
+				this.isPartOfTournament = data.mode === "tournament" ? true : false;
+				this.game = new MultiPlayerGame(2, this.currentUser!.id, this.gameId);
 				break;
 
 			case "decount_game":
 				this.showTimer(data.message);
 				if (data.message == 0) {
-					await this.initGame(this.currentUser!.id, data.gameID);
+					await this.initGame();
 					currentService.setGameRunning(true);
 				}
 				break;
 
 			case "end":
-				if (!this.game!.gameStarted)
-					return;
 				this.isSearchingGame = false;
 				this.game!.setScore(data.score);
 				this.game!.clearScreen();
@@ -208,11 +229,6 @@ export abstract class GamePage extends BasePage {
 			case "msg":
 				console.log(data.msg);
 				break;
-
-			default:
-				// Si le jeu est quitté ? Exemple: data.type == "hasQuit" ?
-				// fetch post db changement jeu statut ?
-				// currentService.clearCurrentGame();
 		}
 	}
 
@@ -327,19 +343,16 @@ export abstract class GamePage extends BasePage {
 
 	/**
 	 * Initialise le jeu en supprimant les éléments HTML existants dans le container #pong-section.
-	 * Crée un objet MultiPlayerGame avec les paramètres du jeu (nombre de joueurs, ID du joueur actuel, ID du jeu).
 	 * Appelle la méthode initGame() de l'objet MultiPlayerGame pour initialiser le jeu.
 	 * 
-	 * @param {number} playerID L'ID du joueur actuel.
-	 * @param {number} gameID L'ID du jeu.
 	 * @returns {Promise<void>} La promesse qui se résout lorsque le jeu est initialisé.
 	 */
-	protected async initGame(playerID: number, gameID: number): Promise<void> {
+	protected async initGame(): Promise<void> {
 		const allChildren = document.getElementById("pong-section");
 		while (allChildren?.firstChild)
 			allChildren.firstChild.remove();
-		this.game = new MultiPlayerGame(2, playerID, gameID);
-		await this.game.initGame();
+		await this.game!.initGame();
+		console.log("Game initialized", this.game);
 	}
 	
 	/**
@@ -355,8 +368,13 @@ export abstract class GamePage extends BasePage {
 		const waitDiv: HTMLElement | null = document.getElementById("wait-div");
 		if (!waitDiv) {
 			const pongSection = document.getElementById("pong-section")!;
-			pongSection.innerHTML = "";
 			const lobby: HTMLElement = document.createElement("div");
+			lobby.classList.add("wait-wrapper");
+			lobby.id = "wait-div";
+
+			const waitingTextBox: HTMLElement = document.createElement("div");
+			waitingTextBox.classList.add("waiting-textbox");
+
 			const waitingUsername: HTMLElement = document.createElement("span");
 			const waitingText1: HTMLElement = document.createElement("span");
 			const waitingText2: HTMLElement = document.createElement("span");
@@ -373,9 +391,9 @@ export abstract class GamePage extends BasePage {
 				waitingText2.textContent = " to connect...";
 				waitingUsername.setAttribute("data-ts", "game.waitingTextPlayer");
 			}
-			lobby.append(waitingText1, waitingUsername, waitingText2);
-			lobby.id = "wait-div";
-			pongSection.append(lobby);
+			waitingTextBox.append(waitingText1, waitingUsername, waitingText2);
+			lobby.appendChild(waitingTextBox);
+			pongSection.appendChild(lobby);
 			translateService.updateLanguage(undefined, pongSection);
 		}
 	}
@@ -391,17 +409,20 @@ export abstract class GamePage extends BasePage {
 	 */
 	protected showTimer(time: number): void {
 		const panel = document.getElementById("pong-section")!;
-		panel.innerHTML = "";
-
-		const wrapper = document.createElement("div");
-		const spanTimerText = document.createElement("span");
-		spanTimerText.setAttribute("data-ts", "game.timerText");
-		spanTimerText.textContent = "Lets play in ... ";
-
+		const lobby = document.getElementById("wait-div");
+		if (lobby)
+			lobby.innerHTML = "";
+		let wrapper = panel.querySelector(".timer-wrapper");
+		if (!wrapper) {
+			wrapper = document.createElement("div");
+			wrapper.classList.add("timer-wrapper");
+		}
+		wrapper.innerHTML = "";
 		const spanTime = document.createElement("span");
+		spanTime.classList.add("timer-text");
 		spanTime.textContent = `${time}`;
 
-		wrapper.append(spanTimerText, spanTime);
+		wrapper.append(spanTime);
 		panel.appendChild(wrapper);
 		translateService.updateLanguage(undefined, panel);
 		panel.classList.remove("hidden");
@@ -417,7 +438,6 @@ export abstract class GamePage extends BasePage {
 	protected async showEndGamePanel(): Promise<void> {
 		const panel = document.getElementById("pong-section")!;
 		panel.innerHTML = "";
-
 
 		let endGamePanel;
 		if (!this.isPartOfTournament)
@@ -473,7 +493,10 @@ export abstract class GamePage extends BasePage {
 		const spanScore = document.createElement("span");
 		const spanAdversary = document.createElement("span");
 
-		if (this.adversary) {
+		const gameHasBeenCancelled = this.finalScore[0] !== 3 && this.finalScore[1] !== 3;
+
+		if (this.adversary && !gameHasBeenCancelled
+			&& this.finalScore[0] !== this.finalScore[1]) {
 			if (this.finalScore[0] < this.finalScore[1]) {
 				resMessage.setAttribute("data-ts", "game.loseMessage");
 				resMessage.textContent = "You lose !";
@@ -483,9 +506,15 @@ export abstract class GamePage extends BasePage {
 				resMessage.textContent = "You win !";
 				resMessage.classList.add("win-message");
 			}
-			resMessage.classList.remove("hidden");
+		} else if (!this.adversary || gameHasBeenCancelled
+			|| (this.adversary && this.finalScore[0] === this.finalScore[1])) {
+			resMessage.setAttribute("data-ts", "game.endMessage");
+			resMessage.textContent = "End of game";
+			resMessage.classList.add("end-message");
 		}
-		spanScore.textContent = ` : ${this.finalScore[0]} - ${this.finalScore[1]} : `;
+		resMessage.classList.remove("hidden");
+		const score = `<span class="final-score">${this.finalScore[0]} - ${this.finalScore[1]}</span>`
+		spanScore.innerHTML = DOMPurify.sanitize(score);
 
 		if (this.finalScore[0] !== this.finalScore[1]) {
 			if (this.adversary) {
@@ -535,6 +564,10 @@ export abstract class GamePage extends BasePage {
 		if (this.requestType === "invite" && this.relation && this.relation.waitingInvite) {
 			invitedId = this.friendId;
 			inviterId = this.currentUser!.id;
+			notifService.notifs = notifService.notifs.filter((notif) => notif.from == this.friendId 
+					&& notif.content !== null && notif.content !== '');
+			if (notifService.navbarInstance!.notifsWindow)
+				notifService.displayDefaultNotif();
 		} else {
 			invitedId = undefined;
 			inviterId = undefined;
@@ -544,7 +577,8 @@ export abstract class GamePage extends BasePage {
 			playerID: this.currentUser!.id,
 			tournamentID: undefined,
 			invitedId: invitedId,
-			inviterId: inviterId
+			inviterId: inviterId,
+			gameId: this.gameId
 		})], { type: 'application/json' });
 		navigator.sendBeacon("/api/game/playgame", matchMakingReq);
 		currentService.clearCurrentGame();

@@ -5,7 +5,7 @@ import { Tournament } from '../types/game.types';
 import { TournamentLobbyUpdate, StartTournamentSignal, DismantleSignal } from '../shared/types/websocket.types'
 import { UserWS } from '../types/user.types';
 import { findPlayerWebSocket } from '../helpers/query.helpers';
-import { addGame, getResultGame } from '../db/game';
+import { addGame, addGamePlayers, getResultGame } from '../db/game';
 import { Game } from '../types/game.types';
 // Differentes routes pour differents besoins lies aux tournois en remote
 // Les tournois existent en backend dans app.lobby.allTournaments
@@ -271,7 +271,7 @@ export async function tournamentRoutes(app: FastifyInstance) {
         for (const game of tournament.stageOneGames) {
             // if (game.isOver)
             // {
-                const resultgame = await getResultGame(game.gameIDforDB!);
+                const resultgame = await getResultGame(game.gameID!);
                 if (resultgame.status != "finished")
                     continue ;
                 // tournament.stageTwoGames.push(Player(resultgame!.winnerID));
@@ -287,7 +287,11 @@ export async function tournamentRoutes(app: FastifyInstance) {
         }
         if( winnerList.length != 2)
             return reply.code(404).send({ error: "Not enough winners" });
-        tournament.stageTwoGames.push(new Game(2, [new Player(winnerList[0]), new Player(winnerList[1])], tournamentID));
+        const gameID = await addGame(true);
+        const player1 = new Player(winnerList[0]);
+        const player2 = new Player(winnerList[1]);
+        await addGamePlayers(gameID, player1.ID, player2.ID);
+        tournament.stageTwoGames.push(new Game(gameID, 2, [player1, player2], tournamentID));
         // return winnerList;
         sendToTournamentPlayers({ type: "tournament_update_second_round", players: tournament?.players }, tournament!, app);
         return reply.code(200).send("Update sent to all players");

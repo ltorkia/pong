@@ -15,7 +15,6 @@ import { formatDate } from '../../utils/app.utils';
  */
 export class ProfilePage extends BasePage {
 	private userId?: number | RouteParams;
-	// private user: User | null = null;
 	private user: any = null;
 	protected currentUser: User | null = null; // Pour savoir si c'est notre profil
 	private userStats: any = null;
