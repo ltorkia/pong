@@ -5,13 +5,13 @@ import { Game } from '../types/game.types';
 import { generateUniqueID } from '../shared/functions'
 import { MatchMakingReqSchema } from '../types/zod/game.zod';
 import { UserWS } from '../types/user.types';
-import {addGame, addGamePlayers } from '../db/game';
 import { getUserStats } from '../db/user';
 import { Tournament } from '../types/game.types';
 import { FRIEND_REQUEST_ACTIONS } from '../shared/config/constants.config';
 import { JwtPayload } from '../types/user.types';
 import { updateInvitePlayer } from '../db/friend';
 import { insertNotification } from '../db/notification';
+import { addGame, addGamePlayers } from '../db/game';
 import { deleteNotificationsFrom } from '../db/notification';
 import { sendToSocket } from '../helpers/notifications.helpers';
 import { NotificationInput } from '../types/zod/app.zod';
@@ -33,9 +33,6 @@ export async function gameRoutes(app: FastifyInstance) {
 			return reply.status(403).send({ errorMessage: 'Forbidden' });
 
 		// TOURNAMENT REQUEST POUR REMOTE
-		// TODO : les gens peuvent relancer un game non stop -> creer condition pour l empecher une fois le 1er jeu termine ici ou dans le front
-		// TODO : gerer les cas d abandon de tournoi (maj db + msg a l autre joueur)
-		// TODO : gerer le 2eme round du tournoi
 		if (matchMakingReq.data.type === "tournament")
 		{
 			console.log("TOURNAMENT REQUEST RECEIVED : ", matchMakingReq.data);

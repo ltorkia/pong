@@ -4,7 +4,9 @@ import { GAME_TYPE_MSG, TOURNAMENT_TYPE_MSG } from '../config/constants.config';
 
 export type StartGame = {
     type: "start_game",
-    otherPlayer?: SafeUserModel,
+    otherPlayer?: SafeUserModel, //a modifier
+    userId1?: SafeUserModel,
+    userId2?: SafeUserModel,
     gameID: number,
     mode: string
 };
