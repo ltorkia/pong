@@ -6,7 +6,7 @@ export class GameMenuMulti extends GamePage {
 	constructor(config: RouteConfig, userId?: number | RouteParams) {
 		super(config);
 		if (userId)
-			this.challengedFriendId = userId;
+			this.challengedFriendID = userId;
 	}
 
 	protected async initMatchRequest(): Promise<void> {

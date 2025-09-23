@@ -73,12 +73,8 @@ export const MatchMakingReqSchema = z.object({
         "tournament"
     ]),
     playerID: z.number(),
-<<<<<<< HEAD
     tournamentID: z.number().optional(),
-    invitedId: z.number().optional(),
-    inviterId: z.number().optional(),
-    gameId: z.number().optional()
-=======
-    gameID: z.number().optional(),
->>>>>>> elisa_tournoi_kiki_fork
+    invitedID: z.number().optional(),
+    inviterID: z.number().optional(),
+    gameID: z.number().optional()
 });

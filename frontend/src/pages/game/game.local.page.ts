@@ -7,47 +7,8 @@ export class GameMenuLocal extends GamePage {
 		super(config);
 	}
 
-<<<<<<< HEAD
 	protected async initMatchRequest(): Promise<void> {
 		this.isSearchingGame = true;
 		await this.sendMatchMakingRequest("local");
 	}
 }
-=======
-    private appendWaitText(): void {
-        // const waitDiv: HTMLElement | null = document.getElementById("wait-div");
-        // if (!waitDiv) {
-            const lobby: HTMLElement = document.createElement("div");
-        //     lobby.textContent = "Waiting for other players to connect...";
-        //     lobby.id = "wait-div";
-            document.getElementById("pong-section")?.append(lobby);
-        // }
-    }
-
-    protected handleKeyDown = (event: KeyboardEvent): void => {
-        // event.preventDefault(); //permet de skip un event par defaut supose en cas de besoin // faire ca desactive les inputs clavier (ex: impossible d;ouvrir la console avec ctrl shift i)
-        this.controlNodesDown = document.querySelectorAll(".control");
-        if (event.key == " " && this.isSearchingGame === false) { //TODO : creer un bouton pour lancer le jeu et replay pour sendmatchmaquingrequest pour eviter de le lancer en dehors de la page jeu
-            this.isSearchingGame = true;          
-            this.sendMatchMakingRequest("local");
-            // document.getElementById("pong-section")?.append(lobby);
-            this.appendWaitText();
-        }
-        for (const node of this.controlNodesDown) {
-            if (node.dataset.key == event.key)
-                node.classList.add("button-press");
-        }
-    }
-
-    protected handleKeyup = (event: KeyboardEvent): void => {
-        this.controlNodesUp = document.querySelectorAll(".control");
-        for (const node of this.controlNodesUp) {
-            if (node.dataset.key == event.key)
-                node.classList.remove("button-press");
-        }
-    }
-}
-
-// TODO = gerer les parties interrompues en cours de jeu -> ajout du score des 2 utilisateurs + check ? Ou juste refetch quand actualisation et maj des parties abandonnees ? jsp
-// TODO = affichage result -> le remettre au milieu ? 
->>>>>>> elisa_tournoi_kiki_fork

@@ -22,93 +22,17 @@ export abstract class GamePage extends BasePage {
 	protected isSearchingGame: boolean = false;
 	protected adversary: SafeUserModel | undefined; 
 
-	protected gameId: number = 0;
+	protected gameID: number = 0;
 	protected isPartOfTournament: boolean = false; // -> permettrait d'afficher ou non le message de fin de partie selon la logique d'affichage du tournoi
 	protected endGamePanel?: Element;
 	protected requestType?: string;
 
-<<<<<<< HEAD
 	// Variables utiles si le jeu est dans le cadre d'une invitation entre amis
-	public friendId: number = 0;
-	protected challengedFriendId?: number | RouteParams;
+	public friendID: number = 0;
+	protected challengedFriendID?: number | RouteParams;
 	protected relation?: Friend;
 	protected isInvitationGame: boolean = false;
 	protected replayInvite: boolean = false;
-=======
-    protected insertNetworkError(): void {
-        const errorDiv = document.createElement("div");
-        errorDiv.textContent = "Network error. Please try again later";
-        document.getElementById("pong-section")!.append(errorDiv);
-    }
-
-    protected async sendMatchMakingRequest(type : string, gameID?: number): Promise<void> {
-        const message = type;         
-        const matchMakingReq: MatchMakingReq = {
-            type: message,
-            playerID: this.currentUser!.id,
-            gameID: gameID,
-        }
-        // console.log("matchMakingReq = ", matchMakingReq);
-        const res = await fetch("/api/game/playgame", {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(matchMakingReq),
-            credentials: 'include',
-        });
-        if (!res.ok) {
-            const error = await res.json();
-            console.error(error.error);
-            return;
-        }
-    }
-
-    protected async initGame(playerID: number, gameID: number): Promise<void> {
-        const allChildren = document.getElementById("pong-section");
-        while (allChildren?.firstChild)
-            allChildren.firstChild.remove();
-        this.game = new MultiPlayerGame(2, playerID, gameID);
-        await this.game.initGame();
-    }
-// app.get('/:id/games', async(request: FastifyRequest, reply: FastifyReply) => {
-// 		const { id } = request.params as { id: number };
-// 		if (isNaN(id))
-// 			return reply.status(403).send({ errorMessage: 'Forbidden' });
-// 		const games = await getUserGames(id);
-// 		if (!games)
-// 			return reply.code(404).send({ errorMessage: 'User not found'});
-// 		return games;
-// 	})
-    // protected async showEndGamePanel(userID: number, gameID: number): promise<game>{
-    //     const panel = document.getElementById("pong-section")!;
-    //     // const panel = document.getElementById("endgame-panel")!;
-    //     panel.classList.remove("hidden");
-    //     panel.innerText = `Result = ${this.finalScore[0]} : ${this.finalScore[1]}`;
-    //        const res = await fetch(`/api/user/${userID}/games`, {
-    //         method: 'GET',
-    //         headers: { 'Content-Type': 'application/json' },
-    //         credentials: 'include',
-    //     });     
-    // }
-
-
-    // TODO = ADAPTER LES MESSAGES POUR LA TRAD
-    protected showEndGamePanel(): void {
-        const panel = document.getElementById("pong-section")!;
-        // const panel = document.getElementById("endgame-panel")!;
-        panel.classList.remove("hidden");
-        panel.innerText = `Result = ${this.finalScore[0]} : ${this.finalScore[1]}\n`;
-            if (this.adversary != undefined && this.finalScore[0] < this.finalScore[1])
-                panel.innerText += `You LOOOOOOSE against ${this.adversary?.username}`;
-            else if (this.adversary != undefined && this.finalScore[0] > this.finalScore[1])
-                panel.innerText += `You WIIIIIIIN against ${this.adversary?.username}`;
-    }
-
-    protected showTimer(time : number): void {
-        const panel = document.getElementById("pong-section")!;
-        panel.classList.remove("hidden");
-        panel.innerText = `Lets play in ... ${time}`;
-    }
->>>>>>> elisa_tournoi_kiki_fork
 
 	constructor(config: RouteConfig) {
 		super(config);
@@ -131,7 +55,7 @@ export abstract class GamePage extends BasePage {
 		const isPreRenderChecked = await super.preRenderCheck();
 		if (!isPreRenderChecked)
 			return false;
-		if (this.challengedFriendId) {
+		if (this.challengedFriendID) {
 			const isInviteSet = await this.handleInviteSettings();
 			if (!isInviteSet)
 				return false;
@@ -225,7 +149,7 @@ export abstract class GamePage extends BasePage {
 				break;
 
 			case "invite":
-				this.relation = await friendApi.getRelation(this.currentUser!.id, this.friendId);
+				this.relation = await friendApi.getRelation(this.currentUser!.id, this.friendID);
 				if (!this.relation || "errorMessage" in this.relation) {
 					console.error(this.relation.errorMessage || "Problème lors de la reprise de partie.");
 					return;
@@ -266,51 +190,12 @@ export abstract class GamePage extends BasePage {
 	public async handleGameMessage(data: any): Promise<void> {
 		switch (data.type) {
 
-<<<<<<< HEAD
 			case "start_game":
-				this.gameId = data.gameID;
+				this.gameID = data.gameID;
 				this.adversary = data.otherPlayer;
 				this.isPartOfTournament = data.mode === "tournament" ? true : false;
-				this.game = new MultiPlayerGame(2, this.currentUser!.id, this.gameId);
+				this.game = new MultiPlayerGame(2, this.currentUser!.id, this.gameID);
 				break;
-=======
-    protected attachListeners() {
-        webSocketService.getWebSocket()!.addEventListener("message", async (event) => {
-            const msg = JSON.parse(event.data);
-            // console.log("@@@@@@@@@@@@@@@@@@@@@@msg = ", msg);
-            if (msg.type == "start_game") {
-                console.log(`game starts ! id = ${msg.gameID}`);
-                console.log("message is :", msg);
-                this.adversary = msg.otherPlayer; // TODO : possibilite de recuperer l'avatar de l autre joueur si on veut l afficher ici
-                // this.game!.clearScreen(); 
-                // document.querySelector("endgame-panel")?.remove();
-                // this
-                this.gameStarted = true;
-            }
-            else if (msg.type == "decount_game") 
-            {
-                this.showTimer(msg.message);
-                if (msg.message == 0)
-                    await this.initGame(this.currentUser!.id, msg.gameID);
-            } else if (msg.type == "end" && this.gameStarted) {
-                this.game!.gameStarted = false;
-                this.isSearchingGame = false;
-                this.game!.setScore(msg.score);
-                console.log("END GAME DETECTED")
-                this.game!.clearScreen();
-                document.querySelector("canvas")?.remove();
-                // document.querySelector("#pong-section")!.remove(); //pour permettre de voir le jeu si on decide de le relancer direct avec le meme joueur
-                this.finalScore = this.game!.getScore(); //TODO = clean le final score je sais pas ou et le show en haut
-                this.showEndGamePanel();
-            } else if (msg.type == "GameData") {
-                this.game!.registerGameData(msg);
-                this.game!.setScore(msg.score);
-            } else if (msg.type == "msg")
-                console.log(msg.msg);
-            // else if (msg.type == "hasQuit")
-            // {
-                // fetch post db changement jeu statut
->>>>>>> elisa_tournoi_kiki_fork
 
 			case "decount_game":
 				this.showTimer(data.message);
@@ -373,8 +258,8 @@ export abstract class GamePage extends BasePage {
 	 * @returns {Promise<boolean>} La promesse qui se résout lorsque les vérifications sont terminées.
 	 */
 	protected async handleInviteSettings(): Promise<boolean> {
-		this.friendId = Number(this.challengedFriendId);
-		this.relation = await friendApi.getRelation(this.currentUser!.id, this.friendId);
+		this.friendID = Number(this.challengedFriendID);
+		this.relation = await friendApi.getRelation(this.currentUser!.id, this.friendID);
 		if (!this.relation || "errorMessage" in this.relation || !this.relation.waitingInvite)
 			return false;
 		this.isInvitationGame = true;
@@ -391,10 +276,10 @@ export abstract class GamePage extends BasePage {
 	protected async handleInviteRequest(): Promise<boolean> {
 		if (this.currentUser!.id === this.relation.challengedBy) {
 			if (this.replayInvite)
-				await this.sendMatchMakingRequest("invite", undefined, this.friendId, this.currentUser!.id);
+				await this.sendMatchMakingRequest("invite", undefined, this.friendID, this.currentUser!.id);
 			this.appendWaitText();
 		} else if (this.currentUser!.id === this.relation.isChallenged) {
-			await this.sendMatchMakingRequest("invite-accept", undefined, this.currentUser!.id, this.friendId);
+			await this.sendMatchMakingRequest("invite-accept", undefined, this.currentUser!.id, this.friendID);
 			this.appendWaitText();
 		} else {
 			console.error("Erreur de matchmaking dans l'invite.");
@@ -416,7 +301,7 @@ export abstract class GamePage extends BasePage {
 	}
 
 	protected updateInviteNotification(): void {
-		notifService.notifs = notifService.notifs.filter((notif) => notif.from == this.friendId 
+		notifService.notifs = notifService.notifs.filter((notif) => notif.from == this.friendID 
 				&& notif.content !== null && notif.content !== '');
 		if (notifService.navbarInstance!.notifsWindow)
 			notifService.displayDefaultNotif();
@@ -441,19 +326,19 @@ export abstract class GamePage extends BasePage {
 	 * 
 	 * @param {string} type Le type de partie (matchmaking, invite, tournament).
 	 * @param {number} [tournamentID] L'ID du tournoi si la partie est un tournoi.
-	 * @param {number} [invitedId] L'ID du joueur invité si la partie est une invitation.
-	 * @param {number} [inviterId] L'ID du joueur qui invite si la partie est une invitation.
+	 * @param {number} [invitedID] L'ID du joueur invité si la partie est une invitation.
+	 * @param {number} [inviterID] L'ID du joueur qui invite si la partie est une invitation.
 	 * @returns {Promise<void>} La promesse qui se résout lorsque la partie est lancée.
 	 */
-    protected async sendMatchMakingRequest(type : string, tournamentID?: number, invitedId?: number, inviterId?: number): Promise<void> {
+    protected async sendMatchMakingRequest(type : string, tournamentID?: number, invitedID?: number, inviterID?: number): Promise<void> {
         const message = type;
         const matchMakingReq: MatchMakingReq = {
             type: message,
             playerID: this.currentUser!.id,
             tournamentID: tournamentID,
-			invitedId: invitedId,
-			inviterId: inviterId,
-			gameId: this.gameId
+			invitedID: invitedID,
+			inviterID: inviterID,
+			gameID: this.gameID
         }
 
 		try {
@@ -663,13 +548,13 @@ export abstract class GamePage extends BasePage {
 		if (!this.endGamePanel)
 			return;
 		const replayBtn = getHTMLElementById('replay-button', this.endGamePanel) as HTMLElement;
-		if (this.friendId) {
+		if (this.friendID) {
 			const replayWithSpan = getHTMLElementById('replay-with', this.endGamePanel) as HTMLElement;
 			const friendNameSpan = getHTMLElementById('friend-username', this.endGamePanel) as HTMLElement;
 			replayWithSpan.classList.remove("hidden");
 			friendNameSpan.classList.remove("hidden");
 			friendNameSpan.textContent = this.relation!.username;
-			replayBtn.setAttribute("data-friend-id", this.friendId!.toString());
+			replayBtn.setAttribute("data-friend-id", this.friendID!.toString());
 		} else {
 			const replaySpan = getHTMLElementById('replay', this.endGamePanel) as HTMLElement;
 			replaySpan.classList.remove("hidden");
@@ -682,25 +567,25 @@ export abstract class GamePage extends BasePage {
 	// ===========================================
 	public async cleanup(): Promise<void> {
 		await super.cleanup();
-		let invitedId, inviterId;
+		let invitedID, inviterID;
 		if (this.requestType === "invite" && this.relation && this.relation.waitingInvite) {
-			invitedId = this.friendId;
-			inviterId = this.currentUser!.id;
-			notifService.notifs = notifService.notifs.filter((notif) => notif.from == this.friendId 
+			invitedID = this.friendID;
+			inviterID = this.currentUser!.id;
+			notifService.notifs = notifService.notifs.filter((notif) => notif.from == this.friendID 
 					&& notif.content !== null && notif.content !== '');
 			if (notifService.navbarInstance!.notifsWindow)
 				notifService.displayDefaultNotif();
 		} else {
-			invitedId = undefined;
-			inviterId = undefined;
+			invitedID = undefined;
+			inviterID = undefined;
 		}
 		const matchMakingReq = new Blob([JSON.stringify({
 			type: "clean_request",
 			playerID: this.currentUser!.id,
 			tournamentID: undefined,
-			invitedId: invitedId,
-			inviterId: inviterId,
-			gameId: this.gameId
+			invitedID: invitedID,
+			inviterID: inviterID,
+			gameID: this.gameID
 		})], { type: 'application/json' });
 		navigator.sendBeacon("/api/game/playgame", matchMakingReq);
 		currentService.clearCurrentGame();

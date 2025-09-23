@@ -84,12 +84,7 @@ export class Ball {
 };
 
 export class Game {
-    private duration: number = 0;
-<<<<<<< HEAD
     public players: Player[] = [];
-=======
-    public  players: Player[] = [];
->>>>>>> elisa_tournoi_kiki_fork
     private ball = new Ball();
     private playersCount: number = 0;
 
@@ -99,11 +94,6 @@ export class Game {
     private score: number[] = [];
     public gameID: number = 0;
     public tournamentID?: number;
-    // protected tournamentIDforDB = null;
-    // public type: string;
-    // public sidePlayer: string; //dans player plutot
-    // private async addGame(userId1: number, userId2: number): Promise<number> ;
-    // private async resultGame(gameId: number, winnerId: number, looserId: number);
 
     constructor(gameID: number, playersCount: number, players: Player[], tournamentID?: number) {
         this.gameID = gameID;
@@ -290,10 +280,14 @@ export class TournamentLocal {
 
         // this.players est melange pour avoir des matchs aleatoire
         shuffleArray(this.players);
-        this.stageOne[0] = new Game(2, [this.players[0], this.players[1]]);
-        this.stageOne[0].gameIDforDB = await addGame(this.players[0].ID, this.players[1].ID, true);
-        this.stageOne[1] = new Game(2, [this.players[2], this.players[3]]);
-        this.stageOne[1].gameIDforDB = await addGame(this.players[2].ID, this.players[3].ID, true);
+        
+        const gameID1 = await addGame(true);
+        await addGamePlayers(gameID1, this.players[0].ID, this.players[1].ID);
+        this.stageOne[0] = new Game(gameID1, 2, [this.players[0], this.players[1]]);
+
+        const gameID2 = await addGame(true);
+        await addGamePlayers(gameID2, this.players[2].ID, this.players[3].ID);
+        this.stageOne[0] = new Game(gameID2, 2, [this.players[2], this.players[3]]);
     }
 }
 
@@ -348,7 +342,7 @@ export class Tournament {
         for (let i = 0; i < 2; i++) {
             const gameID = await addGame(true);
             await addGamePlayers(gameID, this.players[playerIdx].ID, this.players[playerIdx + 1].ID);
-            const newGame = new Game(gameID, 2, [this.players[playerIdx], this.players[playerIdx + 1]], this.ID); // a changer sa mere
+            const newGame = new Game(gameID, 2, [this.players[playerIdx], this.players[playerIdx + 1]], this.ID);
             this.stageOneGames.push(newGame);
             playerIdx += 2;
         }

@@ -5,9 +5,8 @@ import { Game, Tournament, TournamentLocal } from '../types/game.types';
 import { TournamentLobbyUpdate, StartTournamentSignal, DismantleSignal } from '../shared/types/websocket.types'
 import { UserWS } from '../types/user.types';
 import { generateUniqueID } from '../shared/functions'
-import { findPlayerWebSocket } from '../helpers/query.helpers';
 import { addGame, addGamePlayers, getResultGame } from '../db/game';
-import { Game } from '../types/game.types';
+
 // Differentes routes pour differents besoins lies aux tournois en remote
 // Les tournois existent en backend dans app.lobby.allTournaments
 // Toutes les infos necessaires a une action sont validees avec ZOD, voir les differents schemas pour mieux comprendre les requetes
@@ -62,11 +61,11 @@ export async function tournamentRoutes(app: FastifyInstance) {
 
         // cherche l'id de la game dans les tournois locaux
         for (const tournamentLocal of allTournamentsLocal) {
-            if (tournamentLocal.stageTwo && gameID == tournamentLocal.stageTwo.gameIDforDB) {
+            if (tournamentLocal.stageTwo && gameID == tournamentLocal.stageTwo.gameID) {
                 game = tournamentLocal.stageTwo;
                 break ;
             }
-            game = tournamentLocal.stageOne.find((g: Game) => g.gameIDforDB == gameID);
+            game = tournamentLocal.stageOne.find((g: Game) => g.gameID == gameID);
         }
 
         if (game)
@@ -286,7 +285,7 @@ export async function tournamentRoutes(app: FastifyInstance) {
         sendToTournamentPlayers(startSignal, tournament, app);
         // for (const game of tournament.stageOneGames)
         // {
-        //     game.gameIDforDB = await addGame(game.players[0].ID, game.players[1].ID, true);
+        //     game.gameID = await addGame(game.players[0].ID, game.players[1].ID, true);
         //     tournament.stageOneGames.initGame();
         // }
     });

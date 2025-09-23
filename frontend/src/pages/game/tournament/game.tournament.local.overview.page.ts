@@ -1,5 +1,5 @@
 import { BasePage } from '../../base/base.page';
-import { GamePage } from '../game.page';
+// import { GamePage } from '../game.page';
 import { RouteConfig } from '../../../types/routes.types';
 import { Game, TournamentLocal } from '../../../types/game.types';
 import { TournamentService } from '../../../api/game/game.api';
@@ -12,7 +12,7 @@ import { User } from '../../../shared/models/user.model';
 const MAX_PLAYERS = 4;
 const MIN_PLAYERS = 4;
 
-export class GameTournamentLocalOverview extends GamePage {
+export class GameTournamentLocalOverview extends BasePage {
     private tournamentID: number;
     private pastilleHTML: HTMLElement | undefined;
     private toolTipHTML: HTMLElement | undefined;
@@ -21,14 +21,29 @@ export class GameTournamentLocalOverview extends GamePage {
     private users: UserModel[] = [];
     private winner: Player | undefined;
 
+    // protected async initMatchRequest(): Promise<void> {}
 
-    protected async beforeMount(): Promise<void> {
+	/**
+	 * Procède aux vérifications nécessaires avant le montage de la page.
+	 * Exécute les vérifications de base de la classe parente (`BasePage`).
+	 *
+	 * @returns {Promise<boolean>} Une promesse qui se résout lorsque les vérifications sont terminées.
+	 */
+	protected async preRenderCheck(): Promise<boolean> {
+		const isPreRenderChecked = await super.preRenderCheck();
+		if (!isPreRenderChecked)
+			return false;
         // Check si le tournoi existe ou redirection
         this.tournament = await TournamentService.fetchLocalTournament(this.tournamentID);
-        if (!this.tournament) {
+		if (!this.tournament) {
             console.error("Tournament not found");
-            router.navigate("/game/tournaments");
-        }
+            this.redirectRoute = "/game/tournaments";
+			return false;
+		}
+		return true;
+	}
+
+    protected async beforeMount(): Promise<void> {
         // Fetch du html qui va etre reutilise plusieurs fois
         this.pastilleHTML = await this.fetchHTML("../../../../public/templates/game/tournament/tournament_pastille.html", "#tournament-pastille");
         this.toolTipHTML = await this.fetchHTML("../../../../public/templates/game/tournament/tournament_tooltip.html", "#tooltip");

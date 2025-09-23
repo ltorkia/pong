@@ -1,9 +1,8 @@
 import { BasePage } from '../../base/base.page';
-import { GamePage } from '../game.page';
+// import { GamePage } from '../game.page';
 import { RouteConfig } from '../../../types/routes.types';
 import { Game, Tournament } from '../../../types/game.types';
 import { TournamentService } from '../../../api/game/game.api';
-import { router } from '../../../router/router';
 import { UserModel } from '../../../shared/types/user.types';
 import { DataService } from '../../../services/user/data.service';
 import { Player } from '../../../shared/types/game.types';
@@ -12,7 +11,7 @@ import { User } from '../../../shared/models/user.model';
 const MAX_PLAYERS = 4;
 const MIN_PLAYERS = 4;
 
-export class GameTournamentOverview extends GamePage { //changement de basepage mais a voir
+export class GameTournamentOverview extends BasePage {
     private tournamentID: number;
     private pastilleHTML: HTMLElement | undefined;
     private toolTipHTML: HTMLElement | undefined;
@@ -20,6 +19,8 @@ export class GameTournamentOverview extends GamePage { //changement de basepage 
     private dataApi = new DataService();
     private users: UserModel[] = [];
     private winner: Player | undefined;
+    
+    // protected async initMatchRequest(): Promise<void> {}
 
 	/**
 	 * Procède aux vérifications nécessaires avant le montage de la page.
@@ -153,27 +154,6 @@ export class GameTournamentOverview extends GamePage { //changement de basepage 
 
         // document.getElementById("tournament-overview")?.append(btn);
 
-<<<<<<< HEAD
-        // Ajout du listener
-        btn.addEventListener("click", async () => {
-            this.isSearchingGame = true;
-            // const res = await fetch("/api/game/update_tournament_games", {
-            //     method: 'POST',
-            //     headers: { 'Content-Type': 'application/json' },
-            //     // body: JSON.stringify(lobbyUpdate),
-            //     credentials: 'include',
-            // });
-        // if (!res.ok) {
-        //     const error = await res.json();
-        //     throw new Error(error.error);
-        // }
-            // await fetch("/update_tournament_games")
-            await this.sendMatchMakingRequest("tournament", this.tournamentID); // On passe par cette fonction pour lancer le tournoi et les game
-            // this.startGame(); // fonction qui fetch avec les infos en contenu des joueurs
-        });
-            // await this.attachPastilleListeners();
-        }
-=======
         // // Ajout du listener
         // btn.addEventListener("click", () => {
         //      console.log("okeeaiii");
@@ -181,7 +161,6 @@ export class GameTournamentOverview extends GamePage { //changement de basepage 
         // });
         //     // await this.attachPastilleListeners();
     }
->>>>>>> elisa_tournoi_kiki_fork
 
     private getGameByPlayerID(id: number, stage: Game[]): Game | undefined {
         return stage.find((game: Game) => game.players.find((p: Player) => p.ID == id));

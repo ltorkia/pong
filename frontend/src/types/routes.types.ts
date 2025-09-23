@@ -86,7 +86,7 @@ export interface RouteParams {
  * - removeUser: fonction pour supprimer un utilisateur de la liste des utilisateurs
  * - handleGameMessage: fonction pour traiter un message de jeu via WebSocket
  * - handleTournamentMessage: fonction pour traiter un message de tournoi via WebSocket
- * - challengedFriendId: ID de l'ami qui a invité l'utilisateur courant à jouer
+ * - challengedFriendID: ID de l'ami qui a invité l'utilisateur courant à jouer
  * - changeReplayButtonForInvite: fonction pour mettre à jour le bouton de replay si un joueur est réinvité à jouer
  * - checkInviteReplayRequest: fonction pour gérer les invite request pour relancer le jeu (invite replay)
  */
@@ -101,7 +101,7 @@ export interface PageInstance {
 	removeUser?: (user: User) => Promise<void>;
 	handleGameMessage?: (data: any) => Promise<void>;
 	handleTournamentMessage?: (data: any) => Promise<void>;
-	challengedFriendId?: number;
+	challengedFriendID?: number;
 	changeReplayButtonForInvite?(): void;
 	checkInviteReplayRequest?: () => Promise<boolean>;
 }

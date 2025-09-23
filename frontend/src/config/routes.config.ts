@@ -86,15 +86,17 @@ export const PAGE_NAMES = {
  * La valeur associée à chaque clé est le chemin de route correspondant.
  */
 export const ROUTE_PATHS = {
-<<<<<<< HEAD
 	HOME: '/',
 	REGISTER: '/register',
 	LOGIN: '/login',
 	GAME_LOCAL: '/game/local',
+	GAME_LOCAL_ID: '/game/local/:id',
 	GAME_MULTI: '/game/multi/:id',
 	GAME_TOURNAMENT: '/game/tournament',
+	GAME_TOURNAMENT_LOCAL_MENU: '/game/tournament_local',
 	GAME_TOURNAMENT_LIST: "/game/tournaments",
 	GAME_TOURNAMENT_LOBBY: '/game/tournaments/:id/lobby',
+	GAME_TOURNAMENT_LOCAL_OVERVIEW: '/game/tournaments_local/:id/overview',
 	GAME_TOURNAMENT_OVERVIEW: '/game/tournaments/:id/overview',
 	BOIDS: '/game/boids',
 	RULES: '/rules',
@@ -102,28 +104,7 @@ export const ROUTE_PATHS = {
 	PROFILE: '/user/:id',
 	DASHBOARD: '/dashboard',
 	LOGOUT: '/logout',
-	SETTINGS: '/settings',
-=======
-    HOME: '/',
-    REGISTER: '/register',
-    LOGIN: '/login',
-    GAME_LOCAL: '/game/local',
-    GAME_LOCAL_ID: '/game/local/:id',
-    GAME_MULTI: '/game/multi',
-    GAME_TOURNAMENT: '/game/tournament',
-    GAME_TOURNAMENT_LOCAL_MENU: '/game/tournament_local',
-    GAME_TOURNAMENT_LIST: "/game/tournaments",
-    GAME_TOURNAMENT_LOBBY: '/game/tournaments/:id/lobby',
-    GAME_TOURNAMENT_LOCAL_OVERVIEW: '/game/tournaments_local/:id/overview',
-    GAME_TOURNAMENT_OVERVIEW: '/game/tournaments/:id/overview',
-    BOIDS: '/game/boids',
-    RULES: '/rules',
-    USERS: '/users',
-    PROFILE: '/user/:id',
-    DASHBOARD: '/dashboard',
-    LOGOUT: '/logout',
-    SETTINGS: '/settings',
->>>>>>> elisa_tournoi_kiki_fork
+	SETTINGS: '/settings'
 } as const;
 
 /**
@@ -185,7 +166,6 @@ export const AUTH_FALLBACK_ROUTE = ROUTE_PATHS.LOGIN;
  * pour garantir une source de vérité stable.
  */
 export const routesConfig: RouteConfig[] = [
-<<<<<<< HEAD
 	{
 		path: ROUTE_PATHS.HOME,
 		name: PAGE_NAMES.HOME,
@@ -223,18 +203,30 @@ export const routesConfig: RouteConfig[] = [
 		isPublic: true,
 		enableParticles: true
 	},
-	{
-		path: ROUTE_PATHS.GAME_LOCAL,
-		name: PAGE_NAMES.GAME_LOCAL,
-		pageConstructor: GameMenuLocal,
-		templatePath: TEMPLATE_PATHS.GAME_LOCAL,
-		components: {
-			[COMPONENT_NAMES.NAVBAR]: getComponentConfig(COMPONENT_NAMES.NAVBAR),
+    {
+        path: ROUTE_PATHS.GAME_LOCAL,
+        name: PAGE_NAMES.GAME_LOCAL,
+        pageConstructor: GameMenuLocal,
+        templatePath: TEMPLATE_PATHS.GAME_LOCAL,
+        components: {
+            [COMPONENT_NAMES.NAVBAR]: getComponentConfig(COMPONENT_NAMES.NAVBAR),
 			[COMPONENT_NAMES.TRANSLATER]: getComponentConfig(COMPONENT_NAMES.TRANSLATER)
-		},
-		isPublic: false,
-		enableParticles: true
-	},
+        },
+        isPublic: false,
+        enableParticles: true
+    },
+    {
+        path: ROUTE_PATHS.GAME_LOCAL_ID,
+        name: PAGE_NAMES.GAME_LOCAL_ID,
+        pageConstructor: GameMenuLocalID,
+        templatePath: TEMPLATE_PATHS.GAME_LOCAL_ID,
+        components: {
+            [COMPONENT_NAMES.NAVBAR]: getComponentConfig(COMPONENT_NAMES.NAVBAR),
+			[COMPONENT_NAMES.TRANSLATER]: getComponentConfig(COMPONENT_NAMES.TRANSLATER)
+        },
+        isPublic: false,
+        enableParticles: true
+    },
 	{
 		path: ROUTE_PATHS.GAME_MULTI,
 		name: PAGE_NAMES.GAME_MULTI,
@@ -252,6 +244,18 @@ export const routesConfig: RouteConfig[] = [
 		name: PAGE_NAMES.GAME_TOURNAMENT,
 		pageConstructor: GameMenuTournament,
 		templatePath: TEMPLATE_PATHS.GAME_TOURNAMENT,
+		components: {
+			[COMPONENT_NAMES.NAVBAR]: getComponentConfig(COMPONENT_NAMES.NAVBAR),
+			[COMPONENT_NAMES.TRANSLATER]: getComponentConfig(COMPONENT_NAMES.TRANSLATER)
+		},
+		isPublic: false,
+		enableParticles: true
+	},
+	{
+		path: ROUTE_PATHS.GAME_TOURNAMENT_LOCAL_MENU,
+		name: PAGE_NAMES.GAME_TOURNAMENT_LOCAL_MENU,
+		pageConstructor: GameMenuTournamentLocal,
+		templatePath: TEMPLATE_PATHS.GAME_TOURNAMENT_LOCAL_MENU,
 		components: {
 			[COMPONENT_NAMES.NAVBAR]: getComponentConfig(COMPONENT_NAMES.NAVBAR),
 			[COMPONENT_NAMES.TRANSLATER]: getComponentConfig(COMPONENT_NAMES.TRANSLATER)
@@ -283,6 +287,18 @@ export const routesConfig: RouteConfig[] = [
 		isPublic: false,
 		enableParticles: true
 	},
+    {
+        path: ROUTE_PATHS.GAME_TOURNAMENT_LOCAL_OVERVIEW,
+        name: PAGE_NAMES.GAME_TOURNAMENT_OVERVIEW,
+        pageConstructor: GameTournamentLocalOverview,
+        templatePath: TEMPLATE_PATHS.GAME_TOURNAMENT_OVERVIEW,
+        components: {
+            [COMPONENT_NAMES.NAVBAR]: getComponentConfig(COMPONENT_NAMES.NAVBAR),
+			[COMPONENT_NAMES.TRANSLATER]: getComponentConfig(COMPONENT_NAMES.TRANSLATER)
+        },
+        isPublic: false,
+        enableParticles: true
+    },
 	{
 		path: ROUTE_PATHS.GAME_TOURNAMENT_OVERVIEW,
 		name: PAGE_NAMES.GAME_TOURNAMENT_OVERVIEW,
@@ -371,208 +387,6 @@ export const routesConfig: RouteConfig[] = [
 		isPublic: false,
 		enableParticles: true
 	}
-=======
-    {
-        path: ROUTE_PATHS.HOME,
-        name: PAGE_NAMES.HOME,
-        pageConstructor: HomePage,
-        templatePath: TEMPLATE_PATHS.HOME,
-        components: {
-            [COMPONENT_NAMES.NAVBAR]: getComponentConfig(COMPONENT_NAMES.NAVBAR)
-        },
-        isPublic: false,
-        enableParticles: true
-    },
-    {
-        path: ROUTE_PATHS.REGISTER,
-        name: PAGE_NAMES.REGISTER,
-        pageConstructor: RegisterPage,
-        templatePath: TEMPLATE_PATHS.REGISTER,
-        components: {},
-        isPublic: true,
-        enableParticles: true
-    },
-    {
-        path: ROUTE_PATHS.LOGIN,
-        name: PAGE_NAMES.LOGIN,
-        pageConstructor: LoginPage,
-        templatePath: TEMPLATE_PATHS.LOGIN,
-        components: {
-            [COMPONENT_NAMES.TWOFA_MODAL]: getComponentConfig(COMPONENT_NAMES.TWOFA_MODAL)
-        },
-        isPublic: true,
-        enableParticles: true
-    },
-    {
-        path: ROUTE_PATHS.GAME_LOCAL,
-        name: PAGE_NAMES.GAME_LOCAL,
-        pageConstructor: GameMenuLocal,
-        templatePath: TEMPLATE_PATHS.GAME_LOCAL,
-        components: {
-            [COMPONENT_NAMES.NAVBAR]: getComponentConfig(COMPONENT_NAMES.NAVBAR)
-        },
-        isPublic: false,
-        enableParticles: true
-    },
-    {
-        path: ROUTE_PATHS.GAME_LOCAL_ID,
-        name: PAGE_NAMES.GAME_LOCAL_ID,
-        pageConstructor: GameMenuLocalID,
-        templatePath: TEMPLATE_PATHS.GAME_LOCAL_ID,
-        components: {
-            [COMPONENT_NAMES.NAVBAR]: getComponentConfig(COMPONENT_NAMES.NAVBAR)
-        },
-        isPublic: false,
-        enableParticles: true
-    },
-    {
-        path: ROUTE_PATHS.GAME_MULTI,
-        name: PAGE_NAMES.GAME_MULTI,
-        pageConstructor: GameMenuMulti,
-        templatePath: TEMPLATE_PATHS.GAME_MULTI,
-        components: {
-            [COMPONENT_NAMES.NAVBAR]: getComponentConfig(COMPONENT_NAMES.NAVBAR)
-        },
-        isPublic: false,
-        enableParticles: true
-    },
-    {
-        path: ROUTE_PATHS.GAME_TOURNAMENT,
-        name: PAGE_NAMES.GAME_TOURNAMENT,
-        pageConstructor: GameMenuTournament,
-        templatePath: TEMPLATE_PATHS.GAME_TOURNAMENT,
-        components: {
-            [COMPONENT_NAMES.NAVBAR]: getComponentConfig(COMPONENT_NAMES.NAVBAR)
-        },
-        isPublic: false,
-        enableParticles: true
-    },
-    {
-        path: ROUTE_PATHS.GAME_TOURNAMENT_LOCAL_MENU,
-        name: PAGE_NAMES.GAME_TOURNAMENT_LOCAL_MENU,
-        pageConstructor: GameMenuTournamentLocal,
-        templatePath: TEMPLATE_PATHS.GAME_TOURNAMENT_LOCAL_MENU,
-        components: {
-            [COMPONENT_NAMES.NAVBAR]: getComponentConfig(COMPONENT_NAMES.NAVBAR)
-        },
-        isPublic: false,
-        enableParticles: true
-    },
-    {
-        path: ROUTE_PATHS.GAME_TOURNAMENT_LOBBY,
-        name: PAGE_NAMES.GAME_TOURNAMENT_LOBBY,
-        pageConstructor: GameTournamentLobby,
-        templatePath: TEMPLATE_PATHS.GAME_TOURNAMENT_LOBBY,
-        components: {
-            [COMPONENT_NAMES.NAVBAR]: getComponentConfig(COMPONENT_NAMES.NAVBAR)
-        },
-        isPublic: false,
-        enableParticles: true
-    },
-    {
-        path: ROUTE_PATHS.GAME_TOURNAMENT_LIST,
-        name: PAGE_NAMES.GAME_TOURNAMENT_LIST,
-        pageConstructor: GameTournamentList,
-        templatePath: TEMPLATE_PATHS.GAME_TOURNAMENT_LIST,
-        components: {
-            [COMPONENT_NAMES.NAVBAR]: getComponentConfig(COMPONENT_NAMES.NAVBAR)
-        },
-        isPublic: false,
-        enableParticles: true
-    },
-    {
-        path: ROUTE_PATHS.GAME_TOURNAMENT_LOCAL_OVERVIEW,
-        name: PAGE_NAMES.GAME_TOURNAMENT_OVERVIEW,
-        pageConstructor: GameTournamentLocalOverview,
-        templatePath: TEMPLATE_PATHS.GAME_TOURNAMENT_OVERVIEW,
-        components: {
-            [COMPONENT_NAMES.NAVBAR]: getComponentConfig(COMPONENT_NAMES.NAVBAR)
-        },
-        isPublic: false,
-        enableParticles: true
-    },
-    {
-        path: ROUTE_PATHS.GAME_TOURNAMENT_OVERVIEW,
-        name: PAGE_NAMES.GAME_TOURNAMENT_OVERVIEW,
-        pageConstructor: GameTournamentOverview,
-        templatePath: TEMPLATE_PATHS.GAME_TOURNAMENT_OVERVIEW,
-        components: {
-            [COMPONENT_NAMES.NAVBAR]: getComponentConfig(COMPONENT_NAMES.NAVBAR)
-        },
-        isPublic: false,
-        enableParticles: true
-    },
-    {
-        path: ROUTE_PATHS.BOIDS,
-        name: PAGE_NAMES.BOIDS,
-        pageConstructor: BoidsPage,
-        templatePath: TEMPLATE_PATHS.BOIDS,
-        components: {
-            [COMPONENT_NAMES.NAVBAR]: getComponentConfig(COMPONENT_NAMES.NAVBAR)
-        },
-        isPublic: false,
-        enableParticles: true
-    },
-    {
-        path: ROUTE_PATHS.RULES,
-        name: PAGE_NAMES.RULES,
-        pageConstructor: RulesPage,
-        templatePath: TEMPLATE_PATHS.RULES,
-        components: {
-            [COMPONENT_NAMES.NAVBAR]: getComponentConfig(COMPONENT_NAMES.NAVBAR)
-        },
-        isPublic: false,
-        enableParticles: true
-    },
-    {
-        path: ROUTE_PATHS.USERS,
-        name: PAGE_NAMES.USERS,
-        pageConstructor: UsersPage,
-        templatePath: TEMPLATE_PATHS.USERS,
-        components: {
-            [COMPONENT_NAMES.NAVBAR]: getComponentConfig(COMPONENT_NAMES.NAVBAR),
-            [COMPONENT_NAMES.SEARCH_BAR]: getComponentConfig(COMPONENT_NAMES.SEARCH_BAR),
-            [COMPONENT_NAMES.USER_ROW]: getComponentConfig(COMPONENT_NAMES.USER_ROW),
-            [COMPONENT_NAMES.PAGINATION]: getComponentConfig(COMPONENT_NAMES.PAGINATION)
-        },
-        isPublic: false,
-        enableParticles: true
-    },
-    {
-        path: ROUTE_PATHS.PROFILE,
-        name: PAGE_NAMES.PROFILE,
-        pageConstructor: ProfilePage,
-        templatePath: TEMPLATE_PATHS.PROFILE,
-        components: {
-            [COMPONENT_NAMES.NAVBAR]: getComponentConfig(COMPONENT_NAMES.NAVBAR)
-        },
-        isPublic: false,
-        enableParticles: true
-    },
-    {
-        path: ROUTE_PATHS.DASHBOARD,
-        name: PAGE_NAMES.DASHBOARD,
-        pageConstructor: DashboardPage,
-        templatePath: TEMPLATE_PATHS.DASHBOARD,
-        components: {
-            [COMPONENT_NAMES.NAVBAR]: getComponentConfig(COMPONENT_NAMES.NAVBAR)
-        },
-        isPublic: false,
-        enableParticles: true
-    },
-    {
-        path: ROUTE_PATHS.SETTINGS,
-        name: PAGE_NAMES.SETTINGS,
-        pageConstructor: SettingsPage,
-        templatePath: TEMPLATE_PATHS.SETTINGS,
-        components: {
-            [COMPONENT_NAMES.NAVBAR]: getComponentConfig(COMPONENT_NAMES.NAVBAR),
-            [COMPONENT_NAMES.TWOFA_MODAL]: getComponentConfig(COMPONENT_NAMES.TWOFA_MODAL)
-        },
-        isPublic: false,
-        enableParticles: true
-    }
->>>>>>> elisa_tournoi_kiki_fork
 ];
 
 /**

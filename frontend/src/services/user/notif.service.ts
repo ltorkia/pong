@@ -190,7 +190,7 @@ export class NotifService {
 			await this.deleteAllNotifsFromUser(this.currentNotif!.from, this.currentNotif!.id);
 			if (this.currentPage.config.path === ROUTE_PATHS.GAME_MULTI
 				&& this.currentPage instanceof GamePage
-				&& this.currentPage.challengedFriendId === this.currentNotif!.from) {
+				&& this.currentPage.challengedFriendID === this.currentNotif!.from) {
 				switch (this.currentNotif!.type) {
 					case FRIEND_REQUEST_ACTIONS.INVITE:
 						// TODO: fix update bouton
@@ -624,7 +624,7 @@ export class NotifService {
 				console.error(err);
 			}
 			await router.navigate(`/game/multi/${this.friendId!}`);
-		} else if (this.currentPage.challengedFriendId! === this.friendId!)
+		} else if (this.currentPage.challengedFriendID! === this.friendId!)
 			await this.currentPage.checkInviteReplayRequest!();
 	}
 
@@ -640,7 +640,7 @@ export class NotifService {
 		}
 		if (this.currentPage.config.path !== ROUTE_PATHS.GAME_MULTI && !(this.currentPage instanceof GamePage))
 			await router.navigate(`/game/multi/${this.friendId!}`);
-		else if (this.currentPage.challengedFriendId! === this.friendId!)
+		else if (this.currentPage.challengedFriendID! === this.friendId!)
 			await this.currentPage.checkInviteReplayRequest!();
 		await this.handleUpdate(type);
 	}
