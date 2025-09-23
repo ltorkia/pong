@@ -119,7 +119,6 @@ export class WebSocketService {
 				}
 
 				// GAME MSG
-				console.log('Message reçu:', receivedData);
 				if (isValidGameType(receivedData.type)) {
 					if (isGameMsg(receivedData.type)) {
 						const isGameInit = currentService.getGameInit();

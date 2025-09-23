@@ -299,6 +299,13 @@ export abstract class GamePage extends BasePage {
 		const replayWithSpan = getHTMLElementById('replay-with', this.endGamePanel) as HTMLElement;
 		replayWithSpan.setAttribute("data-ts", "accept-invitation-from");
 	}
+
+	protected updateInviteNotification(): void {
+		notifService.notifs = notifService.notifs.filter((notif) => notif.from == this.friendId 
+				&& notif.content !== null && notif.content !== '');
+		if (notifService.navbarInstance!.notifsWindow)
+			notifService.displayDefaultNotif();
+	}
 	
 	/**
 	 * Insère un message d'erreur réseau dans le DOM, à l'intérieur de l'élément
@@ -330,13 +337,14 @@ export abstract class GamePage extends BasePage {
             playerID: this.currentUser!.id,
             tournamentID: tournamentID,
 			invitedId: invitedId,
-			inviterId: inviterId
+			inviterId: inviterId,
+			gameId: this.gameId
         }
-		const result = await gameApi.matchMake(matchMakingReq);
-		if ("errorMessage" in result) {
-			if (type === "invite" || type === "invite-accept")
-				await notifService.handleCancelInvite(this.friendId!);
-			console.log(result.errorMessage);
+
+		try {
+			await gameApi.matchMake(matchMakingReq);
+		} catch (error) {
+			console.error(error);
 			return;
 		}
     }
@@ -352,7 +360,6 @@ export abstract class GamePage extends BasePage {
 		while (allChildren?.firstChild)
 			allChildren.firstChild.remove();
 		await this.game!.initGame();
-		console.log("Game initialized", this.game);
 	}
 	
 	/**
