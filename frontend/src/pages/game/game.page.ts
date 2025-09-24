@@ -573,10 +573,10 @@ export abstract class GamePage extends BasePage {
 		if (this.requestType === "invite" && this.relation && this.relation.waitingInvite) {
 			invitedID = this.friendID;
 			inviterID = this.currentUser!.id;
-			// notifService.notifs = notifService.notifs.filter((notif) => notif.from == this.friendID 
-			// 		&& notif.content !== null && notif.content !== '');
-			// if (notifService.navbarInstance!.notifsWindow)
-			// 	notifService.displayDefaultNotif();
+			notifService.notifs = notifService.notifs.filter((notif) => notif.from == this.friendID 
+					&& notif.content !== null && notif.content !== '');
+			if (notifService.navbarInstance!.notifsWindow)
+				notifService.displayDefaultNotif();
 		}
 		const matchMakingReq = new Blob([JSON.stringify({
 			type: "clean_request",

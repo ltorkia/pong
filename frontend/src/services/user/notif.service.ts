@@ -252,9 +252,8 @@ export class NotifService {
 			return;
 		this.removeDefaultNotif();
 		this.notifItem = this.createNotifElement();
-		if (this.needButtons()) {
-			this.notifItem.innerHTML += this.createNotifButtonsHTML();
-		}
+		if (this.needButtons())
+  			this.notifItem.insertAdjacentHTML("beforeend", this.createNotifButtonsHTML());
 		translateService.updateLanguage(undefined, this.notifItem);
 		this.notifItem.classList.add('animate-fade-in-up');
 		this.navbarInstance!.notifsWindow.prepend(this.notifItem);
@@ -631,6 +630,7 @@ export class NotifService {
 	}
 
 	public handlePlayClick = async (event: Event): Promise<void> => {
+		console.log("handlePlayClick");
 		const type: NotificationType = FRIEND_REQUEST_ACTIONS.INVITE_ACCEPT;
 		const target = event.target as HTMLElement;
 		this.setFriendId(target);
