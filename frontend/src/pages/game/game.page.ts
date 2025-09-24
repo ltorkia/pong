@@ -72,7 +72,6 @@ export abstract class GamePage extends BasePage {
 	protected async beforeMount(): Promise<void> {
 		this.playButton = getHTMLElementByClass("start-click");
 		if (this.isInvitationGame) {
-			this.requestType = "invite";
 			const isRequestSet = await this.handleInviteRequest();
 			if (!isRequestSet)
 				return;
@@ -149,6 +148,7 @@ export abstract class GamePage extends BasePage {
 				break;
 
 			case "invite":
+			case "invite-accept":
 				this.relation = await friendApi.getRelation(this.currentUser!.id, this.friendID);
 				if (!this.relation || "errorMessage" in this.relation) {
 					console.error(this.relation.errorMessage || "Problème lors de la reprise de partie.");
@@ -278,9 +278,11 @@ export abstract class GamePage extends BasePage {
 		if (this.currentUser!.id === this.relation.challengedBy) {
 			if (this.replayInvite)
 				await this.sendMatchMakingRequest("invite", undefined, this.friendID, this.currentUser!.id);
+			this.requestType = "invite";
 			this.appendWaitText();
 		} else if (this.currentUser!.id === this.relation.isChallenged) {
 			await this.sendMatchMakingRequest("invite-accept", undefined, this.currentUser!.id, this.friendID);
+			this.requestType = "invite-accept";
 			this.appendWaitText();
 		} else {
 			console.error("Erreur de matchmaking dans l'invite.");
@@ -570,12 +572,21 @@ export abstract class GamePage extends BasePage {
 		await super.cleanup();
 		let inviterID: number | undefined = undefined;
 		let invitedID: number | undefined = undefined;
-		if (this.requestType === "invite" && this.relation && this.relation.waitingInvite) {
-			invitedID = this.friendID;
-			inviterID = this.currentUser!.id;
+		const friendId = Number(this.challengedFriendID);
+		if (friendId) {
+			switch (this.requestType) {
+				case "invite":
+					invitedID = friendId;
+					inviterID = this.currentUser!.id;
+					break;
+				case "invite-accept":
+					invitedID = this.currentUser!.idfriendId;
+					inviterID = friendId;
+					break;
+			}
 			notifService.notifs = notifService.notifs.filter((notif) => notif.from == this.friendID 
 					&& notif.content !== null && notif.content !== '');
-			if (notifService.navbarInstance!.notifsWindow)
+			if (notifService.navbarInstance?.notifsWindow)
 				notifService.displayDefaultNotif();
 		}
 		const matchMakingReq = new Blob([JSON.stringify({

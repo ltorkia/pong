@@ -150,7 +150,10 @@ export class NavbarComponent extends BaseComponent {
 		this.navLinks.forEach(link => {
 			link.removeEventListener('click', this.handleNavLinkClick);
 		});
+		this.notifsBtn.removeEventListener('click', this.toggleNotifsMenu);
+		this.chatBtn.removeEventListener('click', this.toggleChatWindow);
 		this.logoutLink.removeEventListener('click', this.handleLogoutClick);
+		notifService.cleanupListeners();
 	}
 
 	// ===========================================
@@ -420,8 +423,6 @@ export class NavbarComponent extends BaseComponent {
 	 */
 	private handleLogoutClick = async (event: MouseEvent): Promise<void> => {
 		event.preventDefault();
-		// this.componentConfig.destroy = true;
-		// animationService.animateNavbarOut = true;
 		await authService.logout();
 	};
 }

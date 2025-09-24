@@ -35,7 +35,14 @@ export class NotifService {
 
 	public currentNotif: AppNotification | null = null;
 	public friendId: number | null = null;
-	public friendName: string | null = null;
+	public friendName: string | null = null;	
+	
+	private notifHandlers: Map<number, {
+		accept?: EventListener;
+		decline?: EventListener;
+		play?: EventListener;
+		delete?: EventListener;
+	}> = new Map();
 
 	// ===========================================
 	// METHODES PUBLICS
@@ -257,7 +264,7 @@ export class NotifService {
 		translateService.updateLanguage(undefined, this.notifItem);
 		this.notifItem.classList.add('animate-fade-in-up');
 		this.navbarInstance!.notifsWindow.prepend(this.notifItem);
-		this.notifItem = getHTMLElementById(`notif-${this.currentNotif!.id}`, this.navbarInstance!.notifsWindow) as HTMLDivElement;
+		// this.notifItem = getHTMLElementById(`notif-${this.currentNotif!.id}`, this.navbarInstance!.notifsWindow) as HTMLDivElement;
 		this.attachListeners();
 	}
 
@@ -409,28 +416,44 @@ export class NotifService {
 	/**
 	 * Ajoute des listeners pour gérer les événements de clic sur les boutons des notifications.
 	 *
-	 * - Récupère les boutons 'accept' et 'decline' de la notification actuelle.
+	 * - Récupère les boutons 'accept', 'decline', 'play' et 'delete' de la notification actuelle.
 	 * - Si les boutons existent, ajoute des listeners pour gérer les événements de clic.
-	 * - Les handlers de clic sont définis comme des propriétés de l'objet : `handleAcceptClick` et `handleDeclineClick`.
+	 * - Les handlers sont stockés dans une Map pour pouvoir les supprimer proprement.
 	 */
 	private attachListeners(): void {
+		const notifId = this.currentNotif!.id;
+		const handlers: any = {};
+
+		// Bouton Accept
 		const acceptBtn = this.notifItem!.querySelector('button[data-action="accept"]');
 		if (acceptBtn) {
-			acceptBtn.addEventListener('click', this.handleAcceptClick as (ev: Event) => void);
+			handlers.accept = (ev: Event) => this.handleAcceptClick(ev);
+			acceptBtn.addEventListener('click', handlers.accept);
 		}
+
+		// Bouton Decline
 		const declineBtn = this.notifItem!.querySelector('button[data-action="decline"]');
 		if (declineBtn) {
-			declineBtn.addEventListener('click', this.handleDeclineClick as (ev: Event) => void);
+			handlers.decline = (ev: Event) => this.handleDeclineClick(ev);
+			declineBtn.addEventListener('click', handlers.decline);
 		}
+
+		// Bouton Play
 		const playBtn = this.notifItem!.querySelector('button[data-action="play"]');
 		if (playBtn) {
-			playBtn.addEventListener('click', this.handlePlayClick as (ev: Event) => void);
+			handlers.play = (ev: Event) => this.handlePlayClick(ev);
+			playBtn.addEventListener('click', handlers.play);
 		}
+
+		// Bouton Delete
 		const delBtn = this.notifItem!.querySelector('div.notif-del');
 		if (delBtn) {
-			const notifId = this.currentNotif!.id;
-			this.attachDeleteListener(notifId, delBtn as HTMLElement);
+			handlers.delete = async (ev: Event) => await this.deleteNotif(notifId);
+			delBtn.addEventListener('click', handlers.delete);
 		}
+
+		// Stocker tous les handlers pour cette notification
+		this.notifHandlers.set(notifId, handlers);
 	}
 
 	/**
@@ -456,31 +479,59 @@ export class NotifService {
 	 * Enlève les listeners ajoutés par `attachListeners` pour une notification spécifique.
 	 *
 	 * Cette méthode est appelée lorsque la notification est supprimée ou remplacée.
-	 * Elle enlève les listeners de clic sur les boutons 'accept', 'decline' et 'delete'
+	 * Elle enlève les listeners de clic sur les boutons 'accept', 'decline', 'play' et 'delete'
 	 * de la notification correspondante.
 	 *
 	 * @param {number} notifId - Identifiant de la notification pour laquelle enlever les listeners.
 	 */
 	private removeListeners(notifId: number): void {
-		const acceptBtn = this.notifItem!.querySelector('button[data-action="accept"]');
-		if (acceptBtn) {
-			acceptBtn.removeEventListener('click', this.handleAcceptClick as (ev: Event) => void);
+		const notifItem = this.navbarInstance!.notifsWindow.querySelector<HTMLDivElement>(`#notif-${notifId}`);
+		if (!notifItem) {
+			console.warn(`[${this.constructor.name}] Élément DOM #notif-${notifId} introuvable pour suppression des listeners`);
+			return;
 		}
-		const declineBtn = this.notifItem!.querySelector('button[data-action="decline"]');
-		if (declineBtn) {
-			declineBtn.removeEventListener('click', this.handleDeclineClick as (ev: Event) => void);
+
+		const handlers = this.notifHandlers.get(notifId);
+		if (!handlers) {
+			console.warn(`[${this.constructor.name}] Aucun handler trouvé pour la notification ${notifId}`);
+			return;
 		}
-		const playBtn = this.notifItem!.querySelector('button[data-action="play"]');
-		if (playBtn) {
-			playBtn.removeEventListener('click', this.handlePlayClick as (ev: Event) => void);
+
+		// Supprimer le listener du bouton Accept
+		const acceptBtn = notifItem.querySelector('button[data-action="accept"]');
+		if (acceptBtn && handlers.accept) {
+			acceptBtn.removeEventListener('click', handlers.accept);
 		}
-		const delBtn = this.notifItem!.querySelector('div.notif-del');
-		if (delBtn) {
-			const handler = this.notifDeleteHandlers.get(notifId);
-			if (handler)
-				delBtn.removeEventListener('click', handler);
-			this.notifDeleteHandlers.delete(notifId);
+
+		// Supprimer le listener du bouton Decline
+		const declineBtn = notifItem.querySelector('button[data-action="decline"]');
+		if (declineBtn && handlers.decline) {
+			declineBtn.removeEventListener('click', handlers.decline);
 		}
+
+		// Supprimer le listener du bouton Play
+		const playBtn = notifItem.querySelector('button[data-action="play"]');
+		if (playBtn && handlers.play) {
+			playBtn.removeEventListener('click', handlers.play);
+		}
+
+		// Supprimer le listener du bouton Delete
+		const delBtn = notifItem.querySelector('div.notif-del');
+		if (delBtn && handlers.delete) {
+			delBtn.removeEventListener('click', handlers.delete);
+		}
+
+		// Nettoyer la Map
+		this.notifHandlers.delete(notifId);
+	}
+
+	/**
+	 * Méthode utilitaire pour nettoyer tous les listeners en cas de destruction du service
+	 */
+	public cleanupListeners(): void {
+		for (const notifId of this.notifHandlers.keys())
+			this.removeListeners(notifId);
+		this.notifHandlers.clear();
 	}
 
 	/**
