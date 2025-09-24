@@ -199,13 +199,21 @@ export class Game {
         if (this.score[0] === this.score[1]) {
             await cancelledGame(this.gameID, 0, 0, this.score);
             return;
-        }
-        const winner = this.score[0] > this.score[1] ? this.players[0] : this.players[1];
-        const looser = this.score[0] < this.score[1] ? this.players[0] : this.players[1];
-        if (this.score[0] === 3 || this.score[1] === 3)
+        }        
+        let winner = this.players[1];
+        let looser = this.players[0];
+        if ((this.score[0] = 3) | (this.score[1] = 3)) {
+            winner = this.players[0];
+            looser = this.players[1];
             await resultGame(this.gameID, winner.ID, looser.ID, this.score);
-        else
+        } else
             await cancelledGame(this.gameID, winner.ID, looser.ID, this.score);
+        // const winner = this.score[0] > this.score[1] ? this.players[0] : this.players[1];
+        // const looser = this.score[0] < this.score[1] ? this.players[0] : this.players[1];
+        // if (this.score[0] === 3 || this.score[1] === 3)
+        //     await resultGame(this.gameID, winner.ID, looser.ID, this.score);
+        // else
+        //     await cancelledGame(this.gameID, winner.ID, looser.ID, this.score);
     }
 
     private sendGameUpdate() {
