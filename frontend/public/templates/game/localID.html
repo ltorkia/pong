@@ -1,4 +1,4 @@
-<div id="pong-section" class="section-box large-box game-local justify-evenly flex h-full w-full">
+<div id="pong-section" class="section-box pong-box large-box game-local justify-evenly flex h-full w-full">
   <h1 class="font-title font-bold text-5xl text-center text-shadow-black w-full">1v1 TOURNAMENT GAME</h1>
   <div id="player-names" class="w-full flex justify-around items-center">
     <h2 id="player-one" class="font-title font-bold text-4xl"></h2>
@@ -15,7 +15,8 @@
       <div class="control" data-key="ArrowDown">↓</div>
     </div>
   </div>
-  <div>READY? PRESS SPACE TO BEGIN</div>
+  <div class="start-space ready-text" data-ts="game.ready">READY? PRESS SPACE TO BEGIN</div>
+  <div class="start-click ready-text" data-ts="game.playBtn">START GAME</div>
   <!-- <div id="game-section" class="game-section"> -->
   <!-- Partie jeu -->
   <!-- <canvas id="pong-canvas"></canvas> -->

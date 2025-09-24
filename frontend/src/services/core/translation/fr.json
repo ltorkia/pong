@@ -194,6 +194,8 @@
 	},
 
 	"tournament": {
+		"registrationCheck": "Déja inscrit(e) ?",
+		"addPlayerBtn": "Ajouter un joueur",
 		"tournamentLabel": "Tournoi",
 		"participants": "Veuillez entrer un nombre de participants :",
 		"lobbyTitle": "Lobby du tournoi",

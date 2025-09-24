@@ -8,7 +8,7 @@ import { UserWS } from '../types/user.types';
 import {  getUserStats } from '../db/user';
 import { FRIEND_REQUEST_ACTIONS } from '../shared/config/constants.config';
 import { JwtPayload } from '../types/user.types';
-import { updateInvitePlayer } from '../db/friend';
+import { updateInvitePlayer, getRelation } from '../db/friend';
 import { insertNotification } from '../db/notification';
 import { addGame, addGamePlayers } from '../db/game';
 import { deleteNotificationsFrom } from '../db/notification';
@@ -19,7 +19,7 @@ export async function gameRoutes(app: FastifyInstance) {
 	app.post('/playgame', async (request: FastifyRequest, reply: FastifyReply) => {
 		const matchMakingReq = MatchMakingReqSchema.safeParse(request.body);
 		const reqType = matchMakingReq.data!.type;
-		console.log("---------- request body = ", request.body);
+		console.log("---------- request body /playgame = ", request.body);
 
 		if (!matchMakingReq.success)
 			return reply.code(400).send({ error: matchMakingReq.error.errors[0].message });
@@ -38,7 +38,7 @@ export async function gameRoutes(app: FastifyInstance) {
 				return reply.code(404).send({ error: "Player not found" });
 			newPlayer.matchMaking = true;
 
-			const playerTwo = allPlayers.find((p: Player) => p.matchMaking === true && p.ID !== newPlayer.ID);
+			const playerTwo = await findAvailableOpponent(newPlayer, allPlayers);
 			if (playerTwo) {
                 cleanPlayers(allPlayers, newPlayer, playerTwo);
 				startGame(app, [newPlayer, playerTwo], "multi");
@@ -93,7 +93,7 @@ export async function gameRoutes(app: FastifyInstance) {
 		}
 
 		/**
-		 * ANCIEN CODE D'ELISA POUR LOCAL + REMOTE SI JAMAIS BESOIN DE RECUP
+		 * ! ANCIEN CODE D'ELISA POUR LOCAL + REMOTE SI JAMAIS BESOIN DE RECUP
 		 */
 		// // MATCHMAKING REQUEST POUR LOCAL
 		// if (reqType === "tournament") //localtorunament
@@ -197,6 +197,18 @@ export async function gameRoutes(app: FastifyInstance) {
 	});
 }
 
+async function findAvailableOpponent(newPlayer: Player, allPlayers: Player[]): Promise<Player | null> {
+	for (const candidate of allPlayers) {
+		if (!candidate.matchMaking || candidate.ID === newPlayer.ID)
+			continue;
+		const relation = await getRelation(newPlayer.ID, candidate.ID);
+		if (relation?.friendStatus === "blocked")
+			continue;
+		return candidate;
+	}
+	return null;
+}
+
 function initPlayers(allPlayers: Player[], currentPlayerId: number, adversaryId: number) {
 	const playerOne = initPlayer(allPlayers, currentPlayerId);
 	const payerTwo = initPlayer(allPlayers, adversaryId);
@@ -260,19 +272,18 @@ async function decount(app: FastifyInstance, players: Player[], gameID: number) 
      for (let i = 3; i >= 0; i--) {
         for (const player of players) {
             const user = usersWS.find((user: UserWS) => user.id == player.ID);
-                    if (user && user.WS) {
-                    user.WS.send(JSON.stringify({
-                        type: "decount_game",
-                        message: i,
-                        gameID: gameID,
-                    }));
-                }       
+			if (user && user.WS) {
+				user.WS.send(JSON.stringify({
+					type: "decount_game",
+					message: i,
+					gameID: gameID,
+				}));
+			}       
             }
         if (i !== 0)
             await new Promise(resolve => setTimeout(resolve, 1000));
     }
 }
-
 async function decountWS(ws: WebSocket, gameID: number) {
     for (let i = 3; i >= 0; i--) {
         ws.send(JSON.stringify({
@@ -305,21 +316,19 @@ const startGame = async (app: FastifyInstance, players: Player[], mode: string, 
 		}
 
 		const user = usersWS.find((user: UserWS) => user.id == player.ID);
-		if (!user || !user.WS) {
-			console.log("User not found. bye");
-			return;
-		}
-		user.WS.send(JSON.stringify(WSToSend));
-		user.WS.onmessage = (event: MessageEvent) => {
-			const msg: any = JSON.parse(event.data);
-			if (msg.type == "movement") {
-				if (mode === "multi")
-					newGame.registerInput(msg.playerID, msg.key, msg.status);
-				if (mode === "local")
-					newGame.registerInputLocal(msg.playerID, msg.key, msg.status);
+		if (user && user.WS) {
+			user.WS.send(JSON.stringify(WSToSend));
+			user.WS.onmessage = (event: MessageEvent) => {
+				const msg: any = JSON.parse(event.data);
+				if (msg.type == "movement") {
+					if (mode === "multi")
+						newGame.registerInput(msg.playerID, msg.key, msg.status);
+					if (mode === "local")
+						newGame.registerInputLocal(msg.playerID, msg.key, msg.status);
+				}
 			}
+			player.webSocket = user.WS;
 		}
-		player.webSocket = user.WS;
 	}
 	await decount(app, players, gameID);
 
@@ -358,21 +367,20 @@ const startTournamentGame = async (app: FastifyInstance, gameID: number, hostID:
 		: await getUserStats(game.players[0].ID);
 
 	const host = app.usersWS.find((u: UserWS) => u.id == hostID);
-	if (!host || !host.WS) {
-		console.log("Host not found. bye");
-		return;
-	}
-	host.WS.send(JSON.stringify({ type: "start_game", otherPlayer: adversary, gameID: gameID, mode: "tournament" } as StartGame));
-	host.WS.onmessage = (event: MessageEvent) => {
-		const msg: any = JSON.parse(event.data);
-		if (msg.type == "movement") {
-			console.log(msg.type);
-			game.registerInputLocal(msg.playerID, msg.key, msg.status);
+	if (host && host.WS) {
+		host.WS.send(JSON.stringify({ type: "start_game", otherPlayer: adversary, gameID: gameID, mode: "tournament" } as StartGame));
+		host.WS.onmessage = (event: MessageEvent) => {
+			const msg: any = JSON.parse(event.data);
+			if (msg.type == "movement") {
+				console.log(msg.type);
+				game.registerInputLocal(msg.playerID, msg.key, msg.status);
+			}
 		}
+		game.players[0].webSocket = host.WS;
+		game.players[1].webSocket = host.WS;
+
+		await decountWS(host.WS, gameID);
 	}
-	game.players[0].webSocket = host.WS;
-	game.players[1].webSocket = host.WS;
-	await decountWS(host.WS, gameID);
 
 	// Vérifier si le jeu a été supprimé par une clean_request pendant le décompte
 	const gameIndex = allGames.findIndex((g: Game) => g.gameID === gameID);

@@ -193,6 +193,8 @@
 	},
 
 	"tournament": {
+		"registrationCheck": "既に登録されていますか？",
+		"addPlayerBtn": "プレイヤーを追加",
 		"tournamentLabel": "トーナメント",
 		"participants": "参加者の人数を入力してください：",
 		"lobbyTitle": "トーナメントロビー",

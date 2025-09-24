@@ -45,7 +45,7 @@ export class GameMenuTournamentLocal extends BasePage {
         // this.getTournaments();
         this.applyAppClasses();
         await this.fetchPastille();
-        console.log(this.pastilleHTML);
+        // console.log(this.pastilleHTML);
     }
 
     // Juste du layout

@@ -1,39 +1,39 @@
 <!-- <div id="pong-section" class="h-full w-full section-box large-box game-local justify-evenly p-0"> -->
-<h1 class="font-title m-10 font-bold text-5xl text-center text-shadow-5xl text-shadow-black text-white w-full">
+<h1 data-ts="home.localTournamentBtn" class="font-title m-10 font-bold text-5xl text-center text-shadow-5xl text-shadow-black text-white w-full">
     TOURNAMENTS</h1>
 <div id="register-container" class="size-full h-96 flex relative justify-evenly items-center">
     <div id="alias-container" class="relative h-full flex flex-col justify-center items-center">
         <div id="input-box"
             class="h-full w-full m-2 relative flex flex-col justify-center items-center bg-black bg-opacity-70 shadow-lg shadow-black ring-1 ring-black inset-shadow-lg inset-shadow-white-500 border-white rounded-md transition-all delay-50 duration-500 ease-in-out active:duration-75 hover:-translate-y-1 hover:bg-white hover:opacity-90 hover:text-black inline-block will-change-transform">
             <div id="alias-box" class="flex flex-col items-center">
-                <h3 id="alias-title " class="font-title text-center m-3">Your Alias ? :</h3>
+                <h3 data-ts="tournament.aliasLabel" id="alias-title " class="font-title text-center m-3">Your Alias ? :</h3>
                 <input id="alias-name-input" type="text"
                     class="w-1/2 m-2 p-1 bg-white bg-opacity-20 rounded-md shadow-white bg-opacity-10 text-white focus:outline-none"></input>
             </div>
         </div>
         <div id="input-box"
             class="h-full w-full m-2 relative font-title flex flex-col justify-center items-center bg-black bg-opacity-70 shadow-lg shadow-black ring-1 ring-black inset-shadow-lg inset-shadow-white-500 border-white rounded-md transition-all delay-50 duration-500 ease-in-out active:duration-75 hover:-translate-y-1 hover:bg-white hover:opacity-90 hover:text-black inline-block will-change-transform">
-            <h2 class="m-2">Already registered ?</h2>
+            <h2 data-ts="tournament.registrationCheck" class="m-2">Already registered ?</h2>
             <div id="register-box" class="flex">
                 <div id="username-box" class="flex flex-col items-center">
-                    <h3 id="username-title" class="font-title text-sm text-center m-1">E-mail :</h3>
+                    <h3 data-ts="auth.emailLabel" id="username-title" class="font-title text-sm text-center m-1">Email </h3>
                     <input id="username-input" type="text"
                         class="w-32 m-2 p-1 font-home bg-white bg-opacity-20 rounded-md shadow-white bg-opacity-10 text-white focus:outline-none"></input>
                 </div>
                 <div id="password-box" class="flex flex-col items-center">
-                    <h3 id="password-title" class="font-title text-sm text-center m-1">Password :</h3>
+                    <h3 data-ts="auth.passwordLabel" id="password-title" class="font-title text-sm text-center m-1">Password </h3>
                     <input id="password-input" type="password"
                         class="w-32 m-2 p-1 font-home bg-white bg-opacity-20 rounded-md shadow-white bg-opacity-10 text-white focus:outline-none"></input>
                 </div>
             </div>
-            <button id="add-player-btn" class="p-2 m-1 transition-all rounded-lg shadow-black delay-50 duration-300 ease-in-out active:duration-75 hover:-translate-y-0.5 hover:bg-green-500 hover:scale-110 hover:shadow-black hover:shadow-md active:scale-105 active:translate-y-0.5">ADD PLAYER</button>
+            <button data-ts="tournament.addPlayerBtn" id="add-player-btn" class="p-2 m-1 transition-all rounded-lg shadow-black delay-50 duration-300 ease-in-out active:duration-75 hover:-translate-y-0.5 hover:bg-green-500 hover:scale-110 hover:shadow-black hover:shadow-md active:scale-105 active:translate-y-0.5">ADD PLAYER</button>
         </div>
-        <button id="tournament-start-btn"
+        <button data-ts="tournament.startTournament" id="tournament-start-btn"
             class="w-full m-2 p-2 relative rounded-md border-black ring-1 ring-black shadow-lg shadow-black bg-black bg-opacity-70 text-white text-lg transform transition-all delay-50 duration-300 ease-in-out active:duration-75 hover:-translate-y-1 hover:bg-white hover:opacity-90 hover:text-black hover:scale-110 active:scale-105 active:translate-y-0.5 inline-block will-change-transform">Start Tournament!
         </button>
     </div>
     <div id="pastilles-holder"
-        class="gap-1 p-2 bg-black bg-opacity-30 shadow-lg shadow-black ring-1 ring-black <!-- inset-shadow-lg inset-shadow-white-500 --> border-white rounded-md h-full w-2/3 overflow-hidden scroll-smooth">
+        class="gap-1 p-2 bg-black bg-opacity-30 shadow-lg shadow-black ring-1 ring-black border-white rounded-md h-full w-2/3 overflow-hidden scroll-smooth">
     </div>
 </div>
 <div id="infos-game"></div>

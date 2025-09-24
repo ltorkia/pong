@@ -1,5 +1,4 @@
 import { BasePage } from '../../base/base.page';
-// import { GamePage } from '../game.page';
 import { RouteConfig } from '../../../types/routes.types';
 import { Game, TournamentLocal } from '../../../types/game.types';
 import { TournamentService } from '../../../api/game/game.api';
@@ -20,8 +19,6 @@ export class GameTournamentLocalOverview extends BasePage {
     private dataApi = new DataService();
     private users: UserModel[] = [];
     private winner: Player | undefined;
-
-    // protected async initMatchRequest(): Promise<void> {}
 
 	/**
 	 * Procède aux vérifications nécessaires avant le montage de la page.
