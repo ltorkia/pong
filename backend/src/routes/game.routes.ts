@@ -90,7 +90,10 @@ export async function gameRoutes(app: FastifyInstance) {
 			await cleanGame(app, matchMakingReq.data.gameID);
 			cleanPlayer(allPlayers, playerID);
 			reply.code(200).send({ message: "Game cleaned up" });
-		}
+		} else {
+			cleanPlayer(allPlayers, playerID);
+            reply.code(200).send({ message: "Players cleaned up" });
+        }
 
 		/**
 		 * ! ANCIEN CODE D'ELISA POUR LOCAL + REMOTE SI JAMAIS BESOIN DE RECUP
