@@ -616,8 +616,10 @@ export class NotifService {
 			return;
 		}
 		await this.handleUpdate(type);
-		if (this.currentPage.config.path !== ROUTE_PATHS.GAME_MULTI
-			&& !(this.currentPage instanceof GamePage)) {
+		if ((this.currentPage.config.path !== ROUTE_PATHS.GAME_MULTI 
+				&& !(this.currentPage instanceof GamePage))
+			|| ((this.currentPage instanceof GamePage)
+			&& this.currentPage.challengedFriendID !== this.friendId)) {
 			try {
 				await gameService.invitePlayer(FRIEND_REQUEST_ACTIONS.INVITE, this.friendId!);
 			} catch (err) {
@@ -638,7 +640,10 @@ export class NotifService {
 			console.error(relation.errorMessage || "Invitation invalide.");
 			return;
 		}
-		if (this.currentPage.config.path !== ROUTE_PATHS.GAME_MULTI && !(this.currentPage instanceof GamePage))
+		if ((this.currentPage.config.path !== ROUTE_PATHS.GAME_MULTI 
+				&& !(this.currentPage instanceof GamePage))
+			|| ((this.currentPage instanceof GamePage)
+			&& this.currentPage.challengedFriendID !== this.friendId))
 			await router.navigate(`/game/multi/${this.friendId!}`);
 		else if (this.currentPage.challengedFriendID! === this.friendId!)
 			await this.currentPage.checkInviteReplayRequest!();

@@ -8,12 +8,11 @@ import { TournamentService } from '../../api/game/game.api';
 import { Game } from '../../types/game.types';
 
 export class GameMenuLocalID extends GamePage {
-    private gameID: number;
+    protected gameID: number;
     private gameInfos: Game | undefined;
 
     constructor(config: RouteConfig) {
         super(config);
-        this.webSocket = webSocketService.getWebSocket();
         this.gameID = Number(window.location.href.split('/').reverse()[0].slice(1));
     }
 
@@ -31,36 +30,9 @@ export class GameMenuLocalID extends GamePage {
         playerTwo.textContent = this.gameInfos?.players[1].alias;
     }
 
-    private appendWaitText(): void {
-        // const waitDiv: HTMLElement | null = document.getElementById("wait-div");
-        // if (!waitDiv) {
-            const lobby: HTMLElement = document.createElement("div");
-        //     lobby.textContent = "Waiting for other players to connect...";
-        //     lobby.id = "wait-div";
-            document.getElementById("pong-section")?.append(lobby);
-        // }
-    }
-
-    protected handleKeyDown = (event: KeyboardEvent): void => {
-        this.controlNodesDown = document.querySelectorAll(".control");
-        if (event.key == " " && this.isSearchingGame === false) { //TODO : creer un bouton pour lancer le jeu et replay pour sendmatchmaquingrequest pour eviter de le lancer en dehors de la page jeu
-            this.isSearchingGame = true;          
-            this.sendMatchMakingRequest("tournament", this.gameID);
-            // document.getElementById("pong-section")?.append(lobby);
-            this.appendWaitText();
-        }
-        for (const node of this.controlNodesDown) {
-            if (node.dataset.key == event.key)
-                node.classList.add("button-press");
-        }
-    }
-
-    protected handleKeyup = (event: KeyboardEvent): void => {
-        this.controlNodesUp = document.querySelectorAll(".control");
-        for (const node of this.controlNodesUp) {
-            if (node.dataset.key == event.key)
-                node.classList.remove("button-press");
-        }
+    protected async initMatchRequest(): Promise<void> {
+        this.isSearchingGame = true;          
+        this.sendMatchMakingRequest("tournament", this.gameID);
     }
 }
 

@@ -191,7 +191,8 @@ export abstract class GamePage extends BasePage {
 		switch (data.type) {
 
 			case "start_game":
-				this.gameID = data.gameID;
+				if (!this.gameID)
+					this.gameID = data.gameID;
 				this.adversary = data.otherPlayer;
 				this.isPartOfTournament = data.mode === "tournament" ? true : false;
 				this.game = new MultiPlayerGame(2, this.currentUser!.id, this.gameID);
@@ -567,17 +568,15 @@ export abstract class GamePage extends BasePage {
 	// ===========================================
 	public async cleanup(): Promise<void> {
 		await super.cleanup();
-		let invitedID, inviterID;
+		let inviterID: number | undefined = undefined;
+		let invitedID: number | undefined = undefined;
 		if (this.requestType === "invite" && this.relation && this.relation.waitingInvite) {
 			invitedID = this.friendID;
 			inviterID = this.currentUser!.id;
-			notifService.notifs = notifService.notifs.filter((notif) => notif.from == this.friendID 
-					&& notif.content !== null && notif.content !== '');
-			if (notifService.navbarInstance!.notifsWindow)
-				notifService.displayDefaultNotif();
-		} else {
-			invitedID = undefined;
-			inviterID = undefined;
+			// notifService.notifs = notifService.notifs.filter((notif) => notif.from == this.friendID 
+			// 		&& notif.content !== null && notif.content !== '');
+			// if (notifService.navbarInstance!.notifsWindow)
+			// 	notifService.displayDefaultNotif();
 		}
 		const matchMakingReq = new Blob([JSON.stringify({
 			type: "clean_request",
