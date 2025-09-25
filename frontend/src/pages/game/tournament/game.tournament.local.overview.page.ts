@@ -1,5 +1,5 @@
 import { BasePage } from '../../base/base.page';
-import { RouteConfig } from '../../../types/routes.types';
+import { RouteConfig, RouteParams } from '../../../types/routes.types';
 import { Game, TournamentLocal } from '../../../types/game.types';
 import { TournamentService } from '../../../api/game/game.api';
 import { router } from '../../../router/router';
@@ -7,18 +7,25 @@ import { UserModel } from '../../../shared/types/user.types';
 import { DataService } from '../../../services/user/data.service';
 import { Player } from '../../../shared/types/game.types';
 import { User } from '../../../shared/models/user.model';
+import { ROUTE_PATHS } from '../../../config/routes.config';
 
 const MAX_PLAYERS = 4;
 const MIN_PLAYERS = 4;
 
 export class GameTournamentLocalOverview extends BasePage {
-    private tournamentID: number;
+    private tournamentID?: number;
     private pastilleHTML: HTMLElement | undefined;
     private toolTipHTML: HTMLElement | undefined;
     private tournament: TournamentLocal | undefined;
     private dataApi = new DataService();
     private users: UserModel[] = [];
     private winner: Player | undefined;
+
+    constructor(config: RouteConfig, params?: RouteParams) {
+		super(config);
+		if (params && params.tournamentId)
+            this.tournamentID = Number(params.tournamentId);
+    }
 
 	/**
 	 * Procède aux vérifications nécessaires avant le montage de la page.
@@ -30,11 +37,16 @@ export class GameTournamentLocalOverview extends BasePage {
 		const isPreRenderChecked = await super.preRenderCheck();
 		if (!isPreRenderChecked)
 			return false;
-        // Check si le tournoi existe ou redirection
-        this.tournament = await TournamentService.fetchLocalTournament(this.tournamentID);
+
+        if (!this.tournamentID) {
+            console.error("Tournament id undefined");
+            this.redirectRoute = ROUTE_PATHS.GAME_TOURNAMENT_LOCAL_MENU;
+            return false;
+        }
+        this.tournament = await TournamentService.fetchLocalTournament(this.tournamentID!);
 		if (!this.tournament) {
             console.error("Tournament not found");
-            this.redirectRoute = "/game/tournaments";
+            this.redirectRoute = ROUTE_PATHS.GAME_TOURNAMENT_LOCAL_MENU;
 			return false;
 		}
 		return true;
@@ -65,11 +77,6 @@ export class GameTournamentLocalOverview extends BasePage {
             console.error("didnt find top container");
             return undefined;
         }
-    }
-
-    constructor(config: RouteConfig) {
-        super(config);
-        this.tournamentID = Number(window.location.href.split('/').reverse()[1].slice(1));
     }
 
     // Fetch les players d'un tournoi stocke dans le back pour les avoir a disposition dans le front
@@ -116,11 +123,11 @@ export class GameTournamentLocalOverview extends BasePage {
     private displayNextGameAndSetNavigate(): void {
         const nextGame = this.getNextGame();
         if (nextGame) {
-            console.log(nextGame.gameIDforDB);
+            console.log(nextGame.gameID);
             document.getElementById("player-one")!.textContent = `${nextGame?.players[0].alias}`;
             document.getElementById("player-two")!.textContent = `${nextGame?.players[1].alias}`;
             document.getElementById("tournament-start-btn")!.addEventListener("click", () => {
-                router.navigate(`/game/local/:${nextGame.gameIDforDB}`);
+                router.navigate(`${ROUTE_PATHS.GAME_LOCAL}/${this.tournamentID}/${nextGame.gameID}`);
             })
         }
     }

@@ -5,6 +5,7 @@ import { User } from '../../shared/models/user.model';
 import { dataApi } from '../../api/index.api';
 import { dataService } from '../../services/index.service';
 import { formatDate } from '../../utils/app.utils';
+import { ROUTE_PATHS } from '../../config/routes.config';
 
 // ===========================================
 // PROFILE PAGE
@@ -14,7 +15,7 @@ import { formatDate } from '../../utils/app.utils';
  * d'un utilisateur.
  */
 export class ProfilePage extends BasePage {
-	private userId?: number | RouteParams;
+	private userId?: number;
 	private user: any = null;
 	protected currentUser: User | null = null; // Pour savoir si c'est notre profil
 	private userStats: any = null;
@@ -26,11 +27,12 @@ export class ProfilePage extends BasePage {
 	 * Constructeur de la page de profil.
 	 *
 	 * @param {RouteConfig} config La configuration de la route.
-	 * @param {number | RouteParams} [userId] L'ID de l'utilisateur à afficher.
+	 * @param {RouteParams} [params] L'ID de l'utilisateur à afficher.
 	 */
-	constructor(config: RouteConfig, userId?: number | RouteParams) {
+	constructor(config: RouteConfig, params?: RouteParams) {
 		super(config);
-		this.userId = userId;
+		if (params && params.userId)
+			this.userId = Number(params.userId);
 	}
 
 	// ===========================================
@@ -81,11 +83,19 @@ export class ProfilePage extends BasePage {
 			]
 		};
 	}
+
+	protected async preRenderCheck(): Promise<boolean> {
+		const isPreRenderChecked = await super.preRenderCheck();
+		if (!isPreRenderChecked)
+			return false;
+		if (!this.userId) {
+			this.redirectRoute = ROUTE_PATHS.HOME;
+			return false;
+		}
+		return true;
+	}
 	
 	protected async beforeMount(): Promise<void> {
-		if (typeof this.userId !== 'number') {
-			throw new Error('User ID invalide ou manquant');
-		}
 		// this.user = await dataApi.getUserById(this.userId);
 
 		try {

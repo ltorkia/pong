@@ -1,33 +1,25 @@
 import { BasePage } from '../../base/base.page';
 import { RouteConfig } from '../../../types/routes.types';
 import { router } from '../../../router/router';
-import { secureFetch } from '../../../utils/app.utils';
-import { generateUniqueID } from '../../../shared/functions'
-import { authService, currentService } from '../../../services/index.service';
-import { animateCSS } from '../../../utils/animate.utils';
-// import { joinTournament, postNewTournament, sendDismantleRequest } from '../../../api/game/tournament.api';
 import { TournamentService } from '../../../api/game/game.api';
-import { Player } from '../../../shared/types/game.types';
 import { DataService } from '../../../services/user/data.service';
 import { Tournament, TournamentLocal } from '../../../types/game.types';
-import { authApi } from '../../../api/index.api';
 import { AuthResponse } from '../../../../../shared/types/response.types';
 import { UserModel } from '../../../../../shared/types/user.types';
+import { ROUTE_PATHS } from '../../../config/routes.config';
 
 const MAX_PLAYERS = 4;
 
 export class GameMenuTournamentLocal extends BasePage {
     private tournament: Tournament[] = [];
-    private playersNb: number = MAX_PLAYERS; // Minimum players required
+    private playersNb: number = MAX_PLAYERS;
     private players: { ID: number, alias?: string }[] = [];
     private dataApi = new DataService();
     private pastilleHTML: Node | undefined;
-    // private tournamentToCancel: number = 0;
 
     constructor(config: RouteConfig) {
         super(config);
         this.pastilleHTML = document.createElement("div");
-        // this.fetchTournamentItem();
     }
 
     // Fetch HTML stocke localement a reutiliser pour display chaque joueur 
@@ -202,7 +194,7 @@ export class GameMenuTournamentLocal extends BasePage {
         const newTournament = new TournamentLocal(MAX_PLAYERS, this.currentUser.id, this.players);
         try {
             const tournamentID = await TournamentService.postNewLocalTournament(newTournament);
-            router.navigate(`/game/tournaments_local/:${tournamentID}/overview`);
+            router.navigate(`${ROUTE_PATHS.GAME_TOURNAMENT_LOCAL_MENU}/${tournamentID}`);
         } catch (error: any) {
             this.printError(error.error);
         }

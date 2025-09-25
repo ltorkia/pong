@@ -118,6 +118,7 @@ export class WebSocketService {
 					return;
 				}
 
+				// console.log('Message reçu:', receivedData);
 				// GAME MSG
 				if (isValidGameType(receivedData.type)) {
 					if (isGameMsg(receivedData.type)) {

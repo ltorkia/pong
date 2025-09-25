@@ -2,11 +2,12 @@ import { RouteConfig, RouteParams } from '../../types/routes.types';
 import { GamePage } from './game.page';
 
 export class GameMenuMulti extends GamePage {
+	public challengedFriendID: number = 0;
 
-	constructor(config: RouteConfig, userId?: number | RouteParams) {
+	constructor(config: RouteConfig, params?: RouteParams) {
 		super(config);
-		if (userId)
-			this.challengedFriendID = userId;
+		if (params && params.userId)
+			this.challengedFriendID = Number(params.userId);
 	}
 
 	protected async initMatchRequest(): Promise<void> {

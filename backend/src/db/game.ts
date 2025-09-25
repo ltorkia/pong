@@ -187,18 +187,15 @@ export async function getResultGame(gameId: number)
     //     id: number;
     //     alias: string;
     // }
-    
-    // Crée un tournoi et retourne son id
-    export async function createTournament(nParticipants: number, nRound: number): Promise<number | undefined> {
+
+// Crée un tournoi et retourne son id
+export async function createTournament(nParticipants: number, nRound: number): Promise<number | undefined> {
         const db = await getDb();
-    // const t = tournament as tournamentInput;
-    const tournament = await db.run(`
-        INSERT INTO Tournament (n_participants, n_round)
-        VALUES (${nParticipants}, ${nRound})
-    `);
+    const tournament = await db.run(
+        `INSERT INTO Tournament (n_participants, n_round) VALUES (?, ?)`,
+        [nParticipants, nRound]
+    );
     return tournament.lastID;
-    // const info = stmt.run(nParticipants, nRound);
-    // return info.lastInsertRowid as number;
 }
 
 // // Crée un jeu et retourne son id

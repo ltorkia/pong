@@ -64,12 +64,12 @@ export const PAGE_NAMES = {
     GAME_LOCAL: 'Local Game',
     GAME_LOCAL_ID: 'Tournament Game',
     GAME_MULTI: 'Multiplayer game',
-    GAME_TOURNAMENT: 'Tournament',
     GAME_TOURNAMENT_LOCAL_MENU: 'Tournament Local',
+    GAME_TOURNAMENT_OVERVIEW: 'Tournament Overview',
+    GAME_TOURNAMENT: 'Tournament',
     GAME_TOURNAMENT_LIST: "Tournament List",
     GAME_TOURNAMENT_REGISTER: 'Tournament Register',
     GAME_TOURNAMENT_LOBBY: 'Tournament Lobby',
-    GAME_TOURNAMENT_OVERVIEW: 'Tournament Overview',
     BOIDS: 'Boids',
     RULES: 'Rules',
     USERS: 'Users',
@@ -90,18 +90,18 @@ export const ROUTE_PATHS = {
 	REGISTER: '/register',
 	LOGIN: '/login',
 	GAME_LOCAL: '/game/local',
-	GAME_LOCAL_ID: '/game/local/:id',
-	GAME_MULTI: '/game/multi/:id',
-	GAME_TOURNAMENT: '/game/tournament',
+	GAME_LOCAL_ID: '/game/local/:tournamentId/:gameId',
+	GAME_MULTI: '/game/multi/:userId',
 	GAME_TOURNAMENT_LOCAL_MENU: '/game/tournament_local',
+	GAME_TOURNAMENT_LOCAL_OVERVIEW: '/game/tournament_local/:tournamentId',
+	GAME_TOURNAMENT: '/game/tournament',
 	GAME_TOURNAMENT_LIST: "/game/tournaments",
 	GAME_TOURNAMENT_LOBBY: '/game/tournaments/:id/lobby',
-	GAME_TOURNAMENT_LOCAL_OVERVIEW: '/game/tournaments_local/:id/overview',
-	GAME_TOURNAMENT_OVERVIEW: '/game/tournaments/:id/overview',
+	GAME_TOURNAMENT_OVERVIEW: '/game/tournaments/:id',
 	BOIDS: '/game/boids',
 	RULES: '/rules',
 	USERS: '/users',
-	PROFILE: '/user/:id',
+	PROFILE: '/user/:userId',
 	DASHBOARD: '/dashboard',
 	LOGOUT: '/logout',
 	SETTINGS: '/settings'
@@ -121,12 +121,12 @@ export const TEMPLATE_PATHS = {
     GAME_LOCAL: '/templates/game/local.html',
     GAME_LOCAL_ID: '/templates/game/localID.html',
     GAME_MULTI: '/templates/game/multiplayer.html',
-    GAME_TOURNAMENT: '/templates/game/tournament.html',
     GAME_TOURNAMENT_LOCAL_MENU: '/templates/game/tournament/tournament_local_menu.html',
+    GAME_TOURNAMENT_LOCAL_OVERVIEW: '/templates/game/tournament/tournament_local_overview.html',
+    GAME_TOURNAMENT: '/templates/game/tournament.html',
     GAME_TOURNAMENT_LIST: '/templates/game/tournament/tournament_list.html',
     GAME_TOURNAMENT_LOBBY: '/templates/game/tournament/tournament_lobby.html',
     GAME_TOURNAMENT_OVERVIEW: '/templates/game/tournament/tournament_overview.html',
-    GAME_TOURNAMENT_LOCAL_OVERVIEW: '/templates/game/tournament/tournament_local_overview.html',
     BOIDS: '/templates/game/boids.html',
     RULES: '/templates/user/rules.html',
     USERS: '/templates/user/users.html',
@@ -240,10 +240,10 @@ export const routesConfig: RouteConfig[] = [
 		enableParticles: true
 	},
 	{
-		path: ROUTE_PATHS.GAME_TOURNAMENT,
-		name: PAGE_NAMES.GAME_TOURNAMENT,
-		pageConstructor: GameMenuTournament,
-		templatePath: TEMPLATE_PATHS.GAME_TOURNAMENT,
+		path: ROUTE_PATHS.GAME_TOURNAMENT_LOCAL_MENU,
+		name: PAGE_NAMES.GAME_TOURNAMENT_LOCAL_MENU,
+		pageConstructor: GameMenuTournamentLocal,
+		templatePath: TEMPLATE_PATHS.GAME_TOURNAMENT_LOCAL_MENU,
 		components: {
 			[COMPONENT_NAMES.NAVBAR]: getComponentConfig(COMPONENT_NAMES.NAVBAR),
 			[COMPONENT_NAMES.TRANSLATER]: getComponentConfig(COMPONENT_NAMES.TRANSLATER)
@@ -251,11 +251,23 @@ export const routesConfig: RouteConfig[] = [
 		isPublic: false,
 		enableParticles: true
 	},
+    {
+        path: ROUTE_PATHS.GAME_TOURNAMENT_LOCAL_OVERVIEW,
+        name: PAGE_NAMES.GAME_TOURNAMENT_OVERVIEW,
+        pageConstructor: GameTournamentLocalOverview,
+        templatePath: TEMPLATE_PATHS.GAME_TOURNAMENT_OVERVIEW,
+        components: {
+            [COMPONENT_NAMES.NAVBAR]: getComponentConfig(COMPONENT_NAMES.NAVBAR),
+			[COMPONENT_NAMES.TRANSLATER]: getComponentConfig(COMPONENT_NAMES.TRANSLATER)
+        },
+        isPublic: false,
+        enableParticles: true
+    },
 	{
-		path: ROUTE_PATHS.GAME_TOURNAMENT_LOCAL_MENU,
-		name: PAGE_NAMES.GAME_TOURNAMENT_LOCAL_MENU,
-		pageConstructor: GameMenuTournamentLocal,
-		templatePath: TEMPLATE_PATHS.GAME_TOURNAMENT_LOCAL_MENU,
+		path: ROUTE_PATHS.GAME_TOURNAMENT,
+		name: PAGE_NAMES.GAME_TOURNAMENT,
+		pageConstructor: GameMenuTournament,
+		templatePath: TEMPLATE_PATHS.GAME_TOURNAMENT,
 		components: {
 			[COMPONENT_NAMES.NAVBAR]: getComponentConfig(COMPONENT_NAMES.NAVBAR),
 			[COMPONENT_NAMES.TRANSLATER]: getComponentConfig(COMPONENT_NAMES.TRANSLATER)
@@ -287,18 +299,6 @@ export const routesConfig: RouteConfig[] = [
 		isPublic: false,
 		enableParticles: true
 	},
-    {
-        path: ROUTE_PATHS.GAME_TOURNAMENT_LOCAL_OVERVIEW,
-        name: PAGE_NAMES.GAME_TOURNAMENT_OVERVIEW,
-        pageConstructor: GameTournamentLocalOverview,
-        templatePath: TEMPLATE_PATHS.GAME_TOURNAMENT_OVERVIEW,
-        components: {
-            [COMPONENT_NAMES.NAVBAR]: getComponentConfig(COMPONENT_NAMES.NAVBAR),
-			[COMPONENT_NAMES.TRANSLATER]: getComponentConfig(COMPONENT_NAMES.TRANSLATER)
-        },
-        isPublic: false,
-        enableParticles: true
-    },
 	{
 		path: ROUTE_PATHS.GAME_TOURNAMENT_OVERVIEW,
 		name: PAGE_NAMES.GAME_TOURNAMENT_OVERVIEW,

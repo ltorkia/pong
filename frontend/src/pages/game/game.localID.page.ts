@@ -1,5 +1,6 @@
 import { BasePage } from '../base/base.page';
-import { RouteConfig } from '../../types/routes.types';
+import { RouteConfig, RouteParams } from '../../types/routes.types';
+import { ROUTE_PATHS } from '../../config/routes.config';
 import { MatchMakingReq } from '../../shared/types/websocket.types';
 import { MultiPlayerGame } from '../../components/game/BaseGame.component';
 import { webSocketService } from '../../services/user/user.service';
@@ -8,16 +9,45 @@ import { TournamentService } from '../../api/game/game.api';
 import { Game } from '../../types/game.types';
 
 export class GameMenuLocalID extends GamePage {
-    protected gameID: number;
-    private gameInfos: Game | undefined;
+    public challengedFriendID: number = 0;
+    protected gameInfos: Game | undefined;
 
-    constructor(config: RouteConfig) {
-        super(config);
-        this.gameID = Number(window.location.href.split('/').reverse()[0].slice(1));
+    constructor(config: RouteConfig, params?: RouteParams) {
+		super(config);
+		if (params && params.gameId && params.tournamentId) {
+			this.gameID = Number(params.gameId);
+            this.tournamentID = Number(params.tournamentId);
+        }
     }
 
-    protected async beforeMount(): Promise<void> {
+	/**
+	 * Procède aux vérifications nécessaires avant le montage de la page.
+	 * Exécute les vérifications de base de la classe parente (`BasePage`).
+	 *
+	 * @returns {Promise<boolean>} Une promesse qui se résout lorsque les vérifications sont terminées.
+	 */
+	protected async preRenderCheck(): Promise<boolean> {
+		const isPreRenderChecked = await super.preRenderCheck();
+		if (!isPreRenderChecked)
+			return false;
+
+        if (!this.gameID || !this.tournamentID) {
+            console.error("GameID or tournamentID undefined");
+            this.redirectRoute = `${ROUTE_PATHS.GAME_TOURNAMENT_LOCAL_MENU}`;
+            return false;
+        }
         this.gameInfos = await TournamentService.fetchLocalTournamentGame(this.gameID);
+		if (!this.gameInfos) {
+            console.error("Tournament game not found");
+            this.redirectRoute = `${ROUTE_PATHS.GAME_TOURNAMENT_LOCAL_MENU}`;
+			return false;
+		}
+		return true;
+	}
+
+    protected async beforeMount(): Promise<void> {
+        await super.beforeMount();
+        this.requestType = "tournament";
         console.log(this.gameInfos);
         this.insertPlayerNames();
     }
@@ -32,9 +62,6 @@ export class GameMenuLocalID extends GamePage {
 
     protected async initMatchRequest(): Promise<void> {
         this.isSearchingGame = true;          
-        this.sendMatchMakingRequest("tournament", this.gameID);
+        this.sendMatchMakingRequest("tournament");
     }
 }
-
-// TODO = gerer les parties interrompues en cours de jeu -> ajout du score des 2 utilisateurs + check ? Ou juste refetch quand actualisation et maj des parties abandonnees ? jsp
-// TODO = affichage result -> le remettre au milieu ? 

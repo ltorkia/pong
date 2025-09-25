@@ -1,23 +1,30 @@
 import { BasePage } from '../../base/base.page';
-import { RouteConfig } from '../../../types/routes.types';
+import { RouteConfig, RouteParams } from '../../../types/routes.types';
 import { Game, Tournament } from '../../../types/game.types';
 import { TournamentService } from '../../../api/game/game.api';
 import { UserModel } from '../../../shared/types/user.types';
 import { DataService } from '../../../services/user/data.service';
 import { Player } from '../../../shared/types/game.types';
 import { User } from '../../../shared/models/user.model';
+import { ROUTE_PATHS } from '../../../config/routes.config';
 
 const MAX_PLAYERS = 4;
 const MIN_PLAYERS = 4;
 
 export class GameTournamentOverview extends BasePage {
-    private tournamentID: number;
+    private tournamentID?: number;
     private pastilleHTML: HTMLElement | undefined;
     private toolTipHTML: HTMLElement | undefined;
     private tournament: Tournament | undefined;
     private dataApi = new DataService();
     private users: UserModel[] = [];
     private winner: Player | undefined;
+
+    constructor(config: RouteConfig, tournamentId?: number | RouteParams) {
+        super(config);        
+        if (tournamentId)
+            this.tournamentID = tournamentId as number;
+    }
 
 	/**
 	 * Procède aux vérifications nécessaires avant le montage de la page.
@@ -29,11 +36,16 @@ export class GameTournamentOverview extends BasePage {
 		const isPreRenderChecked = await super.preRenderCheck();
 		if (!isPreRenderChecked)
 			return false;
-        // Check si le tournoi existe ou redirection
+
+        if (!this.tournamentID) {
+            console.error("Tournament id undefined");
+            this.redirectRoute = ROUTE_PATHS.GAME_TOURNAMENT_LOCAL_MENU;
+            return false;
+        }
         this.tournament = await TournamentService.fetchTournament(this.tournamentID);
 		if (!this.tournament) {
             console.error("Tournament not found");
-            this.redirectRoute = "/game/tournaments";
+            this.redirectRoute = ROUTE_PATHS.GAME_TOURNAMENT_LOCAL_MENU;
 			return false;
 		}
 		return true;
@@ -64,11 +76,6 @@ export class GameTournamentOverview extends BasePage {
             console.error("didnt find top container");
             return undefined;
         }
-    }
-
-    constructor(config: RouteConfig) {
-        super(config);
-        this.tournamentID = Number(window.location.href.split('/').reverse()[1].slice(1));
     }
 
     // Fetch les players d'un tournoi stocke dans le back pour les avoir a disposition dans le front

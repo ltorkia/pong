@@ -6,10 +6,8 @@ import { Tournament } from '../../../types/game.types';
 import { TournamentService } from '../../../api/game/game.api';
 import { UserModel } from '../../../shared/types/user.types';
 import { User } from '../../../shared/models/user.model';
-import { webSocketService } from '../../../services/user/user.service'
 import { router } from '../../../router/router';
 import { animateCSS } from '../../../utils/animate.utils';
-import { TournamentAPI } from '../../../api/game/tournament.api';
 
 //   TODO : Start Tournament -> affiche que pour celui qui peut lancer le tournoi
 export class GameTournamentLobby extends BasePage {
@@ -329,7 +327,7 @@ export class GameTournamentLobby extends BasePage {
                 break;
 
             case "start_tournament_signal":
-                await router.navigate(`/game/tournaments/:${this.tournamentID}/overview`)
+                await router.navigate(`/game/tournaments/:${this.tournamentID}`)
                 // fetch appel a la db pour stocker le tournoi avec les joueurs ?
                 // + choper ce qu il y a en lobby ?
                 break;

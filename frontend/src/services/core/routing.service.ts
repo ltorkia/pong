@@ -161,7 +161,8 @@ export class RoutingService {
 		try {
 			// Cas avec paramètres dans le handler qu'il faut transmettre a la page
 			if (params) {
-				return this.createParamPageInstance(config, params);
+				// return this.createParamPageInstance(config, params);
+				return new config.pageConstructor(config, params);
 			}
 
 			// Cas classique
@@ -182,15 +183,15 @@ export class RoutingService {
 	 * @param {RouteParams} params Paramètres de la route.
 	 * @returns {any} Une instance de la page crée.
 	 */
-	private createParamPageInstance(config: RouteConfig, params: RouteParams): any {
-		// Cas qui attendent un id user en parametre deja en param du handler (comme pour ProfilePage)
-		if (params.id) {
-			return new config.pageConstructor(config, Number(params.id));
-		}
+	// private createParamPageInstance(config: RouteConfig, params: RouteParams): any {
+	// 	// Cas qui attendent un id user en parametre deja en param du handler (comme pour ProfilePage)
+	// 	if (params.id) {
+	// 		return new config.pageConstructor(config, Number(params.id));
+	// 	}
 		
-		// Cas général avec params, utile pour de futures pages ?
-		return new config.pageConstructor(config, params);
-	}
+	// 	// Cas général avec params, utile pour de futures pages ?
+	// 	return new config.pageConstructor(config, params);
+	// }
 
 	/**
 	 * Charge et affiche une page en appelant la méthode renderPage() de PageService.

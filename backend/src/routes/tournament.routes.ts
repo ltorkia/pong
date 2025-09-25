@@ -5,7 +5,7 @@ import { Game, Tournament, TournamentLocal } from '../types/game.types';
 import { TournamentLobbyUpdate, StartTournamentSignal, DismantleSignal } from '../shared/types/websocket.types'
 import { UserWS } from '../types/user.types';
 import { generateUniqueID } from '../shared/functions'
-import { addGame, addGamePlayers, getResultGame } from '../db/game';
+import { addGame, addGamePlayers, getResultGame, createTournament } from '../db/game';
 
 // Differentes routes pour differents besoins lies aux tournois en remote
 // Les tournois existent en backend dans app.lobby.allTournaments
@@ -86,6 +86,9 @@ export async function tournamentRoutes(app: FastifyInstance) {
         if (app.lobby.allTournaments.find((t: any) => t.name == tournamentParse.data.name))
             return reply.code(409).send({ error: "Tournament name already exists!" });
 
+        const tournamentID = await createTournament(tournamentParse.data.maxPlayers, tournamentParse.data.maxPlayers / 2);
+        if (!tournamentID)
+            return reply.code(500).send({ error: "Database error" });
         const newTournament: Tournament = new Tournament(
             tournamentParse.data.name,
             tournamentParse.data.maxPlayers,
@@ -118,11 +121,14 @@ export async function tournamentRoutes(app: FastifyInstance) {
             else
                 players.push(new Player(player.ID, player.alias));
         }
+        const tournamentID = await createTournament(tournamentParse.data.maxPlayers, tournamentParse.data.maxPlayers / 2);
+        if (!tournamentID)
+            return reply.code(500).send({ error: "Database error" });
         const newTournament: TournamentLocal = new TournamentLocal(
             players,
             tournamentParse.data.maxPlayers,
             tournamentParse.data.masterPlayerID,
-            generateUniqueID(allTournamentsLocal),
+            tournamentID,
         );
         app.lobby.allTournamentsLocal.push(newTournament);
         await newTournament.startTournament();

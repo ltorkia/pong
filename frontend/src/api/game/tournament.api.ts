@@ -166,7 +166,7 @@ export class TournamentAPI {
             const gameJSON: Game = await res.json();
             return new Game(
                 gameJSON.players,
-                gameJSON.gameIDforDB,
+                gameJSON.gameID,
                 gameJSON.playersCount,
                 gameJSON.gameStarted,
                 gameJSON.isOver,

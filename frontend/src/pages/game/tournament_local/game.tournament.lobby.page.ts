@@ -271,7 +271,7 @@ export class GameTournamentLobby extends BasePage {
                 this.handleRedirectModal();
             } else if (lobbyUpdate.type == "start_tournament_signal")
             {
-                router.navigate(`/game/tournaments/:${this.tournamentID}/overview`)
+                router.navigate(`/game/tournaments/:${this.tournamentID}`)
                 // fetch appel a la db pour stocker le tournoi avec les joueurs ?
                 // + choper ce qu il y a en lobby ? 
             }

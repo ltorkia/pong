@@ -46,16 +46,16 @@ export class TournamentLocal implements TournamentInterface {
 
 export class Game implements GameInterface {
     duration?: number;
-    gameIDforDB: number;
+    gameID: number;
     players: Player[];
     playersCount: number;
     gameStarted: boolean;
     isOver: boolean;
     score: number[];
 
-    constructor(players: Player[], gameIDforDB: number, playersCount: number, gameStarted: boolean, isOver: boolean, score: number[]) {
+    constructor(players: Player[], gameID: number, playersCount: number, gameStarted: boolean, isOver: boolean, score: number[]) {
         this.players = players;
-        this.gameIDforDB = gameIDforDB;
+        this.gameID = gameID;
         this.playersCount = playersCount;
         this.gameStarted = gameStarted;
         this.score = score;

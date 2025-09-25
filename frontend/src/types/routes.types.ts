@@ -48,11 +48,11 @@ export interface RouteConfig {
  *
  * Chaque page doit hériter de BasePage et avoir un constructeur avec ces paramètres:
  * - routeConfig: configuration complète de la route (de type RouteConfig)
- * - param: paramètre optionnel associé à la route (ex: ID dans /user/:id)
+ * - params: paramètres optionnels associés à la route (ex: ID dans /user/:id)
  */
 export type PageConstructor = new (
 	routeConfig: RouteConfig,
-	param?: number | RouteParams
+	params?: RouteParams
 ) => BasePage;
 
 /**
@@ -69,7 +69,9 @@ export type RouteHandler = (params?: RouteParams) => Promise<void>;
  * Ex: pour /user/42 = { id: '42' }
  */
 export interface RouteParams {
-	[key: string]: string;
+	userId?: string;
+	gameId?: string;
+	tournamentId?: string;
 }
 
 /**

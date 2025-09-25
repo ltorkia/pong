@@ -81,7 +81,7 @@ CREATE TABLE IF NOT EXISTS User_Game (
 CREATE TABLE IF NOT EXISTS Tournament ( 
 	id INTEGER PRIMARY KEY AUTOINCREMENT,
 	n_participants INTEGER NOT NULL DEFAULT 4,
-	n_round INTEGER NOT NULL,
+	n_round INTEGER NOT NULL DEFAULT 2,
 	started_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 	ended_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 	tournament_status TEXT DEFAULT 'pending' CHECK (tournament_status IN ('pending', 'in_progress', 'cancelled', 'finished'))

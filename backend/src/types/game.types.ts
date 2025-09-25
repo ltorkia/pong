@@ -1,4 +1,4 @@
-import { resultGame, addGame, addGamePlayers, cancelledGame, createTournament, registerUserTournament } from "../db/game";
+import { resultGame, addGame, addGamePlayers, cancelledGame, registerUserTournament } from "../db/game";
 import { GameData, Player } from "../shared/types/game.types"
 
 const DEG_TO_RAD = Math.PI / 180;
@@ -256,27 +256,21 @@ export class TournamentLocal {
     public players: Player[] = [];
     public maxPlayers: number;
     public masterPlayerID: number;
-    public ID?: number;
-    protected IDforDB?: number;
+    public ID: number;
     public stageOne: Game[] = [];
     public stageTwo: Game | undefined;
 
-    constructor(players: Player[], maxPlayers: number, masterPlayerID: number, ID?: number) {
+    constructor(players: Player[], maxPlayers: number, masterPlayerID: number, ID: number) {
         this.players = players;
         this.maxPlayers = maxPlayers;
         this.masterPlayerID = masterPlayerID;
-        this.ID = ID ?? 0;
+        this.ID = ID;
     }
 
     public async startTournament(): Promise<void> {
-        console.log("iciiii starttournament baaaackkkk /////")
-        this.IDforDB = await createTournament(this.maxPlayers, this.maxPlayers/2);
-        if (this.IDforDB === undefined)
-            return; //TODO : put some error
-        console.log("game at start tournament is ?", this.stageOne);
 
         for (const player of this.players)
-            await registerUserTournament(player.ID, this.IDforDB);
+            await registerUserTournament(player.ID, this.ID);
 
         // this.players est melange pour avoir des matchs aleatoire
         shuffleArray(this.players);
@@ -297,7 +291,6 @@ export class Tournament {
     public alias?: string;
     public maxPlayers: number;
     public ID?: number;
-    protected IDforDB?: number;
     public masterPlayerID?: number;
     public isStarted?: boolean;
     public players: Player[] = [];
@@ -325,17 +318,9 @@ export class Tournament {
     // c'etait ce sur quoi je travaillais en dernier donc la logique est pas finie ni en front ni en back
 
     public async startTournament(): Promise<void> {
-        console.log("iciiii starttournament baaaackkkk /////")
-        this.IDforDB = await createTournament(this.maxPlayers, this.maxPlayers/2);
-        if (this.IDforDB === undefined)
-            return; //TODO : put some error
-        console.log("game at start tournament is ?", this.stageOneGames);
-
         for (const player of this.players)
-        {
-            await registerUserTournament(player.ID, this.IDforDB);
-        }
-        
+            await registerUserTournament(player.ID, this.ID!);
+
         // this.players est melange pour avoir des matchs aleatoire
         shuffleArray(this.players);
         let playerIdx = 0;

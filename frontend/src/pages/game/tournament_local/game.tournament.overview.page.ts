@@ -8,6 +8,7 @@ import { UserModel } from '../../../shared/types/user.types';
 import { DataService } from '../../../services/user/data.service';
 import { Player } from '../../../shared/types/game.types';
 import { User } from '../../../shared/models/user.model';
+import { ROUTE_PATHS } from '../../config/routes.config';
 
 const MAX_PLAYERS = 4;
 const MIN_PLAYERS = 4;
@@ -27,7 +28,7 @@ export class GameTournamentOverview extends GamePage { //changement de basepage 
         this.tournament = await TournamentService.fetchTournament(this.tournamentID);
         if (!this.tournament) {
             console.error("Tournament not found");
-            router.navigate("/game/tournaments");
+            this.redirectRoute = ROUTE_PATHS.GAME_TOURNAMENT_LOCAL_MENU;;
         }
         // Fetch du html qui va etre reutilise plusieurs fois
         this.pastilleHTML = await this.fetchHTML("../../../../public/templates/game/tournament_pastille.html", "#tournament-pastille");
