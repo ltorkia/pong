@@ -367,44 +367,51 @@ const startTournamentGame = async (app: FastifyInstance, gameID: number, hostID:
     console.log("started tournament game");
     // cherche l'id de la game dans les tournois locaux
     for (const tournamentLocal of allTournamentsLocal) {
-        if (tournamentLocal.stageTwo && gameID == tournamentLocal.stageTwo.gameID) {
+        if (tournamentLocal.stageTwo && tournamentLocal.stageTwo.gameID == gameID) {
             game = tournamentLocal.stageTwo;
             tournament = tournamentLocal;
             break;
         }
-        game = tournamentLocal.stageOne.find((g: Game) => g.gameID == gameID);
-        if (game)
+        const foundGame = tournamentLocal.stageOne.find((g: Game) => g.gameID == gameID);
+        if (foundGame) {
+            game = foundGame;
             tournament = tournamentLocal;
+            break;
+        }
     }
     if (!game) {
         console.log("Game not found. bye");
         return;
     }
 
-	const adversary = (hostID === game.players[0].ID) 
-		? await getUserStats(game.players[1].ID) 
-		: await getUserStats(game.players[0].ID);
+    allGames.push(game);
+    const host = app.usersWS.find((u: UserWS) => u.id == hostID);
+    if (!host || !host.WS) {
+        console.log("Host not found. bye");
+        return;
+    }
 
-	const host = app.usersWS.find((u: UserWS) => u.id == hostID);
-	if (host && host.WS) {
-		host.WS.send(JSON.stringify({ type: "start_game", otherPlayer: adversary, gameID: gameID, mode: "local" } as StartGame));
-		host.WS.onmessage = (event: MessageEvent) => {
-			const msg: any = JSON.parse(event.data);
-			if (msg.type == "movement") {
-				console.log(msg.type);
-				game.registerInputLocal(msg.playerID, msg.key, msg.status);
-			}
-		}
-		game.players[0].webSocket = host.WS;
-		game.players[1].webSocket = host.WS;
+    host.WS.send(JSON.stringify({ type: "start_game", gameID: gameID, mode: "tournament" } as StartGame));
+    host.WS.onmessage = (event: MessageEvent) => {
+        const msg: any = JSON.parse(event.data);
+        if (msg.type == "movement") {
+			console.log(msg.type);
+            game.registerInputLocal(msg.playerID, msg.key, msg.status);
+        }
+    }
+    game.players[0].webSocket = host.WS;
+    // game.players[1].webSocket = host.WS;
+    await decountWS(host.WS, gameID);
 
-		await decountWS(host.WS, gameID);
-	}
+    // Vérifier si le jeu ou le tournoi a été supprimé par une clean_request pendant le décompte
+    const gameIndex = allGames.findIndex((g: Game) => g.gameID === gameID);
+    if (gameIndex === -1)
+        return;
 
-	// Vérifier si le jeu a été supprimé par une clean_request pendant le décompte
-	const gameIndex = allGames.findIndex((g: Game) => g.gameID === gameID);
-	if (gameIndex === -1)
-		return;
+    // ! à insérer quelque part
+    // const tournamentIndex = allTournamentsLocal.findIndex((g: Game) => g.tournamentID === game.tournamentID);
+    // if (tournamentIndex === -1)
+    //     return;
 
     game.initGame();
 }

@@ -126,29 +126,67 @@ export class MultiPlayerGame {
         // this.canvasCtx.globalCompositeOperation = 'source-over';
     };
 
-    protected attachListeners(): void {
-        document.addEventListener("keydown", (event) => {
-            if ((event.key == "w" && this.inputUp == true) || (event.key == "s" && this.inputDown == true))
-                return;
-            this.playerWebSocket.send(JSON.stringify({
-                type: "movement",
-                playerID: this.playerID,
-                gameID: this.gameID,
-                key: event.key,
-                status: true,
-            }))
-        });
-        document.addEventListener("keyup", (event) => {
-            if ((event.key == "w" && this.inputUp == true) || (event.key == "s" && this.inputDown == true))
-                return;
-            this.playerWebSocket.send(JSON.stringify({
-                type: "movement",
-                playerID: this.playerID,
-                gameID: this.gameID,
-                key: event.key,
-                status: false,
-            }))
-        });
+    // protected attachListeners(): void {
+    //     document.addEventListener("keydown", (event) => {
+    //         if ((event.key == "w" && this.inputUp == true) || (event.key == "s" && this.inputDown == true))
+    //             return;
+    //         this.playerWebSocket.send(JSON.stringify({
+    //             type: "movement",
+    //             playerID: this.playerID,
+    //             gameID: this.gameID,
+    //             key: event.key,
+    //             status: true,
+    //         }))
+    //     });
+    //     document.addEventListener("keyup", (event) => {
+    //         if ((event.key == "w" && this.inputUp == true) || (event.key == "s" && this.inputDown == true))
+    //             return;
+    //         this.playerWebSocket.send(JSON.stringify({
+    //             type: "movement",
+    //             playerID: this.playerID,
+    //             gameID: this.gameID,
+    //             key: event.key,
+    //             status: false,
+    //         }))
+    //     });
+    // };
+
+	protected attachListeners() {
+		document.addEventListener("keydown", this.handleKeyDown);
+		document.addEventListener("keyup", this.handleKeyUp);
+	}
+
+	protected removeListeners(): void {
+		document.removeEventListener("keydown", this.handleKeyDown);
+		document.removeEventListener("keyup", this.handleKeyUp);
+	}
+
+    public cleanupListeners(): void {
+        this.removeListeners()
+    }
+
+    protected handleKeyDown = (event: KeyboardEvent): void => {
+        if ((event.key == "w" && this.inputUp == true) || (event.key == "s" && this.inputDown == true))
+            return;
+        this.playerWebSocket.send(JSON.stringify({
+            type: "movement",
+            playerID: this.playerID,
+            gameID: this.gameID,
+            key: event.key,
+            status: true,
+        }))
+    };
+
+    protected handleKeyUp = (event: KeyboardEvent): void => {
+        if ((event.key == "w" && this.inputUp == true) || (event.key == "s" && this.inputDown == true))
+            return;
+        this.playerWebSocket.send(JSON.stringify({
+            type: "movement",
+            playerID: this.playerID,
+            gameID: this.gameID,
+            key: event.key,
+            status: false,
+        }))
     };
 
     public counter(): Promise<void> {

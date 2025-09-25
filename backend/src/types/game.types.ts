@@ -211,7 +211,7 @@ export class Game {
     private sendGameUpdate() {
         const gameUpdate = new GameData(this.players, this.ball, this.score);
         for (const player of this.players) {
-            if (this.players[1] == player)
+            if (!this.tournamentID && this.players[1] == player)
             {
                 gameUpdate.ball.x *=-1;
                 gameUpdate.players[1].pos.x *= -1;

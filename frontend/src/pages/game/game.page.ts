@@ -218,7 +218,8 @@ export abstract class GamePage extends BasePage {
 				// ! Voir comment Kiki s'organise pour l'affichage des scores dans ce cas particulier
 				// if (!this.tournamentID) 
 					await this.showEndGamePanel();
-
+				
+				this.game!.cleanupListeners();
 				currentService.clearCurrentGame();
 				break;
 
@@ -448,7 +449,7 @@ export abstract class GamePage extends BasePage {
 		panel.innerHTML = "";
 
 		let endGamePanel;
-		if (!this.tournamentID)
+		// if (!this.tournamentID)
 			endGamePanel = await this.fetchEndGameItem("/templates/game/endgame_panel_default.html");
 		// else
 		// 	endGamePanel = ???	
@@ -570,7 +571,7 @@ export abstract class GamePage extends BasePage {
 		await super.cleanup();
 		let inviterID: number | undefined = undefined;
 		let invitedID: number | undefined = undefined;
-		const friendId = Number(this.challengedFriendID);
+		const friendId = this.challengedFriendID;
 		if (friendId) {
 			switch (this.requestType) {
 				case "invite":
