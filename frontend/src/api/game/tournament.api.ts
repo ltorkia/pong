@@ -141,7 +141,7 @@ export class TournamentAPI {
     }
 
     public async fetchTournament(tournamentID: number): Promise<Tournament | undefined> {
-        const res = await fetch(`/api/game/tournaments/:${tournamentID}`);
+        const res = await fetch(`/api/game/tournaments/${tournamentID}`);
         if (res.ok) {
             const tournamentJSON: Tournament = await res.json();
             return new Tournament(
@@ -161,7 +161,7 @@ export class TournamentAPI {
     }
 
     public async fetchLocalTournamentGame(gameID: number): Promise<Game | undefined> {
-        const res = await fetch(`/api/game/tournaments_local/game/:${gameID}`);
+        const res = await fetch(`/api/game/tournaments_local/game/${gameID}`);
         if (res.ok) {
             const gameJSON: Game = await res.json();
             return new Game(
@@ -176,7 +176,7 @@ export class TournamentAPI {
     }
 
     public async fetchLocalTournament(tournamentID: number): Promise<TournamentLocal | undefined> {
-        const res = await fetch(`/api/game/tournaments_local/:${tournamentID}`);
+        const res = await fetch(`/api/game/tournaments_local/${tournamentID}`);
         if (res.ok) {
             const tournamentJSON: TournamentLocal = await res.json();
             console.log(tournamentJSON);

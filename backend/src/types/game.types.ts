@@ -277,11 +277,11 @@ export class TournamentLocal {
         
         const gameID1 = await addGame(true);
         await addGamePlayers(gameID1, this.players[0].ID, this.players[1].ID);
-        this.stageOne[0] = new Game(gameID1, 2, [this.players[0], this.players[1]]);
+        this.stageOne[0] = new Game(gameID1, 2, [this.players[0], this.players[1]], this.ID);
 
         const gameID2 = await addGame(true);
         await addGamePlayers(gameID2, this.players[2].ID, this.players[3].ID);
-        this.stageOne[0] = new Game(gameID2, 2, [this.players[2], this.players[3]]);
+        this.stageOne[1] = new Game(gameID2, 2, [this.players[2], this.players[3]], this.ID);
     }
 }
 

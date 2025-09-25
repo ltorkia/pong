@@ -14,6 +14,7 @@ import { addGame, addGamePlayers } from '../db/game';
 import { deleteNotificationsFrom } from '../db/notification';
 import { sendToSocket } from '../helpers/notifications.helpers';
 import { NotificationInput } from '../types/zod/app.zod';
+import { TournamentLocal } from '../types/game.types';
 
 export async function gameRoutes(app: FastifyInstance) {
 	app.post('/playgame', async (request: FastifyRequest, reply: FastifyReply) => {
@@ -88,6 +89,7 @@ export async function gameRoutes(app: FastifyInstance) {
 		else if (reqType === "clean_request") {
 			await cleanInvite(app, playerID, matchMakingReq.data.inviterID, matchMakingReq.data.invitedID);
 			await cleanGame(app, matchMakingReq.data.gameID);
+            await cleanTournament(app, matchMakingReq.data.tournamentID);
 			cleanPlayer(allPlayers, playerID);
 			reply.code(200).send({ message: "Game cleaned up" });
 		} else {
@@ -253,6 +255,20 @@ async function cleanGame(app: FastifyInstance, gameID?: number) {
 	}
 }
 
+async function cleanTournament(app: FastifyInstance, tournamentID?: number) {
+	if (!tournamentID)
+		return;
+	const { allTournamentsLocal } = app.lobby;
+	const tournament = allTournamentsLocal.find((t: TournamentLocal) => t.ID === tournamentID);
+	if (tournament) {
+		// if (!tournament.isOver)
+		//     await tournament.endTournament();
+		const idx = allTournamentsLocal.indexOf(tournament);
+		if (idx !== -1)
+			allTournamentsLocal.splice(idx, 1);
+	}
+}
+
 async function cleanInvite(app: FastifyInstance, playerID: number, inviterID?: number, invitedID?: number) {
 	if (!inviterID || !invitedID || playerID != inviterID)
 		return;
@@ -371,7 +387,7 @@ const startTournamentGame = async (app: FastifyInstance, gameID: number, hostID:
 
 	const host = app.usersWS.find((u: UserWS) => u.id == hostID);
 	if (host && host.WS) {
-		host.WS.send(JSON.stringify({ type: "start_game", otherPlayer: adversary, gameID: gameID, mode: "tournament" } as StartGame));
+		host.WS.send(JSON.stringify({ type: "start_game", otherPlayer: adversary, gameID: gameID, mode: "local" } as StartGame));
 		host.WS.onmessage = (event: MessageEvent) => {
 			const msg: any = JSON.parse(event.data);
 			if (msg.type == "movement") {

@@ -24,7 +24,7 @@ export async function tournamentRoutes(app: FastifyInstance) {
     // retourne un tournoi remote en particulier
     app.get("/tournaments/:id", async (request: FastifyRequest, reply: FastifyReply) => {
         const { id } = request.params as { id: string };
-        const tournamentID = Number(id.slice(1));
+        const tournamentID = Number(id);
         const allTournaments = app.lobby.allTournaments;
         const tournament = allTournaments.find((t: Tournament) => t.ID == tournamentID);
         if (tournament) {
@@ -38,7 +38,7 @@ export async function tournamentRoutes(app: FastifyInstance) {
     // retourne un tournoi local en particulier
     app.get("/tournaments_local/:id", async (request: FastifyRequest, reply: FastifyReply) => {
         const { id } = request.params as { id: string };
-        const tournamentID = Number(id.slice(1));
+        const tournamentID = Number(id);
 
         const { allTournamentsLocal } = app.lobby;
 
@@ -53,7 +53,7 @@ export async function tournamentRoutes(app: FastifyInstance) {
     // retourne une game de tournoi local en particulier
     app.get("/tournaments_local/game/:id", async (request: FastifyRequest, reply: FastifyReply) => {
         const { id } = request.params as { id: string };
-        const gameID = Number(id.slice(1));
+        const gameID = Number(id);
 
         const { allTournamentsLocal } = app.lobby;
 
@@ -335,7 +335,7 @@ export async function tournamentRoutes(app: FastifyInstance) {
     // permet de recuperer les resultats des games du tournoi et de creer la deuxieme manche avec les winners
     app.post("/update_tournament_games", async (request: FastifyRequest, reply: FastifyReply) => {
         const { id } = request.params as { id: string };
-        const tournamentID = Number(id.slice(1));
+        const tournamentID = Number(id);
         const allTournaments = app.lobby.allTournaments;
         const tournament = allTournaments.find((t: Tournament) => t.ID == tournamentID);
         const winnerList: number[] = [];

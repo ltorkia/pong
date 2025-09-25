@@ -39,7 +39,7 @@ export class GameMenuLocalID extends GamePage {
         this.gameInfos = await TournamentService.fetchLocalTournamentGame(this.gameID);
 		if (!this.gameInfos) {
             console.error("Tournament game not found");
-            this.redirectRoute = `${ROUTE_PATHS.GAME_TOURNAMENT_LOCAL_MENU}`;
+            this.redirectRoute = `${ROUTE_PATHS.GAME_TOURNAMENT_LOCAL_MENU}/${this.tournamentID}`;
 			return false;
 		}
 		return true;
