@@ -19,7 +19,6 @@ export class GameTournamentLocalOverview extends BasePage {
     private tournament: TournamentLocal | undefined;
     private dataApi = new DataService();
     private users: UserModel[] = [];
-<<<<<<< HEAD
     private winner: Player | undefined;
 
     constructor(config: RouteConfig, params?: RouteParams) {
@@ -52,8 +51,6 @@ export class GameTournamentLocalOverview extends BasePage {
 		}
 		return true;
 	}
-=======
->>>>>>> 9b577e3 (more tournament)
 
     protected async beforeMount(): Promise<void> {
         // Fetch du html qui va etre reutilise plusieurs fois
