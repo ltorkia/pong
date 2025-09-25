@@ -126,31 +126,6 @@ export class MultiPlayerGame {
         // this.canvasCtx.globalCompositeOperation = 'source-over';
     };
 
-    // protected attachListeners(): void {
-    //     document.addEventListener("keydown", (event) => {
-    //         if ((event.key == "w" && this.inputUp == true) || (event.key == "s" && this.inputDown == true))
-    //             return;
-    //         this.playerWebSocket.send(JSON.stringify({
-    //             type: "movement",
-    //             playerID: this.playerID,
-    //             gameID: this.gameID,
-    //             key: event.key,
-    //             status: true,
-    //         }))
-    //     });
-    //     document.addEventListener("keyup", (event) => {
-    //         if ((event.key == "w" && this.inputUp == true) || (event.key == "s" && this.inputDown == true))
-    //             return;
-    //         this.playerWebSocket.send(JSON.stringify({
-    //             type: "movement",
-    //             playerID: this.playerID,
-    //             gameID: this.gameID,
-    //             key: event.key,
-    //             status: false,
-    //         }))
-    //     });
-    // };
-
 	protected attachListeners() {
 		document.addEventListener("keydown", this.handleKeyDown);
 		document.addEventListener("keyup", this.handleKeyUp);

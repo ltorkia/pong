@@ -93,8 +93,8 @@ export async function gameRoutes(app: FastifyInstance) {
 			cleanPlayer(allPlayers, playerID);
 			reply.code(200).send({ message: "Game cleaned up" });
 		} else {
-			cleanPlayer(allPlayers, playerID);
-            reply.code(200).send({ message: "Players cleaned up" });
+			// cleanPlayer(allPlayers, playerID);
+            // reply.code(200).send({ message: "Players cleaned up" });
         }
 
 		/**
