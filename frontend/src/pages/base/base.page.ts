@@ -32,6 +32,7 @@ export abstract class BasePage {
 	protected componentInstances: Record<ComponentName | string, BaseComponent> = {};
 	protected removeListenersFlag: boolean = true;
 	protected redirectRoute: string = DEFAULT_ROUTE;
+	protected isPageRefreshing = false;
 
 	/**
 	 * Constructeur de la classe de base des pages.
@@ -388,6 +389,7 @@ export abstract class BasePage {
 	protected async onPageUnload(): Promise<void> {
 		try {
 			console.log(`[${this.constructor.name}] Détection d’un refresh/fermeture`);
+			this.isPageRefreshing = true;
 			await this.cleanup();
 		} catch (err) {
 			console.error("Erreur dans onPageUnload :", err);

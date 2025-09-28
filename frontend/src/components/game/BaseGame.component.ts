@@ -127,20 +127,20 @@ export class MultiPlayerGame {
     };
 
 	protected attachListeners() {
-		document.addEventListener("keydown", this.handleKeyDown);
-		document.addEventListener("keyup", this.handleKeyUp);
+		document.addEventListener("keydown", this.handleGameKeyDown);
+		document.addEventListener("keyup", this.handleGameKeyUp);
 	}
 
 	protected removeListeners(): void {
-		document.removeEventListener("keydown", this.handleKeyDown);
-		document.removeEventListener("keyup", this.handleKeyUp);
+		document.removeEventListener("keydown", this.handleGameKeyDown);
+		document.removeEventListener("keyup", this.handleGameKeyUp);
 	}
 
     public cleanupListeners(): void {
         this.removeListeners()
     }
 
-    protected handleKeyDown = (event: KeyboardEvent): void => {
+    protected handleGameKeyDown = (event: KeyboardEvent): void => {
         if ((event.key == "w" && this.inputUp == true) || (event.key == "s" && this.inputDown == true))
             return;
         this.playerWebSocket.send(JSON.stringify({
@@ -152,7 +152,7 @@ export class MultiPlayerGame {
         }))
     };
 
-    protected handleKeyUp = (event: KeyboardEvent): void => {
+    protected handleGameKeyUp = (event: KeyboardEvent): void => {
         if ((event.key == "w" && this.inputUp == true) || (event.key == "s" && this.inputDown == true))
             return;
         this.playerWebSocket.send(JSON.stringify({

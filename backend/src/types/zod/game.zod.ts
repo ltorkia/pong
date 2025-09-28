@@ -77,5 +77,6 @@ export const MatchMakingReqSchema = z.object({
     tournamentID: z.number().optional(),
     invitedID: z.number().optional(),
     inviterID: z.number().optional(),
-    gameID: z.number().optional()
+    gameID: z.number().optional(),
+    inviteToClean: z.boolean().optional()
 });
