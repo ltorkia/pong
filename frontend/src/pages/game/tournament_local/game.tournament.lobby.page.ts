@@ -195,10 +195,6 @@ export class GameTournamentLobby extends BasePage {
     }
 
     private async appendPlayerPastille(player: Player): Promise<void> {
-        // const res = await fetch(`/api/users/${player.ID}`)
-        // if (!res.ok)
-        //     return console.error("User fetch failed");
-        // const user: UserModel = await res.json();
         const fetchedUser = await TournamentService.fetchUser(player.ID);
         if (!fetchedUser) throw new Error("User not found");
         const user: UserModel = fetchedUser;

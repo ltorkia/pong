@@ -1,3 +1,4 @@
+import { EventEmitter } from "node:stream";
 import { resultGame, addGame, addGamePlayers, cancelledGame, registerUserTournament, createTournament } from "../db/game";
 import { GameData, Player } from "../shared/types/game.types"
 
@@ -83,7 +84,7 @@ export class Ball {
     }
 };
 
-export class Game {
+export class Game extends EventEmitter {
     public players: Player[] = [];
     private ball = new Ball();
     private playersCount: number = 0;
@@ -96,6 +97,7 @@ export class Game {
     public tournamentID?: number;
 
     constructor(gameID: number, playersCount: number, players: Player[], tournamentID?: number) {
+        super();
         this.gameID = gameID;
         this.playersCount = playersCount;
         this.players = players;
@@ -209,6 +211,8 @@ export class Game {
 
         for (const player of this.players) // clean des websockets si besoin de renvoyer tournoi au front (crash si websocket a l'interieur de JSON)
             player.webSocket = undefined;
+
+        this.emit("finished", this); // envoie un event "finished" qui est capte par une classe parent (TournamentLocal)
     }
 
     private sendGameUpdate() {
@@ -228,19 +232,27 @@ export class Game {
     public registerInputLocal(playerID: number, key: string, status: boolean): void { //peut etre ajouter le type de jeu jsp
         for (const player of this.players) {
             if (player.ID == playerID) {
-                //     if (player.sidePlayer === "left") {
                 if (key == "w" && player.inputUp != status) player.inputUp = status;
                 else if (key == "s" && player.inputDown != status) player.inputDown = status;
             }
-            // if (player.sidePlayer === "right") {
             else {
                 if (key == "ArrowUp" && player.inputUp != status) player.inputUp = status;
                 else if (key == "ArrowDown" && player.inputDown != status) player.inputDown = status;
             }
         }
-        // }
-        // }
     };
+
+    public registerInputLocalTournament(key: string, status: boolean): void {
+        if (key == "w" && this.players[0].inputUp != status)
+            this.players[0].inputUp = status;
+        else if (key == "s" && this.players[0].inputDown != status)
+            this.players[0].inputDown = status;
+
+        if (key == "ArrowUp" && this.players[1].inputUp != status)
+            this.players[1].inputUp = status;
+        else if (key == "ArrowDown" && this.players[1].inputDown != status)
+            this.players[1].inputDown = status;
+    }
 
     public registerInput(playerID: number, key: string, status: boolean): void { //peut etre ajouter le type de jeu jsp
         for (const player of this.players) {
@@ -305,22 +317,28 @@ export class TournamentLocal {
 
         const stageTwoID = await addGame(true)
         this.stageTwo = new Game(stageTwoID, 2, []); // creee maintenant mais les joueurs sont ajoutes plus tard
+
+        // Listeners pour etre notifie quand une game est finie
+        for (const game of this.stageOne)
+            game.on("finished", (g: Game) => this.update());
+        this.stageTwo.on("finished", (g: Game) => this.update());
     }
 
     // si les games du premier tour sont finies, update pour determiner la derniere game
     public async update(): Promise<void> {
+        if (this.stageTwo.getIsOver()) {
+            this.winner = this.getWinner(this.stageTwo);
+            return ;
+        }
         for (const game of this.stageOne) {
             if (game.getIsOver() && !game.players.some((p: Player) => this.stageTwo?.players.includes(p)))
                 this.stageTwo?.players.push(this.getWinner(game));
         }
         if (this.stageTwo.players.length == 2)
             await addGamePlayers(this.stageTwo.gameID, this.players[0].ID, this.players[1].ID);
-        if (this.stageTwo.getIsOver())
-            this.winner = this.getWinner(this.stageTwo);
         console.log("SCORE : ", this.stageOne[0].getScore());
     }
 }
-
 
 export class Tournament {
     public name: string;

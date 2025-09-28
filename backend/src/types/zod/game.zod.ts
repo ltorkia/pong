@@ -66,9 +66,10 @@ export const DismantleTournamentSchema = z.object({
 export const MatchMakingReqSchema = z.object({
     type: z.enum([
         "matchmaking_request", 
-        "clean_request", 
+        "clean_request",
+        "tournament_clean_request",
         FRIEND_REQUEST_ACTIONS.INVITE, 
-        FRIEND_REQUEST_ACTIONS.INVITE_ACCEPT, 
+        FRIEND_REQUEST_ACTIONS.INVITE_ACCEPT,
         "local", 
         "tournament"
     ]),

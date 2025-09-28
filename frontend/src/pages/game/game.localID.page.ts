@@ -14,6 +14,7 @@ export class GameMenuLocalID extends GamePage {
 			this.gameID = Number(params.gameId);
             this.tournamentID = Number(params.tournamentId);
         }
+        this.gameType = "tournament";
     }
 
 	/**

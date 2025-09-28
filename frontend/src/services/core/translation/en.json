@@ -211,6 +211,10 @@
 		"backToLobby": "Back to tournament lobby..",
 		"players": "Players : ",
 		"status": "Status : ",
-		"start": "START!"
+		"start": "START!",
+        "nextGame": "Next Game :",
+        "versus": "versus",
+        "winnerBegin": "It looks like we got a winner !",
+        "winnerEnd": "just won the Tournament! Congrats!"
 	}
 }
