@@ -4,6 +4,9 @@ import { searchNewName } from '../helpers/auth.helpers';
 import { UserPassword, User2FA, UserForChangeData } from '../types/user.types';
 import { DB_CONST } from '../shared/config/constants.config'; // en rouge car dossier local 'shared' != dossier conteneur
 import { UserModel, SafeUserModel, SafeUserBasic } from '../shared/types/user.types'; // en rouge car dossier local 'shared' != dossier conteneur
+import { TournamentModel, GameModel } from '../shared/types/game.types'; // en rouge car dossier local 'shared' != dossier conteneur
+// import { Tournament } from '../shared/models/tournament.model';
+// import { Game } from '../shared/models/game.model';
 import { snakeToCamel, snakeArrayToCamel } from '../helpers/types.helpers';
 // import { ChatModel } from '../shared/types/friend.types';
 
@@ -195,18 +198,35 @@ export async function getAvatar(id: number)
 /*               QUERIES USER EN LIEN AVEC D'AUTRES TABLES                    */
 /* -------------------------------------------------------------------------- */
 
-export async function getUserGames(userId: number): Promise<SafeUserModel[]> {
+export async function getUserGames(userId: number): Promise<GameModel[]> {
 	const db = await getDb();
-	const games = await db.all(`
-		SELECT ug.game_id, ug.status_win, ug.duration
+
+	// On récupère les infos de Game ET User_Game
+	const games = await db.all(
+		`
+		SELECT 
+			g.id,
+			g.n_participants,
+			g.begin,
+			g.end,
+			g.tournament,
+			g.status,
+			g.looser_result,
+			g.winner_id,
+			ug.status_win,
+			ug.duration
 		FROM User_Game ug
+		JOIN Game g ON g.id = ug.game_id
 		WHERE ug.user_id = ?
+		ORDER BY g.begin DESC
 		`,
 		[userId]
 	);
 
+	// Pour chaque game, récupérer les autres joueurs
 	for (const game of games) {
-		const players = await db.all(`
+		const players = await db.all(
+			`
 			SELECT u.id, u.username, u.avatar
 			FROM User_Game ug
 			JOIN User u ON u.id = ug.user_id
@@ -215,9 +235,63 @@ export async function getUserGames(userId: number): Promise<SafeUserModel[]> {
 			`,
 			[game.game_id, userId]
 		);
+
 		game.other_players = players as SafeUserBasic[];
 	}
-	return snakeArrayToCamel(games) as SafeUserModel[];
+
+	return snakeArrayToCamel(games) as GameModel[];
+}
+
+export async function getUserTournaments(userId: number): Promise<TournamentModel[]> {
+	const db = await getDb();
+
+	// Récupérer les tournois où est inscrit l’utilisateur
+	const tournaments = await db.all(`
+		SELECT 
+			ut.tournament_id,
+			ut.alias,
+			ut.score,
+			ut.wins,
+			ut.losses,
+			ut.round_reached,
+			ut.status,
+			ut.registered_at,
+			t.n_participants,
+			t.n_round,
+			t.started_at,
+			t.ended_at,
+			t.tournament_status
+		FROM User_Tournament ut
+		JOIN Tournament t ON t.id = ut.tournament_id
+		WHERE ut.user_id = ?
+		ORDER BY t.started_at DESC
+	`, [userId]);
+
+	// Pour chaque tournoi, récupérer les parties et les autres joueurs
+	for (const tournament of tournaments) {
+		const games = await db.all(`
+			SELECT g.id AS game_id, g.begin, g.end, g.status, g.winner_id
+			FROM Tournament_Game tg
+			JOIN Game g ON g.id = tg.game_id
+			WHERE tg.tournament_id = ?
+		`, [tournament.tournament_id]);
+
+		for (const game of games) {
+			const players = await db.all(`
+				SELECT u.id, u.username, u.avatar
+				FROM User_Game ug
+				JOIN User u ON u.id = ug.user_id
+				WHERE ug.game_id = ?
+				AND u.id != ?
+			`, [game.game_id, userId]);
+
+			game.other_players = players as SafeUserBasic[];
+		}
+
+		tournament.games = snakeArrayToCamel(games) as GameModel[];
+	}
+
+	return snakeArrayToCamel(tournaments) as TournamentModel[];
 }
 		
 // export async function getUserChat(userId1: number, userId2: number) {

@@ -1,7 +1,8 @@
 import { User } from '../../shared/models/user.model';
 import { Game } from '../../shared/models/game.model';
+import { Tournament } from '../../shared/models/tournament.model';
 import { SafeUserModel, PaginatedUsers } from '../../shared/types/user.types';	// en rouge car dossier local 'shared' != dossier conteneur
-import { GameModel } from '../../shared/types/game.types';	// en rouge car dossier local 'shared' != dossier conteneur
+import { GameModel, TournamentModel } from '../../shared/types/game.types';	// en rouge car dossier local 'shared' != dossier conteneur
 import { dataService, currentService } from '../../services/index.service';
 import { secureFetch } from '../../utils/app.utils';
 import { UserResponse } from '../../shared/types/response.types';
@@ -145,6 +146,50 @@ export class DataApi {
 		}
 		const data: GameModel[] = await res.json();
 		return Game.fromJSONArray(data) as Game[];
+	}
+
+	/**
+	 * Récupère les tournois auxquels un utilisateur a participé.
+	 *
+	 * Envoie une requête GET à la route API `/users/:id/tournaments` pour récupérer
+	 * les informations des tournois auxquels l'utilisateur courant a participé.
+	 *
+	 * Si la requête réussit, renvoie un tableau d'instances `Tournament` contenant
+	 * les informations des tournois auxquels l'utilisateur courant a participé.
+	 * Sinon, lève une erreur.
+	 *
+	 * @param {number} id - L'identifiant de l'utilisateur.
+	 * @returns {Promise<Tournament[]>} - Promesse qui se résout avec un tableau d'instances `Tournament`.
+	 */
+	public async getUserTournaments(id: number): Promise<Tournament[]> {
+		const res: Response = await secureFetch(`/api/users/${id}/tournaments`, { method: 'GET' });
+		if (!res.ok) {
+			throw new Error('Erreur de l\'API');
+		}
+		const data: TournamentModel[] = await res.json();
+		return Tournament.fromJSONArray(data) as Tournament[];
+	}
+
+	/**
+	 * Récupère les statistiques d'un utilisateur.
+	 *
+	 * Envoie une requête GET à la route API `/users/:id/stats` pour récupérer
+	 * les informations des statistiques de l'utilisateur d'identifiant `id`.
+	 *
+	 * Si la requête réussit, renvoie l'utilisateur stocké en base de données
+	 * sous forme d'instance de la classe `SafeUserModel`.
+	 * Sinon, lève une erreur.
+	 *
+	 * @param {number} id - L'identifiant de l'utilisateur.
+	 * @returns {Promise<User>} - Promesse qui se résout avec l'utilisateur stocké en base de données.
+	 */
+	public async getUserStats(id: number): Promise<User> {
+		const res: Response = await secureFetch(`/api/users/${id}/stats`, { method: 'GET' });
+		if (!res.ok) {
+			throw new Error('Erreur de l\'API');
+		}
+		const data: SafeUserModel = await res.json();
+		return User.fromJSON(data) as User;
 	}
 
 	// ===========================================

@@ -1,14 +1,39 @@
 import { DB_CONST } from '../config/constants.config';
+import { SafeUserBasic } from './user.types';
 
 export interface GameModel {
-    id: number;
-    nParticipants: number;
-    begin: string;
-    end: string;
-    tournament: number;
-    status: GameStatus;
-    looserResult: number;
-    winnerId: number;
+	id: number;
+	nParticipants: number;
+	begin: string;
+	end: string;
+	tournament: number;
+	status: GameStatus;
+	looserResult: number;
+	winnerId: number;
+	statusWin: 0 | 1 | null;        // 0 = perdu, 1 = gagné, null = pas encore joué
+	duration: number;               // durée du jeu en secondes ou unités définies
+	otherPlayers: SafeUserBasic[];  // les autres participants
+}
+
+export interface TournamentModel {
+	tournamentId: number;
+	alias: string | null;
+	score: number;
+	wins: number;
+	losses: number;
+	roundReached: number;
+	status: 'active' | 'eliminated' | 'finished';
+	registeredAt: string;
+
+	// Données issues de Tournament
+	nParticipants: number;
+	nRound: number;
+	startedAt: string | null;
+	endedAt: string | null;
+	tournamentStatus: 'pending' | 'in_progress' | 'cancelled' | 'finished';
+
+	// Parties associées
+	games: GameModel[];
 }
 
 export type GameStatus =

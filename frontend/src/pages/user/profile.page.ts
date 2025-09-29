@@ -2,7 +2,10 @@ import DOMPurify from "dompurify";
 import { BasePage } from '../base/base.page';
 import { RouteConfig, RouteParams } from '../../types/routes.types';
 import { User } from '../../shared/models/user.model';
-import { dataApi } from '../../api/index.api';
+import { Friend } from '../../shared/models/friend.model';
+import { Game } from '../../shared/models/game.model';
+import { Tournament } from '../../shared/models/tournament.model';
+import { dataApi, friendApi } from '../../api/index.api';
 import { dataService } from '../../services/index.service';
 import { formatDate } from '../../utils/app.utils';
 import { ROUTE_PATHS } from '../../config/routes.config';
@@ -16,12 +19,12 @@ import { ROUTE_PATHS } from '../../config/routes.config';
  */
 export class ProfilePage extends BasePage {
 	private userId?: number;
-	private user: any = null;
-	protected currentUser: User | null = null; // Pour savoir si c'est notre profil
-	private userStats: any = null;
-	private userFriends: User[] = [];
-	private matchHistory: any[] = [];
+	private user: User = null;
+	private userFriends: Friend[] = [];
+	private userGames: Game[] = [];
+	private userTournaments: Tournament[] = [];
 	private isFriend: boolean = false;
+	private isCurrentUserProfile: boolean = false;
 
 	/**
 	 * Constructeur de la page de profil.
@@ -39,51 +42,6 @@ export class ProfilePage extends BasePage {
 	// METHODES OVERRIDES DE BASEPAGE
 	// ===========================================
 
-	private useMockUser(): any {
-		return {
-			id: 1,
-			username: "LEE",
-			avatar: this.currentUserAvatarURL,
-			isOnline: true,
-			wins: 42,
-			losses: 18,
-			winRate: 70,
-			totalGames: 60,
-			level: 15,
-            gamePlayed: 60,
-            gameWin: 42,
-            gameLoose: 18,
-            timePlayed: 7200, 
-            tournamentsPlayed: 8,
-            tournamentScore: 320,
-            tournamentWins: 15,
-            tournamentLosses: 8,
-            lastRoundReached: 4,
-			friends: [
-				{ id: 2, username: "ELISA", avatar: this.currentUserAvatarURL },
-				{ id: 3, username: "KIKI", avatar: this.currentUserAvatarURL }
-			],
-			matchHistory: [
-				{
-					id: 1,
-					player1: { username: "LEE", avatar: this.currentUserAvatarURL },
-					player2: { username: "ELISA", avatar: this.currentUserAvatarURL },
-					score: "11 - 8",
-					winner: "LEE",
-					date: "2025-01-15T14:30:00Z"
-				},
-				{
-					id: 2,
-					player1: { username: "LEE", avatar: this.currentUserAvatarURL },
-					player2: { username: "KIKI", avatar: this.currentUserAvatarURL },
-					score: "7 - 11",
-					winner: "KIKI",
-					date: "2025-01-14T19:45:00Z"
-				}
-			]
-		};
-	}
-
 	protected async preRenderCheck(): Promise<boolean> {
 		const isPreRenderChecked = await super.preRenderCheck();
 		if (!isPreRenderChecked)
@@ -96,19 +54,27 @@ export class ProfilePage extends BasePage {
 	}
 	
 	protected async beforeMount(): Promise<void> {
-		// this.user = await dataApi.getUserById(this.userId);
 
 		try {
 
-			// this.user = user;
-			this.user = this.useMockUser();
-			this.userFriends = this.user.friends;
-			this.matchHistory = this.user.matchHistory;
+			this.user = await dataApi.getUserStats(this.userId!);
+			this.userFriends = await friendApi.getUserFriends(this.userId!);
+			if (this.userId === this.currentUser!.id)
+				this.isCurrentUserProfile = true;
+			else if (this.userFriends.find(friend => friend.id === this.currentUser!.id))
+				this.isFriend = true;
+			this.userGames = await dataApi.getUserGames(this.userId!);
+			this.userTournaments = await dataApi.getUserTournaments(this.userId!);
 
-			// Vérifier si l'utilisateur courant est ami avec l'utilisateur du profil
-			// if (this.currentUser && this.currentUser.id !== this.user.id) {
-			// 	this.isFriend = await dataService.isFriendWithCurrentUser(this.currentUser.id, this.user.id);
-			// }
+			console.log('this.user', this.user);
+			console.log('this.userGames', this.userGames);
+			console.log('this.userTournaments', this.userTournaments);
+			console.log('this.userFriends', this.userFriends);
+			console.log('this.isCurrentUserProfile', this.isCurrentUserProfile);
+			console.log('this.isFriend', this.isFriend);
+			console.log('this.userGames', this.userGames);
+			console.log('this.userTournaments', this.userTournaments);
+
 		} catch (error) {
 			console.error('Erreur lors du chargement du profil:', error);
 			throw error;
@@ -135,35 +101,11 @@ export class ProfilePage extends BasePage {
 	 * @throws {Error} Si l'ID utilisateur est invalide ou manquant.
 	 */
 	protected async mount(): Promise<void> {
-		// const profileSection = document.getElementById('profile-container') as HTMLDivElement;
-		// const template = document.getElementById('user-template') as HTMLTemplateElement;
-		// if (!profileSection || !template) return;
-
-		// const clone = template.content.cloneNode(true) as DocumentFragment;
-
-		// const userAvatar = clone.querySelector('.avatar-cell') as HTMLElement;
-		// const img = document.createElement('img');
-		// img.classList.add('avatar-img');
-		// img.setAttribute('src', await dataService.getUserAvatarURL(this.user!));
-		// img.setAttribute('loading', 'lazy');
-
-		// img.alt = `${this.user!.username}'s avatar`;
-		// userAvatar.appendChild(img);
-
-		// const userName = clone.querySelector('.name-cell') as HTMLElement;
-		// const span = document.createElement('span');
-		// span.textContent = this.user!.username;
-		// userName.appendChild(span);
-
-		// const userLevel = clone.querySelector('.level-cell') as HTMLElement;
-		// userLevel.textContent = this.user!.winRate !== undefined ? `Win rate: ${this.user!.winRate}%` : "No stats";
-
-		// profileSection.appendChild(clone);
 
 		this.renderProfileMain();
 		this.renderStats();
 		this.renderFriends();
-		this.renderMatchHistory();
+		this.renderuserGames();
 		this.setupEventListeners();
 	}
 
@@ -277,23 +219,24 @@ export class ProfilePage extends BasePage {
 		const section = document.getElementById('stats-section') as HTMLDivElement;
 		const template = document.getElementById('stat-card-template') as HTMLTemplateElement;
 
-		if (!section || !template || !this.userStats) return;
+		if (!section || !template || !this.user) 
+			return;
 
 		// Calcul du win rate
-		const totalGames = this.userStats.wins + this.userStats.losses;
-		const winRate = totalGames > 0 ? Math.round((this.userStats.wins / totalGames) * 100) : 0;
+		const totalGames = this.user.gamePlayed;
+		const winRate = this.user.winRate;
 
 		const stats = [
-			{ value: this.userStats.wins || 0, label: 'Victories' },
-			{ value: this.userStats.losses || 0, label: 'Losses' },
+			{ value: this.user.gameWin || 0, label: 'Victories' },
+			{ value: this.user.gameLoose || 0, label: 'Losses' },
 			{ value: `${winRate}%`, label: 'Win Rate' },
-			{ value: totalGames, label: 'Game playes' }
+			{ value: totalGames, label: 'Game played' }
 		];
 
 		// TODO: Ajouter d'autres stats (niveau, rang...)
-		if (this.userStats.level) {
-			stats.push({ value: this.userStats.level, label: 'Niveau' });
-		}
+		// if (this.user.level) {
+		// 	stats.push({ value: this.user.level, label: 'Niveau' });
+		// }
 
 		stats.forEach(stat => {
 			const clone = template.content.cloneNode(true) as DocumentFragment;
@@ -321,7 +264,7 @@ export class ProfilePage extends BasePage {
 
 		// État vide
 		if (this.userFriends.length === 0) {
-			this.renderEmptyState(section, 'friends');
+			// this.renderEmptyState(section, 'friends');
 			return;
 		}
 
@@ -375,20 +318,20 @@ export class ProfilePage extends BasePage {
 	/**
 	 * Rendu de l'historique des matchs
 	 */
-	private renderMatchHistory(): void {
+	private renderuserGames(): void {
 		const section = document.getElementById('match-history-section') as HTMLDivElement;
 		const template = document.getElementById('match-card-template') as HTMLTemplateElement;
 
 		if (!section || !template) return;
 
 		// État vide
-		if (this.matchHistory.length === 0) {
-			this.renderEmptyState(section, 'matches');
+		if (this.userGames.length === 0) {
+			// this.renderEmptyState(section, 'matches');
 			return;
 		}
 
 		// Limitation d'affichage (ex: 10 derniers matchs)
-		const recentMatches = this.matchHistory.slice(0, 10);
+		const recentMatches = this.userGames.slice(0, 10);
 
 		recentMatches.forEach(async (match) => {
 			const clone = template.content.cloneNode(true) as DocumentFragment;
@@ -398,10 +341,10 @@ export class ProfilePage extends BasePage {
 		});
 
 		// Bouton "Voir plus" si il y a plus de matchs
-		if (this.matchHistory.length > 10) {
+		if (this.userGames.length > 10) {
 			const viewMoreButton = document.createElement('button');
 			viewMoreButton.className = 'w-full mt-4 py-3 bg-white/5 hover:bg-white/10 rounded-lg border border-white/20 text-white/70 hover:text-white transition-all duration-200';
-			viewMoreButton.textContent = `See ${this.matchHistory.length - 10} more matchs`;
+			viewMoreButton.textContent = `See ${this.userGames.length - 10} more matchs`;
 			viewMoreButton.addEventListener('click', () => {
 				// TODO: Implémenter l'affichage de tous les matchs
 				console.log('Charger plus de matchs');
@@ -435,8 +378,9 @@ export class ProfilePage extends BasePage {
 		score.textContent = match.score || `${match.player1Score} - ${match.player2Score}`;
 
 		// TODO: Adapter selon la structure de vos données de match
-		const player1 = match.player1 || await dataApi.getUserById(match.player1Id);
-		const player2 = match.player2 || await dataApi.getUserById(match.player2Id);
+		const player1 = this.user!
+		console.log('match.otherPlayers', match.otherPlayers);
+		const player2: User = match.otherPlayers[0];
 
 		// Joueur 1
 		const img1 = document.createElement('img');
@@ -467,7 +411,7 @@ export class ProfilePage extends BasePage {
 		if (type === 'friends') {
 			icon.innerHTML = DOMPurify.sanitize('<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>');
 			text.textContent = 'No friends';
-		} else {
+		} else if (type === 'matches') {
 			icon.innerHTML = DOMPurify.sanitize('<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>');
 			text.textContent = 'No match';
 		}

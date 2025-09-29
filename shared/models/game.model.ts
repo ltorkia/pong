@@ -1,9 +1,6 @@
-import { GameModel, GameStatus } from '../types/game.types';	// en rouge car dossier local 'shared' != dossier conteneur
-import { DB_CONST } from '../config/constants.config'; // en rouge car dossier local 'shared' != dossier conteneur
-
-// ===========================================
-// GAME MODEL
-// ===========================================
+import { GameModel, GameStatus } from '../types/game.types';
+import { SafeUserBasic } from '../types/user.types';
+import { DB_CONST } from '../config/constants.config';
 
 export class Game {
 
@@ -14,7 +11,11 @@ export class Game {
 		public end: string,
 		public tournament: number,
 		public status: GameStatus,
-		public looserResult: number
+		public winnerId: number,
+		public looserResult: number,
+		public statusWin: 0 | 1 | null,
+		public duration: number,
+		public otherPlayers: SafeUserBasic[] = []
 	) {}
 
 	// ============================================================================
@@ -29,7 +30,11 @@ export class Game {
 			end: this.end,
 			tournament: this.tournament,
 			status: this.status,
-			looserResult: this.looserResult
+			winnerId: this.winnerId,
+			looserResult: this.looserResult,
+			statusWin: this.statusWin,
+			duration: this.duration,
+			otherPlayers: this.otherPlayers
 		};
 	}
 
@@ -38,7 +43,6 @@ export class Game {
 	// ============================================================================
 
 	public static fromJSON(data: Partial<GameModel>): Game {
-
 		if (!data.id) {
 			throw new Error('ID requis pour créer un jeu');
 		}
@@ -50,12 +54,16 @@ export class Game {
 			data.end ?? '',
 			data.tournament ?? 0,
 			data.status ?? DB_CONST.GAME.STATUS.WAITING,
-			data.looserResult ?? 0
+			data.winnerId ?? 0,
+			data.looserResult ?? 0,
+			data.statusWin ?? null,
+			data.duration ?? 0,
+			data.otherPlayers ?? []
 		);
 	}
 
 	// ============================================================================
-	// MÉTHODES STATIQUES SUR TABLEAUX D'UTILISATEURS
+	// MÉTHODES STATIQUES SUR TABLEAUX
 	// ============================================================================
 
 	public static fromJSONArray(games: Partial<GameModel>[]): Game[] {
