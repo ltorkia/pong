@@ -206,7 +206,8 @@ export class NotifService {
 							this.currentPage.setCleanInvite();
 							break;
 					}
-				} else {
+				} 
+				else {
 					switch (this.currentNotif!.type) {
 						case FRIEND_REQUEST_ACTIONS.INVITE:
 							this.currentPage.setCleanInvite();

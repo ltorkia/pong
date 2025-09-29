@@ -165,6 +165,7 @@ export const TOURNAMENT_TYPE_MSG = {
 	DISMANTLE: 'dismantle_tournament',
 	LOBBY_UPDATE: 'tournament_lobby_update',
 	PLAYER_READY_UPDATE: 'player_ready_update',
+	CLEAN_TOURNAMENT: 'tournament_clean_request'
 }
 
 /**

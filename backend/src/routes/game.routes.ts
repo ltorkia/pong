@@ -41,7 +41,6 @@ export async function gameRoutes(app: FastifyInstance) {
 
             const playerTwo = await findAvailableOpponent(newPlayer, allPlayers);
             if (playerTwo) {
-                // cleanPlayers(allPlayers, newPlayer, playerTwo);
                 newPlayer.matchMaking = false;
                 playerTwo.matchMaking = false;
                 startGame(app, [newPlayer, playerTwo], "multi");
@@ -53,7 +52,6 @@ export async function gameRoutes(app: FastifyInstance) {
             const players = initPlayers(allPlayers, playerID, generateUniqueID(allPlayers));
             if (!players || !players[0] || !players[1])
                 return reply.code(404).send({ errorMessage: "Players not found" });
-            // cleanPlayers(allPlayers, players[0], players[1]);
             startGame(app, [players[0], players[1]], "local");
             reply.code(200).send({ message: "Local game started" });
         }
@@ -84,7 +82,6 @@ export async function gameRoutes(app: FastifyInstance) {
             const inviter = allPlayers.find((p: Player) => p.ID == inviterID);
             if (!invited || !inviter)
                 return reply.code(404).send({ errorMessage: "Players not found" });
-            // cleanPlayers(allPlayers, inviter, invited);
             startGame(app, [inviter, invited], "multi");
             reply.code(200).send({ message: "Game started!" });
         }
@@ -92,8 +89,6 @@ export async function gameRoutes(app: FastifyInstance) {
             if (matchMakingReq.data.inviteToClean)
                 await cleanInvite(app, playerID, matchMakingReq.data.inviterID, matchMakingReq.data.invitedID);
             await cleanGame(app, matchMakingReq.data.gameID);
-            // if (matchMakingReq.data.inviteToClean)
-            //     cleanPlayer(allPlayers, playerID);
             let player = allPlayers.find((p: Player) => p.ID == playerID);
             if (!player)
                 return reply.code(404).send({ errorMessage: "Player not found" });
@@ -240,16 +235,16 @@ function initPlayer(allPlayers: Player[], playerID: number) {
     return player;
 }
 
-// function cleanPlayers(allPlayers: Player[], currentPlayer: Player, adversary: Player) {
-//     cleanPlayer(allPlayers, currentPlayer.ID);
-//     cleanPlayer(allPlayers, adversary.ID);
-// }
+function cleanPlayers(allPlayers: Player[], currentPlayer: Player, adversary: Player) {
+    cleanPlayer(allPlayers, currentPlayer.ID);
+    cleanPlayer(allPlayers, adversary.ID);
+}
 
-// function cleanPlayer(allPlayers: Player[], playerID: number) {
-//     const playerIdx = allPlayers.findIndex((p: Player) => p.ID === playerID);
-//     if (playerIdx !== -1)
-//         allPlayers.splice(playerIdx, 1);
-// }
+function cleanPlayer(allPlayers: Player[], playerID: number) {
+    const playerIdx = allPlayers.findIndex((p: Player) => p.ID === playerID);
+    if (playerIdx !== -1)
+        allPlayers.splice(playerIdx, 1);
+}
 
 async function cleanGame(app: FastifyInstance, gameID?: number) {
     if (!gameID)
@@ -257,8 +252,18 @@ async function cleanGame(app: FastifyInstance, gameID?: number) {
     const { allGames } = app.lobby;
     const game = allGames.find((game: Game) => game.gameID == gameID);
     if (game) {
-        if (!game.isOver)
-            await game.endGame();
+        if (!game.isOver) {
+            // await game.endGame();
+
+            // ! CODE WIP pour jeu annule -> le joueur declare forfait donc 3 - ? pour l'autre joueur
+            // ! voir methode endGame()         
+            const cancellerID = Number(app.lobby.currentUser?.id);
+            if (!cancellerID || cancellerID !== game.players[0].ID && cancellerID !== game.players[1].ID) {
+                console.log("Player not found.");
+                return;
+            }
+            await game.endGame(cancellerID);
+        }
         const idx = allGames.indexOf(game);
         if (idx !== -1)
             allGames.splice(idx, 1);

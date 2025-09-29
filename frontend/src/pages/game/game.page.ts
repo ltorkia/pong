@@ -432,7 +432,9 @@ export abstract class GamePage extends BasePage {
 	 * @param {number} time Le temps restant avant le démarrage du jeu en secondes.
 	 */
 	protected showTimer(time: number): void {
-		const panel = document.getElementById("pong-section")!;
+		const panel = document.getElementById("pong-section");
+		if (!panel)
+			return;
 		const lobby = document.getElementById("wait-div");
 		if (lobby)
 			lobby.innerHTML = "";
@@ -604,6 +606,7 @@ export abstract class GamePage extends BasePage {
 	 * @returns {Promise<void>} Une promesse qui se résout lorsque la requête POST est terminée.
 	 */
 	public async cleanup(): Promise<void> {
+		console.log("cleanup()");
 		await super.cleanup();
 		let inviterID: number | undefined = undefined;
 		let invitedID: number | undefined = undefined;
@@ -619,6 +622,7 @@ export abstract class GamePage extends BasePage {
 		}
 
 		if (!this.isPageRefreshing) {
+			console.log("!this.isPageRefreshing - Cleaning page...");
 			notifService.notifs = notifService.notifs.filter((notif) => notif.from == this.challengedFriendID
 				&& notif.content !== null && notif.content !== '');
 			if (notifService.navbarInstance?.notifsWindow)
@@ -626,6 +630,7 @@ export abstract class GamePage extends BasePage {
 			await this.sendMatchMakingRequest("clean_request", invitedID, inviterID, this.inviteToClean);
 		}
 		else {
+			console.log("this.isPageRefreshing - Cleaning page...");
 			const matchMakingReq = new Blob([JSON.stringify({
 				type: "clean_request",
 				playerID: this.currentUser!.id,

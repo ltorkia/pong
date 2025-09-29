@@ -65,6 +65,7 @@ export async function apiRoutes(app: FastifyInstance) {
 			// Ca permet aux routes d’accéder facilement à l’utilisateur authentifié
 			// via request.user sans devoir redécoder le token à chaque fois.
 			request.user = decoded;
+			app.lobby.currentUser = decoded;
 
 		} catch (err) {
 			clearAuthCookies(reply);

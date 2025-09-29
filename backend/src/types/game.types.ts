@@ -1,6 +1,7 @@
 import { EventEmitter } from "node:stream";
 import { resultGame, addGame, addGamePlayers, cancelledGame, registerUserTournament, createTournament } from "../db/game";
 import { GameData, Player } from "../shared/types/game.types"
+import { JwtPayload } from "./user.types";
 
 const DEG_TO_RAD = Math.PI / 180;
 
@@ -176,44 +177,95 @@ export class Game extends EventEmitter {
         this.gameLoop();
     }
 
-    public async endGame(): Promise<void> {
+    // ! END GAME repensé pour jeu annulé -> le joueur declare forfait donc 3 - ? pour l'autre joueur
+    // ! WIP () - ancien code valide dispo ci-dessous
+    public async endGame(cancellerID?: number): Promise<void> {
         this.gameStarted = false;
         this.isOver = true;
 
-        for (const player of this.players) {
+        if (cancellerID) {
+            if (this.score[0] === 3 || this.score[1] === 3) {
+                console.log("Game already over, game cannot be cancelled.");
+                return;
+            }
+            const isCancellerPlayer0 = cancellerID === this.players[0].ID;
             if (!this.score || this.score.length === 0)
-                this.score = [0, 0];
-            else if (player === this.players[1])
-                this.score = [this.score[1], this.score[0]];
-
-            if (player.webSocket)
-                player.webSocket.send(JSON.stringify({
-                    type: "end",
-                    score: this.score,
-                    // players: JSON.stringify(this.players.map(p => ({ ID: p.ID, alias: p.alias }))),
-                    tournamentID: this.tournamentID || null
-                }));
+                this.score = isCancellerPlayer0 ? [0, 3] : [3, 0];
+            else if (this.score[0] !== 3 && this.score[1] !== 3)
+                this.score = isCancellerPlayer0 ? [this.score[0], 3] : [3, this.score[1]];
         }
+
+        for (const player of this.players) {
+            // inversion du score si pas d’annulation et joueur[1]
+            const displayScore =
+                !cancellerID && player.ID === this.players[1].ID
+                    ? [this.score[1], this.score[0]]
+                    : this.score;
+
+            if (player.webSocket) {
+                player.webSocket.send(
+                    JSON.stringify({
+                        type: "end",
+                        score: displayScore,
+                        tournamentID: this.tournamentID || null,
+                    })
+                );
+            }
+        }
+
         this.players[0].matchMaking = false;
         this.players[1].matchMaking = false;
 
-        if (this.score[0] === this.score[1]) {
-            await cancelledGame(this.gameID, 0, 0, this.score);
-            return;
-        }
         const winner = this.getWinner();
         const looser = this.getLooser();
+        await resultGame(this.gameID, winner.ID, looser.ID, this.score);
 
-        if (this.score[0] === 3 || this.score[1] === 3)
-            await resultGame(this.gameID, winner.ID, looser.ID, this.score);
-        else
-            await cancelledGame(this.gameID, winner.ID, looser.ID, this.score);
-
-        for (const player of this.players) // clean des websockets si besoin de renvoyer tournoi au front (crash si websocket a l'interieur de JSON)
+        for (const player of this.players)
             player.webSocket = undefined;
 
-        this.emit("finished", this); // envoie un event "finished" qui est capte par une classe parent (TournamentLocal)
+        this.emit("finished", this);
     }
+
+    // public async endGame(): Promise<void> {
+    //     this.gameStarted = false;
+    //     this.isOver = true;
+
+    //     for (const player of this.players) {
+
+    //         if (!this.score || this.score.length === 0)
+    //             this.score = [0, 0];
+    //         else if (player === this.players[1])
+    //             this.score = [this.score[1], this.score[0]];
+
+    //         if (player.webSocket) {
+    //             player.webSocket.send(JSON.stringify({
+    //                 type: "end",
+    //                 score: this.score,
+    //                 // players: JSON.stringify(this.players.map(p => ({ ID: p.ID, alias: p.alias }))),
+    //                 tournamentID: this.tournamentID || null
+    //             }));
+    //         }
+    //     }
+    //     this.players[0].matchMaking = false;
+    //     this.players[1].matchMaking = false;
+
+    //     if (this.score[0] === this.score[1]) {
+    //         await cancelledGame(this.gameID, 0, 0, this.score);
+    //         return;
+    //     }
+    //     const winner = this.getWinner();
+    //     const looser = this.getLooser();
+
+    //     if (this.score[0] === 3 || this.score[1] === 3)
+    //         await resultGame(this.gameID, winner.ID, looser.ID, this.score);
+    //     else
+    //         await cancelledGame(this.gameID, winner.ID, looser.ID, this.score);
+
+    //     for (const player of this.players) // clean des websockets si besoin de renvoyer tournoi au front (crash si websocket a l'interieur de JSON)
+    //         player.webSocket = undefined;
+
+    //     this.emit("finished", this); // envoie un event "finished" qui est capte par une classe parent (TournamentLocal)
+    // }
 
     private sendGameUpdate() {
         const gameUpdate = new GameData(this.players, this.ball, this.score);
@@ -389,6 +441,7 @@ export class Tournament {
 }
 
 export class Lobby {
+    public currentUser: JwtPayload | null = null;
     public allPlayers: Player[] = [];
     public allGames: Game[] = [];
     public allTournaments: Tournament[] = [];
