@@ -8,6 +8,7 @@ import { DataService } from '../../../services/user/data.service';
 import { Player } from '../../../shared/types/game.types';
 import { User } from '../../../shared/models/user.model';
 import { ROUTE_PATHS } from '../../../config/routes.config';
+import { animateCSS } from '../../../utils/animate.utils';
 
 const MAX_PLAYERS = 4;
 const MIN_PLAYERS = 4;
@@ -22,21 +23,23 @@ export class GameTournamentLocalOverview extends BasePage {
     private winner: Player | undefined;
 
     constructor(config: RouteConfig, params?: RouteParams) {
-		super(config);
-		if (params && params.tournamentId)
+        super(config);
+        if (params && params.tournamentId) {
             this.tournamentID = Number(params.tournamentId);
+            console.log(this.tournamentID);
+        }
     }
 
-	/**
-	 * Procède aux vérifications nécessaires avant le montage de la page.
-	 * Exécute les vérifications de base de la classe parente (`BasePage`).
-	 *
-	 * @returns {Promise<boolean>} Une promesse qui se résout lorsque les vérifications sont terminées.
-	 */
-	protected async preRenderCheck(): Promise<boolean> {
-		const isPreRenderChecked = await super.preRenderCheck();
-		if (!isPreRenderChecked)
-			return false;
+    /**
+     * Procède aux vérifications nécessaires avant le montage de la page.
+     * Exécute les vérifications de base de la classe parente (`BasePage`).
+     *
+     * @returns {Promise<boolean>} Une promesse qui se résout lorsque les vérifications sont terminées.
+     */
+    protected async preRenderCheck(): Promise<boolean> {
+        const isPreRenderChecked = await super.preRenderCheck();
+        if (!isPreRenderChecked)
+            return false;
 
         if (!this.tournamentID) {
             console.error("Tournament id undefined");
@@ -44,13 +47,13 @@ export class GameTournamentLocalOverview extends BasePage {
             return false;
         }
         this.tournament = await TournamentService.fetchLocalTournament(this.tournamentID!);
-		if (!this.tournament) {
+        if (!this.tournament) {
             console.error("Tournament not found");
             this.redirectRoute = ROUTE_PATHS.GAME_TOURNAMENT_LOCAL_MENU;
-			return false;
-		}
-		return true;
-	}
+            return false;
+        }
+        return true;
+    }
 
     protected async beforeMount(): Promise<void> {
         // Fetch du html qui va etre reutilise plusieurs fois
@@ -93,10 +96,11 @@ export class GameTournamentLocalOverview extends BasePage {
     private async displayTournament(): Promise<void> {
         const firstStage: HTMLElement = document.getElementById("first-stage")!;
         const secondStage: HTMLElement = document.getElementById("second-stage")!;
+        const winner: HTMLElement = document.getElementById("winner")!;
 
-        await this.displayStage(this.tournament?.stageOne!, 4, firstStage);
-        await this.displayStage(this.tournament?.stageTwo!, 2, secondStage);
-        await this.displayWinner();
+        await this.displayStageOne(this.tournament?.stageOne!, firstStage);
+        await this.displayStageOne([this.tournament?.stageTwo!], secondStage);
+        await this.displayWinner(winner);
         this.displayNextGameAndSetNavigate();
 
         const allPastilles = document.querySelectorAll("#tournament-pastille");
@@ -112,10 +116,8 @@ export class GameTournamentLocalOverview extends BasePage {
             if (!game.isOver)
                 return game;
         }
-        for (const game of this.tournament!.stageTwo!) {
-            if (!game.isOver)
-                return game;
-        }
+        if (this.tournament?.stageTwo.players.length == 2)
+            return this.tournament.stageTwo;
         return undefined;
     }
 
@@ -132,78 +134,124 @@ export class GameTournamentLocalOverview extends BasePage {
         }
     }
 
-    // Afficher le winner
-    private async displayWinner(): Promise<void> {
-        const playerPastille = this.pastilleHTML?.cloneNode(true) as HTMLElement;
-        if (this.winner) {
-            const user = this.users!.find((u: UserModel) => u.id == this.winner!.ID)
-            playerPastille.querySelector("#pastille-name")!.textContent = user!.username;
-            const img = playerPastille.querySelector("#user-avatar") as HTMLImageElement;
-            img.src = await this.dataApi.getUserAvatarURL(user as User);
-        } else {
-            playerPastille.textContent = "?";
+    // Display et anime l'overlay winner
+    private showWinnerDialog(): void {
+        const overlay = document.getElementById("redirect-dialog-overlay");
+        const dialog = document.getElementById("redirect-dialog");
+        const winner = document.getElementById("tournament-winner-name");
+
+        if (overlay && dialog && winner) {
+
+            overlay.classList.remove("hidden");
+            overlay.classList.remove("opacity-0");
+
+            winner.textContent = this.tournament?.winner.alias || this.tournament?.winner.username;
+            // Animate the dialog itself
+            animateCSS(overlay, "fadeIn").then;
+            animateCSS(dialog, "fadeIn").then(() => dialog.classList.remove("opacity-0"));
         }
-        document.getElementById("winner")?.append(playerPastille);
     }
 
-    // Afficher chaque etape du tournoi, pas tres joli sorry
-    private async displayStage(stage: Game[], playerNb: number, container: HTMLElement): Promise<void> {
-        // Loop pour le nombre de match par stage 
-        for (let i = 0; i < playerNb / 2; i++) {
+    // Afficher le winner, display l'overlay winner et insere le nom du gagnant
+    private async displayWinner(winnerContainer: HTMLElement): Promise<void> {
+        const playerPastille = await this.createAndFillPlayerPastille(this.tournament?.winner, 0);
+        winnerContainer.append(playerPastille);
+
+        if (this.tournament?.winner) {
+            document.getElementById("next-game")!.classList.add("hidden");
+            setInterval(() => {
+                animateCSS(winnerContainer, "tada");
+            }, 1500);
+            setInterval(() => {
+                playerPastille.classList.toggle("border-yellow-500");
+            }, 500);
+            const redirectDialog = document.getElementById("redirect-dialog-overlay");
+            if (redirectDialog) {
+                setTimeout(() => this.showWinnerDialog(), 1000);
+            }
+        }
+    }
+
+    // Cree une pastille player, la remplie avec les infos du joueur et la retourne 
+    private async createAndFillPlayerPastille(player: Player, index: number, tooltipH2Name?: Element): Promise<HTMLElement> {
+        const playerPastille = this.pastilleHTML?.cloneNode(true) as HTMLElement;
+        const pastille = playerPastille.querySelector("#pastille-name")!;
+        const img = playerPastille.querySelector("#user-avatar") as HTMLImageElement;
+
+        if (!player) {
+            img.remove();
+            pastille.textContent = "?";
+            if (tooltipH2Name)
+                tooltipH2Name.textContent = "?";
+            return playerPastille;
+        }
+
+        const user = this.users.find((u: UserModel) => u.id == player.ID);
+        const name = player.alias || user?.username;
+
+        if (user)
+            img.src = await this.dataApi.getUserAvatarURL(user! as User);
+        else
+            img.src = await this.dataApi.returnDefaultAvatarURL();
+
+        pastille.textContent = name;
+        if (tooltipH2Name)
+            tooltipH2Name.textContent = name;
+        return playerPastille;
+    }
+
+    // Loop pour les joueurs du match, cherche le user approprie, lui cree un container et l'affiche
+    private async displayGamePlayers(game: Game, container: HTMLDivElement) {
+        const tooltip = this.toolTipHTML?.cloneNode(true) as HTMLElement;
+
+        for (let i = 0; i < 2; i++) {
+            const player = game.players[i];
+            const h2 = tooltip.querySelector(`#player-${i}`)!;
+            const playerPastille = await this.createAndFillPlayerPastille(player, i, h2);
+
+            if (game.isOver) {
+                if (game.score[i] == 3) {
+                    playerPastille.classList.remove("border-white");
+                    playerPastille.classList.add("border-green-500");
+                } else {
+                    playerPastille.classList.remove("border-white");
+                    playerPastille.classList.add("border-red-500");
+                }
+            }
+            container.append(playerPastille);
+        }
+        container.append(tooltip);
+    }
+
+    // Afficher les deux etapes du tournoi
+    private async displayStageOne(stage: Game[], container: HTMLElement): Promise<void> {
+        // Loop pour le nombre de match par etape (== 2 ou 1) 
+        for (let i = 0; i < stage.length; i++) {
             const div = document.createElement("div");
             div.id = "match-container";
             div.classList.add("relative");
-            const newTooltip = this.toolTipHTML?.cloneNode(true) as HTMLElement;
-            // Loop pour le nombre de joueur par match, cherche le user approprie, lui cree un container et l'affiche
-            for (let j = 0; j < 2; j++) {
-                const playerPastille = this.pastilleHTML?.cloneNode(true) as HTMLElement;
-                if (stage && stage[i]) {
-                    const player = stage[i].players[j];
-                    const user = this.users.find((u: UserModel) => u.id == player.ID)
-                    const pastille = playerPastille.querySelector("#pastille-name")!;
-                    const img = playerPastille.querySelector("#user-avatar") as HTMLImageElement;
-                    const name = player.alias || user?.username;
-
-                    if (user)
-                        img.src = await this.dataApi.getUserAvatarURL(user! as User);
-                    else
-                        img.src = await this.dataApi.returnDefaultAvatarURL();
-
-                    pastille.textContent = name;
-                    newTooltip.querySelector(`#player-${j}`)!.textContent = name;
-                } else
-                    playerPastille.textContent = "?";
-                div.append(playerPastille);
-            }
+            await this.displayGamePlayers(stage[i], div);
             container.append(div);
-            div.append(newTooltip);
         }
     }
 
     protected async mount(): Promise<void> {
         await this.displayTournament();
-        // // Création du bouton
-        // const btn = document.createElement("button");
-        // btn.id = "start-game-btn";
-        // btn.textContent = "Lancer la partie";
-        // btn.classList.add("px-4", "py-2", "bg-blue-900", "text-white", "rounded", "mt-4");
-
-        // document.getElementById("tournament-overview")?.append(btn);
-
-        // // Ajout du listener
-        // btn.addEventListener("click", () => {
-        //      console.log("okeeaiii");
-        //     // this.startGame(); // fonction qui fetch avec les infos en contenu des joueurs
-        // });
-        //     // await this.attachPastilleListeners();
-    }
-
-    private getGameByPlayerID(id: number, stage: Game[]): Game | undefined {
-        return stage.find((game: Game) => game.players.find((p: Player) => p.ID == id));
     }
 
     protected attachListeners(): void {
         const allMatches = document.querySelectorAll("#match-container");
+        const redirectBtn = document.getElementById("redirect-btn");
+
+        redirectBtn?.addEventListener("click", () => {
+            const matchMakingReq = new Blob([JSON.stringify({
+                type: "tournament_clean_request",
+                playerID: this.currentUser!.id,
+                tournamentID: this.tournamentID,
+            })], { type: 'application/json' });
+            navigator.sendBeacon("/api/game/playgame", matchMakingReq);
+            router.navigate("/");
+        })
 
         for (const match of allMatches) {
             const tooltip = match.querySelector("#tooltip");

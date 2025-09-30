@@ -1,6 +1,6 @@
 import DOMPurify from "dompurify";
 import { BasePage } from '../base/base.page';
-import { RouteConfig, RouteParams } from '../../types/routes.types';
+import { RouteConfig } from '../../types/routes.types';
 import { ROUTE_PATHS } from '../../config/routes.config';
 import { translateService, currentService, notifService } from '../../services/index.service';
 import { gameApi } from '../../api/game/game.api';
@@ -10,6 +10,7 @@ import { SafeUserModel } from '../../../../shared/types/user.types';
 import { Friend } from '../../shared/models/friend.model';
 import { friendApi } from '../../api/index.api';
 import { loadTemplate, getHTMLElementByClass, getHTMLElementById } from '../../utils/dom.utils';
+import { router } from "../../router/router";
 
 // ===========================================
 // GAME PAGE
@@ -21,9 +22,10 @@ export abstract class GamePage extends BasePage {
 	protected controlNodesDown!: NodeListOf<HTMLElement>;
 	protected playButton!: HTMLElement;
 	protected endGamePanel?: Element;
+	protected gameType?: string;
 
 	protected isSearchingGame: boolean = false;
-	protected adversary: SafeUserModel | undefined; 
+	protected adversary: SafeUserModel | undefined;
 
 	protected gameID: number = 0;
 	protected tournamentID: number = 0;
@@ -33,6 +35,7 @@ export abstract class GamePage extends BasePage {
 	protected relation?: Friend;
 	protected isInvitationGame: boolean = false;
 	protected replayInvite: boolean = false;
+	protected inviteToClean: boolean = true;
 
 	constructor(config: RouteConfig) {
 		super(config);
@@ -75,12 +78,7 @@ export abstract class GamePage extends BasePage {
 			const isRequestSet = await this.handleInviteRequest();
 			if (!isRequestSet)
 				return;
-		} 
-		else if (this.config.path === ROUTE_PATHS.GAME_LOCAL
-			|| this.config.path === ROUTE_PATHS.GAME_LOCAL_ID)
-			this.requestType = "local";
-		else
-			this.requestType = "matchmaking_request";
+		}
 	}
 
 	protected attachListeners() {
@@ -103,14 +101,13 @@ export abstract class GamePage extends BasePage {
 	// LISTENERS HANDLERS
 	// ===========================================
 	protected abstract initMatchRequest(): Promise<void>;
-	
+
 	protected handlePlayClick = async (event: MouseEvent): Promise<void> => {
 		if (this.isSearchingGame === false)
 			await this.initMatchRequest();
 	}
 
 	protected handleKeyDown = async (event: KeyboardEvent): Promise<void> => {
-		event.preventDefault();
 		this.controlNodesDown = document.querySelectorAll(".control");
 		if (event.key == " " && this.isSearchingGame === false)
 			await this.initMatchRequest();
@@ -118,15 +115,15 @@ export abstract class GamePage extends BasePage {
 			if (node.dataset.key == event.key)
 				node.classList.add("button-press");
 	}
-	
-    protected handleKeyUp = async (event: KeyboardEvent): Promise<void> => {
-        this.controlNodesUp = document.querySelectorAll(".control");
-        for (const node of this.controlNodesUp) {
-            if (node.dataset.key == event.key)
-                node.classList.remove("button-press");
-        }
-    }
-	
+
+	protected handleKeyUp = async (event: KeyboardEvent): Promise<void> => {
+		this.controlNodesUp = document.querySelectorAll(".control");
+		for (const node of this.controlNodesUp) {
+			if (node.dataset.key == event.key)
+				node.classList.remove("button-press");
+		}
+	}
+
 	/**
 	 * Gère l'événement de clic sur le bouton "Rejouer" dans la page du jeu.
 	 * 
@@ -144,7 +141,7 @@ export abstract class GamePage extends BasePage {
 		switch (this.requestType) {
 
 			case "local":
-				this.isSearchingGame = true;          
+				this.isSearchingGame = true;
 				await this.sendMatchMakingRequest("local");
 				break;
 
@@ -163,7 +160,7 @@ export abstract class GamePage extends BasePage {
 				break;
 
 			case "matchmaking_request":
-				this.isSearchingGame = true;              
+				this.isSearchingGame = true;
 				await this.sendMatchMakingRequest("matchmaking_request");
 				this.appendWaitText();
 				break;
@@ -212,13 +209,8 @@ export abstract class GamePage extends BasePage {
 				this.game!.clearScreen();
 				document.querySelector("canvas")?.remove();
 				this.finalScore = this.game!.getScore();
+				await this.showEndGamePanel();
 
-				// ? Skip le endgame panel si la partie est dans le cadre d'un tournoi ?
-				// ? Ou alors afficher un autre panel (condition déjà préparée dans showEndGamePanel())
-				// ! Voir comment Kiki s'organise pour l'affichage des scores dans ce cas particulier
-				// if (!this.tournamentID) 
-					await this.showEndGamePanel();
-				
 				this.game!.cleanupListeners();
 				currentService.clearCurrentGame();
 				break;
@@ -263,6 +255,17 @@ export abstract class GamePage extends BasePage {
 		this.relation = await friendApi.getRelation(this.currentUser!.id, this.challengedFriendID);
 		if (!this.relation || "errorMessage" in this.relation || !this.relation.waitingInvite)
 			return false;
+		switch (this.currentUser!.id) {
+			case this.relation.challengedBy:
+				this.requestType = "invite";
+				break;
+			case this.relation.isChallenged:
+				this.requestType = "invite-accept";
+				break;
+			default:
+				console.error("Invite settings not found");
+				return false;
+		}
 		this.isInvitationGame = true;
 		return true;
 	}
@@ -275,14 +278,16 @@ export abstract class GamePage extends BasePage {
 	 * @returns {Promise<boolean>} La promesse qui se résout lorsque les vérifications sont terminées.
 	 */
 	protected async handleInviteRequest(): Promise<boolean> {
+		if (!this.relation) {
+			console.error("Relation not found");
+			return false;
+		}
 		if (this.currentUser!.id === this.relation.challengedBy) {
 			if (this.replayInvite)
 				await this.sendMatchMakingRequest("invite", this.challengedFriendID, this.currentUser!.id);
-			this.requestType = "invite";
 			this.appendWaitText();
 		} else if (this.currentUser!.id === this.relation.isChallenged) {
 			await this.sendMatchMakingRequest("invite-accept", this.currentUser!.id, this.challengedFriendID);
-			this.requestType = "invite-accept";
 			this.appendWaitText();
 		} else {
 			console.error("Erreur de matchmaking dans l'invite.");
@@ -303,13 +308,22 @@ export abstract class GamePage extends BasePage {
 		replayWithSpan.setAttribute("data-ts", "accept-invitation-from");
 	}
 
+	/**
+	 * Change le statut de nettoyage de l'invitation.
+	 * Si cleanInvite est à true, l'invitation sera nettoyée au prochain changement de page.
+	 * @param {boolean} [cleanInvite] Optionnel, true si l'invitation actuelle doit être nettoyée, false sinon.
+	 */
+	public setCleanInvite(cleanInvite: boolean = false): void {
+		this.inviteToClean = cleanInvite;
+	}
+
 	protected updateInviteNotification(): void {
-		notifService.notifs = notifService.notifs.filter((notif) => notif.from == this.challengedFriendID 
-				&& notif.content !== null && notif.content !== '');
+		notifService.notifs = notifService.notifs.filter((notif) => notif.from == this.challengedFriendID
+			&& notif.content !== null && notif.content !== '');
 		if (notifService.navbarInstance!.notifsWindow)
 			notifService.displayDefaultNotif();
 	}
-	
+
 	/**
 	 * Insère un message d'erreur réseau dans le DOM, à l'intérieur de l'élément
 	 * ayant l'ID "pong-section". Le message d'erreur est affiché dans un nouvel
@@ -330,18 +344,20 @@ export abstract class GamePage extends BasePage {
 	 * @param {string} type Le type de partie (matchmaking, invite, tournament).
 	 * @param {number} [invitedID] L'ID du joueur invité si la partie est une invitation.
 	 * @param {number} [inviterID] L'ID du joueur qui invite si la partie est une invitation.
+	 * @param {boolean} [inviteToClean] Indique si le joueur doit se supprimer des joueurs actifs au refresh.
 	 * @returns {Promise<void>} La promesse qui se résout lorsque la partie est lancée.
 	 */
-    protected async sendMatchMakingRequest(type : string, invitedID?: number, inviterID?: number): Promise<void> {
-        const message = type;
-        const matchMakingReq: MatchMakingReq = {
-            type: message,
-            playerID: this.currentUser!.id,
-            tournamentID: this.tournamentID,
+	protected async sendMatchMakingRequest(type: string, invitedID?: number, inviterID?: number, inviteToClean?: boolean): Promise<void> {
+		const message = type;
+		const matchMakingReq: MatchMakingReq = {
+			type: message,
+			playerID: this.currentUser!.id,
+			tournamentID: this.tournamentID,
 			invitedID: invitedID,
 			inviterID: inviterID,
-			gameID: this.gameID
-        }
+			gameID: this.gameID,
+			inviteToClean: inviteToClean
+		}
 
 		try {
 			await gameApi.matchMake(matchMakingReq);
@@ -349,7 +365,7 @@ export abstract class GamePage extends BasePage {
 			console.error(error);
 			return;
 		}
-    }
+	}
 
 	/**
 	 * Initialise le jeu en supprimant les éléments HTML existants dans le container #pong-section.
@@ -363,7 +379,7 @@ export abstract class GamePage extends BasePage {
 			allChildren.firstChild.remove();
 		await this.game!.initGame();
 	}
-	
+
 	/**
 	 * Affiche un message d'attente dans le container #pong-section
 	 * en fonction du type de jeu (invite, matchmaking_request).
@@ -393,7 +409,6 @@ export abstract class GamePage extends BasePage {
 				waitingText1.textContent = "Waiting for ";
 				waitingUsername.textContent = this.relation!.username;
 				waitingText2.textContent = " to connect...";
-			// } else if (this.tournamentID) {
 			} else {
 				waitingText1.textContent = "Waiting for ";
 				waitingUsername.textContent = "another player";
@@ -417,7 +432,9 @@ export abstract class GamePage extends BasePage {
 	 * @param {number} time Le temps restant avant le démarrage du jeu en secondes.
 	 */
 	protected showTimer(time: number): void {
-		const panel = document.getElementById("pong-section")!;
+		const panel = document.getElementById("pong-section");
+		if (!panel)
+			return;
 		const lobby = document.getElementById("wait-div");
 		if (lobby)
 			lobby.innerHTML = "";
@@ -436,7 +453,7 @@ export abstract class GamePage extends BasePage {
 		translateService.updateLanguage(undefined, panel);
 		panel.classList.remove("hidden");
 	}
-	
+
 	/**
 	 * Affiche le panel de fin de jeu, avec les scores et un bouton pour rejouer.
 	 * ! Possibilité de fetch un autre fichier HTML dans le cas d'un jeu issu d'un tournoi
@@ -445,14 +462,25 @@ export abstract class GamePage extends BasePage {
 	 * @returns {Promise<void>} Une promesse qui se résout lorsque le panel est affiché.
 	 */
 	protected async showEndGamePanel(): Promise<void> {
-		const panel = document.getElementById("pong-section")!;
-		panel.innerHTML = "";
+		const panel = document.getElementById("pong-section");
+		if (!panel)
+			return;
 
+		panel.innerHTML = "";
 		let endGamePanel;
-		// if (!this.tournamentID)
+
+		const navigateTournamentBtnHandler = () => {
+			document.getElementById("navigate-btn")!.removeEventListener("click", navigateTournamentBtnHandler);
+			router.navigate(`/game/tournament_local/${this.tournamentID}`);
+		}
+
+		if (this.tournamentID) {
+			endGamePanel = await this.fetchEndGameItem("/templates/game/endgame_panel_tournament.html");
+			document.removeEventListener("keydown", this.handleKeyDown);
+			document.removeEventListener("keyup", this.handleKeyUp);
+		}
+		else
 			endGamePanel = await this.fetchEndGameItem("/templates/game/endgame_panel_default.html");
-		// else
-		// 	endGamePanel = ???	
 
 		if (!endGamePanel) {
 			console.error("Failed to fetch end game panel");
@@ -460,6 +488,8 @@ export abstract class GamePage extends BasePage {
 			return;
 		}
 		this.endGamePanel = endGamePanel.cloneNode(true) as Element;
+		if (this.tournamentID)
+			this.endGamePanel.querySelector("#navigate-btn")!.addEventListener("click", navigateTournamentBtnHandler);
 		this.fillScoreBox();
 		this.setReplayButton();
 
@@ -483,7 +513,7 @@ export abstract class GamePage extends BasePage {
 		const doc = parser.parseFromString(html, "text/html");
 		return doc.querySelector(".endgame-panel");
 	}
-	
+
 	/**
 	 * Remplit la boîte de score dans le panneau de fin de jeu avec le message de résultat et les scores.
 	 *
@@ -504,8 +534,7 @@ export abstract class GamePage extends BasePage {
 
 		const gameHasBeenCancelled = this.finalScore[0] !== 3 && this.finalScore[1] !== 3;
 
-		if (this.adversary && !gameHasBeenCancelled
-			&& this.finalScore[0] !== this.finalScore[1]) {
+		if (this.adversary && !gameHasBeenCancelled) {
 			if (this.finalScore[0] < this.finalScore[1]) {
 				resMessage.setAttribute("data-ts", "game.loseMessage");
 				resMessage.textContent = "You lose !";
@@ -515,8 +544,7 @@ export abstract class GamePage extends BasePage {
 				resMessage.textContent = "You win !";
 				resMessage.classList.add("win-message");
 			}
-		} else if (!this.adversary || gameHasBeenCancelled
-			|| (this.adversary && this.finalScore[0] === this.finalScore[1])) {
+		} else {
 			resMessage.setAttribute("data-ts", "game.endMessage");
 			resMessage.textContent = "End of game";
 			resMessage.classList.add("end-message");
@@ -547,7 +575,7 @@ export abstract class GamePage extends BasePage {
 	 * Le bouton est également équipé d'un écouteur d'événement pour gérer le clic.
 	 */
 	protected setReplayButton(): void {
-		if (!this.endGamePanel)
+		if (!this.endGamePanel || this.tournamentID)
 			return;
 		const replayBtn = getHTMLElementById('replay-button', this.endGamePanel) as HTMLElement;
 		if (this.challengedFriendID) {
@@ -567,36 +595,53 @@ export abstract class GamePage extends BasePage {
 	// ===========================================
 	// CLEANUP PAGE (OVERRIDE CLEANUP BASEPAGE)
 	// ===========================================
+	/**
+	 * Nettoie la page et le jeu en cours, s'il y en a un, en envoyant une requête POST à la route API `/api/game/playgame`.
+	 * Si le jeu est issu d'une invitation, cette méthode supprime aussi les notifications liées à l'invitation
+	 * et l'état de l'invitation dans la relation entre les deux amis.
+	 * Dans le cas d'un changement de page classique SPA, en utilise la méthode sendMatchmakingRequest(),
+	 * sinon ça veut dire que la page est rafraîchie, donc on utilise 'navigator.sendBeacon()' pour envoyer la requête
+	 * afin de s'assurer que celle-ci est bien exécutée sans méthode asynchrone.
+	 * 
+	 * @returns {Promise<void>} Une promesse qui se résout lorsque la requête POST est terminée.
+	 */
 	public async cleanup(): Promise<void> {
+		console.log("cleanup()");
 		await super.cleanup();
 		let inviterID: number | undefined = undefined;
 		let invitedID: number | undefined = undefined;
 		const friendId = this.challengedFriendID;
+
 		if (friendId) {
 			switch (this.requestType) {
 				case "invite":
 					invitedID = friendId;
 					inviterID = this.currentUser!.id;
 					break;
-				case "invite-accept":
-					invitedID = this.currentUser!.idfriendId;
-					inviterID = friendId;
-					break;
 			}
-			notifService.notifs = notifService.notifs.filter((notif) => notif.from == this.challengedFriendID 
-					&& notif.content !== null && notif.content !== '');
+		}
+
+		if (!this.isPageRefreshing) {
+			console.log("!this.isPageRefreshing - Cleaning page...");
+			notifService.notifs = notifService.notifs.filter((notif) => notif.from == this.challengedFriendID
+				&& notif.content !== null && notif.content !== '');
 			if (notifService.navbarInstance?.notifsWindow)
 				notifService.displayDefaultNotif();
+			await this.sendMatchMakingRequest("clean_request", invitedID, inviterID, this.inviteToClean);
 		}
-		const matchMakingReq = new Blob([JSON.stringify({
-			type: "clean_request",
-			playerID: this.currentUser!.id,
-			tournamentID: this.tournamentID,
-			invitedID: invitedID,
-			inviterID: inviterID,
-			gameID: this.gameID
-		})], { type: 'application/json' });
-		navigator.sendBeacon("/api/game/playgame", matchMakingReq);
+		else {
+			console.log("this.isPageRefreshing - Cleaning page...");
+			const matchMakingReq = new Blob([JSON.stringify({
+				type: "clean_request",
+				playerID: this.currentUser!.id,
+				tournamentID: this.tournamentID,
+				invitedID: invitedID,
+				inviterID: inviterID,
+				gameID: this.gameID,
+				inviteToClean: this.inviteToClean
+			})], { type: 'application/json' });
+			navigator.sendBeacon("/api/game/playgame", matchMakingReq);
+		}
 		currentService.clearCurrentGame();
 	}
 }

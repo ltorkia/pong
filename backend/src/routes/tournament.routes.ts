@@ -28,7 +28,6 @@ export async function tournamentRoutes(app: FastifyInstance) {
         const allTournaments = app.lobby.allTournaments;
         const tournament = allTournaments.find((t: Tournament) => t.ID == tournamentID);
         if (tournament) {
-            console.log(tournament);
             return reply.code(200).send(tournament);
         } else {
             return reply.code(404).send({ error: "Tournament not found" });
@@ -103,12 +102,10 @@ export async function tournamentRoutes(app: FastifyInstance) {
     app.post("/new_tournament_local", async (request: FastifyRequest, reply: FastifyReply) => {
         const tournamentParse = TournamentLocalSchema.safeParse(request.body);
 
-        const { allPlayers, allTournamentsLocal } = app.lobby;
+        const { allPlayers } = app.lobby;
 
-        console.log(request.body);
         // Validation de donnees
         if (!tournamentParse.success) {
-            console.log(tournamentParse.error.errors[0].message);
             return reply.code(400).send({ error: tournamentParse.error.errors[0].message });
         }
 
@@ -132,7 +129,6 @@ export async function tournamentRoutes(app: FastifyInstance) {
         );
         app.lobby.allTournamentsLocal.push(newTournament);
         await newTournament.startTournament();
-        console.log(newTournament);
         reply.code(200).send(newTournament.ID);
     });
 
@@ -151,8 +147,6 @@ export async function tournamentRoutes(app: FastifyInstance) {
         if (!tournament)
             return reply.code(404).send({ error: "Tournament not found" });
 
-        console.log("allll tournaments in tournament : ", allTournaments);
-        console.log("player ID in tournament : ", joinTournamentReq.data.playerID);
         const player = new Player(joinTournamentReq.data.playerID);
 
         // Ce joueur existe deja dans ce tournoi ?

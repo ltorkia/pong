@@ -5,7 +5,7 @@ import bcrypt from 'bcrypt';
 import { JwtPayload } from '../types/user.types';
 import { DB_CONST } from '../shared/config/constants.config';
 
-import { getUser, getUserGames, getUserAllInfo } from '../db/user';
+import { getUser, getUserGames, getUserAllInfo, getUserStats, getUserTournaments } from '../db/user';
 import { getAllUsersInfos } from '../db/user';
 import { UserModel, SafeUserModel } from '../shared/types/user.types';
 
@@ -58,6 +58,26 @@ export async function usersRoutes(app: FastifyInstance) {
 		if (!games)
 			return reply.code(404).send({ errorMessage: 'User not found'});
 		return games;
+	})
+
+	app.get('/:id/tournaments', async(request: FastifyRequest, reply: FastifyReply) => {
+		const { id } = request.params as { id: number };
+		if (isNaN(id))
+			return reply.status(403).send({ errorMessage: 'Forbidden' });
+		const tournaments = await getUserTournaments(id);
+		if (!tournaments)
+			return reply.code(404).send({ errorMessage: 'User not found'});
+		return tournaments;
+	})
+
+	app.get('/:id/stats', async(request: FastifyRequest, reply: FastifyReply) => {
+		const { id } = request.params as { id: number };
+		if (isNaN(id))
+			return reply.status(403).send({ errorMessage: 'Forbidden' });
+		const stats = await getUserStats(id);
+		if (!stats)
+			return reply.code(404).send({ errorMessage: 'User not found'});
+		return stats;
 	})
 
 	// /* -------------------------------------------------------------------------- */

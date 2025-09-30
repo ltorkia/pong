@@ -8,11 +8,12 @@ export class GameMenuMulti extends GamePage {
 		super(config);
 		if (params && params.userId)
 			this.challengedFriendID = Number(params.userId);
+		this.requestType = "matchmaking_request";
 	}
 
 	protected async initMatchRequest(): Promise<void> {
 		this.isSearchingGame = true;                
-		await this.sendMatchMakingRequest("matchmaking_request");
+		await this.sendMatchMakingRequest(this.requestType!);
 		this.appendWaitText();
 	}
 

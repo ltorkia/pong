@@ -211,7 +211,11 @@
 		"backToLobby": "Retour au lobby du tournoi...",
 		"players": "Joueurs : ",
 		"status": "Statut : ",
-		"start": "DÉMARRER !"
+		"start": "DÉMARRER !",
+        "nextGame": "Prochaine partie :",
+        "versus": "contre",
+        "winnerBegin": "Nous avons un gagnant !",
+        "winnerEnd": "a gagné le tournoi! Bravo!"
 	}
 
 }

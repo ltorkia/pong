@@ -42,3 +42,12 @@ FRONT
 Copier les fichiers .env du back et du front manuellement et:
 docker compose up --build
 ------------------------------------------------------------------------
+
+<!-- MEMO ELISA -->
+<!-- 
+TODO : GoogleSigne Avatar -> ? Lee quand ca bug ? 
+TODO : DB jeu interrompu
+TODO : Verif  "?" dans DB pour injection SQL
+TODO : mettre nb de points dans les regles dans front
+TODO : clean code tournoi remote OU rematcher en fonction du tournoi local
+TODO: gros bug quand 2 pages connectees / 2 websockets de stockees -->

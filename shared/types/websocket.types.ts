@@ -51,7 +51,8 @@ export type MatchMakingReq = {
     tournamentID?: number,
     invitedID?: number,
     inviterID?: number,
-    gameID?: number
+    gameID?: number,
+    inviteToClean?: boolean
 };
 
 export type decountgame = {

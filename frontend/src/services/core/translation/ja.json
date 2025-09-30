@@ -210,7 +210,11 @@
 		"backToLobby": "トーナメントロビーに戻る...",
 		"players": "プレイヤー：",
 		"status": "ステータス：",
-		"start": "スタート！"
+		"start": "スタート！",
+        "nextGame": "次のゲーム :",
+        "versus": "対",
+        "winnerBegin": "ついに勝者が決まった!",
+        "winnerEnd": "トーナメントで優勝しました！おめでとう！"
 	}
 
 }

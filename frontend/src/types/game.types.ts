@@ -27,13 +27,14 @@ export class Tournament implements TournamentInterface {
 }
 
 export class TournamentLocal implements TournamentInterface {
-    maxPlayers: number;
-    masterPlayerID: number;
     players: Player[];
+    masterPlayerID: number;
+    maxPlayers: number;
     stageOne?: GameInterface[] | undefined;
-    stageTwo?: GameInterface[] | undefined;
+    stageTwo?: GameInterface | undefined;
+    winner: Player | undefined;
 
-    constructor(maxPlayers: number, masterPlayerID: number, players: Player[],
+    constructor(maxPlayers: number, winner: Player, masterPlayerID: number, players: Player[],
         stageOne?: Game[], stageTwo?: Game[]
     ) {
         this.maxPlayers = maxPlayers;
@@ -41,6 +42,7 @@ export class TournamentLocal implements TournamentInterface {
         this.players = players;
         this.stageOne = stageOne ?? undefined;
         this.stageTwo = stageTwo ?? undefined;
+        this.winner = winner;
     }
 }
 

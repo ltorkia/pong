@@ -1,5 +1,7 @@
-import { resultGame, addGame, addGamePlayers, cancelledGame, registerUserTournament } from "../db/game";
+import { EventEmitter } from "node:stream";
+import { resultGame, addGame, addGamePlayers, cancelledGame, registerUserTournament, createTournament } from "../db/game";
 import { GameData, Player } from "../shared/types/game.types"
+import { JwtPayload } from "./user.types";
 
 const DEG_TO_RAD = Math.PI / 180;
 
@@ -83,7 +85,7 @@ export class Ball {
     }
 };
 
-export class Game {
+export class Game extends EventEmitter {
     public players: Player[] = [];
     private ball = new Ball();
     private playersCount: number = 0;
@@ -96,6 +98,7 @@ export class Game {
     public tournamentID?: number;
 
     constructor(gameID: number, playersCount: number, players: Player[], tournamentID?: number) {
+        super();
         this.gameID = gameID;
         this.playersCount = playersCount;
         this.players = players;
@@ -174,24 +177,74 @@ export class Game {
         this.gameLoop();
     }
 
+    // ! END GAME repensé pour jeu annulé -> le joueur declare forfait donc 3 - ? pour l'autre joueur
+    // ! WIP () - ancien code valide dispo ci-dessous
+    // public async endGame(cancellerID?: number): Promise<void> {
+    //     this.gameStarted = false;
+    //     this.isOver = true;
+
+    //     if (cancellerID) {
+    //         if (this.score[0] === 3 || this.score[1] === 3) {
+    //             console.log("Game already over, game cannot be cancelled.");
+    //             return;
+    //         }
+    //         const isCancellerPlayer0 = cancellerID === this.players[0].ID;
+    //         if (!this.score || this.score.length === 0)
+    //             this.score = isCancellerPlayer0 ? [0, 3] : [3, 0];
+    //         else if (this.score[0] !== 3 && this.score[1] !== 3)
+    //             this.score = isCancellerPlayer0 ? [this.score[0], 3] : [3, this.score[1]];
+    //     }
+
+    //     for (const player of this.players) {
+    //         // inversion du score si pas d’annulation et joueur[1]
+    //         const displayScore =
+    //             !cancellerID && player.ID === this.players[1].ID
+    //                 ? [this.score[1], this.score[0]]
+    //                 : this.score;
+
+    //         if (player.webSocket) {
+    //             player.webSocket.send(
+    //                 JSON.stringify({
+    //                     type: "end",
+    //                     score: displayScore,
+    //                     tournamentID: this.tournamentID || null,
+    //                 })
+    //             );
+    //         }
+    //     }
+
+    //     this.players[0].matchMaking = false;
+    //     this.players[1].matchMaking = false;
+
+    //     const winner = this.getWinner();
+    //     const looser = this.getLooser();
+    //     await resultGame(this.gameID, winner.ID, looser.ID, this.score);
+
+    //     for (const player of this.players)
+    //         player.webSocket = undefined;
+
+    //     this.emit("finished", this);
+    // }
+
     public async endGame(): Promise<void> {
-        console.log("coucou end !, score = ", this.score);
         this.gameStarted = false;
         this.isOver = true;
 
         for (const player of this.players) {
+
             if (!this.score || this.score.length === 0)
                 this.score = [0, 0];
             else if (player === this.players[1])
                 this.score = [this.score[1], this.score[0]];
 
-            if (player.webSocket)
+            if (player.webSocket) {
                 player.webSocket.send(JSON.stringify({
                     type: "end",
                     score: this.score,
                     // players: JSON.stringify(this.players.map(p => ({ ID: p.ID, alias: p.alias }))),
                     tournamentID: this.tournamentID || null
                 }));
+            }
         }
         this.players[0].matchMaking = false;
         this.players[1].matchMaking = false;
@@ -199,21 +252,26 @@ export class Game {
         if (this.score[0] === this.score[1]) {
             await cancelledGame(this.gameID, 0, 0, this.score);
             return;
-        }        
-        const winner = this.score[0] > this.score[1] ? this.players[0] : this.players[1];
-        const looser = this.score[0] < this.score[1] ? this.players[0] : this.players[1];
+        }
+        const winner = this.getWinner();
+        const looser = this.getLooser();
+
         if (this.score[0] === 3 || this.score[1] === 3)
             await resultGame(this.gameID, winner.ID, looser.ID, this.score);
         else
             await cancelledGame(this.gameID, winner.ID, looser.ID, this.score);
+
+        for (const player of this.players) // clean des websockets si besoin de renvoyer tournoi au front (crash si websocket a l'interieur de JSON)
+            player.webSocket = undefined;
+
+        this.emit("finished", this); // envoie un event "finished" qui est capte par une classe parent (TournamentLocal)
     }
 
     private sendGameUpdate() {
         const gameUpdate = new GameData(this.players, this.ball, this.score);
         for (const player of this.players) {
-            if (!this.tournamentID && this.players[1] == player)
-            {
-                gameUpdate.ball.x *=-1;
+            if (!this.tournamentID && this.players[1] == player) {
+                gameUpdate.ball.x *= -1;
                 gameUpdate.players[1].pos.x *= -1;
                 gameUpdate.players[0].pos.x *= -1;
                 gameUpdate.score = [this.score[1], this.score[0]];
@@ -225,20 +283,28 @@ export class Game {
 
     public registerInputLocal(playerID: number, key: string, status: boolean): void { //peut etre ajouter le type de jeu jsp
         for (const player of this.players) {
-             if (player.ID == playerID) {
-        //     if (player.sidePlayer === "left") {
+            if (player.ID == playerID) {
                 if (key == "w" && player.inputUp != status) player.inputUp = status;
                 else if (key == "s" && player.inputDown != status) player.inputDown = status;
             }
-            // if (player.sidePlayer === "right") {
             else {
                 if (key == "ArrowUp" && player.inputUp != status) player.inputUp = status;
                 else if (key == "ArrowDown" && player.inputDown != status) player.inputDown = status;
             }
-            }
-        // }
-        // }
+        }
     };
+
+    public registerInputLocalTournament(key: string, status: boolean): void {
+        if (key == "w" && this.players[0].inputUp != status)
+            this.players[0].inputUp = status;
+        else if (key == "s" && this.players[0].inputDown != status)
+            this.players[0].inputDown = status;
+
+        if (key == "ArrowUp" && this.players[1].inputUp != status)
+            this.players[1].inputUp = status;
+        else if (key == "ArrowDown" && this.players[1].inputDown != status)
+            this.players[1].inputDown = status;
+    }
 
     public registerInput(playerID: number, key: string, status: boolean): void { //peut etre ajouter le type de jeu jsp
         for (const player of this.players) {
@@ -249,32 +315,50 @@ export class Game {
         }
     };
 
+    public getWinner() { return this.score[0] == 3 ? this.players[0] : this.players[1] };
+    public getLooser() { return this.score[1] == 3 ? this.players[1] : this.players[0] };
+    public getIsOver() { return this.isOver };
+    public getScore() { return this.score };
     public setGameStarted(started: boolean) { this.gameStarted = started };
 };
 
 export class TournamentLocal {
     public players: Player[] = [];
+    public winner: Player | undefined;
     public maxPlayers: number;
     public masterPlayerID: number;
     public ID: number;
     public stageOne: Game[] = [];
-    public stageTwo: Game | undefined;
+    public stageTwo!: Game;
 
     constructor(players: Player[], maxPlayers: number, masterPlayerID: number, ID: number) {
         this.players = players;
         this.maxPlayers = maxPlayers;
+        this.winner = undefined;
         this.masterPlayerID = masterPlayerID;
-        this.ID = ID;
+        this.ID = ID ?? 0;
+    }
+
+    public getWinner(game: Game): Player {
+        const score = game.getScore();
+        if (score[0] == 3)
+            return game.players[0];
+        else
+            return game.players[1];
     }
 
     public async startTournament(): Promise<void> {
+        const tournamentID = await createTournament(this.maxPlayers, this.maxPlayers / 2);
+        if (tournamentID === undefined)
+            return; //TODO : put some error
+        else this.ID = tournamentID;
 
         for (const player of this.players)
             await registerUserTournament(player.ID, this.ID);
 
         // this.players est melange pour avoir des matchs aleatoire
         shuffleArray(this.players);
-        
+
         const gameID1 = await addGame(true);
         await addGamePlayers(gameID1, this.players[0].ID, this.players[1].ID);
         this.stageOne[0] = new Game(gameID1, 2, [this.players[0], this.players[1]], this.ID);
@@ -282,9 +366,31 @@ export class TournamentLocal {
         const gameID2 = await addGame(true);
         await addGamePlayers(gameID2, this.players[2].ID, this.players[3].ID);
         this.stageOne[1] = new Game(gameID2, 2, [this.players[2], this.players[3]], this.ID);
+
+        const stageTwoID = await addGame(true)
+        this.stageTwo = new Game(stageTwoID, 2, []); // creee maintenant mais les joueurs sont ajoutes plus tard
+
+        // Listeners pour etre notifie quand une game est finie
+        for (const game of this.stageOne)
+            game.on("finished", (g: Game) => this.update());
+        this.stageTwo.on("finished", (g: Game) => this.update());
+    }
+
+    // si les games du premier tour sont finies, update pour determiner la derniere game
+    public async update(): Promise<void> {
+        if (this.stageTwo.getIsOver()) {
+            this.winner = this.getWinner(this.stageTwo);
+            return ;
+        }
+        for (const game of this.stageOne) {
+            if (game.getIsOver() && !game.players.some((p: Player) => this.stageTwo?.players.includes(p)))
+                this.stageTwo?.players.push(this.getWinner(game));
+        }
+        if (this.stageTwo.players.length == 2)
+            await addGamePlayers(this.stageTwo.gameID, this.players[0].ID, this.players[1].ID);
+        console.log("SCORE : ", this.stageOne[0].getScore());
     }
 }
-
 
 export class Tournament {
     public name: string;
@@ -335,6 +441,7 @@ export class Tournament {
 }
 
 export class Lobby {
+    public currentUser: JwtPayload | null = null;
     public allPlayers: Player[] = [];
     public allGames: Game[] = [];
     public allTournaments: Tournament[] = [];

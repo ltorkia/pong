@@ -56,6 +56,7 @@ export async function GetAvatarFromBuffer(reply: FastifyReply, user: Partial<Use
 		const filename = (user.id! + new Date().toISOString() + IMAGE_CONST.EXTENSIONS[avatarType]);
 		const resolvedPath = path.resolve(`.${IMAGE_CONST.ROUTE_API}`);
 		const filepath = path.join(resolvedPath, filename);
+		console.log("////////////////////////////////////RESOLVED PATH", filepath);
 
 		try {
 			await fs.promises.mkdir(IMAGE_CONST.ROUTE_API, { recursive: true });

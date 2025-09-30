@@ -92,7 +92,6 @@ CREATE TABLE IF NOT EXISTS User_Tournament (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     tournament_id INTEGER NOT NULL,
     user_id INTEGER NOT NULL,
-    game_id INTEGER,
     alias TEXT,
     score INTEGER DEFAULT 0,				-- score cumulé dans le tournoi
     wins INTEGER DEFAULT 0,					-- nombre de victoires
@@ -101,8 +100,15 @@ CREATE TABLE IF NOT EXISTS User_Tournament (
     status TEXT DEFAULT 'active' NOT NULL CHECK (status IN ('active', 'eliminated', 'finished')),
     registered_at DATETIME DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (tournament_id) REFERENCES Tournament(id) ON DELETE CASCADE,
-    FOREIGN KEY (user_id) REFERENCES User(id),
-    FOREIGN KEY (game_id) REFERENCES Game(id)
+    FOREIGN KEY (user_id) REFERENCES User(id)
+);
+
+CREATE TABLE IF NOT EXISTS Tournament_Game (
+	id INTEGER PRIMARY KEY AUTOINCREMENT,
+	tournament_id INTEGER NOT NULL,
+	game_id INTEGER NOT NULL,
+	FOREIGN KEY (tournament_id) REFERENCES Tournament(id) ON DELETE CASCADE,
+	FOREIGN KEY (game_id) REFERENCES Game(id)
 );
 
 -- Chat -> pour gerer les messages echanges
@@ -115,6 +121,7 @@ CREATE TABLE IF NOT EXISTS Chat (
 	FOREIGN KEY (sender_id) REFERENCES User(id),
 	FOREIGN KEY (receiver_id) REFERENCES User(id)
 );
+
 /*                                                       
 -- Chat -> pour gerer les messages echanges
 CREATE TABLE IF NOT EXISTS Chat (                                             -- Si on decide de rendre le chat a plus de 1 VS 1 / ou si on veut stocker dans un endroit precis les discussion en solo

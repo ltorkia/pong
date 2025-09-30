@@ -195,15 +195,24 @@ export class NotifService {
 			storageService.setCurrentNotifs([...this.notifs]);
 			this.displayNotif();
 			await this.deleteAllNotifsFromUser(this.currentNotif!.from, this.currentNotif!.id);
-			if (this.currentPage.config.path === ROUTE_PATHS.GAME_MULTI
-				&& this.currentPage instanceof GamePage
-				&& this.currentPage.challengedFriendID === this.currentNotif!.from) {
-				switch (this.currentNotif!.type) {
-					case FRIEND_REQUEST_ACTIONS.INVITE:
-						// TODO: fix update bouton
-						// console.log('ON EST DANS LA CONDITION DE handleNotification');
-						this.currentPage.changeReplayButtonForInvite()!;
-						break;
+			if (this.currentPage instanceof GamePage) {
+				if (this.currentPage.config.path === ROUTE_PATHS.GAME_MULTI
+					&& this.currentPage.challengedFriendID === this.currentNotif!.from) {
+					switch (this.currentNotif!.type) {
+						case FRIEND_REQUEST_ACTIONS.INVITE:
+							// TODO: fix update bouton
+							// console.log('ON EST DANS LA CONDITION DE handleNotification');
+							this.currentPage.changeReplayButtonForInvite()!;
+							this.currentPage.setCleanInvite();
+							break;
+					}
+				} 
+				else {
+					switch (this.currentNotif!.type) {
+						case FRIEND_REQUEST_ACTIONS.INVITE:
+							this.currentPage.setCleanInvite();
+							break;
+					}
 				}
 			}
 		};
@@ -264,7 +273,6 @@ export class NotifService {
 		translateService.updateLanguage(undefined, this.notifItem);
 		this.notifItem.classList.add('animate-fade-in-up');
 		this.navbarInstance!.notifsWindow.prepend(this.notifItem);
-		// this.notifItem = getHTMLElementById(`notif-${this.currentNotif!.id}`, this.navbarInstance!.notifsWindow) as HTMLDivElement;
 		this.attachListeners();
 	}
 
@@ -681,7 +689,6 @@ export class NotifService {
 	}
 
 	public handlePlayClick = async (event: Event): Promise<void> => {
-		console.log("handlePlayClick");
 		const type: NotificationType = FRIEND_REQUEST_ACTIONS.INVITE_ACCEPT;
 		const target = event.target as HTMLElement;
 		this.setFriendId(target);
@@ -691,13 +698,15 @@ export class NotifService {
 			console.error(relation.errorMessage || "Invitation invalide.");
 			return;
 		}
-		if ((this.currentPage.config.path !== ROUTE_PATHS.GAME_MULTI 
-				&& !(this.currentPage instanceof GamePage))
-			|| ((this.currentPage instanceof GamePage)
-			&& this.currentPage.challengedFriendID !== this.friendId))
-			await router.navigate(`/game/multi/${this.friendId!}`);
-		else if (this.currentPage.challengedFriendID! === this.friendId!)
-			await this.currentPage.checkInviteReplayRequest!();
+
+		if (this.currentPage instanceof GamePage
+			&& this.currentPage.challengedFriendID === this.friendId) {
+			await this.currentPage.checkInviteReplayRequest?.();
+			this.currentPage.setCleanInvite(true);
+			await this.handleUpdate(type);
+			return;
+		}
+		await router.navigate(`/game/multi/${this.friendId!}`);
 		await this.handleUpdate(type);
 	}
 

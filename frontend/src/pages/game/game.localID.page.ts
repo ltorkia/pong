@@ -14,6 +14,8 @@ export class GameMenuLocalID extends GamePage {
 			this.gameID = Number(params.gameId);
             this.tournamentID = Number(params.tournamentId);
         }
+        this.gameType = "tournament";
+        this.requestType = "tournament";
     }
 
 	/**
@@ -43,7 +45,6 @@ export class GameMenuLocalID extends GamePage {
 
     protected async beforeMount(): Promise<void> {
         await super.beforeMount();
-        this.requestType = "tournament";
         console.log(this.gameInfos);
         this.insertPlayerNames();
     }
@@ -58,6 +59,6 @@ export class GameMenuLocalID extends GamePage {
 
     protected async initMatchRequest(): Promise<void> {
         this.isSearchingGame = true;          
-        this.sendMatchMakingRequest("tournament");
+        this.sendMatchMakingRequest(this.requestType!);
     }
 }
