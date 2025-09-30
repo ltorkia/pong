@@ -182,7 +182,6 @@ export class TournamentAPI {
         const res = await fetch(`/api/game/tournaments_local/${tournamentID}`);
         if (res.ok) {
             const tournamentJSON: TournamentLocal = await res.json();
-            console.log(tournamentJSON);
             return new TournamentLocal(
                 tournamentJSON.maxPlayers,
                 tournamentJSON.winner,

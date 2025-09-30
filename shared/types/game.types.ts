@@ -33,10 +33,6 @@ export class Player {
     public inputDown: boolean = false;
     public alias?: string;
 
-    
-    // public getPlayers(): Player[] {
-    //     return this.players;
-    // }
     move() {
         if (this.inputUp == true && this.pos.y + (this.height / 2) + 0.02 < 1)
             this.pos.y += 0.02;

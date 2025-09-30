@@ -92,7 +92,7 @@ export class Game extends EventEmitter {
     public gameStarted: boolean = false;
     public isOver: boolean = false;
 
-    private score: number[] = [];
+    private score: number[] = [0, 0];
     public gameID: number = 0;
     public tournamentID?: number;
 
@@ -152,9 +152,9 @@ export class Game extends EventEmitter {
 
     private checkScore(): void {
         if (this.ball.x < 0)
-            this.score[0] += 1;
-        else if (this.ball.x > 0)
             this.score[1] += 1;
+        else if (this.ball.x > 0)
+            this.score[0] += 1;
         this.score.forEach(score => {
             if (score == 3)
                 return (this.endGame())
@@ -163,8 +163,6 @@ export class Game extends EventEmitter {
     }
 
     public initGame(): void {
-        for (let i = 0; i < this.players.length; i++)
-            this.score.push(0);
         this.gameStarted = true;
         this.initSizePos();
         this.gameLoop();
@@ -181,9 +179,9 @@ export class Game extends EventEmitter {
         this.isOver = true;
 
         for (const player of this.players) {
-            if (!this.score || this.score.length === 0)
-                this.score = [0, 0];
-            else if (player === this.players[1])
+            // if (!this.score || this.score.length === 0)
+                // this.score = [0, 0];
+            /* else */ if (player === this.players[1])
                 this.score = [this.score[1], this.score[0]];
 
             if (player.webSocket)

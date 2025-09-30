@@ -14,72 +14,6 @@ const getTargetTimestamp = (arr: number[], target: number) => {
 }
 const BUFFER_DELAY = 100; // ms
 
-// export class PlayerBar {
-//     public oldState = { time: 0, x: 0, y: 0 };
-//     public newState = { time: 0, x: 0, y: 0 };
-//     public x: number;
-//     public y: number;
-//     public w: number;
-//     public h: number;
-//     public moveUnit: number;
-//     private ctx: CanvasRenderingContext2D;
-
-//     public draw(): void {
-//         const xPixels = ((this.x + 1) / 2) * this.ctx.canvas.clientWidth;
-//         const yPixels = (1 - ((this.y + 1) / 2)) * this.ctx.canvas.clientHeight;
-//         const pixelWidth = this.w * (this.ctx.canvas.width / 2);
-//         const pixelHeight = this.h * (this.ctx.canvas.clientHeight / 2);
-//         this.ctx.fillStyle = "rgba(255, 255, 255)";
-//         this.ctx.fillRect(
-//             xPixels - pixelWidth / 2,
-//             yPixels - pixelHeight / 2,
-//             pixelWidth,
-//             pixelHeight);
-//     };
-
-//     constructor(ctx: CanvasRenderingContext2D) {
-//         this.x = 0;
-//         this.y = 0;
-//         this.w = 0;
-//         this.h = 0;
-//         this.moveUnit = 0;
-//         this.ctx = ctx;
-//     }
-// };
-
-// export class Ball {
-//     public oldState = { time: 0, x: 0, y: 0 };
-//     public newState = { time: 0, x: 0, y: 0 };
-//     public x: number;
-//     public y: number;
-//     public radius: number;
-//     public moveUnit: number;
-//     private ctx: CanvasRenderingContext2D;
-
-//     draw() {
-//         const xPixels = ((this.x + 1) / 2) * this.ctx.canvas.width;
-//         const yPixels = (1 - ((this.y + 1) / 2)) * this.ctx.canvas.height;
-//         const radiusPix = this.radius * (Math.min(this.ctx.canvas.width, this.ctx.canvas.height) / 2);
-//         this.ctx.beginPath();
-//         this.ctx.arc(
-//             xPixels,
-//             yPixels,
-//             radiusPix, 0, Math.PI * 2, true
-//         );
-//         this.ctx.closePath();
-//         this.ctx.fillStyle = "rgba(255, 255, 255)";
-//         this.ctx.fill();
-//     };
-
-//     constructor(ctx: CanvasRenderingContext2D) {
-//         this.x = 0;
-//         this.y = 0;
-//         this.moveUnit = 0;
-//         this.radius = 0.03;
-//         this.ctx = ctx;
-//     }
-// };
-
 export class MultiPlayerGame {
     private gameCanvas: HTMLCanvasElement = document.createElement('canvas');
     private canvasCtx: CanvasRenderingContext2D = this.gameCanvas.getContext("2d", { alpha: true })!;
@@ -331,14 +265,17 @@ ${this.getSmoothnessVerdict(variance, avgFps, this.stutterCount)}
         }
     }
 
-
-    public async initGame(): Promise<void> {
+    public initCanvas(): void {
         const parentContainer: HTMLElement = document.getElementById("pong-section")!;
         this.gameCanvas.height = parentContainer.getBoundingClientRect().height;    // will need to update that every frame later (responsiveness)
         this.gameCanvas.width = parentContainer.getBoundingClientRect().width;
         this.gameCanvas.style.border = "1px solid black";
         this.gameCanvas.style.backgroundColor = "black";
         parentContainer.append(this.gameCanvas);
+    }
+
+    public async initGame(): Promise<void> {
+        this.initCanvas();
         this.initSizePos();
         this.clearFillStyle = 0.3;
         this.attachListeners();

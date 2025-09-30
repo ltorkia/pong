@@ -11,12 +11,15 @@ import { Friend } from '../../shared/models/friend.model';
 import { friendApi } from '../../api/index.api';
 import { loadTemplate, getHTMLElementByClass, getHTMLElementById } from '../../utils/dom.utils';
 import { router } from "../../router/router";
+import { Game } from "../../types/game.types";
+import { Player } from "../../../../shared/types/game.types";
 
 // ===========================================
 // GAME PAGE
 // ===========================================
 export abstract class GamePage extends BasePage {
 	protected game?: MultiPlayerGame;
+    protected players?: Player[];
 	protected finalScore: number[] = [];
 	protected controlNodesUp!: NodeListOf<HTMLElement>;
 	protected controlNodesDown!: NodeListOf<HTMLElement>;
@@ -432,22 +435,27 @@ export abstract class GamePage extends BasePage {
 	 * @param {number} time Le temps restant avant le démarrage du jeu en secondes.
 	 */
 	protected showTimer(time: number): void {
+        console.log(time);
 		const panel = document.getElementById("pong-section")!;
 		const lobby = document.getElementById("wait-div");
 		if (lobby)
 			lobby.innerHTML = "";
-		let wrapper = panel.querySelector(".timer-wrapper");
+		let wrapper = panel.querySelector(".timer-wrapper") as HTMLElement;
 		if (!wrapper) {
-			wrapper = document.createElement("div");
+			wrapper = document.createElement("div") as HTMLElement;
 			wrapper.classList.add("timer-wrapper");
+            panel.append(wrapper);
 		}
 		wrapper.innerHTML = "";
+        if (time == 3) {
+            wrapper!.style.animation = "fade-to-black 4s forwards";
+        }
+
 		const spanTime = document.createElement("span");
 		spanTime.classList.add("timer-text");
 		spanTime.textContent = `${time}`;
 
 		wrapper.append(spanTime);
-		panel.appendChild(wrapper);
 		translateService.updateLanguage(undefined, panel);
 		panel.classList.remove("hidden");
 	}
@@ -459,7 +467,7 @@ export abstract class GamePage extends BasePage {
 	 * 
 	 * @returns {Promise<void>} Une promesse qui se résout lorsque le panel est affiché.
 	 */
-	protected async showEndGamePanel(): Promise<void> {
+	protected async showEndGamePanel(game?: Game): Promise<void> {
 		const panel = document.getElementById("pong-section");
 		if (!panel)
 			return;
@@ -488,7 +496,7 @@ export abstract class GamePage extends BasePage {
 		this.endGamePanel = endGamePanel.cloneNode(true) as Element;
 		if (this.tournamentID)
 			this.endGamePanel.querySelector("#navigate-btn")!.addEventListener("click", navigateTournamentBtnHandler);
-		this.fillScoreBox();
+		this.fillScoreBox(game);
 		this.setReplayButton();
 
 		panel.appendChild(this.endGamePanel);
@@ -521,7 +529,7 @@ export abstract class GamePage extends BasePage {
 	 * - Définissant les attributs data-ts et les classes CSS appropriées pour la traduction et le style.
 	 * ! Si modif du texte, penser à mettre à jour les fichiers de traduction (frontend/src/services/core/translation/*.json)
 	 */
-	protected fillScoreBox(): void {
+	protected fillScoreBox(game?: Game): void {
 		if (!this.endGamePanel)
 			return;
 		const resMessage = getHTMLElementByClass('res-message', this.endGamePanel) as HTMLElement;
@@ -556,6 +564,14 @@ export abstract class GamePage extends BasePage {
 				spanRes.setAttribute("data-ts", "game.resultText");
 				spanRes.textContent = "You";
 				spanAdversary.textContent = `${this.adversary?.username}`;
+            } else if (this.players || game) {
+                if (this.players) {
+                    spanRes.textContent = this.players![0].alias!;
+                    spanAdversary.textContent = this.players![1].alias!;
+                } else {
+                    spanRes.textContent = game?.players[0].alias || game?.players[1].alias;
+                    spanAdversary.textContent = game?.players[1].alias || game?.players[1].username;
+                }
 			} else {
 				spanRes.setAttribute("data-ts", "game.player1");
 				spanRes.textContent = "Player 1";

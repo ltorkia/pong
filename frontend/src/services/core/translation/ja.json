@@ -176,6 +176,7 @@
 		"controlLabel": "コマンド",
 		"networkError": "ネットワークエラー。しばらくお待ちください。",
 		"ready": "READY ? SPACE を押して始めよう",
+        "tournamentGameTitle": "1対1のトーナメント戦",
 		"waitingText1": "待機中 ",
 		"waitingText2": " 人",
 		"waitingTextPlayer": "相手",
@@ -207,14 +208,23 @@
 		"cancelNo": "間違えました！",
 		"cancelYes": "はい、お願いします。",
 		"canceled": "このトーナメントは主催者によってキャンセルされました！",
-		"backToLobby": "トーナメントロビーに戻る...",
+		"backToLobby": "トップページ",
 		"players": "プレイヤー：",
+        "navigateBtn": "トーナメント画面に戻る",
 		"status": "ステータス：",
 		"start": "スタート！",
         "nextGame": "次のゲーム :",
         "versus": "対",
         "winnerBegin": "ついに勝者が決まった!",
-        "winnerEnd": "トーナメントで優勝しました！おめでとう！"
+        "winnerEnd": "トーナメントで優勝しました！おめでとう！",
+        "errors": {
+            "noAlias": "別名を入力してください。",
+            "full": "このトーナメントは満員です。",
+            "playerAlreadyThere": "この大会にはこの選手がすでに参加しています。",
+            "missingField": "必須項目が未入力です。",
+            "missingPlayer": "プレイヤーが不足しているため、開始できません。",
+            "login": "メールアドレスまたはパスワードが正しくありません。"
+        }
 	}
 
 }
