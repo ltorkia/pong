@@ -359,7 +359,7 @@ export async function tournamentRoutes(app: FastifyInstance) {
         }
         if (winnerList.length != 2)
             return reply.code(404).send({ error: "Not enough winners" });
-        const gameID = await addGame(true);
+        const gameID = await addGame(tournamentID);
         const player1 = new Player(winnerList[0]);
         const player2 = new Player(winnerList[1]);
         await addGamePlayers(gameID, player1.ID, player2.ID);

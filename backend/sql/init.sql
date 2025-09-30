@@ -59,7 +59,7 @@ CREATE TABLE IF NOT EXISTS Game (
 	n_participants INTEGER NOT NULL DEFAULT 2,
 	begin DATETIME DEFAULT CURRENT_TIMESTAMP,
 	end DATETIME,
-	tournament INTEGER DEFAULT 0 CHECK (tournament IN (0, 1)),
+	tournament INTEGER DEFAULT 0,
 	status TEXT DEFAULT 'waiting' CHECK (status IN ('waiting', 'in_progress', 'cancelled', 'finished')),
 	looser_result INTEGER DEFAULT 0,
 	winner_id INTEGER,

@@ -308,15 +308,15 @@ export class TournamentLocal {
         // this.players est melange pour avoir des matchs aleatoire
         shuffleArray(this.players);
 
-        const gameID1 = await addGame(true);
+        const gameID1 = await addGame(this.ID);
         await addGamePlayers(gameID1, this.players[0].ID, this.players[1].ID);
         this.stageOne[0] = new Game(gameID1, 2, [this.players[0], this.players[1]], this.ID);
 
-        const gameID2 = await addGame(true);
+        const gameID2 = await addGame(this.ID);
         await addGamePlayers(gameID2, this.players[2].ID, this.players[3].ID);
         this.stageOne[1] = new Game(gameID2, 2, [this.players[2], this.players[3]], this.ID);
 
-        const stageTwoID = await addGame(true)
+        const stageTwoID = await addGame(this.ID)
         this.stageTwo = new Game(stageTwoID, 2, []); // creee maintenant mais les joueurs sont ajoutes plus tard
 
         // Listeners pour etre notifie quand une game est finie
@@ -380,7 +380,7 @@ export class Tournament {
         shuffleArray(this.players);
         let playerIdx = 0;
         for (let i = 0; i < 2; i++) {
-            const gameID = await addGame(true);
+            const gameID = await addGame(this.ID!);
             await addGamePlayers(gameID, this.players[playerIdx].ID, this.players[playerIdx + 1].ID);
             const newGame = new Game(gameID, 2, [this.players[playerIdx], this.players[playerIdx + 1]], this.ID);
             this.stageOneGames.push(newGame);
