@@ -90,9 +90,8 @@ export async function gameRoutes(app: FastifyInstance) {
                 await cleanInvite(app, playerID, matchMakingReq.data.inviterID, matchMakingReq.data.invitedID);
             await cleanGame(app, matchMakingReq.data.gameID);
             let player = allPlayers.find((p: Player) => p.ID == playerID);
-            if (!player)
-                return reply.code(404).send({ errorMessage: "Player not found" });
-            player.matchMaking = false;
+            if (player)
+                player.matchMaking = false;
             reply.code(200).send({ message: "Game cleaned up" });
         }
         else if (reqType === "tournament_clean_request") {

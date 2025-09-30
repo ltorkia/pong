@@ -103,14 +103,6 @@ CREATE TABLE IF NOT EXISTS User_Tournament (
     FOREIGN KEY (user_id) REFERENCES User(id)
 );
 
-CREATE TABLE IF NOT EXISTS Tournament_Game (
-	id INTEGER PRIMARY KEY AUTOINCREMENT,
-	tournament_id INTEGER NOT NULL,
-	game_id INTEGER NOT NULL,
-	FOREIGN KEY (tournament_id) REFERENCES Tournament(id) ON DELETE CASCADE,
-	FOREIGN KEY (game_id) REFERENCES Game(id)
-);
-
 -- Chat -> pour gerer les messages echanges
 CREATE TABLE IF NOT EXISTS Chat (
 	id INTEGER PRIMARY KEY AUTOINCREMENT,
