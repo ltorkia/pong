@@ -192,8 +192,7 @@ export abstract class GamePage extends BasePage {
 		switch (data.type) {
 
 			case "start_game":
-				if (!this.gameID)
-					this.gameID = data.gameID;
+				this.gameID = data.gameID;
 				this.adversary = data.otherPlayer;
 				this.game = new MultiPlayerGame(2, this.currentUser!.id, this.gameID);
 				break;
@@ -435,7 +434,6 @@ export abstract class GamePage extends BasePage {
 	 * @param {number} time Le temps restant avant le démarrage du jeu en secondes.
 	 */
 	protected showTimer(time: number): void {
-        console.log(time);
 		const panel = document.getElementById("pong-section");
 		if (!panel)
 			return;
