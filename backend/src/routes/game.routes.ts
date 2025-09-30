@@ -252,18 +252,8 @@ async function cleanGame(app: FastifyInstance, gameID?: number) {
     const { allGames } = app.lobby;
     const game = allGames.find((game: Game) => game.gameID == gameID);
     if (game) {
-        if (!game.isOver) {
+        if (!game.isOver)
             await game.endGame();
-
-            // ! CODE WIP pour jeu annule -> le joueur declare forfait donc 3 - ? pour l'autre joueur
-            // ! voir methode endGame()         
-            // const cancellerID = Number(app.lobby.currentUser?.id);
-            // if (!cancellerID || cancellerID !== game.players[0].ID && cancellerID !== game.players[1].ID) {
-            //     console.log("Player not found.");
-            //     return;
-            // }
-            // await game.endGame(cancellerID);
-        }
         const idx = allGames.indexOf(game);
         if (idx !== -1)
             allGames.splice(idx, 1);

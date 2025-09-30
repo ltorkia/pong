@@ -1,5 +1,4 @@
 @layer components {
-
 	/* APP CONTAINER */
 	#app {
 		@apply flex flex-col min-h-full items-center justify-center
@@ -63,7 +62,27 @@
 	.mid-full-box {
 		@apply large-box rounded-2xl max-w-[800px];
 	}
+    @keyframes move-it {
+        0% {
+            background-position: initial;
+        }
+        100% {
+            background-position: 200px 135px;
+        }
+    }
 	.pong-box {
-		@apply bg-[#090909] bg-stardust-pattern;
+        background: repeating-linear-gradient(
+            45deg,
+            #0000,
+            #a70b0b00 10%,
+            rgba(255, 255, 255, 0) 10%,
+            rgba(255, 255, 255, 0.067) 20%
+        );
+        background-size: 200px 135px;
+        animation: move-it 2s linear infinite;
+    }
+
+
+		/* @apply bg-[#090909] bg-stardust-pattern; */
 	}
-}
+/* } */

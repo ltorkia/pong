@@ -1,6 +1,7 @@
 import { BasePage } from '../../base/base.page';
 import { RouteConfig } from '../../../types/routes.types';
 import { router } from '../../../router/router';
+import { TournamentService } from 'src/api/game/game.api';
 
 const MAX_PLAYERS = 16;
 const MIN_PLAYERS = 4;

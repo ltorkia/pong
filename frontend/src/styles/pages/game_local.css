@@ -32,8 +32,20 @@
 		@apply block hover:cursor-pointer hover:bg-[#3c3c3c] transition
 		desktop:hidden; 
 	}
-	.wait-wrapper, .timer-wrapper {
+	.wait-wrapper {
 		@apply absolute top-0 left-0 w-full h-full flex flex-col items-center justify-center
+		bg-black/60 backdrop-blur-sm;
+	}
+    @keyframes fade-to-black {
+        0% {
+            background-color: rgba(0, 0, 0, 0.6); /* bg-black/60 */
+        }
+        100% {
+            background-color: rgba(0, 0, 0, 1); /* full black */
+        }
+    }
+    .timer-wrapper {
+		@apply absolute top-0 left-0 z-20 w-full h-full flex flex-col items-center justify-center
 		bg-black/60 backdrop-blur-sm;
 	}
 	.waiting-textbox {
@@ -47,7 +59,7 @@
 	}
 	.endgame-panel {
 		@apply w-auto h-full flex flex-col items-center justify-center gap-5
-		p-10 bg-[#413f3f80] border border-black/20 rounded-2xl shadow-lg
+		p-10 bg-black bg-opacity-70 border border-black/20 rounded-2xl shadow-lg
 	}
 	.endgame-panel > div {
 		@apply flex flex-col items-center justify-center 

@@ -3,16 +3,16 @@ import { RouteConfig } from '../../../types/routes.types';
 import { router } from '../../../router/router';
 import { TournamentService } from '../../../api/game/game.api';
 import { DataService } from '../../../services/user/data.service';
-import { Tournament, TournamentLocal } from '../../../types/game.types';
+import { TournamentLocal } from '../../../types/game.types';
 import { AuthResponse } from '../../../../../shared/types/response.types';
 import { UserModel } from '../../../../../shared/types/user.types';
 import { ROUTE_PATHS } from '../../../config/routes.config';
 import { animateCSS } from '../../../utils/animate.utils';
+import { translateService } from '../../../services/index.service';
 
 const MAX_PLAYERS = 4;
 
 export class GameMenuTournamentLocal extends BasePage {
-    private tournament: Tournament[] = [];
     private playersNb: number = MAX_PLAYERS;
     private players: { ID: number, alias?: string, username?: string }[] = [];
     private dataApi = new DataService();
@@ -35,10 +35,8 @@ export class GameMenuTournamentLocal extends BasePage {
     }
 
     protected async mount(): Promise<void> {
-        // this.getTournaments();
         this.applyAppClasses();
         await this.fetchPastille();
-        // console.log(this.pastilleHTML);
     }
 
     // Juste du layout
@@ -81,12 +79,14 @@ export class GameMenuTournamentLocal extends BasePage {
         })
     }
 
-    // Animation pour print une erreur
+    // Animation pour print une erreur, error etant une value des JSON translate (tournament.errors.${param})
     private printError(error: string): void {
         const errorDiv = document.createElement("div");
         const tournamentBox = document.querySelectorAll("#input-box")[1];
         const startBtn = document.getElementById("tournament-start-btn");
-        errorDiv.textContent = error;
+
+        errorDiv.textContent = translateService.t(`tournament.errors.${error}`);
+        
         errorDiv.classList.add(
             "absolute", "bottom-50", "left-0", "right-0", "-translate-y-1/2", "-translate-y-6",
             "border-2", "border-red-500", "rounded-md",
@@ -121,12 +121,12 @@ export class GameMenuTournamentLocal extends BasePage {
     // Check et ajout du player a this.players pour creation d'un futur nouveau tournoi
     private addPlayer(alias: string, user?: UserModel) {
         if (this.players.length >= this.playersNb)
-            return (this.printError("Tournament is full!"), null);
+            return (this.printError("full"), null);
         if (user && (this.players.find(player => player.username == user.username ||
             this.players.find(player => player.alias == user.username))))
-            return (this.printError("Player already exists in tournament!"), null);
+            return (this.printError("playerAlreadyThere"), null);
         if (this.players.find(player => player.alias == alias))
-            return (this.printError("Player already exists in tournament!"), null);
+            return (this.printError("playerAlreadyThere"), null);
         if (user && alias)
             this.players.push({ ID: user.id, alias: alias, username: user.username });
         else if (user && !alias)
@@ -163,7 +163,7 @@ export class GameMenuTournamentLocal extends BasePage {
 
         if (event.key == "Enter") {
             if (!aliasInput.value)
-                return (this.printError("Please enter an alias."));
+                return (this.printError("noAlias"));
             if (usernameInput.value || pwdInput.value)
                 return this.accountInputHandler(event);
             if (!this.addPlayer(aliasInput.value))
@@ -182,10 +182,10 @@ export class GameMenuTournamentLocal extends BasePage {
         if (event && event.key != "Enter")
             return;
         if (!pwdInput.value || !usernameInput.value)
-            return (this.printError("Missing field!"));
+            return (this.printError("missingField"));
         const user: UserModel | undefined = await this.checkAccount(usernameInput.value, pwdInput.value);
         if (!user)
-            return (this.printError("Wrong username / password."));
+            return (this.printError("login"));
         if (!this.addPlayer(aliasInput.value, user))
             return;
         this.appendPlayerPastille({ alias: aliasInput.value, user: user });
@@ -199,10 +199,11 @@ export class GameMenuTournamentLocal extends BasePage {
 
     private startTournamentHandler = async () => {
         if (this.players.length != MAX_PLAYERS)
-            return (this.printError("Not enough players to start!"));
+            return (this.printError("missingPlayer"));
         const newTournament = new TournamentLocal(MAX_PLAYERS, undefined, this.currentUser.id, this.players);
         try {
             const tournamentID = await TournamentService.postNewLocalTournament(newTournament);
+            sessionStorage.setItem("tournamentID", `${tournamentID}`);
             router.navigate(`${ROUTE_PATHS.GAME_TOURNAMENT_LOCAL_MENU}/${tournamentID}`);
         } catch (error: any) {
             this.printError(error.error);
@@ -219,11 +220,11 @@ export class GameMenuTournamentLocal extends BasePage {
 
         this.removeListenersFlag = true;
 
-        aliasInput.addEventListener("keydown", this.aliasInputHandler);
-        usernameInput.addEventListener("keydown", this.accountInputHandler);
-        pwdInput.addEventListener("keydown", this.accountInputHandler);
-        addPlayerBtn.addEventListener("click", this.btnHandler);
-        startTournamentBtn.addEventListener("click", this.startTournamentHandler);
+        aliasInput?.addEventListener("keydown", this.aliasInputHandler);
+        usernameInput?.addEventListener("keydown", this.accountInputHandler);
+        pwdInput?.addEventListener("keydown", this.accountInputHandler);
+        addPlayerBtn?.addEventListener("click", this.btnHandler);
+        startTournamentBtn?.addEventListener("click", this.startTournamentHandler);
 
         // Animations
         for (const box of inputBoxes) {
@@ -251,10 +252,10 @@ export class GameMenuTournamentLocal extends BasePage {
         const addPlayerBtn = document.getElementById("add-player-btn")!;
         const startTournamentBtn = document.getElementById("tournament-start-btn")!;
 
-        aliasInput.removeEventListener("keydown", this.aliasInputHandler);
-        usernameInput.removeEventListener("keydown", this.accountInputHandler);
-        pwdInput.removeEventListener("keydown", this.accountInputHandler);
-        addPlayerBtn.removeEventListener("click", this.btnHandler);
-        startTournamentBtn.removeEventListener("click", this.startTournamentHandler);
+        aliasInput?.removeEventListener("keydown", this.aliasInputHandler);
+        usernameInput?.removeEventListener("keydown", this.accountInputHandler);
+        pwdInput?.removeEventListener("keydown", this.accountInputHandler);
+        addPlayerBtn?.removeEventListener("click", this.btnHandler);
+        startTournamentBtn?.removeEventListener("click", this.startTournamentHandler);
     }
 }

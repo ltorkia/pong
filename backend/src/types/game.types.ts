@@ -93,7 +93,7 @@ export class Game extends EventEmitter {
     public gameStarted: boolean = false;
     public isOver: boolean = false;
 
-    private score: number[] = [];
+    private score: number[] = [0, 0];
     public gameID: number = 0;
     public tournamentID?: number;
 
@@ -153,9 +153,9 @@ export class Game extends EventEmitter {
 
     private checkScore(): void {
         if (this.ball.x < 0)
-            this.score[0] += 1;
-        else if (this.ball.x > 0)
             this.score[1] += 1;
+        else if (this.ball.x > 0)
+            this.score[0] += 1;
         this.score.forEach(score => {
             if (score == 3)
                 return (this.endGame())
@@ -164,8 +164,6 @@ export class Game extends EventEmitter {
     }
 
     public initGame(): void {
-        for (let i = 0; i < this.players.length; i++)
-            this.score.push(0);
         this.gameStarted = true;
         this.initSizePos();
         this.gameLoop();
@@ -177,64 +175,14 @@ export class Game extends EventEmitter {
         this.gameLoop();
     }
 
-    // ! END GAME repensé pour jeu annulé -> le joueur declare forfait donc 3 - ? pour l'autre joueur
-    // ! WIP () - ancien code valide dispo ci-dessous
-    // public async endGame(cancellerID?: number): Promise<void> {
-    //     this.gameStarted = false;
-    //     this.isOver = true;
-
-    //     if (cancellerID) {
-    //         if (this.score[0] === 3 || this.score[1] === 3) {
-    //             console.log("Game already over, game cannot be cancelled.");
-    //             return;
-    //         }
-    //         const isCancellerPlayer0 = cancellerID === this.players[0].ID;
-    //         if (!this.score || this.score.length === 0)
-    //             this.score = isCancellerPlayer0 ? [0, 3] : [3, 0];
-    //         else if (this.score[0] !== 3 && this.score[1] !== 3)
-    //             this.score = isCancellerPlayer0 ? [this.score[0], 3] : [3, this.score[1]];
-    //     }
-
-    //     for (const player of this.players) {
-    //         // inversion du score si pas d’annulation et joueur[1]
-    //         const displayScore =
-    //             !cancellerID && player.ID === this.players[1].ID
-    //                 ? [this.score[1], this.score[0]]
-    //                 : this.score;
-
-    //         if (player.webSocket) {
-    //             player.webSocket.send(
-    //                 JSON.stringify({
-    //                     type: "end",
-    //                     score: displayScore,
-    //                     tournamentID: this.tournamentID || null,
-    //                 })
-    //             );
-    //         }
-    //     }
-
-    //     this.players[0].matchMaking = false;
-    //     this.players[1].matchMaking = false;
-
-    //     const winner = this.getWinner();
-    //     const looser = this.getLooser();
-    //     await resultGame(this.gameID, winner.ID, looser.ID, this.score);
-
-    //     for (const player of this.players)
-    //         player.webSocket = undefined;
-
-    //     this.emit("finished", this);
-    // }
-
     public async endGame(): Promise<void> {
         this.gameStarted = false;
         this.isOver = true;
 
         for (const player of this.players) {
-
-            if (!this.score || this.score.length === 0)
-                this.score = [0, 0];
-            else if (player === this.players[1])
+            // if (!this.score || this.score.length === 0)
+                // this.score = [0, 0];
+            /* else */ if (player === this.players[1])
                 this.score = [this.score[1], this.score[0]];
 
             if (player.webSocket) {

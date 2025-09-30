@@ -62,7 +62,7 @@ export async function tournamentRoutes(app: FastifyInstance) {
         for (const tournamentLocal of allTournamentsLocal) {
             if (tournamentLocal.stageTwo && gameID == tournamentLocal.stageTwo.gameID) {
                 game = tournamentLocal.stageTwo;
-                break ;
+                break;
             }
             game = tournamentLocal.stageOne.find((g: Game) => g.gameID == gameID);
         }
@@ -70,7 +70,7 @@ export async function tournamentRoutes(app: FastifyInstance) {
         if (game)
             return reply.code(200).send(game);
         else
-            return reply.code(404).send({ error: "Game not found in local tournaments"});
+            return reply.code(404).send({ error: "Game not found in local tournaments" });
     })
 
     // Cree un nouveau tournoi
@@ -343,21 +343,21 @@ export async function tournamentRoutes(app: FastifyInstance) {
         for (const game of tournament.stageOneGames) {
             // if (game.isOver)
             // {
-                const resultgame = await getResultGame(game.gameID!);
-                if (resultgame.status != "finished")
-                    continue ;
-                // tournament.stageTwoGames.push(Player(resultgame!.winnerID));
-                // game.isOver = false; // pour ne pas refaire cette operation a la prochaine update
-                const winner = resultgame?.winnerId;
-                if (winner) {
-                    winnerList.push(winner);
-                } else {
-                    return reply.code(404).send({ error: "Winner not found" });
+            const resultgame = await getResultGame(game.gameID!);
+            if (resultgame.status != "finished")
+                continue;
+            // tournament.stageTwoGames.push(Player(resultgame!.winnerID));
+            // game.isOver = false; // pour ne pas refaire cette operation a la prochaine update
+            const winner = resultgame?.winnerId;
+            if (winner) {
+                winnerList.push(winner);
+            } else {
+                return reply.code(404).send({ error: "Winner not found" });
                 console.log("WINNER ID = ", winner);
-                }
+            }
             // }
         }
-        if( winnerList.length != 2)
+        if (winnerList.length != 2)
             return reply.code(404).send({ error: "Not enough winners" });
         const gameID = await addGame(true);
         const player1 = new Player(winnerList[0]);
