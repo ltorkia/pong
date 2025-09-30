@@ -220,11 +220,11 @@ export async function createTournament(nParticipants: number, nRound: number): P
 // }
 
 // // Enregistre un joueur dans un tournoi
-export async function registerUserTournament(userId: number, tournamentId: number, gameId?: number, alias?: string) { //a voir ptet a readapter pour quand creation du jeu
+export async function registerUserTournament(userId: number, tournamentId: number, alias?: string) { //a voir ptet a readapter pour quand creation du jeu
     const db = await getDb();
     await db.run(`
-        INSERT INTO User_Tournament (tournament_id, user_id, game_id, alias)
-        VALUES (${tournamentId},${userId}, ${gameId ?? null}, ${alias ?? null})
+        INSERT INTO User_Tournament (tournament_id, user_id, alias)
+        VALUES (${tournamentId},${userId}, ${alias ?? null})
     `);
 }
 

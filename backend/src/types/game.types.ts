@@ -296,10 +296,11 @@ export class TournamentLocal {
     }
 
     public async startTournament(): Promise<void> {
-        const tournamentID = await createTournament(this.maxPlayers, this.maxPlayers / 2);
-        if (tournamentID === undefined)
-            return; //TODO : put some error
-        else this.ID = tournamentID;
+        // ! Tournoi déjà créé au moment de générer son ID dans la route new_tournament_local
+        // const tournamentID = await createTournament(this.maxPlayers, this.maxPlayers / 2);
+        // if (tournamentID === undefined)
+        //     return; //TODO : put some error
+        // else this.ID = tournamentID;
 
         for (const player of this.players)
             await registerUserTournament(player.ID, this.ID);
