@@ -90,12 +90,6 @@ export class ParticlesService {
 						opacity: 0
 					},
 					particles: {
-						life: {
-							count: 0,
-							duration: {
-								value: 0
-							}
-						},
 						number: { 
 							value: 80,
 							density: {
@@ -204,7 +198,7 @@ export class ParticlesService {
 					detectRetina: true,
 					emitters: [
 						{
-							autoPlay: false,
+							autoPlay: true,
 							fill: true,
 							life: {
 								wait: false
