@@ -158,7 +158,7 @@ export class Game extends EventEmitter {
             this.score[1] += 1;
         this.score.forEach(score => {
             if (score == 3)
-                return (this.endGame())
+                return (this.endGame()) //await non ? ->voir avec checkscore
         });
         this.initRound();
     }
@@ -263,7 +263,7 @@ export class Game extends EventEmitter {
 
         for (const player of this.players) // clean des websockets si besoin de renvoyer tournoi au front (crash si websocket a l'interieur de JSON)
             player.webSocket = undefined;
-
+    
         this.emit("finished", this); // envoie un event "finished" qui est capte par une classe parent (TournamentLocal)
     }
 

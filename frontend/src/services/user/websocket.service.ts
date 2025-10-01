@@ -24,6 +24,7 @@ export class WebSocketService {
 	public async openWebSocket(): Promise<void> {
 		// Éviter les connexions multiples simultanées
 		if (this.isConnecting && this.connectionPromise) {
+			console.log("coucouuuuu");
 			return this.connectionPromise;
 		}
 

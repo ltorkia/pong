@@ -15,7 +15,6 @@ export async function webSocketRoutes(app: FastifyInstance) {
                 isAlreadyConnected = true;
                 break;
             }
-
         }
         if (isAlreadyConnected === false)
             allUsers.push(new UserWS(req.user.id, connection));

@@ -93,10 +93,7 @@ export async function gameRoutes(app: FastifyInstance) {
                 const { allGames } = app.lobby;
                 const game = allGames.find((g: Game) => g.gameID == matchMakingReq.data.gameID)
                 if (game && game.isOver === false && game.gameStarted)
-                {
-                    console.log("i m here");
                     await game.endGame();
-                }
                 await cleanGame(app, matchMakingReq.data.gameID);
             }
             let player = allPlayers.find((p: Player) => p.ID == playerID);
@@ -245,6 +242,21 @@ async function decountWS(ws: WebSocket, gameID: number) {
 const startGame = async (app: FastifyInstance, players: Player[], mode: string, gameCreated?: Game) => {
     const { usersWS } = app;
     const { allGames } = app.lobby;
+
+    // pour checker si joueur deja en jeu et eviter de relancer le jeu si conflit de socket --> peut etre desactiver le alluser qui supprime de nouveaux  sockets d un meme utilisateur si fonctionne
+    for (const game of allGames)
+    {
+        console.log("gaaaame", game);
+        console.log("gaaaamecreated ", gameCreated);
+        if (gameCreated && game.gameID === gameCreated.gameID)
+        {
+            console.log("heeeeere");
+            continue ;
+        }
+        if (players[0].ID === game.players[0].ID || players[1].ID === game.players[1].ID ||
+            players[1].ID === game.players[0].ID || players[0].ID === game.players[1].ID)
+            return ;
+    }
     const gameID = await addGame();
     await addGamePlayers(gameID, players[0].ID, players[1].ID);
     const newGame = gameCreated || new Game(gameID, 2, players);
