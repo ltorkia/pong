@@ -7,7 +7,18 @@ export async function webSocketRoutes(app: FastifyInstance) {
         console.log("OPENING WEBSOCKET");
         const allUsers = app.usersWS;
         const allPlayers = app.lobby.allPlayers;
-        allUsers.push(new UserWS(req.user.id, connection));
+        let isAlreadyConnected = false;
+        for (const user of allUsers)
+        {
+            if (user.id === req.user.id)
+            {
+                isAlreadyConnected = true;
+                break;
+            }
+
+        }
+        if (isAlreadyConnected === false)
+            allUsers.push(new UserWS(req.user.id, connection));
         console.log(allUsers);
 
         connection.onclose = () => {

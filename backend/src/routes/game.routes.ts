@@ -88,7 +88,17 @@ export async function gameRoutes(app: FastifyInstance) {
         else if (reqType === "clean_request") {
             if (matchMakingReq.data.inviteToClean)
                 await cleanInvite(app, playerID, matchMakingReq.data.inviterID, matchMakingReq.data.invitedID);
-            await cleanGame(app, matchMakingReq.data.gameID);
+            if(matchMakingReq.data.gameID != undefined)
+            {
+                const { allGames } = app.lobby;
+                const game = allGames.find((g: Game) => g.gameID == matchMakingReq.data.gameID)
+                if (game && game.isOver === false && game.gameStarted)
+                {
+                    console.log("i m here");
+                    await game.endGame();
+                }
+                await cleanGame(app, matchMakingReq.data.gameID);
+            }
             let player = allPlayers.find((p: Player) => p.ID == playerID);
             if (!player)
                 return reply.code(404).send({ errorMessage: "Player not found" });
@@ -147,10 +157,12 @@ async function cleanGame(app: FastifyInstance, gameID?: number) {
     if (!gameID)
         return;
     const { allGames } = app.lobby;
+    const { allPlayers } = app.lobby;
     const game = allGames.find((game: Game) => game.gameID == gameID);
     if (game) {
         if (!game.isOver) {
             await game.endGame();
+        cleanPlayers(allPlayers, game.players[0], game.players[1]); //clean les users une fois la partie terminee
 
             // ! CODE WIP pour jeu annule -> le joueur declare forfait donc 3 - ? pour l'autre joueur
             // ! voir methode endGame()         

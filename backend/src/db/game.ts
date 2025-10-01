@@ -114,31 +114,69 @@ export async function resultGame(gameId: number, winnerId: number, looserId: num
 
 }
 
-export async function cancelledGame(gameId: number, winnerId: number, looserId: number, score: number[]){
-    const db = await getDb();
-    const minScore = Math.min(score[0], score[1]);
+export async function cancelledGame(gameId: number, winnerId: number, looserId: number, score: number[]) {
+    console.log("cancelled gaaaaame");
+    console.log(`Game ID: ${gameId}, Winner ID: ${winnerId}, Looser ID: ${looserId}, Score: [${score.join(', ')}]`); // Log pour debug
 
-    await db.run(`
-        UPDATE Game
-        SET status = 'cancelled',
-            end = CURRENT_TIMESTAMP,
-            winner_id = ?,
-            looser_result = ?
-        WHERE id = ?;
-`, [winnerId, gameId, minScore]);
+    try {
+        const db = await getDb();
+        const minScore = Math.min(score[0], score[1]);
 
-    await db.run(`
-        UPDATE User_Game
-        SET status_win = CASE WHEN user_id = ? THEN 1 ELSE 0 END,
-            duration = CAST(
-                (strftime('%s', (SELECT end FROM Game WHERE id = ?)) - 
-                strftime('%s', (SELECT begin FROM Game WHERE id = ?))
-                ) AS INTEGER
-            )
-        WHERE game_id = ?;
-        `, 
- [winnerId, gameId, gameId, gameId]);
+        // Mise à jour de la table Game
+        await db.run(`
+            UPDATE Game
+            SET status = 'cancelled',
+                end = CURRENT_TIMESTAMP,
+                winner_id = ?,
+                looser_result = ?
+            WHERE id = ?;
+        `, [winnerId, minScore, gameId]); // Ordre corrigé : winnerId, minScore, gameId
+
+        // Mise à jour de la table User_Game (status_win pour winner=1, autres=0 ; duration calculée)
+        await db.run(`
+            UPDATE User_Game
+            SET status_win = CASE WHEN user_id = ? THEN 1 ELSE 0 END,
+                duration = CAST(
+                    (strftime('%s', (SELECT end FROM Game WHERE id = ?)) -
+                     strftime('%s', (SELECT begin FROM Game WHERE id = ?))
+                    ) AS INTEGER
+                )
+            WHERE game_id = ?;
+        `, [winnerId, gameId, gameId, gameId]);
+
+        console.log("Jeu annulé avec succès !");
+    } catch (error) {
+        console.error("Erreur lors de l'annulation du jeu :", error);
+        throw error; // Relance pour que l'appelant gère
+    }
 }
+
+// export async function cancelledGame(gameId: number, winnerId: number, looserId: number, score: number[]){
+//     console.log("cancelled gaaaaame");
+//     const db = await getDb();
+//     const minScore = Math.min(score[0], score[1]);
+
+//     await db.run(`
+//         UPDATE Game
+//         SET status = 'cancelled',
+//             end = CURRENT_TIMESTAMP,
+//             winner_id = ?,
+//             looser_result = ?
+//         WHERE id = ?;
+// `, [winnerId, gameId, minScore]);
+
+//     await db.run(`
+//         UPDATE User_Game
+//         SET status_win = CASE WHEN user_id = ? THEN 1 ELSE 0 END,
+//             duration = CAST(
+//                 (strftime('%s', (SELECT end FROM Game WHERE id = ?)) - 
+//                 strftime('%s', (SELECT begin FROM Game WHERE id = ?))
+//                 ) AS INTEGER
+//             )
+//         WHERE game_id = ?;
+//         `, 
+//  [winnerId, gameId, gameId, gameId]);
+// }
 
 // ptet pas utile
 export async function waitingGame(gameId: number, winnerId: number, looserId: number, score: number[]){

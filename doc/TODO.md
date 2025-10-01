@@ -49,5 +49,8 @@ TODO : GoogleSigne Avatar -> ? Lee quand ca bug ?
 TODO : DB jeu interrompu
 TODO : Verif  "?" dans DB pour injection SQL
 TODO : mettre nb de points dans les regles dans front
-TODO : clean code tournoi remote OU rematcher en fonction du tournoi local
-TODO: gros bug quand 2 pages connectees / 2 websockets de stockees -->
+TODO : clean code tournoi remote OU rematcher en fonction du tournoi local / code elisa
+TODO: gros bug quand 2 pages connectees / 2 websockets de stockees 
+TODO : erase les players fictifs dans game local
+-->
+
