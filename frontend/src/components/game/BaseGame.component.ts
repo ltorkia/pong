@@ -1,7 +1,9 @@
+import { Triangle } from "../../pages/game/boids.page";
 import { webSocketService } from "../../services/user/user.service";
 import { GameData } from "../../shared/types/game.types"
-import {PlayerBar, Ball} from "./ToolsGame.component";
+import { PlayerBar, Ball } from "./ToolsGame.component";
 
+const randomNb = (min: number, max: number) => { return (Math.random() * (max - min) + min) };
 const lerp = (a: number, b: number, t: number) => { return a + t * (b - a) };
 const getTargetTimestamp = (arr: number[], target: number) => {
     for (let i = arr.length - 2; i >= 0; i--) { // Partir de la fin
@@ -12,7 +14,7 @@ const getTargetTimestamp = (arr: number[], target: number) => {
     // Si pas trouvé, prendre les deux plus récents
     return arr.length >= 2 ? arr.length - 2 : 0;
 }
-const BUFFER_DELAY = 100; // ms
+const BUFFER_DELAY = 50; // ms
 
 export class MultiPlayerGame {
     private gameCanvas: HTMLCanvasElement = document.createElement('canvas');
@@ -20,6 +22,7 @@ export class MultiPlayerGame {
     private players: PlayerBar[] = [];
     private ball = new Ball(this.canvasCtx);
     private score: number[] = [0, 0];
+    private scoreChangeFrames: number = 0;
     private frameReq: number = 0;
     private playersCount: number = 0;
     private clearFillStyle: number = 1;
@@ -31,14 +34,14 @@ export class MultiPlayerGame {
     private playerID: number;
     public gameID: number;
     public gameStates: { states: GameData[], timestamps: number[] };
-    private frameTimings: number[] = [];
+    public birds: Triangle[] = [];
+    private gameLoopBind: any;
     private testStartTime = 0;
     private stutterCount = 0;
     private kindOfGame: string = "multi";
 
 
     constructor(playersCount: number, playerID: number, gameID: number) {
-        // const inputs: string[] = ["w", "s", "ArrowUp", "ArrowDown"];
         this.playersCount = playersCount;
         this.playerWebSocket = webSocketService.getWebSocket()!;
         this.playerID = playerID;
@@ -46,29 +49,45 @@ export class MultiPlayerGame {
         this.inputUp = false;
         this.inputDown = false;
         this.gameStates = { states: [], timestamps: [] }
-        // this.side = 0;
         for (let i = 0; i < playersCount; i++) {
             this.players.push(new PlayerBar(this.canvasCtx));
         }
     }
 
     public clearScreen(): void {
-        this.canvasCtx.clearRect(0, 0, this.gameCanvas.width, this.gameCanvas.height)
-        // this.canvasCtx.globalCompositeOperation = 'destination-out';
-        // this.canvasCtx.fillStyle = `rgba(0, 0, 0, ${this.clearFillStyle})`;
-        // this.canvasCtx.fillRect(0, 0, this.gameCanvas.width, this.gameCanvas.height);
-        // this.canvasCtx.globalCompositeOperation = 'source-over';
+        this.canvasCtx.globalCompositeOperation = 'destination-out';
+        this.canvasCtx.fillStyle = `rgba(0, 0, 0, ${this.clearFillStyle})`;
+        this.canvasCtx.fillRect(0, 0, this.gameCanvas.width, this.gameCanvas.height);
+        this.canvasCtx.globalCompositeOperation = 'source-over';
     };
 
-	protected attachListeners() {
-		document.addEventListener("keydown", this.handleGameKeyDown);
-		document.addEventListener("keyup", this.handleGameKeyUp);
-	}
+    // public clearScreen(): void {
+    // this.canvasCtx.clearRect(0, 0, this.gameCanvas.width, this.gameCanvas.height);
+    // };
 
-	protected removeListeners(): void {
-		document.removeEventListener("keydown", this.handleGameKeyDown);
-		document.removeEventListener("keyup", this.handleGameKeyUp);
-	}
+
+    public drawMiddleLine(): void {
+        const lineWidth = 2;        // px
+        const lineHeight = 30;
+        const space = 10;
+        const middle = this.gameCanvas.clientWidth / 2;
+
+        this.canvasCtx.fillStyle = "rgba(255, 255, 255, 1)";
+        for (let i = 0; i <= this.gameCanvas.clientHeight; i++) {
+            this.canvasCtx.fillRect(middle - lineWidth / 2, i, lineWidth, lineHeight);
+            i += lineHeight + space;
+        }
+    }
+
+    protected attachListeners() {
+        document.addEventListener("keydown", this.handleGameKeyDown);
+        document.addEventListener("keyup", this.handleGameKeyUp);
+    }
+
+    protected removeListeners(): void {
+        document.removeEventListener("keydown", this.handleGameKeyDown);
+        document.removeEventListener("keyup", this.handleGameKeyUp);
+    }
 
     public cleanupListeners(): void {
         this.removeListeners()
@@ -117,15 +136,20 @@ export class MultiPlayerGame {
         })
     };
 
-    public setScore(score: number[]): void { this.score = score };
+    public setScore(score: number[]): void {
+        if (this.score[0] != score[0] || this.score[1] != score[1]) {
+            this.score = score;
+            this.scoreChangeFrames = 10;
+        }
+    };
 
     public getScore(): number[] { return this.score };
 
     private printScore(): void {
         this.canvasCtx.textAlign = "center";  // Centre horizontalement
         this.canvasCtx.textBaseline = "middle"; // Centre verticalement
-        const scoreStr = this.score[0].toString() + " : " + this.score[1].toString();
-        this.canvasCtx.fillText(scoreStr, this.gameCanvas.width / 2, this.gameCanvas.height / 2);
+        const scoreStr = this.score[0].toString() + " " + this.score[1].toString();
+        this.canvasCtx.fillText(scoreStr, this.gameCanvas.width / 2, 50);
     }
 
     public registerGameData(newGameState: GameData): void {
@@ -147,25 +171,31 @@ export class MultiPlayerGame {
 
             const t = (targetTime - this.gameStates.timestamps[target]) /
                 (this.gameStates.timestamps[next] - this.gameStates.timestamps[target]);
-            // // Après le calcul de t :
-            // console.log(`t=${t.toFixed(3)}, target=${target}, next=${next}, buffer_size=${this.gameStates.states.length}`);
-
-            // // Si t sort de [0,1] :
-            // if (t < 0 || t > 1) {
-            //     console.error(`⚠️ t invalide: ${t}, targetTime=${targetTime}, timestamps=[${this.gameStates.timestamps[target]}, ${this.gameStates.timestamps[next]}]`);
-            // }
-            this.ball.x = lerp(this.gameStates.states[target].ball.x, this.gameStates.states[next].ball.x, t);
-            this.ball.y = lerp(this.gameStates.states[target].ball.y, this.gameStates.states[next].ball.y, t);
-            // this.players[0].x = lerp(this.gameStates.states[target].players[0].pos.x, this.gameStates.states[next].players[0].pos.x, t)
-            // this.players[1].x = lerp(this.gameStates.states[target].players[1].pos.x, this.gameStates.states[next].players[1].pos.x, t)
-            // this.players[0].y = lerp(this.gameStates.states[target].players[0].pos.y, this.gameStates.states[next].players[0].pos.y, t)
-            // this.players[1].y = lerp(this.gameStates.states[target].players[1].pos.y, this.gameStates.states[next].players[1].pos.y, t)
+            if (this.scoreChangeFrames) {
+                console.log(this.scoreChangeFrames);
+                this.scoreChangeFrames -= 1;
+                this.ball.x = 0;
+                this.ball.y = 0;
+            }
+            else {
+                this.ball.x = lerp(this.gameStates.states[target].ball.x, this.gameStates.states[next].ball.x, t);
+                this.ball.y = lerp(this.gameStates.states[target].ball.y, this.gameStates.states[next].ball.y, t);
+            }
             this.players[0].x = this.gameStates.states[next].players[0].pos.x;
             this.players[1].x = this.gameStates.states[next].players[1].pos.x;
             this.players[0].y = this.gameStates.states[next].players[0].pos.y;
             this.players[1].y = this.gameStates.states[next].players[1].pos.y;
         } else {
-            console.error("target not found")
+            if (this.gameStates.states.length) {
+                const lastIndex = this.gameStates.states.length - 1;
+
+                this.ball.x = this.gameStates.states[lastIndex].ball.x;
+                this.ball.y = this.gameStates.states[lastIndex].ball.y;
+                this.players[0].x = this.gameStates.states[lastIndex].players[0].pos.x;
+                this.players[1].x = this.gameStates.states[lastIndex].players[1].pos.x;
+                this.players[0].y = this.gameStates.states[lastIndex].players[0].pos.y;
+                this.players[1].y = this.gameStates.states[lastIndex].players[1].pos.y;
+            }
         }
     }
 
@@ -185,85 +215,26 @@ export class MultiPlayerGame {
     };
 
     private gameLoop(): void {
-        // // === TEST DE FLUIDITÉ - DÉBUT ===
-        // const frameStart = performance.now();
-        // if (this.testStartTime === 0) this.testStartTime = frameStart;
-
-        // // Mesurer le temps entre frames
-        // if (this.frameTimings.length > 0) {
-        //     const lastFrameTime = this.frameTimings[this.frameTimings.length - 1];
-        //     const deltaTime = frameStart - lastFrameTime;
-
-        //     // Détecter les saccades (frame > 20ms = moins de 50fps)
-        //     if (deltaTime > 20) {
-        //         this.stutterCount++;
-        //         console.warn(`⚠️ Saccade détectée: ${deltaTime.toFixed(1)}ms`);
-        //     }
-        // }
-
-        // this.frameTimings.push(frameStart);
-        // if (this.frameTimings.length > 300) { // Garder 5s d'historique à 60fps
-        //     this.frameTimings.shift();
-        // }
-
-        // // Afficher stats toutes les 5 secondes
-        // if (frameStart - this.testStartTime > 5000 && this.frameTimings.length > 250) {
-        //     this.printSmoothnesStats();
-        //     this.testStartTime = frameStart; // Reset pour le prochain cycle
-        // }
-        // // === TEST DE FLUIDITÉ - FIN ===
-
-        if (!this.gameStarted) return;
+        if (!this.gameStarted) {
+            cancelAnimationFrame(this.frameReq);
+            return;
+        }
         this.clearScreen();
         this.setAllPositions()
         for (const player of this.players)
             player.draw();
         this.ball.draw();
         this.printScore();
-        this.frameReq = requestAnimationFrame(this.gameLoop.bind(this));
+        this.drawMiddleLine();
+
+        for (const bird of this.birds) {
+            bird.target.x = (this.ball.x + 1) / 2 * this.gameCanvas.width;
+            bird.target.y = (1 - ((this.ball.y + 1) / 2)) * this.gameCanvas.height;
+            bird.update();
+            bird.draw("rgba(0, 255, 0, 0.5)");
+        }
+        this.frameReq = requestAnimationFrame(this.gameLoopBind);
     };
-
-    // Ajoutez cette méthode pour afficher les stats
-    private printSmoothnesStats(): void {
-        if (this.frameTimings.length < 10) return;
-
-        // Calculer les délais entre frames
-        const deltas = [];
-        for (let i = 1; i < this.frameTimings.length; i++) {
-            deltas.push(this.frameTimings[i] - this.frameTimings[i - 1]);
-        }
-
-        const avgDelta = deltas.reduce((a, b) => a + b, 0) / deltas.length;
-        const minDelta = Math.min(...deltas);
-        const maxDelta = Math.max(...deltas);
-        const variance = maxDelta - minDelta;
-        const avgFps = 1000 / avgDelta;
-
-        console.log(`
-🎮 === STATS DE FLUIDITÉ (5s) ===
-📊 FPS moyen: ${avgFps.toFixed(1)}
-⏱️  Frame time: ${avgDelta.toFixed(1)}ms (min: ${minDelta.toFixed(1)}, max: ${maxDelta.toFixed(1)})
-📈 Variance: ${variance.toFixed(1)}ms
-⚠️  Saccades: ${this.stutterCount}
-${this.getSmoothnessVerdict(variance, avgFps, this.stutterCount)}
-================================`);
-
-        // Reset pour le prochain cycle
-        this.stutterCount = 0;
-    }
-
-    // Verdict automatique
-    private getSmoothnessVerdict(variance: number, fps: number, stutters: number): string {
-        if (variance < 3 && fps > 58 && stutters === 0) {
-            return "✅ PARFAITEMENT FLUIDE !";
-        } else if (variance < 6 && fps > 55 && stutters < 3) {
-            return "🟡 FLUIDE (quelques micro-saccades)";
-        } else if (variance < 10 && fps > 45) {
-            return "🟠 SACCADES VISIBLES mais jouable";
-        } else {
-            return "🔴 PROBLÈME DE FLUIDITÉ - Action requise !";
-        }
-    }
 
     public initCanvas(): void {
         const parentContainer: HTMLElement = document.getElementById("pong-section")!;
@@ -271,17 +242,41 @@ ${this.getSmoothnessVerdict(variance, avgFps, this.stutterCount)}
         this.gameCanvas.width = parentContainer.getBoundingClientRect().width;
         this.gameCanvas.style.border = "1px solid black";
         this.gameCanvas.style.backgroundColor = "black";
+        this.gameCanvas.style.imageRendering = "pixelated";
+        this.canvasCtx.font = "5rem 'Courier New', monospace";
         parentContainer.append(this.gameCanvas);
+    }
+
+    public initBirds(): void {
+        const allTriangles = [];
+        for (let i = 0; i < 200; i++) {
+            const triangle = new Triangle(randomNb(1, this.gameCanvas.width), randomNb(1, this.gameCanvas.height), this.gameCanvas, this.canvasCtx);
+            allTriangles.push(triangle);
+        }
+        this.birds = allTriangles;
+        for (const bird of this.birds)
+            bird.allTriangles = allTriangles;
+    }
+
+    private startGameLoop(): void {
+        this.gameStarted = true;
+        this.frameReq = requestAnimationFrame(this.gameLoopBind);
+    }
+
+    public stopGameLoop(): void {
+        this.gameStarted = false;
+        cancelAnimationFrame(this.frameReq);
     }
 
     public async initGame(): Promise<void> {
         this.initCanvas();
         this.initSizePos();
+        this.initBirds();
         this.clearFillStyle = 0.3;
         this.attachListeners();
-        this.gameStarted = true;
         this.ball.oldState.time = performance.now();
-        this.frameReq = requestAnimationFrame(this.gameLoop.bind(this));
+        this.gameLoopBind = this.gameLoop.bind(this);
+        this.startGameLoop();
     };
 
     public getGameStarted(): boolean { return (this.gameStarted) };

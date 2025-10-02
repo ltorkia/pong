@@ -11,6 +11,19 @@ const clamp = (val: number, min: number, max: number) => { return Math.min(Math.
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
+const randomNb = (min: number, max: number) => { return (Math.random() * (max - min) + min) };
+
+const randomAngleRightSide = (): number => {
+    // Choisir aléatoirement si on prend la plage 0-90 ou 270-360
+    if (Math.random() < 0.5) {
+        // Plage 0 à 90
+        return Math.random() * 90;
+    } else {
+        // Plage 270 à 360
+        return 270 + Math.random() * 90;
+    }
+};
+
 const shuffleArray = (array: any[]) => {
     for (let i = array.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -23,67 +36,127 @@ const shuffleArray = (array: any[]) => {
 export class Ball {
     public x: number;
     public y: number;
-    public vAngle: number;
-    public vSpeed: number;
+    public dirX: number;
+    public dirY: number;
+    public vx: number;
+    public vy: number;
+    private initSpeed: number;
+    public speed: number;
     public radius: number;
 
-    move() {
-        this.x += Math.cos(this.vAngle * DEG_TO_RAD) * this.vSpeed;
-        this.y += Math.sin(this.vAngle * DEG_TO_RAD) * this.vSpeed;
-    };
-    verticalCollision() {
-        this.vAngle = (360 - this.vAngle) % 360;
-    }
-    horizontalCollision(players: Player[]) {
-        if ((this.isGoingLeft() && this.y < players[0].pos.y / 2 && players[0].inputDown) ||
-            (this.isGoingRight() && this.y < players[1].pos.y / 2 && players[1].inputDown) ||
-            (this.isGoingLeft() && this.y > players[0].pos.y / 2 && players[0].inputUp) ||
-            (this.isGoingRight() && this.y > players[1].pos.y / 2 && players[1].inputUp))
-            this.vAngle = (180 + this.vAngle + 360) % 360;
-        else
-            this.vAngle = (180 - this.vAngle + 360) % 360;
-
-    }
-    isGoingRight() {
-        return ((this.vAngle >= 0 && this.vAngle < 90) || (this.vAngle >= 270 && this.vAngle <= 360));
-    };
-    isGoingLeft() {
-        return (this.vAngle >= 90 && this.vAngle < 270);
-    };
-    isGoingUp() {
-        return (this.vAngle >= 180 && this.vAngle < 360);
-    }
-    isGoingDown() {
-        return (this.vAngle >= 0 && this.vAngle < 180);
-    }
-    reset() {
+    constructor() {
         this.x = 0;
         this.y = 0;
-        this.vAngle = 60;
-        this.vSpeed = 0.02;
+        this.dirX = 0;
+        this.dirY = 0;
+        this.vx = 0;
+        this.vy = 0;
+        this.initSpeed = 0.015;
+        this.speed = 0;
         this.radius = 0.03;
+        this.reset();
     }
+
+    move() {
+        this.x += this.vx;
+        this.y += this.vy;
+    }
+
+    verticalCollision() {
+        this.vy = -this.vy;
+    }
+
+    horizontalCollision(players: Player[]) {
+        const player = this.vx < 0 ? players[0] : players[1];
+
+        // Si la balle va vers le joueur et que le joueur se déplace
+        const ballAboveCenter = this.y < player.pos.y / 2;
+        const playerMovingDown = player.inputDown;
+        const playerMovingUp = player.inputUp;
+
+        // Inverse la direction si le joueur se déplace dans la même direction que la balle
+        if ((ballAboveCenter && playerMovingDown) || (!ballAboveCenter && playerMovingUp)) {
+            this.dirX = -this.dirX;
+            this.dirY = -this.dirY;
+            this.speed += 0.001;
+        } else // Rebond normal
+            this.dirX = -this.dirX;
+
+        
+        this.setDirectionVector();
+    }
+
+    isGoingRight() {
+        return this.vx > 0;
+    }
+
+    isGoingLeft() {
+        return this.vx < 0;
+    }
+
+    isGoingUp() {
+        return this.vy < 0;
+    }
+
+    isGoingDown() {
+        return this.vy > 0;
+    }
+
+    setDirectionVector() {
+        // Normaliser le vecteur de direction
+        const magnitude = Math.sqrt(this.dirX * this.dirX + this.dirY * this.dirY);
+        if (magnitude > 0) {
+            this.vx = (this.dirX / magnitude) * this.speed;
+            this.vy = (this.dirY / magnitude) * this.speed;
+        }
+    }
+
+    // Méthode utilitaire pour définir la direction avec un angle
+    setDirection(angleDegrees: number, speed: number) {
+        const angleRad = angleDegrees * DEG_TO_RAD;
+        this.speed = speed;
+        this.vx = Math.cos(angleRad) * speed;
+        this.vy = Math.sin(angleRad) * speed;
+    }
+
+    // Méthode utilitaire pour obtenir l'angle actuel
+    getAngle(): number {
+        return Math.atan2(this.vy, this.vx) / DEG_TO_RAD;
+    }
+
+    reset(lastGoal?: boolean[]) {
+        this.x = 0;
+        this.y = 0;
+        this.speed = this.initSpeed;
+
+        if (lastGoal && lastGoal[0]) {
+            this.dirX = -1;
+            this.dirY = randomNb(-0.3, 0.3);
+            this.setDirectionVector();
+        } else {
+            this.dirX = 1;
+            this.dirY = randomNb(-0.3, 0.3);
+            this.setDirectionVector();
+        }
+    }
+
     public checkPlayerCollision(players: Player[]): boolean {
         for (const player of players) {
             const playerBounds = {
                 xRange: { x0: player.pos.x - player.width / 2, x1: player.pos.x + player.width / 2 },
                 yRange: { y0: player.pos.y - player.height / 2, y1: player.pos.y + player.height / 2 }
-            }
+            };
+
             const xClamp = clamp(this.x, playerBounds.xRange.x0, playerBounds.xRange.x1);
             const yClamp = clamp(this.y, playerBounds.yRange.y0, playerBounds.yRange.y1);
-            if (Math.sqrt(Math.pow(this.x - xClamp, 2) + (Math.pow(this.y - yClamp, 2))) <= this.radius / 2)
-                return (true);
+
+            if (Math.sqrt(Math.pow(this.x - xClamp, 2) + Math.pow(this.y - yClamp, 2)) <= this.radius / 2) {
+                return true;
+            }
         }
-        return (false);
-    };
-    constructor() {
-        this.x = 0;
-        this.y = 0;
-        this.vAngle = 60;
-        this.vSpeed = 0.02;
-        this.radius = 0.03;
+        return false;
     }
-};
+}
 
 export class Game extends EventEmitter {
     public players: Player[] = [];
@@ -112,28 +185,19 @@ export class Game extends EventEmitter {
         let frame = 0;
         while (this.gameStarted == true) {
             this.ball.move();
-            for (const player of this.players) {
+            for (const player of this.players)
                 player.move();
-                // console.log(player.pos.x, player.pos.y);
-            }
             const collision: boolean = this.ball.checkPlayerCollision(this.players);
-            if (collision && (this.ball.isGoingRight() || this.ball.isGoingLeft())) {
+            if (collision && (this.ball.isGoingRight() || this.ball.isGoingLeft()))
                 this.ball.horizontalCollision(this.players);
-            }
-            else if (collision && (this.ball.isGoingUp() || this.ball.isGoingDown())) {
-                // console.log("VERTICAL");
+            else if (collision && (this.ball.isGoingUp() || this.ball.isGoingDown()))
                 this.ball.verticalCollision();
-            }
-            // console.log("x: ", this.ball.x, "y :", this.ball.y);
-            if (this.playersCount == 2 && (this.ball.y >= 1 || this.ball.y <= -1)) {
-                // console.log("angle ", this.ball.vAngle);
+            if (this.playersCount == 2 && (this.ball.y >= 1 || this.ball.y <= -1))
                 this.ball.verticalCollision();
-            }
             if (this.ball.x + this.ball.radius / 2 <= -1 || this.ball.x + this.ball.radius / 2 >= 1)
                 return (this.checkScore());
             const now = Date.now();
             if (now - then < fps) {
-                // console.log(`i did sleep at frame ${frame}`);
                 await sleep(fps - (now - then));
             }
             frame++;
@@ -152,15 +216,21 @@ export class Game extends EventEmitter {
     };
 
     private checkScore(): void {
-        if (this.ball.x < 0)
+        const lastGoal: boolean[] = [];
+
+        if (this.ball.x < 0) {
             this.score[1] += 1;
-        else if (this.ball.x > 0)
+            lastGoal[1] = true;
+        }
+        else if (this.ball.x > 0) {
             this.score[0] += 1;
+            lastGoal[0] = true;
+        }
         this.score.forEach(score => {
-            if (score == 3)
+            if (score >= 3)
                 return (this.endGame())
         });
-        this.initRound();
+        this.initRound(lastGoal);
     }
 
     public initGame(): void {
@@ -169,8 +239,8 @@ export class Game extends EventEmitter {
         this.gameLoop();
     };
 
-    public initRound(): void {
-        this.ball.reset();
+    public initRound(lastGoal?: boolean []): void {
+        this.ball.reset(lastGoal);
         this.initSizePos();
         this.gameLoop();
     }
@@ -180,16 +250,13 @@ export class Game extends EventEmitter {
         this.isOver = true;
 
         for (const player of this.players) {
-            // if (!this.score || this.score.length === 0)
-                // this.score = [0, 0];
-            /* else */ if (player === this.players[1])
+            if (player === this.players[1])
                 this.score = [this.score[1], this.score[0]];
 
             if (player.webSocket) {
                 player.webSocket.send(JSON.stringify({
                     type: "end",
                     score: this.score,
-                    // players: JSON.stringify(this.players.map(p => ({ ID: p.ID, alias: p.alias }))),
                     tournamentID: this.tournamentID || null
                 }));
             }
@@ -329,7 +396,7 @@ export class TournamentLocal {
     public async update(): Promise<void> {
         if (this.stageTwo.getIsOver()) {
             this.winner = this.getWinner(this.stageTwo);
-            return ;
+            return;
         }
         for (const game of this.stageOne) {
             if (game.getIsOver() && !game.players.some((p: Player) => this.stageTwo?.players.includes(p)))
