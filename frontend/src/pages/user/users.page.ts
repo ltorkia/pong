@@ -228,28 +228,52 @@ export class UsersPage extends BasePage {
 		const instanceKey = `${this.userRowConfig!.name}-${user.id}`;
 		this.addToComponentInstances(instanceKey, rowComponent);
 
-		rowComponent.render().then(() => {
-			const userLine = tempContainer.querySelector('.user-line');
-			if (userLine) {
-				userLine.id = instanceKey;
-				if (user.id === this.currentUser!.id) {
-					(userLine as HTMLElement).style.backgroundColor = '#5e8ca570';
-				}
-				this.removeUser(user);
-				userLine.classList.add('animate-fade-in-up');
+		await rowComponent.render();
 
-				if (user.status === USER_ONLINE_STATUS.ONLINE) {
-					const currentUserLine = this.userList.querySelector(`#${this.userRowConfig!.name}-${this.currentUser!.id}`);
-					if (currentUserLine)
-						currentUserLine.insertAdjacentElement('afterend', userLine);
-					else
-						this.userList.prepend(userLine);
-				} else {
-					userLine.classList.add('line-offline');
-					this.userList.appendChild(userLine);
-				}
-			}
-		})
+		const userLine = tempContainer.querySelector('.user-line');
+		if (!userLine) 
+			return;
+
+		userLine.id = instanceKey;
+		if (user.id === this.currentUser!.id)
+			(userLine as HTMLElement).style.backgroundColor = '#5e8ca570';
+
+		this.removeUser(user);
+		userLine.classList.add('animate-fade-in-up');
+
+		if (user.status === USER_ONLINE_STATUS.ONLINE) {
+			const currentUserLine = this.userList.querySelector(`#${this.userRowConfig!.name}-${this.currentUser!.id}`);
+			if (currentUserLine)
+				currentUserLine.insertAdjacentElement('afterend', userLine);
+			else
+				this.userList.prepend(userLine);
+		} else {
+			userLine.classList.add('line-offline');
+			this.userList.appendChild(userLine);
+		}
+
+		// rowComponent.render().then(() => {
+		// 	const userLine = tempContainer.querySelector('.user-line');
+		// 	if (userLine) {
+		// 		userLine.id = instanceKey;
+		// 		if (user.id === this.currentUser!.id) {
+		// 			(userLine as HTMLElement).style.backgroundColor = '#5e8ca570';
+		// 		}
+		// 		this.removeUser(user);
+		// 		userLine.classList.add('animate-fade-in-up');
+
+		// 		if (user.status === USER_ONLINE_STATUS.ONLINE) {
+		// 			const currentUserLine = this.userList.querySelector(`#${this.userRowConfig!.name}-${this.currentUser!.id}`);
+		// 			if (currentUserLine)
+		// 				currentUserLine.insertAdjacentElement('afterend', userLine);
+		// 			else
+		// 				this.userList.prepend(userLine);
+		// 		} else {
+		// 			userLine.classList.add('line-offline');
+		// 			this.userList.appendChild(userLine);
+		// 		}
+		// 	}
+		// })
 	}
 
 	/**

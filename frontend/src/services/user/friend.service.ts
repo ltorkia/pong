@@ -141,8 +141,9 @@ export class FriendService {
 	 * 
 	 * @param {User} user - L'utilisateur pour lequel afficher les informations
 	 * @param {HTMLElement} container - Le conteneur HTML du composant de la page des amis
+	 * @param {Friend} [friend] - L'instance Friend associée à l'utilisateur (facultatif)
 	 */
-	public setFriendPageSettings(user: User, container: HTMLElement): void {
+	public setFriendPageSettings(user: User, container: HTMLElement, friend?: Friend): void {
 		this.container = container;
 		this.user = user;
 	}
@@ -203,7 +204,7 @@ export class FriendService {
 		this.unfriendButton!.addEventListener('click', this.unfriendClick);
 		this.blockFriendButton!.addEventListener('click', this.blockFriendClick);
 		this.unblockFriendButton!.addEventListener('click', this.unblockFriendClick);
-		this.challengeButton!.addEventListener('click', this.challengeClick);
+		// this.challengeButton!.addEventListener('click', this.challengeClick);
 	}
 
 	public removeFriendButtonListeners(): void {
@@ -214,7 +215,7 @@ export class FriendService {
 		this.unfriendButton!.removeEventListener('click', this.unfriendClick);
 		this.blockFriendButton!.removeEventListener('click', this.blockFriendClick);
 		this.unblockFriendButton!.removeEventListener('click', this.unblockFriendClick);
-		this.challengeButton!.removeEventListener('click', this.challengeClick);
+		// this.challengeButton!.removeEventListener('click', this.challengeClick);
 	}
 	
 	/**
@@ -275,6 +276,33 @@ export class FriendService {
 		}
 	}
 
+	/**
+	 * Retourne l'identifiant de l'ami associé au bouton ou parent HTMLElement ou
+	 * directement l'identifiant de l'ami si c'est un nombre.
+	 * 
+	 * Si le bouton ne contient pas d'attribut data-friend-id, log un message d'erreur et
+	 * retourne 0.
+	 * 
+	 * @param {HTMLElement | number} target - Bouton ou parent HTMLElement ou identifiant de l'ami.
+	 * @returns {number} L'identifiant de l'ami.
+	 */
+	private getFriendId(target: HTMLElement | number): number { 
+		if (typeof target === 'number')
+			return target;
+		const button = target.closest('button[data-friend-id]') as HTMLElement | null;
+		if (!button) {
+			console.error("Pas de friendId sur le bouton ou parent");
+			return 0;
+		}
+		const friendId = button.getAttribute("data-friend-id");
+		return Number(friendId);
+	}
+
+	/**
+	 * Réinitialise les attributs de l'objet FriendService.
+	 * Tous les attributs sont remis à leur valeur par défaut (null, undefined, etc.).
+	 * Cette méthode est appelée lorsque l'objet n'est plus utilisé.
+	 */
 	public cleanup(): void {
 		this.user = null;
 		this.friend = null;
@@ -304,52 +332,51 @@ export class FriendService {
 	private addFriendClick = async (event: Event): Promise<void> => {
 		event.preventDefault();
 		await notifService.handleAddClick(event);
-		console.log(`Friend request sent to ${this.user!.username}`);
 	}
 
 	private acceptFriendClick = async (event: Event): Promise<void> => {
 		event.preventDefault();
 		await notifService.handleAcceptClick(event);
-		console.log(`Friend request accepted for ${this.user!.username}`);
 	}
 
 	private declineFriendClick = async (event: Event): Promise<void> => {
 		event.preventDefault();
 		await notifService.handleDeclineClick(event);
-		console.log(`Friend request sent to ${this.user!.username}`);
 	}
 
 	private blockFriendClick = async (event: Event): Promise<void> => {
 		event.preventDefault();
 		await notifService.handleBlockClick(event);
-		console.log(`Friend ${this.user!.username} blocked`);
 	}
 
 	private unblockFriendClick = async (event: Event): Promise<void> => {
 		event.preventDefault();
 		await notifService.handleUnblockClick(event);
-		console.log(`Friend ${this.user!.username} unblocked`);
 	}
 
 	private unfriendClick = async (event: Event): Promise<void> => {
 		event.preventDefault();
 		await notifService.handleUnfriendClick(event);
-		console.log(`Friend ${this.user!.username} unfriended`);
 	}
 
 	private cancelFriendRequestClick = async (event: Event): Promise<void> => {
 		event.preventDefault();
 		await notifService.handleCancelClick(event);
-		console.log(`Friend request canceled for ${this.user!.username}`);
 	}
 
-	private challengeClick = async (event: Event): Promise<void> => {
+	public challengeClick = async (event: Event): Promise<void> => {
 		event.preventDefault();
-		if (!this.friend || !this.friend.isOnline())
+		const target = event.target as HTMLElement;
+		const friendId = this.getFriendId(target);
+		const currentUser = currentService.getCurrentUser();
+		const relation = await friendApi.getRelation(currentUser!.id, friendId!);
+		if (!relation || !relation.isOnline() || "errorMessage" in relation) {
+			console.error("errorMessage" in relation ? relation.errorMessage : "Invitation invalide.");
 			return;
-		if (!this.friend.challengedBy) 
+		}
+		if (!relation.challengedBy) 
 			await notifService.handleChallengeClick(event);
-		else if (this.friend.challengedBy === this.friend.id) {
+		else if (relation.challengedBy === relation.id) {
 			await notifService.handlePlayClick(event);
 		}
 	}

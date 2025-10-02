@@ -672,11 +672,6 @@ export class NotifService {
 		const target = event.target as HTMLElement;
 		this.setFriendId(target);
 		this.setNotifData(type);
-		const relation = await friendApi.getRelation(this.currentUser!.id, this.friendId!);
-		if (!relation || "errorMessage" in relation || relation.challengedBy != this.friendId!) {
-			console.error("errorMessage" in relation ? relation.errorMessage : "Invitation invalide.");
-			return;
-		}
 		await this.handleUpdate(type);
 		if ((this.currentPage.config.path !== ROUTE_PATHS.GAME_MULTI 
 				&& !(this.currentPage instanceof GamePage))
@@ -697,12 +692,6 @@ export class NotifService {
 		const target = event.target as HTMLElement;
 		this.setFriendId(target);
 		this.setNotifData(type);
-		const relation = await friendApi.getRelation(this.currentUser!.id, this.friendId!);
-		if (!relation || "errorMessage" in relation || relation.challengedBy != this.friendId!) {
-			console.error("errorMessage" in relation ? relation.errorMessage : "Invitation invalide.");
-			return;
-		}
-
 		if (this.currentPage instanceof GamePage
 			&& this.currentPage.challengedFriendID === this.friendId) {
 			await this.currentPage.checkInviteReplayRequest?.();

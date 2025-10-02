@@ -1,4 +1,6 @@
 import { currentService } from '../services/index.service';
+import { router } from '../router/router';
+import { DEFAULT_ROUTE } from '../config/routes.config';
 
 // ===========================================
 // APP UTILS
@@ -67,7 +69,12 @@ export async function secureFetch(url: string, options?: RequestInit): Promise<R
 		currentService.clearCurrentUser();
 		console.warn(`[secureFetch] Session invalide (status ${res.status})`);
 		throw new Error('Session expirée ou non autorisée');
+	} else if (res.status === 409) {
+		console.warn(`[secureFetch] Conflit (status ${res.status})`);
+		await router.redirect(DEFAULT_ROUTE);
+		throw new Error('Relation bloquée ou invalide');
 	}
+
 	return res;
 }
 

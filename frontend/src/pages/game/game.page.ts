@@ -12,6 +12,7 @@ import { loadTemplate, getHTMLElementByClass, getHTMLElementById } from '../../u
 import { router } from "../../router/router";
 import { Game } from "../../types/game.types";
 import { Player } from "../../shared/types/game.types";
+import { DEFAULT_ROUTE } from "../../config/routes.config";
 
 // ===========================================
 // GAME PAGE
@@ -156,6 +157,7 @@ export abstract class GamePage extends BasePage {
 							? this.relation.errorMessage 
 							: "Problème lors de la récupération de la relation."
 					);
+					await router.redirect(DEFAULT_ROUTE);
 					return;
 				}
 				this.replayInvite = true;

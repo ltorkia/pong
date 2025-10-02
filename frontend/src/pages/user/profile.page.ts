@@ -1,4 +1,3 @@
-import DOMPurify from "dompurify";
 import { BasePage } from '../base/base.page';
 import { RouteConfig, RouteParams } from '../../types/routes.types';
 import { User } from '../../shared/models/user.model';
@@ -10,7 +9,6 @@ import { dataService, friendService, translateService } from '../../services/ind
 import { formatDate } from '../../utils/app.utils';
 import { ROUTE_PATHS } from '../../config/routes.config';
 import { getHTMLElementByClass } from '../../utils/dom.utils';
-import { router } from '../../router/router';
 
 // ===========================================
 // PROFILE PAGE
@@ -29,6 +27,7 @@ export class ProfilePage extends BasePage {
 	private isCurrentUserProfile: boolean = false;
 
 	public buttonsLine!: HTMLDivElement;
+	private challengeButton!: HTMLButtonElement;
 	private avatar!: HTMLElement;
 	private username!: HTMLElement;
 	private displayedFriends: Friend[] = [];
@@ -64,6 +63,7 @@ export class ProfilePage extends BasePage {
 		this.username = getHTMLElementByClass('profile-username', this.container) as HTMLElement;
 		this.avatar = getHTMLElementByClass('profile-avatar', this.container) as HTMLElement;
 		this.buttonsLine = getHTMLElementByClass('profile-actions', this.container) as HTMLDivElement;
+		this.challengeButton = getHTMLElementByClass('challenge-button', this.container) as HTMLButtonElement;
 
 		try {
 			this.user = await dataApi.getUserStats(this.userId!);
@@ -327,6 +327,7 @@ export class ProfilePage extends BasePage {
 					friendCard.addEventListener('click', friendService.handleProfileClick);
 				}
 		});
+		this.challengeButton.addEventListener('click', this.handleChallengeClick);
 		friendService.attachFriendButtonListeners();
 	}
 
@@ -339,7 +340,19 @@ export class ProfilePage extends BasePage {
 					friendCard.removeEventListener('click', friendService.handleProfileClick);
 				}
 		});
+		this.challengeButton.removeEventListener('click', this.handleChallengeClick);
 		friendService.removeFriendButtonListeners();
+	}
+	
+	// ===========================================
+	// LISTENER HANDLERS
+	// ===========================================
+
+	private handleChallengeClick = async (event: Event): Promise<void> => {
+		event.preventDefault();
+		const friend = this.userFriends.find(friend => friend.id === this.userId!) || undefined;
+		friendService.setFriendPageSettings(this.user!, this.container, friend);
+		await friendService.challengeClick(event);
 	}
 
 	// ===========================================

@@ -7,6 +7,7 @@ import { ComponentConfig } from '../../types/components.types';
 import { dataService, friendService } from '../../services/index.service';
 import { getHTMLElementByClass } from '../../utils/dom.utils';
 import { User } from '../../shared/models/user.model';
+import { Friend } from '../../shared/models/friend.model';
 import { dataApi } from '../../api/index.api';
 
 // ===========================================
@@ -26,6 +27,7 @@ import { dataApi } from '../../api/index.api';
  */
 export class UserRowComponent extends BaseComponent {
 	protected user?: User | null = null;
+	protected friend?: Friend | null = null;
 	public userline!: HTMLDivElement;
 	private avatarImg!: HTMLImageElement;
 	private nameCell!: HTMLElement;
@@ -34,6 +36,7 @@ export class UserRowComponent extends BaseComponent {
 	private winrate!: HTMLElement;
 	private profileButton!: HTMLElement;
 	private logCell!: HTMLElement;
+	private challengeButton!: HTMLButtonElement;
 
 	/**
 	 * Constructeur du composant de ligne d'utilisateur.
@@ -93,7 +96,8 @@ export class UserRowComponent extends BaseComponent {
 		this.winrate = getHTMLElementByClass('winrate-cell .winrate', this.levelCell) as HTMLElement;
 		this.profileButton = getHTMLElementByClass('profile-button', this.levelCell) as HTMLElement;
 		this.logCell = getHTMLElementByClass('log-cell', this.container) as HTMLElement;
-		
+		this.challengeButton = getHTMLElementByClass('challenge-button', this.container) as HTMLButtonElement;
+
 		friendService.setFriendPageSettings(this.user!, this.container);
 		friendService.setFriendButtons();
 	}
@@ -132,7 +136,9 @@ export class UserRowComponent extends BaseComponent {
 	 * - Attribue un listener au bloc avatar/username pour rediriger vers le profil.
 	 */
 	protected attachListeners(): void {
+		friendService.profilePath = `/user/${this.user!.id}`;
 		this.profileButton.addEventListener('click', friendService.handleProfileClick);
+		this.challengeButton.addEventListener('click', this.handleChallengeClick);
 		friendService.attachFriendButtonListeners();
 	}
 
@@ -140,7 +146,9 @@ export class UserRowComponent extends BaseComponent {
 	 * Enlève les listeners.
 	 */
 	protected removeListeners(): void {
+		friendService.profilePath = `/user/${this.user!.id}`;
 		this.profileButton.removeEventListener('click', friendService.handleProfileClick);
+		this.challengeButton.removeEventListener('click', this.handleChallengeClick);
 		friendService.removeFriendButtonListeners();
 	}
 
@@ -173,6 +181,16 @@ export class UserRowComponent extends BaseComponent {
 		div.classList.add('alert', 'mr-5', 'error-message', 'hidden');
 		this.userline.appendChild(div);
 		return div;
+	}
+	
+	// ===========================================
+	// LISTENER HANDLERS
+	// ===========================================
+
+	private handleChallengeClick = async (event: Event): Promise<void> => {
+		event.preventDefault();
+		friendService.setFriendPageSettings(this.user!, this.container);
+		await friendService.challengeClick(event);
 	}
 
 	// ===========================================
