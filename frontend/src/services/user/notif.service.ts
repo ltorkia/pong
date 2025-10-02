@@ -13,7 +13,7 @@ import { FRIEND_REQUEST_ACTIONS, FRIEND_NOTIF_CONTENT } from '../../shared/confi
 import { isValidNotificationType, isFriendRequestAction, isUserOnlineStatus } from '../../shared/utils/app.utils';
 import { getHTMLElementById } from '../../utils/dom.utils';
 import { FriendRequestAction, NotificationModel, NotificationType } from '../../shared/types/notification.types';
-import { currentService, storageService, translateService, gameService } from '../index.service';
+import { currentService, storageService, translateService, gameService, friendService } from '../index.service';
 import { router } from '../../router/router';
 
 // ============================================================================
@@ -90,7 +90,7 @@ export class NotifService {
 			}
 		}
 		this.updateNotifsCounter();
-		this.refreshFriendButtons();
+		await this.refreshFriendButtons();
 	}
 
 	/**
@@ -140,12 +140,20 @@ export class NotifService {
 	// ===========================================
 
 	private async handleUserOnlineStatus(notif: AppNotification): Promise<void> {
-		if (this.currentPage.config.path === ROUTE_PATHS.USERS) {
+		if (this.currentPage.config.path === ROUTE_PATHS.USERS
+			|| this.currentPage.config.path === ROUTE_PATHS.PROFILE) {
 			this.currentNotif = notif;
 			const user = await dataApi.getUserById(Number(this.currentNotif.from));
 			if (!user)
 				return;
-			await this.currentPage.injectUser!(user);
+			switch (this.currentPage.config.path) {
+				case ROUTE_PATHS.USERS:
+					await this.currentPage.injectUser!(user);
+					break;
+				case ROUTE_PATHS.PROFILE:
+					this.currentPage.renderUserStatus!(user);
+					break;
+			}
 		}
 	}
 
@@ -339,19 +347,15 @@ export class NotifService {
 	}
 
 	/**
-	 * Met à jour les boutons d'amitié pour la page des utilisateurs si elle est affichée.
+	 * Met à jour les boutons d'amitié pour la page des utilisateurs ou du profil si affichée.
 	 *
-	 * Si la page des utilisateurs est affichée, appelle la méthode updateFriendButtons de la page
-	 * pour mettre à jour les boutons d'amitié correspondant à l'utilisateur d'ID "from" en fonction
-	 * de la demande d'amitié reçue.
+	 * Si la page des utilisateurs est affichée, appelle la méthode toggleFriendButtons de friendService
+	 * pour mettre à jour les boutons d'amitié correspondant.
 	 *
-	 * @param {UserRowComponent} [userRowInstance] - L'instance du composant UserRowComponent qui a envoyé la demande d'amitié.
 	 * @returns {Promise<void>} Une promesse qui se résout lorsque les boutons d'amitié ont été mis à jour.
 	 */
-	private async refreshFriendButtons(userRowInstance?: UserRowComponent): Promise<void> {
-		if (this.currentPage.config.path === ROUTE_PATHS.USERS) {
-			await this.currentPage.updateFriendButtons!(this.friendId!, userRowInstance);
-		}
+	private async refreshFriendButtons(): Promise<void> {
+		await friendService.toggleFriendButton();
 	}
 
 	/**

@@ -1,16 +1,13 @@
 // Pour hot reload Vite
 import template from './user-row.component.html?raw'
 
-import DOMPurify from "dompurify";
 import { BaseComponent } from '../base/base.component';
 import { RouteConfig } from '../../types/routes.types';
-import { router } from '../../router/router';
 import { ComponentConfig } from '../../types/components.types';
-import { dataService, notifService, friendService, translateService, gameService } from '../../services/index.service';
+import { dataService, friendService } from '../../services/index.service';
 import { getHTMLElementByClass } from '../../utils/dom.utils';
-import { DB_CONST, FRIEND_REQUEST_ACTIONS } from '../../shared/config/constants.config';
 import { User } from '../../shared/models/user.model';
-import { Friend } from '../../../../shared/models/friend.model';
+import { dataApi } from '../../api/index.api';
 
 // ===========================================
 // USER ROW COMPONENT
@@ -29,27 +26,14 @@ import { Friend } from '../../../../shared/models/friend.model';
  */
 export class UserRowComponent extends BaseComponent {
 	protected user?: User | null = null;
-	private friend?: Friend | null = null;
 	public userline!: HTMLDivElement;
 	private avatarImg!: HTMLImageElement;
 	private nameCell!: HTMLElement;
 	private statusCell!: HTMLElement;
-	private friendLogoCell!: HTMLElement;
 	private levelCell!: HTMLElement;
 	private winrate!: HTMLElement;
 	private profileButton!: HTMLElement;
 	private logCell!: HTMLElement;
-	private profilePath!: string;
-	private buttonCell!: HTMLElement;
-	private addFriendButton!: HTMLButtonElement;
-	private cancelFriendButton!: HTMLButtonElement;
-	private acceptFriendButton!: HTMLButtonElement;
-	private declineFriendButton!: HTMLButtonElement;
-	private blockFriendButton!: HTMLButtonElement;
-	private unblockFriendButton!: HTMLButtonElement;
-	private unfriendButton!: HTMLButtonElement;
-	private challengeButton!: HTMLButtonElement;
-	private buttons: HTMLButtonElement[] = [];
 
 	/**
 	 * Constructeur du composant de ligne d'utilisateur.
@@ -100,36 +84,18 @@ export class UserRowComponent extends BaseComponent {
 	 * @returns {Promise<void>} Une promesse qui se résout lorsque les éléments HTML ont été stockés.
 	 */
 	protected async beforeMount(): Promise<void> {
+		this.user = await dataApi.getUserStats(this.user!.id);
 		this.userline = getHTMLElementByClass('user-line', this.container) as HTMLDivElement;
 		this.avatarImg = getHTMLElementByClass('avatar-img', this.container) as HTMLImageElement;
 		this.nameCell = getHTMLElementByClass('name-cell', this.container) as HTMLElement;
 		this.statusCell = getHTMLElementByClass('status-cell', this.container) as HTMLElement;
-		this.friendLogoCell = getHTMLElementByClass('friend-logo-cell', this.container) as HTMLElement;
 		this.levelCell = getHTMLElementByClass('level-cell', this.container) as HTMLElement;
 		this.winrate = getHTMLElementByClass('winrate-cell .winrate', this.levelCell) as HTMLElement;
 		this.profileButton = getHTMLElementByClass('profile-button', this.levelCell) as HTMLElement;
 		this.logCell = getHTMLElementByClass('log-cell', this.container) as HTMLElement;
-		this.profilePath = `/user/${this.user!.id}`;
-		this.buttonCell = getHTMLElementByClass('button-cell', this.container) as HTMLElement;
-		this.addFriendButton = getHTMLElementByClass('add-friend-button', this.buttonCell) as HTMLButtonElement;
-		this.cancelFriendButton = getHTMLElementByClass('cancel-friend-button', this.buttonCell) as HTMLButtonElement;
-		this.acceptFriendButton = getHTMLElementByClass('accept-friend-button', this.buttonCell) as HTMLButtonElement;
-		this.declineFriendButton = getHTMLElementByClass('decline-friend-button', this.buttonCell) as HTMLButtonElement;
-		this.unfriendButton = getHTMLElementByClass('unfriend-button', this.buttonCell) as HTMLButtonElement;
-		this.blockFriendButton = getHTMLElementByClass('block-friend-button', this.buttonCell) as HTMLButtonElement;
-		this.unblockFriendButton = getHTMLElementByClass('unblock-friend-button', this.buttonCell) as HTMLButtonElement;
-		this.challengeButton = getHTMLElementByClass('challenge-button', this.buttonCell) as HTMLButtonElement;
-
-		this.buttons = [
-			this.challengeButton,
-			this.addFriendButton,
-			this.cancelFriendButton,
-			this.acceptFriendButton,
-			this.declineFriendButton,
-			this.blockFriendButton,
-			this.unblockFriendButton,
-			this.unfriendButton
-		];
+		
+		friendService.setFriendPageSettings(this.user!, this.container);
+		friendService.setFriendButtons();
 	}
 
 	/**
@@ -149,33 +115,15 @@ export class UserRowComponent extends BaseComponent {
 		this.nameCell.textContent = this.user!.username;
 		if (this.user!.id !== this.currentUser!.id)
 			this.statusCell.innerHTML = dataService.showStatusLabel(this.user!);
-		this.friendLogoCell.innerHTML = dataService.showFriendLogo(this.user!);
-		if ('winRate' in this.user! && this.user.winRate !== undefined)
-			this.winrate.textContent = `${this.user.winRate}%`;
-		else
-			this.winrate.textContent = 'No stats';
+		friendService.setFriendLogo();
+		this.winrate.textContent = `${this.user!.winRate}%`;
 		if (this.user!.id !== this.currentUser!.id) {
 			const logDate = dataService.showLogDate(this.user!);
 			if (logDate)
 				this.logCell.innerHTML = logDate;
 		}
-		await this.toggleFriendButton();
-		this.setButtonDataAttribut();
-	}
-
-	/**
-	 * Attribue l'attribut data-friend-id à chaque bouton de la ligne utilisateur,
-	 * ce qui permettra de récupérer l'ID de l'utilisateur associé au bouton
-	 * lors de l'appel d'une fonction listener.
-	 */
-	private setButtonDataAttribut() {
-		this.buttons.forEach(btn => {
-			const element = btn as HTMLButtonElement;
-			if (btn) {
-				element.setAttribute("data-friend-id", this.user!.id.toString());
-				element.setAttribute("data-friend-name", this.user!.username);
-			}
-		});
+		await friendService.toggleFriendButton();
+		friendService.setButtonDataAttribut();
 	}
 
 	/**
@@ -184,77 +132,16 @@ export class UserRowComponent extends BaseComponent {
 	 * - Attribue un listener au bloc avatar/username pour rediriger vers le profil.
 	 */
 	protected attachListeners(): void {
-		this.profileButton.addEventListener('click', this.handleProfileClick);
-		this.addFriendButton.addEventListener('click', this.addFriendClick);
-		this.cancelFriendButton.addEventListener('click', this.cancelFriendRequestClick);
-		this.acceptFriendButton.addEventListener('click', this.acceptFriendClick);
-		this.declineFriendButton.addEventListener('click', this.declineFriendClick);
-		this.unfriendButton.addEventListener('click', this.unfriendClick);
-		this.blockFriendButton.addEventListener('click', this.blockFriendClick);
-		this.unblockFriendButton.addEventListener('click', this.unblockFriendClick);
-		this.challengeButton.addEventListener('click', this.challengeClick);
+		this.profileButton.addEventListener('click', friendService.handleProfileClick);
+		friendService.attachFriendButtonListeners();
 	}
 
 	/**
 	 * Enlève les listeners.
 	 */
 	protected removeListeners(): void {
-		this.profileButton.removeEventListener('click', this.handleProfileClick);
-		this.addFriendButton.removeEventListener('click', this.addFriendClick);
-		this.cancelFriendButton.removeEventListener('click', this.cancelFriendRequestClick);
-		this.acceptFriendButton.removeEventListener('click', this.acceptFriendClick);
-		this.declineFriendButton.removeEventListener('click', this.declineFriendClick);
-		this.unfriendButton.removeEventListener('click', this.unfriendClick);
-		this.blockFriendButton.removeEventListener('click', this.blockFriendClick);
-		this.unblockFriendButton.removeEventListener('click', this.unblockFriendClick);
-		this.challengeButton.removeEventListener('click', this.challengeClick);
-	}
-
-	// ===========================================
-	// METHODES PUBLICS
-	// ===========================================
-
-	/**
-	 * Affiche ou masque dynamiquement les boutons d'action liés à l'amitié selon le statut de la relation
-	 * entre l'utilisateur courant et l'utilisateur sélectionné. La méthode commence par masquer tous les boutons,
-	 * puis affiche le ou les boutons appropriés selon que les utilisateurs sont amis, qu'une demande est en attente,
-	 * qu'ils sont bloqués ou qu'il n'y a aucune relation.
-	 *
-	 * @returns {Promise<void>} Une promesse qui se résout lorsque l'affichage des boutons est terminé.
-	 */
-	public async toggleFriendButton(): Promise<void> {
-		if (this.user && this.user.id !== this.currentUser!.id || !this.user) {
-			this.hideAllButtons();
-			this.friend = await friendService.isFriendWithCurrentUser(this.user!.id);
-			if (!this.friend) {
-				this.friendLogoCell.innerHTML = DOMPurify.sanitize(`<i class="fa-solid fa-minus"></i>`);
-				this.addFriendButton.classList.remove('hidden');
-				return;
-			}
-			this.friendLogoCell.innerHTML = dataService.showFriendLogo(this.friend);
-
-			if (this.friend.friendStatus === DB_CONST.FRIENDS.STATUS.PENDING) {
-				if (this.friend.requesterId === this.currentUser!.id) {
-					this.cancelFriendButton.classList.remove('hidden');
-					return;
-				}
-				this.acceptFriendButton.classList.remove('hidden');
-				this.declineFriendButton.classList.remove('hidden');
-			}
-			if (this.friend.friendStatus === DB_CONST.FRIENDS.STATUS.ACCEPTED) {
-				if (this.friend.isOnline() && this.friend.challengedBy !== this.currentUser!.id)
-					this.challengeButton.classList.remove('hidden');
-				this.blockFriendButton.classList.remove('hidden');
-				this.unfriendButton.classList.remove('hidden');
-			}
-			if (this.friend.friendStatus === DB_CONST.FRIENDS.STATUS.BLOCKED) {
-				if (this.friend.blockedBy === this.currentUser!.id) {
-					this.unblockFriendButton.classList.remove('hidden');
-					return;
-				}
-			}
-			translateService.updateLanguage(undefined, this.container);
-		}
+		this.profileButton.removeEventListener('click', friendService.handleProfileClick);
+		friendService.removeFriendButtonListeners();
 	}
 
 	// ===========================================
@@ -277,17 +164,6 @@ export class UserRowComponent extends BaseComponent {
 	}
 
 	/**
-	 * Masque tous les boutons d'action utilisateur en ajoutant la classe CSS 'hidden'
-	 * à chaque élément bouton de la ligne utilisateur.
-	 *
-	 * Cette méthode est généralement utilisée pour réinitialiser l'état de l'interface
-	 * ou pour empêcher les interactions utilisateur avec ces boutons dans certaines conditions.
-	 */
-	private hideAllButtons() {
-		this.buttons.forEach(btn => btn.classList.add('hidden'));
-	}
-
-	/**
 	 * Crée un élément HTML servant d'espace d'alerte pour les erreurs.
 	 */
 	private createAlertSpace(): HTMLDivElement {
@@ -300,64 +176,11 @@ export class UserRowComponent extends BaseComponent {
 	}
 
 	// ===========================================
-	// LISTENER HANDLERS
+	// CLEANUP
 	// ===========================================
 
-	private handleProfileClick = async (event: Event): Promise<void> => {
-		event.preventDefault();
-		await router.navigate(this.profilePath);
-	};
-
-	private addFriendClick = async (event: Event): Promise<void> => {
-		event.preventDefault();
-		await notifService.handleAddClick(event);
-		console.log(`Friend request sent to ${this.user!.username}`);
-	}
-
-	private acceptFriendClick = async (event: Event): Promise<void> => {
-		event.preventDefault();
-		await notifService.handleAcceptClick(event);
-		console.log(`Friend request accepted for ${this.user!.username}`);
-	}
-
-	private declineFriendClick = async (event: Event): Promise<void> => {
-		event.preventDefault();
-		await notifService.handleDeclineClick(event);
-		console.log(`Friend request sent to ${this.user!.username}`);
-	}
-
-	private blockFriendClick = async (event: Event): Promise<void> => {
-		event.preventDefault();
-		await notifService.handleBlockClick(event);
-		console.log(`Friend ${this.user!.username} blocked`);
-	}
-
-	private unblockFriendClick = async (event: Event): Promise<void> => {
-		event.preventDefault();
-		await notifService.handleUnblockClick(event);
-		console.log(`Friend ${this.user!.username} unblocked`);
-	}
-
-	private unfriendClick = async (event: Event): Promise<void> => {
-		event.preventDefault();
-		await notifService.handleUnfriendClick(event);
-		console.log(`Friend ${this.user!.username} unfriended`);
-	}
-
-	private cancelFriendRequestClick = async (event: Event): Promise<void> => {
-		event.preventDefault();
-		await notifService.handleCancelClick(event);
-		console.log(`Friend request canceled for ${this.user!.username}`);
-	}
-
-	private challengeClick = async (event: Event): Promise<void> => {
-		event.preventDefault();
-		if (!this.friend || !this.friend.isOnline())
-			return;
-		if (!this.friend.challengedBy) 
-			await notifService.handleChallengeClick(event);
-		else if (this.friend.challengedBy === this.friend.id) {
-			await notifService.handlePlayClick(event);
-		}
+	public async cleanup(): Promise<void> {
+		await super.cleanup();
+		friendService.cleanup();
 	}
 }

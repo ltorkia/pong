@@ -57,7 +57,7 @@
 		tablet:w-16 tablet:h-16 tablet:float-none;
 	}
 
-	#user-list {
+	#user-list, .profile-actions {
 		@apply w-full font-classic text-gray-700 text-sm
 		flex flex-col items-center justify-center;
 	}
@@ -127,7 +127,7 @@
 		@apply border-[#ffffff45];
 	}
 
-	.user-line.line-offline .button-cell button {
+	.user-line.line-offline .button-cell button, .profile-actions .button-cell button {
 		@apply bg-blue-100;
 	}
 
@@ -135,7 +135,7 @@
 		@apply bg-gray-100;
 	}
 
-	.user-line .button-cell button {
+	.user-line .button-cell button, .profile-actions .button-cell button {
 		@apply text-pastel-blue font-normal lowercase px-3 hover:text-blue-500 text-xs;
 	}
 
@@ -181,7 +181,7 @@
 	}
 
 	.log-cell {
-		@apply font-bold text-gray-700 text-xs hidden
+		@apply font-bold text-gray-700 text-xs hidden font-classic
 		wide:block;
 
 		text-shadow: 1px 1px 2px #ffffff6b;

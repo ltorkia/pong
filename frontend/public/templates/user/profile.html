@@ -3,7 +3,50 @@
 					<!-- Header avec informations principales -->
 					<div class="profile-header">
 						<div id="profile-main-section">
-							<!-- Contenu dynamique injecté ici -->
+							<div class="profile-avatar-section items-center">
+								<div class="profile-avatar"></div>
+								<div class="profile-info relative">
+									<div class="status-cell"></div>
+									<h1 class="profile-username"></h1>
+									<div class="cell log-cell"></div>
+									<div class="profile-actions">
+										<div class="cell button-cell">
+											<button class="hidden add-friend-button">
+												<i class="fa-solid fa-plus"></i>
+												<span data-ts="users.addFriend">Add friend</span>
+											</button>
+											<button class="hidden accept-friend-button">
+												<i class="fa-solid fa-plus"></i>
+												<span data-ts="users.acceptFriend">Accept</span>
+											</button>
+											<button class="hidden decline-friend-button">
+												<i class="fa-solid fa-xmark"></i>
+												<span data-ts="users.declineFriend">Decline</span>
+											</button>
+											<button class="hidden cancel-friend-button">
+												<i class="fa-solid fa-xmark"></i>
+												<span data-ts="users.cancelFriend">Cancel friend request</span>
+											</button>
+											<button class="hidden challenge-button">
+												<i class="fa-solid fa-bolt"></i>
+												<span data-ts="users.challenge">Play</span>
+											</button>
+											<button class="hidden unfriend-button">
+												<i class="fa-solid fa-xmark"></i>
+												<span data-ts="users.unfriend">Unfriend</span>
+											</button>
+											<button class="hidden block-friend-button" data-ts="users.blockFriend" data-type="title" title="Block">
+												<i class="fa-solid fa-ban"></i>
+											</button>
+											<button class="hidden unblock-friend-button">
+												<i class="fa-solid fa-check"></i>
+												<span data-ts="users.unblockFriend">Unblock</span>
+											</button>
+										</div>
+										<div class="cell friend-logo-cell"></div>
+									</div>
+								</div>
+							</div>
 						</div>
 					</div>
 
@@ -19,9 +62,9 @@
 
 					<!-- Amis -->
 					<div class="section-box">
-						<h2 class="section-title" data-ts="profile.friendsTitle">
-							Mates
-							<span id="friends-count" class="text-sm text-white/60 font-normal">
+						<h2 class="section-title">
+							<span data-ts="profile.friendsTitle">Mates</span>
+							<span id="friends-count" class=" text-white/80 font-normal">
 								<!-- Nombre d'amis -->
 							</span>
 						</h2>
@@ -53,26 +96,6 @@
 			</div>
 
 			<!-- Templates -->
-			<template id="profile-main-template">
-				<div class="profile-avatar-section">
-					<div class="profile-avatar">
-						<!-- Avatar injecté dynamiquement -->
-					</div>
-					<div class="profile-info">
-						<h1 class="profile-username">
-							<!-- Nom d'utilisateur -->
-						</h1>
-						<div class="profile-status">
-							<div class="w-2 h-2 rounded-full"></div>
-							<span class="status-text"><!-- Statut --></span>
-						</div>
-						<div class="profile-actions">
-							<!-- Boutons d'action (conditionnels) -->
-						</div>
-					</div>
-				</div>
-			</template>
-
 			<template id="stat-card-template">
 				<div class="stat-card">
 					<div class="stat-value">
