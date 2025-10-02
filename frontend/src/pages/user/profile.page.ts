@@ -6,7 +6,7 @@ import { Friend } from '../../shared/models/friend.model';
 import { Game } from '../../shared/models/game.model';
 import { Tournament } from '../../shared/models/tournament.model';
 import { dataApi, friendApi } from '../../api/index.api';
-import { dataService, friendService } from '../../services/index.service';
+import { dataService, friendService, translateService } from '../../services/index.service';
 import { formatDate } from '../../utils/app.utils';
 import { ROUTE_PATHS } from '../../config/routes.config';
 import { getHTMLElementByClass } from '../../utils/dom.utils';
@@ -181,15 +181,14 @@ export class ProfilePage extends BasePage {
 		if (!section || !template || !this.user) 
 			return;
 
-		// Calcul du win rate
 		const totalGames = this.user.gamePlayed;
 		const winRate = this.user.winRate;
 
 		const stats = [
-			{ value: this.user.gameWin || 0, label: 'Victories' },
-			{ value: this.user.gameLoose || 0, label: 'Losses' },
-			{ value: `${winRate}%`, label: 'Win Rate' },
-			{ value: totalGames, label: 'Game played' }
+			{ value: this.user.gameWin || 0, label: 'Victories', translate: "profile.winLabel" },
+			{ value: this.user.gameLoose || 0, label: 'Losses', translate: "profile.lossLabel" },
+			{ value: `${winRate}%`, label: 'Win Rate', translate: "profile.winRateLabel" },
+			{ value: totalGames, label: 'Game played', translate: "profile.gamePlayedLabel" }
 		];
 
 		stats.forEach(stat => {
@@ -199,8 +198,10 @@ export class ProfilePage extends BasePage {
 
 			value.textContent = stat.value.toString();
 			label.textContent = stat.label;
+			label.setAttribute('data-ts', stat.translate);
 
 			section.appendChild(clone);
+			translateService.updateLanguage(undefined, section);
 		});
 	}
 
@@ -218,10 +219,8 @@ export class ProfilePage extends BasePage {
 		this.displayedFriends = this.userFriends.filter((f: Friend) => f.friendStatus === 'accepted');
 		countElement.textContent = `(${this.displayedFriends.length})`;
 
-		// État vide
-		if (this.displayedFriends.length === 0) {
+		if (this.displayedFriends.length === 0)
 			return;
-		}
 
 		this.displayedFriends.forEach(async (friend) => {
 			const clone = template.content.cloneNode(true) as DocumentFragment;
@@ -276,6 +275,7 @@ export class ProfilePage extends BasePage {
 		// Résultat
 		result.classList.add(isWin ? 'win' : 'loss');
 		result.textContent = isWin ? 'VICTORY' : 'GAME OVER';
+		result.setAttribute('data-ts', isWin ? 'profile.winResult' : 'profile.lossResult');
 
 		// Date formatée
 		date.textContent = formatDate(match.end);
@@ -307,6 +307,8 @@ export class ProfilePage extends BasePage {
 		img2.className = 'w-full h-full object-cover';
 		(avatars[1] as HTMLElement).appendChild(img2);
 		(names[1] as HTMLElement).textContent = playerTwoUsername;
+		if (!player2)
+			(names[1] as HTMLElement).setAttribute('data-ts', 'game.player');
 	}
 
 	// ===========================================

@@ -171,7 +171,13 @@
 		"statsTitle": "Stats",
 		"friendsTitle": "Amis",
 		"matchHistoryTitle": "Historique des matchs",
-		"tournamentHistoryTitle": "Historique des tournois"
+		"tournamentHistoryTitle": "Historique des tournois",
+		"winLabel": "Victoires",
+		"lossLabel": "Défaites",
+		"winRateLabel": "de réussites",
+		"gamePlayedLabel": "Parties jouées",
+		"winResult": "VICTOIRE",
+		"lossResult": "DÉFAITE"
 	},
 
 	"game": {
@@ -183,6 +189,7 @@
 		"waitingText2": " pour commencer...",
 		"waitingTextPlayer": "l'autre joueur",
 		"resultText": "Vous",
+		"player": "Joueur",
 		"player1": "Joueur 1",
 		"player2": "Joueur 2",
 		"loseMessage": "Echec !",

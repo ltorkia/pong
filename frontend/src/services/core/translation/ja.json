@@ -170,7 +170,13 @@
 		"statsTitle": "ゲーム統計",
 		"friendsTitle": "友達",
 		"matchHistoryTitle": "マッチ履歴",
-		"tournamentHistoryTitle": "トーナメント履歴"
+		"tournamentHistoryTitle": "トーナメント履歴",
+		"winLabel": "勝利",
+		"lossLabel": "敗北",
+		"winRateLabel": "勝率",
+		"gamePlayedLabel": "プレイしたゲーム数",
+		"winResult": "勝利",
+		"lossResult": "敗北"
 	},
 
 	"game": {
@@ -182,6 +188,7 @@
 		"waitingText2": " 人",
 		"waitingTextPlayer": "相手",
 		"resultText": "あなた",
+		"player": "プレイヤー",
 		"player1": "プレイヤー1",
 		"player2": "プレイヤー2",
 		"loseMessage": "失敗！",

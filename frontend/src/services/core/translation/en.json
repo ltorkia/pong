@@ -171,7 +171,13 @@
 		"statsTitle": "Stats",
 		"friendsTitle": "Mates",
 		"matchHistoryTitle": "Match history",
-		"tournamentHistoryTitle": "Tournament history"
+		"tournamentHistoryTitle": "Tournament history",
+		"winLabel": "Victories",
+		"lossLabel": "Losses",
+		"winRateLabel": "Win Rate",
+		"gamePlayedLabel": "Game played",
+		"winResult": "VICTORY",
+		"lossResult": "GAME OVER"
 	},
 
 	"game": {
@@ -183,6 +189,7 @@
 		"waitingText2": " to connect...",
 		"waitingTextPlayer": "another player",
 		"resultText": "You",
+		"player": "Player",
 		"player1": "Player 1",
 		"player2": "Player 2",
 		"loseMessage": "You lose !",
