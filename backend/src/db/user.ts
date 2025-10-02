@@ -213,6 +213,7 @@ export async function getUserGames(userId: number): Promise<GameModel[]> {
 			g.status,
 			g.looser_result,
 			g.winner_id,
+			g.type,
 			ug.status_win,
 			ug.duration
 		FROM User_Game ug

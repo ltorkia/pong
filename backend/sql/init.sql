@@ -63,6 +63,7 @@ CREATE TABLE IF NOT EXISTS Game (
 	status TEXT DEFAULT 'waiting' CHECK (status IN ('waiting', 'in_progress', 'cancelled', 'finished')),
 	looser_result INTEGER DEFAULT 0,
 	winner_id INTEGER,
+	type TEXT DEFAULT 'local' CHECK (type IN ('local', 'online')),
 	FOREIGN KEY (winner_id) REFERENCES User(id)
 );
 

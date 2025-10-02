@@ -44,14 +44,15 @@ import { GameModel } from '../shared/types/game.types'; // en rouge car dossier 
 
 // export async function getResultGame 
 
-export async function addGame(tournament?: number): Promise<number> {
+export async function addGame(tournament?: number, isOnlineGame?: boolean): Promise<number> {
     const db = await getDb();
     const tournamentId = tournament ?? 0;
+    const gameType = isOnlineGame ? "online" : "local";
 
     // Insérer le jeu et récupérer son id
     const result = await db.run(
-        `INSERT INTO Game (status, n_participants, tournament) VALUES ('in_progress', 2, ?)`,
-        [tournamentId]
+        `INSERT INTO Game (status, n_participants, tournament, type) VALUES ('in_progress', 2, ?, ?)`,
+        [tournamentId, gameType]
     );
 
     const gameId = result.lastID!;

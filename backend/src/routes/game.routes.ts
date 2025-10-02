@@ -325,7 +325,8 @@ async function decountWS(ws: WebSocket, gameID: number) {
 const startGame = async (app: FastifyInstance, players: Player[], mode: string, gameCreated?: Game) => {
     const { usersWS } = app;
     const { allGames } = app.lobby;
-    const gameID = await addGame();
+    const isOnlineGame = mode === "multi" ? true : false;
+    const gameID = await addGame(undefined, isOnlineGame);
     await addGamePlayers(gameID, players[0].ID, players[1].ID);
     const newGame = gameCreated || new Game(gameID, 2, players);
     allGames.push(newGame);
