@@ -33,6 +33,8 @@ export async function gameRoutes(app: FastifyInstance) {
         if (playerID != jwtUser.id)
             return reply.status(403).send({ errorMessage: 'Forbidden' });
 
+        await cleanGameOver(app, playerID);
+
         if (reqType === "matchmaking_request") {
             const newPlayer = initPlayer(allPlayers, playerID);
             if (!newPlayer)
@@ -109,6 +111,28 @@ export async function gameRoutes(app: FastifyInstance) {
             reply.code(200).send({ message: "Tournament clean done" });
         }
     });
+}
+
+const cleanGameOver = async (app: FastifyInstance, playerID: number) => {
+    const { allGames } = app.lobby;
+    // const {}
+    for (const game of allGames)
+        {
+            console.log("gaaaame", game);
+            const idx = allGames.indexOf(game);
+            if (playerID === game.players[0].ID || playerID === game.players[1].ID)
+                {   
+                    console.log("test");
+                    cleanGameOver(app, playerID);
+                    break;
+                    // // let {majgames} = app.lobby.idx;
+                    // // while (playerID === majgame.players[0].ID || playerID === majgame.players[1].ID)
+                    //     continue;
+
+                    // await game.endGame();
+                    // allGames.splice(idx,1);
+            }
+        }
 }
 
 async function findAvailableOpponent(newPlayer: Player, allPlayers: Player[]): Promise<Player | null> {
@@ -243,7 +267,8 @@ const startGame = async (app: FastifyInstance, players: Player[], mode: string, 
     const { usersWS } = app;
     const { allGames } = app.lobby;
 
-    // pour checker si joueur deja en jeu et eviter de relancer le jeu si conflit de socket --> peut etre desactiver le alluser qui supprime de nouveaux  sockets d un meme utilisateur si fonctionne
+    // pour checker si joueur deja en jeu et eviter de relancer le jeu si conflit de socket 
+    // --> peut etre desactiver le alluser qui supprime de nouveaux sockets d un meme utilisateur si fonctionne
     for (const game of allGames)
     {
         console.log("gaaaame", game);
@@ -255,7 +280,7 @@ const startGame = async (app: FastifyInstance, players: Player[], mode: string, 
         }
         if (players[0].ID === game.players[0].ID || players[1].ID === game.players[1].ID ||
             players[1].ID === game.players[0].ID || players[0].ID === game.players[1].ID)
-            return ;
+                await game.endGame(); //a checker 
     }
     const gameID = await addGame();
     await addGamePlayers(gameID, players[0].ID, players[1].ID);

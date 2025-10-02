@@ -153,7 +153,6 @@ export class CurrentService {
 	private async ensureWebSocketOpen(): Promise<void> {
 		try {
 			const ws = webSocketService.getWebSocket();
-			console.log("weeeebsockkkkeeeeetttt", ws);
 			if (!ws || ws.readyState === WebSocket.CLOSED) {
 				await webSocketService.openWebSocket();
 			}

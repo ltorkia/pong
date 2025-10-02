@@ -7,17 +7,26 @@ export async function webSocketRoutes(app: FastifyInstance) {
         console.log("OPENING WEBSOCKET");
         const allUsers = app.usersWS;
         const allPlayers = app.lobby.allPlayers;
-        let isAlreadyConnected = false;
-        for (const user of allUsers)
-        {
-            if (user.id === req.user.id)
-            {
-                isAlreadyConnected = true;
-                break;
+        // previent d eventuelles doubles connexions ->marchait pas dans le jeu avant
+        const userIdx = allUsers.findIndex((user: UserWS) => user.id == req.user.id);
+        if (userIdx != -1) {
+            const oldUser = allUsers[userIdx];
+                
+            // Close the old WebSocket connection before removing
+            if (oldUser.WS) {
+                connection.close(1000, 'New connection established');
+                console.log(`CLOSED OLD WEBSOCKET for user ID = ${req.user.id}`);
+                return ;
             }
+        //     allUsers.splice(userIdx, 1); //supprime des users
+        //     console.log(`DELETED USER ID = ${req.user.id}`);
+        // }
+        // const playerIdx = allPlayers.findIndex((player: Player) => player.ID == req.user.id);
+        // if (playerIdx != -1) {
+        //     allPlayers.splice(playerIdx, 1);
+        //     console.log(`DELETED PLAYER ID = ${req.user.id}`);
         }
-        if (isAlreadyConnected === false)
-            allUsers.push(new UserWS(req.user.id, connection));
+        allUsers.push(new UserWS(req.user.id, connection));
         console.log(allUsers);
 
         connection.onclose = () => {
