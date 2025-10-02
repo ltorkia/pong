@@ -81,7 +81,7 @@ export class DataService {
 	 */
 	public async getUserAvatarURL(user: User): Promise<string> {
 		const defaultUrl = `${IMAGE_CONST.ROUTE_API}${DB_CONST.USER.DEFAULT_AVATAR}`;
-		if (!user.avatar) {
+		if (!user || !user.avatar) {
 			return defaultUrl;
 		}
 		const avatarUrl = `${IMAGE_CONST.ROUTE_API}${user.avatar}`;

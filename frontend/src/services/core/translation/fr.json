@@ -170,7 +170,8 @@
 	"profile": {
 		"statsTitle": "Stats",
 		"friendsTitle": "Amis",
-		"matchHistoryTitle": "Historique des matchs"
+		"matchHistoryTitle": "Historique des matchs",
+		"tournamentHistoryTitle": "Historique des tournois"
 	},
 
 	"game": {

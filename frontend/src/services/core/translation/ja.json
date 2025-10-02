@@ -169,7 +169,8 @@
 	"profile": {
 		"statsTitle": "ゲーム統計",
 		"friendsTitle": "友達",
-		"matchHistoryTitle": "マッチ履歴"
+		"matchHistoryTitle": "マッチ履歴",
+		"tournamentHistoryTitle": "トーナメント履歴"
 	},
 
 	"game": {

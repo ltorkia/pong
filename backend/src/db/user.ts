@@ -234,7 +234,7 @@ export async function getUserGames(userId: number): Promise<GameModel[]> {
 			WHERE ug.game_id = ?
 			AND u.id != ?
 			`,
-			[game.game_id, userId]
+			[game.id, userId]
 		);
 
 		game.other_players = players as SafeUserBasic[];

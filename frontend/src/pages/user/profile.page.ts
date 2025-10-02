@@ -105,7 +105,7 @@ export class ProfilePage extends BasePage {
 		this.renderProfileMain();
 		this.renderStats();
 		this.renderFriends();
-		this.renderuserGames();
+		await this.renderuserGames();
 		this.setupEventListeners();
 	}
 
@@ -264,7 +264,7 @@ export class ProfilePage extends BasePage {
 
 		// État vide
 		if (this.userFriends.length === 0) {
-			// this.renderEmptyState(section, 'friends');
+			this.renderEmptyState(section, 'friends');
 			return;
 		}
 
@@ -290,7 +290,7 @@ export class ProfilePage extends BasePage {
 			// Navigation vers le profil de l'ami
 			card.addEventListener('click', () => {
 				// TODO: Implémenter la navigation
-				console.log(`Naviguer vers le profil de ${friend.username}`);
+				console.log(`${friend.username}'s profile`);
 				// Exemple: this.router.navigate(`/profile/${friend.id}`);
 			});
 
@@ -318,38 +318,24 @@ export class ProfilePage extends BasePage {
 	/**
 	 * Rendu de l'historique des matchs
 	 */
-	private renderuserGames(): void {
+	private async renderuserGames(): Promise<void> {
 		const section = document.getElementById('match-history-section') as HTMLDivElement;
 		const template = document.getElementById('match-card-template') as HTMLTemplateElement;
 
-		if (!section || !template) return;
+		if (!section || !template) 
+			return;
 
 		// État vide
 		if (this.userGames.length === 0) {
-			// this.renderEmptyState(section, 'matches');
+			this.renderEmptyState(section, 'matches');
 			return;
 		}
 
-		// Limitation d'affichage (ex: 10 derniers matchs)
-		const recentMatches = this.userGames.slice(0, 10);
-
-		recentMatches.forEach(async (match) => {
+		const recentMatches = this.userGames;
+		for (const match of recentMatches) {
 			const clone = template.content.cloneNode(true) as DocumentFragment;
-			
 			await this.renderMatchCard(clone, match);
 			section.appendChild(clone);
-		});
-
-		// Bouton "Voir plus" si il y a plus de matchs
-		if (this.userGames.length > 10) {
-			const viewMoreButton = document.createElement('button');
-			viewMoreButton.className = 'w-full mt-4 py-3 bg-white/5 hover:bg-white/10 rounded-lg border border-white/20 text-white/70 hover:text-white transition-all duration-200';
-			viewMoreButton.textContent = `See ${this.userGames.length - 10} more matchs`;
-			viewMoreButton.addEventListener('click', () => {
-				// TODO: Implémenter l'affichage de tous les matchs
-				console.log('Charger plus de matchs');
-			});
-			section.appendChild(viewMoreButton);
 		}
 	}
 
@@ -372,15 +358,17 @@ export class ProfilePage extends BasePage {
 		result.textContent = isWin ? 'VICTORY' : 'GAME OVER';
 
 		// Date formatée
-		date.textContent = formatDate(match.createdAt || match.date);
+		date.textContent = formatDate(match.end);
+
+		const playerOneScore = isWin ? '3' : match.looserResult;
+		const playerTwoScore = isWin ? match.looserResult : '3';
 
 		// Score
-		score.textContent = match.score || `${match.player1Score} - ${match.player2Score}`;
+		score.textContent = `${playerOneScore} - ${playerTwoScore}`;
 
-		// TODO: Adapter selon la structure de vos données de match
 		const player1 = this.user!
 		console.log('match.otherPlayers', match.otherPlayers);
-		const player2: User = match.otherPlayers[0];
+		const player2: User | null = match.otherPlayers[0] ?? null;
 
 		// Joueur 1
 		const img1 = document.createElement('img');
@@ -392,11 +380,12 @@ export class ProfilePage extends BasePage {
 
 		// Joueur 2
 		const img2 = document.createElement('img');
+		const playerTwoUsername = player2 ? player2.username : 'Player';
 		img2.src = await dataService.getUserAvatarURL(player2);
-		img2.alt = `${player2.username}'s avatar`;
+		img2.alt = `${playerTwoUsername}'s avatar`;
 		img2.className = 'w-full h-full object-cover';
 		(avatars[1] as HTMLElement).appendChild(img2);
-		(names[1] as HTMLElement).textContent = player2.username;
+		(names[1] as HTMLElement).textContent = playerTwoUsername;
 	}
 
 	/**
@@ -409,10 +398,10 @@ export class ProfilePage extends BasePage {
 		const text = clone.querySelector('.empty-text') as HTMLElement;
 
 		if (type === 'friends') {
-			icon.innerHTML = DOMPurify.sanitize('<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>');
+			// icon.innerHTML = DOMPurify.sanitize('<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>');
 			text.textContent = 'No friends';
 		} else if (type === 'matches') {
-			icon.innerHTML = DOMPurify.sanitize('<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>');
+			// icon.innerHTML = DOMPurify.sanitize('<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>');
 			text.textContent = 'No match';
 		}
 
