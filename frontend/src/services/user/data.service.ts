@@ -76,10 +76,10 @@ export class DataService {
 	 * Si l'utilisateur n'a pas d'avatar défini, ou que le fichier n'existe pas
 	 * sur le serveur, retourne l'URL de l'avatar par défaut.
 	 *
-	 * @param {User} user - L'utilisateur pour lequel récupérer l'avatar.
+	 * @param {User | Friend} user - L'utilisateur pour lequel récupérer l'avatar.
 	 * @returns {Promise<string>} L'URL complète de l'avatar de l'utilisateur.
 	 */
-	public async getUserAvatarURL(user: User): Promise<string> {
+	public async getUserAvatarURL(user: User | Friend | null): Promise<string> {
 		const defaultUrl = `${IMAGE_CONST.ROUTE_API}${DB_CONST.USER.DEFAULT_AVATAR}`;
 		if (!user || !user.avatar) {
 			return defaultUrl;

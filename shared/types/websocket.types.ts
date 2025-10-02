@@ -46,7 +46,7 @@ export type PlayerReadyUpdate = {
 };
 
 export type MatchMakingReq = {
-    type: "matchmaking_request",
+    type: "local" | "matchmaking_request" | "tournament" | "invite" | "invite-accept" | "clean_request" | "tournament_clean_request";
     playerID: number,
     tournamentID?: number,
     invitedID?: number,

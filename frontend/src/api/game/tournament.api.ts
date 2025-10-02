@@ -3,6 +3,7 @@ import { showAlert } from '../../utils/dom.utils';
 import { UserModel } from '../../shared/types/user.types';
 import { TournamentLobbyUpdate, PlayerReadyUpdate, DismantleTournament, StartTournament } from "../../shared/types/websocket.types";
 import { Game, Tournament, TournamentLocal } from "../../types/game.types";
+import { GameInterface } from "../../shared/types/game.types";
 
 export class TournamentAPI {
 
@@ -184,7 +185,7 @@ export class TournamentAPI {
             const tournamentJSON: TournamentLocal = await res.json();
             return new TournamentLocal(
                 tournamentJSON.maxPlayers,
-                tournamentJSON.winner,
+                tournamentJSON.winner ?? undefined,
                 tournamentJSON.masterPlayerID,
                 tournamentJSON.players,
                 tournamentJSON?.stageOne,
@@ -196,7 +197,7 @@ export class TournamentAPI {
         }
     }
 
-    public async fetchUser(userID: number): Promise<UserModel | undefined> {
+    public async fetchUser(userID: number): Promise<UserModel | undefined | null> {
         const res = await fetch(`/api/users/${userID}`)
         if (res.status === 404)
             return null;

@@ -2,7 +2,6 @@ import { secureFetch } from "../../utils/app.utils";
 import { MatchMakingReq } from '../../shared/types/websocket.types';
 import { currentService } from "../../services/index.service";
 import { TournamentAPI } from "./tournament.api";
-import { FRIEND_REQUEST_ACTIONS } from "../../../../shared/config/constants.config";
 
 export const TournamentService = new TournamentAPI();
 
@@ -27,9 +26,9 @@ class GameAPI {
 		});
 		const result = await res.json();
 		if (!res.ok || 'errorMessage' in result || 'error' in result) {
-			return { errorMessage: data.errorMessage || data.error || 'Erreur lors du matchmaking.' };
+			return { errorMessage: result.errorMessage || result.error || 'Erreur lors du matchmaking.' };
 		}
-		return data;
+		return result;
 	}
 
 }

@@ -97,7 +97,7 @@ export interface PageInstance {
 	render: () => Promise<void>;
 	cleanup?: () => Promise<void>;
 	getComponentInstance?<T>(name: string): T | undefined;
-	renderUserStatus?(isOnline: boolean): void;
+	renderUserStatus?(user: User): void;
 	injectUser?: (user: User) => Promise<void>;
 	removeUser?: (user: User) => Promise<void>;
 	handleGameMessage?: (data: any) => Promise<void>;

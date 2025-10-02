@@ -673,8 +673,8 @@ export class NotifService {
 		this.setFriendId(target);
 		this.setNotifData(type);
 		const relation = await friendApi.getRelation(this.currentUser!.id, this.friendId!);
-		if (!relation || "errorMessage" in relation || relation.challengedBy) {
-			console.error(relation.errorMessage || "Invitation invalide.");
+		if (!relation || "errorMessage" in relation || relation.challengedBy != this.friendId!) {
+			console.error("errorMessage" in relation ? relation.errorMessage : "Invitation invalide.");
 			return;
 		}
 		await this.handleUpdate(type);
@@ -699,7 +699,7 @@ export class NotifService {
 		this.setNotifData(type);
 		const relation = await friendApi.getRelation(this.currentUser!.id, this.friendId!);
 		if (!relation || "errorMessage" in relation || relation.challengedBy != this.friendId!) {
-			console.error(relation.errorMessage || "Invitation invalide.");
+			console.error("errorMessage" in relation ? relation.errorMessage : "Invitation invalide.");
 			return;
 		}
 
@@ -836,7 +836,9 @@ export class NotifService {
 	 * @param content Le contenu de la notification.
 	 * @returns Le label de traduction correspondant.
 	 */
-	private getDataTsLabel(content: string): string {
+	private getDataTsLabel(content: string | null): string {
+		if (!content)
+			return '';
 		if (content.includes(FRIEND_NOTIF_CONTENT.ADD)) 
 			return 'notif.friendRequest';
 		if (content.includes(FRIEND_NOTIF_CONTENT.ACCEPT)) 

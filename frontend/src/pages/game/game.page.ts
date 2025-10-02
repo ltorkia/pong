@@ -1,18 +1,17 @@
 import DOMPurify from "dompurify";
 import { BasePage } from '../base/base.page';
 import { RouteConfig } from '../../types/routes.types';
-import { ROUTE_PATHS } from '../../config/routes.config';
 import { translateService, currentService, notifService } from '../../services/index.service';
 import { gameApi } from '../../api/game/game.api';
 import { MatchMakingReq } from '../../shared/types/websocket.types';
 import { MultiPlayerGame } from '../../components/game/BaseGame.component';
-import { SafeUserModel } from '../../../../shared/types/user.types';
+import { SafeUserModel } from '../../shared/types/user.types';
 import { Friend } from '../../shared/models/friend.model';
 import { friendApi } from '../../api/index.api';
 import { loadTemplate, getHTMLElementByClass, getHTMLElementById } from '../../utils/dom.utils';
 import { router } from "../../router/router";
 import { Game } from "../../types/game.types";
-import { Player } from "../../../../shared/types/game.types";
+import { Player } from "../../shared/types/game.types";
 
 // ===========================================
 // GAME PAGE
@@ -32,10 +31,10 @@ export abstract class GamePage extends BasePage {
 
 	protected gameID: number = 0;
 	protected tournamentID: number = 0;
-	protected requestType?: string;
+	protected requestType?: "local" | "matchmaking_request" | "tournament" | "invite" | "invite-accept" | "clean_request" | "tournament_clean_request";
 
 	public abstract challengedFriendID: number;
-	protected relation?: Friend;
+	protected relation?: Friend | { errorMessage: string; };
 	protected isInvitationGame: boolean = false;
 	protected replayInvite: boolean = false;
 	protected inviteToClean: boolean = true;
@@ -151,8 +150,12 @@ export abstract class GamePage extends BasePage {
 			case "invite":
 			case "invite-accept":
 				this.relation = await friendApi.getRelation(this.currentUser!.id, this.challengedFriendID);
-				if (!this.relation || "errorMessage" in this.relation) {
-					console.error(this.relation.errorMessage || "Problème lors de la reprise de partie.");
+				if (!this.relation || 'errorMessage' in this.relation) {
+					console.error(
+						this.relation && "errorMessage" in this.relation 
+							? this.relation.errorMessage 
+							: "Problème lors de la récupération de la relation."
+					);
 					return;
 				}
 				this.replayInvite = true;
@@ -255,7 +258,7 @@ export abstract class GamePage extends BasePage {
 	 */
 	protected async handleInviteSettings(): Promise<boolean> {
 		this.relation = await friendApi.getRelation(this.currentUser!.id, this.challengedFriendID);
-		if (!this.relation || "errorMessage" in this.relation || !this.relation.waitingInvite)
+		if (!this.relation || 'errorMessage' in this.relation || !this.relation.waitingInvite)
 			return false;
 		switch (this.currentUser!.id) {
 			case this.relation.challengedBy:
@@ -284,6 +287,8 @@ export abstract class GamePage extends BasePage {
 			console.error("Relation not found");
 			return false;
 		}
+		if (!this.relation || ("errorMessage" in this.relation))
+			return false;
 		if (this.currentUser!.id === this.relation.challengedBy) {
 			if (this.replayInvite)
 				await this.sendMatchMakingRequest("invite", this.challengedFriendID, this.currentUser!.id);
@@ -343,13 +348,14 @@ export abstract class GamePage extends BasePage {
 	 * Envoie une requête POST à la route API `/api/game/playgame` pour lancer une partie
 	 * dans le contexte d'un matchmaking (aléatoire / invite / tournoi).
 	 * 
-	 * @param {string} type Le type de partie (matchmaking, invite, tournament).
+	 * @param {"local" | "matchmaking_request" | "tournament" | "invite" | "invite-accept" | "clean_request" | "tournament_clean_request"} type Le type de partie (matchmaking, invite, tournament).
 	 * @param {number} [invitedID] L'ID du joueur invité si la partie est une invitation.
 	 * @param {number} [inviterID] L'ID du joueur qui invite si la partie est une invitation.
 	 * @param {boolean} [inviteToClean] Indique si le joueur doit se supprimer des joueurs actifs au refresh.
 	 * @returns {Promise<void>} La promesse qui se résout lorsque la partie est lancée.
 	 */
-	protected async sendMatchMakingRequest(type: string, invitedID?: number, inviterID?: number, inviteToClean?: boolean): Promise<void> {
+	protected async sendMatchMakingRequest(type: "local" | "matchmaking_request" | "tournament" | "invite" | "invite-accept" | "clean_request" | "tournament_clean_request",
+		invitedID?: number, inviterID?: number, inviteToClean?: boolean): Promise<void> {
 		const message = type;
 		const matchMakingReq: MatchMakingReq = {
 			type: message,
@@ -408,6 +414,8 @@ export abstract class GamePage extends BasePage {
 			waitingText1.setAttribute("data-ts", "game.waitingText1");
 			waitingText2.setAttribute("data-ts", "game.waitingText2");
 			if (this.requestType === "invite") {
+				if (!this.relation || 'errorMessage' in this.relation || !this.relation.waitingInvite)
+					return;
 				waitingText1.textContent = "Waiting for ";
 				waitingUsername.textContent = this.relation!.username;
 				waitingText2.textContent = " to connect...";
@@ -565,11 +573,11 @@ export abstract class GamePage extends BasePage {
 			spanAdversary.textContent = `${this.adversary?.username}`;
 		} else if (this.players || game) {
 			if (this.players) {
-				spanRes.textContent = this.players![0].alias!;
-				spanAdversary.textContent = this.players![1].alias!;
+				spanRes.textContent = this.players[0].alias ?? null;
+				spanAdversary.textContent = this.players[1].alias ?? null;
 			} else {
-				spanRes.textContent = game?.players[0].alias || game?.players[1].alias;
-				spanAdversary.textContent = game?.players[1].alias || game?.players[1].username;
+				spanRes.textContent = game?.players[0].alias || game?.players[1].username || null;
+				spanAdversary.textContent = game?.players[1].alias || game?.players[1].username || null;
 			}
 		} else {
 			spanRes.setAttribute("data-ts", "game.player1");
@@ -592,6 +600,14 @@ export abstract class GamePage extends BasePage {
 			return;
 		const replayBtn = getHTMLElementById('replay-button', this.endGamePanel) as HTMLElement;
 		if (this.challengedFriendID) {
+			if (!this.relation || 'errorMessage' in this.relation) {
+				console.error(
+					this.relation && "errorMessage" in this.relation 
+						? this.relation.errorMessage 
+						: "Problème lors de la récupération de la relation."
+				);
+				return;
+			}
 			const replayWithSpan = getHTMLElementById('replay-with', this.endGamePanel) as HTMLElement;
 			const friendNameSpan = getHTMLElementById('friend-username', this.endGamePanel) as HTMLElement;
 			replayWithSpan.classList.remove("hidden");

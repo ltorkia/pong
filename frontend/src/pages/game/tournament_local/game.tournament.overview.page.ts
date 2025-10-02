@@ -13,7 +13,7 @@ import { ROUTE_PATHS } from '../../config/routes.config';
 const MAX_PLAYERS = 4;
 const MIN_PLAYERS = 4;
 
-export class GameTournamentOverview extends GamePage { //changement de basepage mais a voir
+export class GameTournamentOverview extends BasePage { //changement de basepage mais a voir
     private tournamentID: number;
     private pastilleHTML: HTMLElement | undefined;
     private toolTipHTML: HTMLElement | undefined;
@@ -144,7 +144,7 @@ export class GameTournamentOverview extends GamePage { //changement de basepage 
 
         // Ajout du listener
         btn.addEventListener("click", async () => {
-            this.isSearchingGame = true;
+            // this.isSearchingGame = true;
             // const res = await fetch("/api/game/update_tournament_games", {
             //     method: 'POST',
             //     headers: { 'Content-Type': 'application/json' },
@@ -156,7 +156,7 @@ export class GameTournamentOverview extends GamePage { //changement de basepage 
         //     throw new Error(error.error);
         // }
             // await fetch("/update_tournament_games")
-            this.sendMatchMakingRequest("tournament", this.tournamentID); // On passe par cette fonction pour lancer le tournoi et les game
+            // this.sendMatchMakingRequest("tournament", this.tournamentID); // On passe par cette fonction pour lancer le tournoi et les game
             // this.startGame(); // fonction qui fetch avec les infos en contenu des joueurs
         });
             // await this.attachPastilleListeners();

@@ -21,7 +21,7 @@ import { router } from '../../router/router';
  */
 export class ProfilePage extends BasePage {
 	private userId?: number;
-	private user: User = null;
+	private user: User | null = null;
 	private userFriends: Friend[] = [];
 	private userGames: Game[] = [];
 	private userTournaments: Tournament[] = [];
@@ -129,7 +129,7 @@ export class ProfilePage extends BasePage {
 	 */
 	private async renderProfileMain(): Promise<void> {
 		this.renderAvatar();
-		this.username.textContent = this.user.username;
+		this.username.textContent = this.user!.username;
 		this.renderUserStatus();
 
 		if (!this.isCurrentUserProfile) {

@@ -57,8 +57,8 @@ export class GameMenuLocalID extends GamePage {
         const playerOne = document.getElementById("player-one")!;
         const playerTwo = document.getElementById("player-two")!;
 
-        playerOne.textContent = this.gameInfos?.players[0].alias;
-        playerTwo.textContent = this.gameInfos?.players[1].alias;
+        playerOne.textContent = this.gameInfos?.players[0].alias ?? null;
+        playerTwo.textContent = this.gameInfos?.players[1].alias ?? null;
     }
 
     protected async initMatchRequest(): Promise<void> {
