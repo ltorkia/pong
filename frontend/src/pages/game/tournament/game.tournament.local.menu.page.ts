@@ -200,7 +200,7 @@ export class GameMenuTournamentLocal extends BasePage {
     private startTournamentHandler = async () => {
         if (this.players.length != MAX_PLAYERS)
             return (this.printError("missingPlayer"));
-        const newTournament = new TournamentLocal(MAX_PLAYERS, undefined, this.currentUser!.id, this.players, webSocketService.tabID!);
+        const newTournament = new TournamentLocal(MAX_PLAYERS, undefined, this.currentUser!.id, this.players, webSocketService.getTabID()!);
         try {
             const tournamentID = await TournamentService.postNewLocalTournament(newTournament);
             sessionStorage.setItem("tournamentID", `${tournamentID}`);

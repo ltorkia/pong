@@ -670,7 +670,7 @@ export class NotifService {
 		const target = event.target as HTMLElement;
 		this.setFriendId(target);
 		this.setNotifData(type);
-		await this.handleUpdate(type, webSocketService.tabID);
+		await this.handleUpdate(type, webSocketService.getTabID());
 		if ((this.currentPage.config.path !== ROUTE_PATHS.GAME_MULTI 
 				&& !(this.currentPage instanceof GamePage))
 			|| ((this.currentPage instanceof GamePage)

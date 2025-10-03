@@ -28,7 +28,7 @@ export class GameService {
 			tournamentID: tournamentID,
 			invitedID: invitedId,
 			inviterID: currentUser!.id,
-			tabID: webSocketService.tabID,
+			tabID: webSocketService.getTabID(),
 			inviterTabID: inviterTabID,
 		}
 		await gameApi.matchMake(matchMakingReq);

@@ -380,7 +380,7 @@ export abstract class GamePage extends BasePage {
 			inviterID: inviterID,
 			gameID: this.gameID,
 			inviteToClean: inviteToClean,
-			tabID: webSocketService.tabID,
+			tabID: webSocketService.getTabID(),
 			inviterTabID: this.inviterTabID,
 		}
 
@@ -682,7 +682,7 @@ export abstract class GamePage extends BasePage {
 				inviterID: inviterID,
 				gameID: this.gameID,
 				inviteToClean: this.inviteToClean,
-				tabID: webSocketService.tabID,
+				tabID: webSocketService.getTabID(),
 				inviterTabID: this.inviterTabID,
 			})], { type: 'application/json' });
 			navigator.sendBeacon("/api/game/playgame", matchMakingReq);
