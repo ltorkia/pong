@@ -1,6 +1,6 @@
 import { FastifyInstance, FastifyReply } from 'fastify';
 import { getUser } from '../db/user';
-import { JwtPayload, UserPassword } from '../types/user.types';
+import { JwtPayload, UserPassword, UserWS } from '../types/user.types';
 import { COOKIES_CONST, USER_ONLINE_STATUS } from '../shared/config/constants.config'; // en rouge car dossier local 'shared' != dossier conteneur
 import { insertCode2FAEmail, insertCode2FAQrcode } from '../db/usermaj';
 import nodemailer from 'nodemailer';
@@ -21,18 +21,23 @@ export function generateJwt(app: FastifyInstance, user: JwtPayload) {
  * @param app Instance de Fastify
  * @param user Informations de l'utilisateur
  * @param reply Réponse HTTP
+ * @param tabID Identifiant unique de l'onglet navigateur
  */
-export async function ProcessAuth(app: FastifyInstance, user: Partial<UserPassword>, reply: FastifyReply) {
-	// const user = await getUser(null, userToGet);
-	// Création d'un token JWT qui sera utilisé par le frontend pour les requêtes authentifiées
-	// JWT = JSON Web Token = format pour transporter des informations de manière sécurisée entre deux parties, ici le frontend et le backend.
+export async function ProcessAuth(app: FastifyInstance, user: Partial<UserPassword>, reply: FastifyReply, tabID: string) {
 	const userId = user.id!;
-	const token = generateJwt(app, {
-		id: userId
-	});
+	const token = generateJwt(app, { id: userId });
 	setAuthCookie(reply, token);
 	setStatusCookie(reply);
-	await setOnlineStatus(app, userId, USER_ONLINE_STATUS.ONLINE);
+
+	let userSockets = app.usersWS.get(userId);
+	if (!userSockets) {
+		userSockets = [];
+		app.usersWS.set(userId, userSockets);
+	}
+
+	if (!userSockets.some(u => u.tabID === tabID)) {
+		await setOnlineStatus(app, userId, USER_ONLINE_STATUS.ONLINE);
+	}
 }
 
 /**

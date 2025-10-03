@@ -5,7 +5,7 @@ import { insertUser, getUser, getUserP, getUser2FA } from '../db/user';
 import { eraseCode2FA } from '../db/usermaj';
 import { ProcessAuth, clearAuthCookies, GenerateEmailCode, GenerateQRCode } from '../helpers/auth.helpers';
 import { GetAvatarFromBuffer, bufferizeStream } from '../helpers/image.helpers';
-import { JwtPayload, GoogleUserInfo, UserPassword, User2FA, FastifyFileSizeError, AvatarResult } from '../types/user.types';
+import { UserWS, JwtPayload, GoogleUserInfo, UserPassword, User2FA, FastifyFileSizeError, AvatarResult } from '../types/user.types';
 import { UserModel } from '../shared/types/user.types'; // en rouge car dossier local 'shared' != dossier conteneur
 import { DB_CONST, USER_ONLINE_STATUS } from '../shared/config/constants.config'; // en rouge car dossier local 'shared' != dossier conteneur
 import { Buffer } from 'buffer';
@@ -26,6 +26,7 @@ export async function authRoutes(app: FastifyInstance) {
 
     app.post('/register', async (request: FastifyRequest, reply: FastifyReply) => {
         try {
+            const tabID = (request.headers['x-tab-id'] as string);
             const elements = await request.parts({
                 limits: {
                     fileSize: 5 * 1024 * 1024
@@ -76,7 +77,7 @@ export async function authRoutes(app: FastifyInstance) {
             }
 
             let user = await getUser(null, userToInsert.email);
-            await ProcessAuth(app, userInfos, reply);
+            await ProcessAuth(app, userInfos, reply, tabID);
 
             return reply.status(200).send({
                 statusCode: 200,
@@ -105,7 +106,7 @@ export async function authRoutes(app: FastifyInstance) {
 
     app.post('/login', async (request: FastifyRequest, reply: FastifyReply) => {
         try {
-
+            const tabID = (request.headers['x-tab-id'] as string);
             const userdataCheck = await checkParsing(LoginInputSchema, request.body);
             if (isParsingError(userdataCheck))
                 return reply.status(400).send(userdataCheck);
@@ -136,7 +137,7 @@ export async function authRoutes(app: FastifyInstance) {
 
             const user: UserModel = await getUser(validUser.id);
             if (user.active2Fa === DB_CONST.USER.ACTIVE_2FA.DISABLED) {
-                await ProcessAuth(app, validUser, reply);
+                await ProcessAuth(app, validUser, reply, tabID);
             }
 
             return reply.status(200).send({
@@ -199,6 +200,7 @@ export async function authRoutes(app: FastifyInstance) {
 
     app.post('/2FAreceive/:method', async (request: FastifyRequest, reply: FastifyReply) => {
         const { method } = request.params as { method: string };
+        const tabID = (request.headers['x-tab-id'] as string);
         const userdataCheck = await checkParsing(LoginInputSchema, request.body);
         if (isParsingError(userdataCheck))
             return reply.status(400).send(userdataCheck);
@@ -238,7 +240,7 @@ export async function authRoutes(app: FastifyInstance) {
                 errorMessage: 'Impossible de récupérer l’utilisateur après authentification'
             });
         }
-        await ProcessAuth(app, checkUser, reply);
+        await ProcessAuth(app, checkUser, reply, tabID);
         return reply.status(200).send({
             statusCode: 200,
             message: 'Successfully logged in.',
@@ -253,8 +255,29 @@ export async function authRoutes(app: FastifyInstance) {
 
     app.post('/logout', async (request: FastifyRequest, reply: FastifyReply) => {
         const jwtUser = request.user as JwtPayload;
+        const tabID = (request.headers['x-tab-id'] as string);
         clearAuthCookies(reply);
-        await setOnlineStatus(app, jwtUser.id, USER_ONLINE_STATUS.OFFLINE);
+
+        const openSockets = app.usersWS.get(jwtUser.id);
+        if (openSockets && openSockets.length > 0) {
+
+            // fermer uniquement l'onglet courant
+            for (const userWS of openSockets) {
+                if (userWS.tabID === tabID) {
+                    userWS.WS.send(JSON.stringify({ event: "forceLogout", message: "Déconnecté par le serveur" }));
+                    userWS.WS.close();
+                }
+            }
+
+            // garder les autres onglets ouverts
+            app.usersWS.set(jwtUser.id, openSockets.filter((u: UserWS) => u.tabID !== tabID));
+        }
+
+        // Si plus aucune socket pour ce user, on met offline
+        if (!app.usersWS.get(jwtUser.id)?.length) {
+            await setOnlineStatus(app, jwtUser.id, USER_ONLINE_STATUS.OFFLINE);
+        }
+
         return reply.status(200).send({
             statusCode: 200,
             message: 'Déconnecté'
@@ -267,6 +290,7 @@ export async function authRoutes(app: FastifyInstance) {
     /* -------------------------------------------------------------------------- */
 
     app.post('/google', async (request: FastifyRequest, reply: FastifyReply) => {
+        const tabID = (request.headers['x-tab-id'] as string);
         const { id_token } = request.body as { id_token: string };
         if (!id_token) {
             return reply.status(400).send({ errorMessage: 'Token Google manquant' });
@@ -337,7 +361,7 @@ export async function authRoutes(app: FastifyInstance) {
             }
 
             // on valide l authentification + redonne les donnees user avec tout a jour
-            await ProcessAuth(app, user, reply);
+            await ProcessAuth(app, user, reply, tabID);
             const userData: UserModel = await getUser(null, email);
             return reply.status(200).send({
                 statusCode: 200,
@@ -358,7 +382,6 @@ export async function authRoutes(app: FastifyInstance) {
     // Verifie un compte sans pour autant le connecter, identique a login sans ProcessAuth 
     app.post('/check_account', async (request: FastifyRequest, reply: FastifyReply) => {
         try {
-
             const userdataCheck = await checkParsing(LoginInputSchema, request.body);
             if (isParsingError(userdataCheck))
                 return reply.status(400).send(userdataCheck);

@@ -1,7 +1,7 @@
 import { User } from '../../shared/models/user.model';
 import { UserModel, TwoFaMethod } from '../../shared/types/user.types';	// en rouge car dossier local 'shared' != dossier conteneur
 import { DB_CONST } from '../../shared/config/constants.config';
-import { currentService } from '../../services/index.service';
+import { currentService, webSocketService } from '../../services/index.service';
 import { BasicResponse, AuthResponse } from '../../shared/types/response.types';
 import { secureFetch } from '../../utils/app.utils';
 
@@ -84,8 +84,11 @@ export class AuthApi {
 	 *  ou un objet d'erreur.
 	 */
 	public async registerUser(formData: FormData): Promise<AuthResponse> {
+		const tabID = webSocketService.getTabID();
 		const res: Response = await fetch('/api/auth/register', {
 			method: 'POST',
+			headers: { 'Content-Type': 'application/json',
+				'x-tab-id': tabID },
 			body: formData,
 			credentials: 'include',
 		});
@@ -111,9 +114,11 @@ export class AuthApi {
 	 * l'utilisateur authentifié ou un message d'erreur.
 	 */
 	public async loginUser(userData: Record<string, string>): Promise<AuthResponse> {
+		const tabID = webSocketService.getTabID();
 		const res: Response = await fetch('/api/auth/login', {
 			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
+			headers: { 'Content-Type': 'application/json',
+				'x-tab-id': tabID },
 			body: JSON.stringify(userData),
 			credentials: 'include',
 		});
@@ -139,9 +144,11 @@ export class AuthApi {
 	 * @returns {Promise<AuthResponse>} Promesse résolue avec une fois que le code est envoyé.
 	 */
 	public async send2FA(userData: Record<string, string>, method: TwoFaMethod): Promise<AuthResponse> {
+		const tabID = webSocketService.getTabID();
 		const res: Response = await fetch(`/api/auth/2FAsend/${method}`, {
 			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
+			headers: { 'Content-Type': 'application/json',
+				'x-tab-id': tabID },
 			body: JSON.stringify(userData),
 			credentials: 'include',
 		});
@@ -171,9 +178,11 @@ export class AuthApi {
 	 * authentifié ou un message d'erreur.
 	 */
 	public async twofaConnectUser(userData: Record<string, string>, method: TwoFaMethod): Promise<AuthResponse> {
+		const tabID = webSocketService.getTabID();
 		const res: Response = await fetch(`/api/auth/2FAreceive/${method}`, {
 			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
+			headers: { 'Content-Type': 'application/json',
+				'x-tab-id': tabID },
 			body: JSON.stringify(userData),
 			credentials: 'include',
 		});
@@ -199,9 +208,11 @@ export class AuthApi {
 	 * @returns {Promise<AuthResponse>} Promesse qui se résout lorsque l'opération est terminée.
 	 */
 	public async googleConnectUser(id_token: string): Promise<AuthResponse> {
+		const tabID = webSocketService.getTabID();
 		const res = await fetch('/api/auth/google', {
 			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
+			headers: { 'Content-Type': 'application/json',
+				'x-tab-id': tabID },
 			body: JSON.stringify({ id_token }),
 			credentials: 'include',
 		});
@@ -224,9 +235,11 @@ export class AuthApi {
 	 * de réponse basique, ou un objet d'erreur si la déconnexion échoue.
 	 */
 	public async logoutUser(): Promise<BasicResponse> {
+		const tabID = webSocketService.getTabID();
 		const res: Response = await fetch('/api/auth/logout', {
 			method: 'POST',
-			credentials: 'include'
+			credentials: 'include',
+			headers: {'x-tab-id': tabID},
 		});
 		const data: BasicResponse = await res.json();
 		if (!res.ok || data.errorMessage) {

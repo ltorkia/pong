@@ -10,7 +10,11 @@ export class WebSocketService {
 	private sockets: Map<string, WebSocket> = new Map();
 	private connectionPromises: Map<string, Promise<void>> = new Map();
 	private isConnecting: Map<string, boolean> = new Map();
-	private handlers: Map<string, { handleMessage: (e: MessageEvent) => void; handleClose: (e: CloseEvent) => void; handleError: (e: Event) => void; }> = new Map();
+	private handlers: Map<string, { 
+		handleMessage: (e: MessageEvent) => void; 
+		handleClose: (e: CloseEvent) => void; 
+		handleError: (e: Event) => void; 
+	}> = new Map();
 
 	/**
 	 * Retourne l'ID de l'onglet actuel, en générant un nouvel ID si nécessaire.
@@ -38,12 +42,10 @@ export class WebSocketService {
 		const id = tabID || this.getTabID();
 		this.tabID = id;
 
-		if (this.sockets.has(id) && this.sockets.get(id)!.readyState === WebSocket.OPEN) {
+		if (this.sockets.has(id) && this.sockets.get(id)!.readyState === WebSocket.OPEN)
 			return;
-		}
-		if (this.isConnecting.get(id)) {
+		if (this.isConnecting.get(id))
 			return this.connectionPromises.get(id);
-		}
 
 		this.isConnecting.set(id, true);
 
@@ -52,33 +54,26 @@ export class WebSocketService {
 				const wsUrl = `${location.origin.replace(/^http/, 'ws')}/api/ws/?tabID=${id}`;
 				const ws = new WebSocket(wsUrl);
 
-				const timeout = setTimeout(() => reject(new Error("WebSocket connection timeout")), 3000);
+				const timeout = setTimeout(() => {
+					this.isConnecting.set(id, false);
+					reject(new Error("WebSocket connection timeout"));
+				}, 3000);
 
-				const handleOpen = () => {
+				ws.addEventListener("open", () => {
 					clearTimeout(timeout);
 					this.isConnecting.set(id, false);
-					console.log(`WEBSOCKET CONNECTED! TabID: ${id}`);
-					this.setupWebSocketHandlers(id, ws);
+					console.log(`WEBSOCKET CONNECTED!`);
+					console.log(`-- TabID: ${id}`);
+					this.setupWebSocketHandlers(id, ws); // tous les listeners centralisés ici
 					resolve();
-				};
+				});
 
-				const handleError = (err: Event) => {
+				ws.addEventListener("error", (err) => {
 					clearTimeout(timeout);
 					this.isConnecting.set(id, false);
 					console.error(`Erreur WebSocket TabID ${id}:`, err);
-					ws.close();
 					reject(err);
-				};
-
-				const handleClose = () => {
-					console.log(`WebSocket fermé pour tab ${id}`);
-					this.sockets.delete(id);
-					this.handlers.delete(id);
-				};
-
-				ws.addEventListener("open", handleOpen);
-				ws.addEventListener("error", handleError);
-				ws.addEventListener("close", handleClose);
+				});
 
 				this.sockets.set(id, ws);
 			} catch (error) {
