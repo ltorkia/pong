@@ -60,10 +60,10 @@ export class Player {
     public alias?: string;
 
     move() {
-        if (this.inputUp == true && this.pos.y + (this.height / 2) + 0.02 < 1)
-            this.pos.y += 0.02;
-        else if (this.inputDown == true && this.pos.y - (this.height / 2) - 0.02 > -1)
-            this.pos.y -= 0.02;
+        if (this.inputUp == true && this.pos.y + (this.height / 2) + 0.025 < 1) 
+            this.pos.y += 0.025;
+        else if (this.inputDown == true && this.pos.y - (this.height / 2) - 0.025 > -1)
+            this.pos.y -= 0.025;
     }
 
     constructor(ID: number, alias?: string) {

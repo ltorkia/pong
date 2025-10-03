@@ -41,8 +41,8 @@
 		"greeting": "Salut",
 		"underTitle": "Prêt·e à jouer dans nos contrées magiques ?",
 		"rulesBtn": "Règles",
-		"localGameBtn": "partie 1v1 locale",
-		"distantGameBtn": "partie 1v1 en ligne",
+		"localGameBtn": "partie 1 contre 1 locale",
+		"distantGameBtn": "partie 1 contre 1 en ligne",
 		"localTournamentBtn": "Tournoi local",
 		"onlineTournamentBtn": "Tournois en ligne"
 
@@ -184,7 +184,7 @@
 		"controlLabel": "COMMANDES",
 		"networkError": "Erreur réseau. Veuillez réessayer plus tard.",
 		"ready": "PRÊT ? APPUYEZ SUR ESPACE POUR COMMENCER",
-        "tournamentGameTitle": "Partie 1v1 Tournoi",
+        "tournamentGameTitle": "Partie 1 contre 1 Tournoi",
 		"waitingText1": "En attente de ",
 		"waitingText2": " pour commencer...",
 		"waitingTextPlayer": "l'autre joueur",
@@ -217,7 +217,7 @@
 		"cancelNo": "C'était une erreur !",
 		"cancelYes": "Oui, s'il vous plaît.",
 		"canceled": "Ce tournoi a été annulé par son propriétaire !",
-		"backToLobby": "Page d'accueil",
+		"backToLobby": "Accueil",
 		"players": "Joueurs : ",
         "navigateBtn": "Retour au tournoi",
 		"status": "Statut : ",

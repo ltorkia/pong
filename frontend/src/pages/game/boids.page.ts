@@ -3,9 +3,9 @@ import { RouteConfig } from '../../types/routes.types';
 
 const lerp = (a: number, b: number, t: number) => {
     return (a * (1 - t) + b * t);
-}
+};
 
-class Triangle {
+export class Triangle {
     public x: number;
     public y: number;
     public R: number;
@@ -22,17 +22,17 @@ class Triangle {
     public desiredAngle: number = 0;
     private ctx: CanvasRenderingContext2D;
 
-    constructor(xArg: number, yArg: number, RArg: number, ctx: CanvasRenderingContext2D) {
-        this.x = xArg;
-        this.y = yArg;
-        this.R = RArg;
+    constructor(x: number, y: number, canvas: HTMLCanvasElement, canvasCtx: CanvasRenderingContext2D) {
+        this.x = x;
+        this.y = y;
+        this.R = (10 * .5) / Math.cos(Math.PI / 6);
         this.v1 = { x: 0, y: 0 };
         this.v2 = { x: 0, y: 0 };
         this.v3 = { x: 0, y: 0 };
         this.center = { x: 0, y: 0 };
         this.target = { x: 0, y: 0 };
         this.setVertices();
-        this.ctx = ctx;
+        this.ctx = canvasCtx;
     }
 
     public setVertices() {
@@ -53,7 +53,8 @@ class Triangle {
         this.center.y = (this.v1.y + this.v2.y + this.v3.y) / 3;
     }
 
-    public draw() {
+    public draw(color: string) {
+        this.ctx.strokeStyle = color;
         this.ctx.beginPath();
         this.ctx.moveTo(this.v1.x, this.v1.y);
         this.ctx.lineTo(this.v2.x, this.v2.y);
@@ -61,8 +62,6 @@ class Triangle {
         this.ctx.lineTo(this.v1.x, this.v1.y);
         this.ctx.closePath();
         this.ctx.stroke();
-        this.ctx.fillStyle = "rgb(0, 255, 0)";
-        this.ctx.fillRect(this.center.x, this.center.y, 1, 1);
     };
 
     public rotateToTarget() {
@@ -77,8 +76,8 @@ class Triangle {
     public moveToTarget() {
         const xDir = Math.cos(this.angle);
         const yDir = Math.sin(this.angle);
-        const dx = xDir * 2;
-        const dy = yDir * 2;
+        const dx = xDir * 1.5;
+        const dy = yDir * 1.5;
         this.x += dx;
         this.y += dy;
     }
@@ -89,7 +88,7 @@ class Triangle {
             const dx = triangle.x - this.x;
             const dy = triangle.y - this.y;
             const dist = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
-            if (dist < this.R * 1.5)
+            if (dist < this.R * 2.5)
                 this.neighbours.push(triangle);
         }
     }
@@ -110,7 +109,7 @@ class Triangle {
         const repelAngle = Math.atan2(meanVec.y, meanVec.x);
         const targetVec = { x: Math.cos(this.desiredAngle), y: Math.sin(this.desiredAngle) };
         const repelVec = { x: Math.cos(repelAngle), y: Math.sin(repelAngle) };
-        const blendVec = { x: lerp(targetVec.x, repelVec.x, 0.8), y: lerp(targetVec.y, repelVec.y, 0.8) };
+        const blendVec = { x: lerp(targetVec.x, repelVec.x, 0.9), y: lerp(targetVec.y, repelVec.y, 0.9) };
         this.targetAngle = Math.atan2(blendVec.y, blendVec.x);
         this.neighbours = [];
     }
@@ -130,6 +129,8 @@ class Triangle {
             this.moveToTarget();
         this.setVertices();
         this.setCenter();
+        // console.log(this.angle);
+        // console.log(this.x, this.y);
     }
 }
 
@@ -158,18 +159,9 @@ export class BoidsPage extends BasePage {
         this.ctx.globalCompositeOperation = 'source-over';
     };
 
-    initSizes = () => {
-        // the width of the canvas
-        this.cw = this.gameCanvas.width;
-        this.cx = this.cw / 1.5;
-        //the height of the canvas
-        this.ch = this.gameCanvas.height;
-        this.cy = this.ch / 1.5;
-    }
-
     initTriangles = () => {
         for (let i = 0; i < 1000; i++) {
-            const triangle = new Triangle(this.cx, this.cy, this.R, this.ctx);
+            const triangle = new Triangle(this.gameCanvas, this.ctx);
             this.triangles.push(triangle);
             this.cx -= 5;
             this.cy -= 5;
@@ -183,8 +175,7 @@ export class BoidsPage extends BasePage {
         this.clearFillStyle = 0.05;
         this.ctx.strokeStyle = "red";
         for (const triangle of this.triangles) {
-            this.ctx.fillStyle = "rgb(255, 0, 0)";
-            triangle.draw();
+            triangle.draw("rgb(255, 0, 0)");
             triangle.update();
         }
         requestAnimationFrame(this.launchAnim);
@@ -195,7 +186,6 @@ export class BoidsPage extends BasePage {
         this.gameCanvas.height = canvasContainer.getBoundingClientRect().height;    // will need to update that every frame later (responsiveness)
         this.gameCanvas.width = canvasContainer.getBoundingClientRect().width;
         canvasContainer.append(this.gameCanvas);
-        this.initSizes();
         this.initTriangles();
         requestAnimationFrame(this.launchAnim);
     }
@@ -203,8 +193,8 @@ export class BoidsPage extends BasePage {
     protected attachListeners(): void {
         document.addEventListener("click", (event) => {
             for (const triangle of this.triangles) {
-                triangle.draw();
-                triangle.update();
+                // triangle.draw();
+                // triangle.update();
                 triangle.target.x = event.x;
                 triangle.target.y = event.y;
             }
