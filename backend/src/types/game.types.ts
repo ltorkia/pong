@@ -205,8 +205,10 @@ export class Game extends EventEmitter {
             await cancelledGame(this.gameID, winner.ID, looser.ID, this.score);
 
         // Cleanup des websockets
-        for (const player of this.players)
-            detachPlayerWS(player);
+        for (const player of this.players) {
+            player.webSocket = undefined;
+            // detachPlayerWS(player);
+        }
 
         this.emit("finished", this); // envoie un event "finished" qui est capte par une classe parent (TournamentLocal)
     }
