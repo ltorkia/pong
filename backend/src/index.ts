@@ -13,7 +13,6 @@ import { initDb } from './db/index.db';
 import { apiRoutes } from './routes/api.routes';
 import { Lobby } from './types/game.types';
 import { UserWS } from './types/user.types';
-import { Player } from './shared/types/game.types';
 
 // Ajout du lobby multiplayer a l'interface Fastify
 declare module 'fastify' {
@@ -29,15 +28,6 @@ async function start() {
 
     // Instanciation de Fastify
     const app = Fastify({
-        // logger: {
-        //     transport: {
-        //         target: 'pino-pretty',
-        //         options: {
-        //             translateTime: 'SYS:standard',
-        //             ignore: 'pid,hostname',
-        //         }
-        //     },
-        // },
         ignoreTrailingSlash: true,		// ignore les / à la fin des urls
         bodyLimit: 10 * 1024 * 1024,	// 10 Mo pour toutes les requêtes
         connectionTimeout: 120000,		// 2 minutes
@@ -92,7 +82,7 @@ async function start() {
     // Initialisation du lobby multiplayer et ajout a l'app
     app.decorate('lobby', new Lobby());
 
-    // Websockets et players accessible au niveau global
+    // Websockets accessibles au niveau global
     const usersWS = new Map<number, UserWS[]>();
     app.decorate('usersWS', usersWS);
 

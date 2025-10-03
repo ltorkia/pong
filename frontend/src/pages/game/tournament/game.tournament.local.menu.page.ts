@@ -8,7 +8,7 @@ import { AuthResponse } from '../../../shared/types/response.types';
 import { UserModel } from '../../../shared/types/user.types';
 import { ROUTE_PATHS } from '../../../config/routes.config';
 import { animateCSS } from '../../../utils/animate.utils';
-import { translateService } from '../../../services/index.service';
+import { translateService, webSocketService } from '../../../services/index.service';
 
 const MAX_PLAYERS = 4;
 
@@ -200,7 +200,7 @@ export class GameMenuTournamentLocal extends BasePage {
     private startTournamentHandler = async () => {
         if (this.players.length != MAX_PLAYERS)
             return (this.printError("missingPlayer"));
-        const newTournament = new TournamentLocal(MAX_PLAYERS, undefined, this.currentUser!.id, this.players);
+        const newTournament = new TournamentLocal(MAX_PLAYERS, undefined, this.currentUser!.id, this.players, webSocketService.tabID!);
         try {
             const tournamentID = await TournamentService.postNewLocalTournament(newTournament);
             sessionStorage.setItem("tournamentID", `${tournamentID}`);

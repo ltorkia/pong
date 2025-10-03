@@ -188,6 +188,7 @@ export class TournamentAPI {
                 tournamentJSON.winner ?? undefined,
                 tournamentJSON.masterPlayerID,
                 tournamentJSON.players,
+                tournamentJSON.tabID,
                 tournamentJSON?.stageOne,
                 tournamentJSON?.stageTwo,
             );

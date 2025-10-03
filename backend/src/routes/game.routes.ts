@@ -339,17 +339,3 @@ const startTournamentGame = async (app: FastifyInstance, gameID: number, hostID:
 
     game.initGame();
 }
-
-function createMovementHandler(game: Game, mode: string) {
-    return function handler(event: any) {
-        if (!event.data || typeof event.data !== "string") {
-            console.warn("WS received undefined data");
-            return;
-        }
-        const msg: any = JSON.parse(event.data);
-        if (msg.type === "movement") {
-            if (mode === "multi") game.registerInput(msg.playerID, msg.key, msg.status);
-            if (mode === "local") game.registerInputLocal(msg.playerID, msg.key, msg.status);
-        }
-    };
-}
