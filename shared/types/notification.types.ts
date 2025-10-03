@@ -8,6 +8,7 @@ export interface NotificationModel {
 	content?: string | null;
 	createdAt: string | null;
 	read: number;
+	inviterTabID?: string;
 };
 
 export type FriendRequestAction =

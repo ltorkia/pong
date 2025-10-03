@@ -35,7 +35,7 @@ export async function gameRoutes(app: FastifyInstance) {
             return reply.status(403).send({ errorMessage: 'Forbidden' });
 
         if (reqType === "matchmaking_request") {
-            const newPlayer = initPlayer(allPlayers, playerID, matchMakingReq.data.tabID);
+            const newPlayer = initPlayer(allPlayers, playerID, matchMakingReq.data.tabID!);
             if (!newPlayer)
                 return reply.code(404).send({ error: "Player not found" });
             newPlayer.matchMaking = true;
@@ -51,7 +51,7 @@ export async function gameRoutes(app: FastifyInstance) {
         }
         else if (reqType === "local") {
             let players = initPlayers(allPlayers, playerID, generateUniqueID(Array.from(allPlayers.keys())));
-            if (!players || !players[0] || !players[1])
+            if (!players || !players[0] || !players[1] || !matchMakingReq.data.tabID)
                 return reply.code(404).send({ errorMessage: "Players not found" });
             players = initPlayers(allPlayers, players[0].ID, players[1].ID, matchMakingReq.data.tabID);
             startGame(app, [players[0], players[1]], "local");
@@ -68,7 +68,7 @@ export async function gameRoutes(app: FastifyInstance) {
         else if (reqType === FRIEND_REQUEST_ACTIONS.INVITE) {
             const inviterID = playerID;
             const invitedID = matchMakingReq.data.invitedID;
-            if (!invitedID || inviterID != matchMakingReq.data.inviterID)
+            if (!invitedID || inviterID != matchMakingReq.data.inviterID || !matchMakingReq.data.tabID)
                 return reply.code(400).send({ errorMessage: "Invalid invite request" });
             let players = initPlayers(allPlayers, inviterID, invitedID);
             if (!players || !players[0] || !players[1])
@@ -79,14 +79,17 @@ export async function gameRoutes(app: FastifyInstance) {
         else if (reqType === FRIEND_REQUEST_ACTIONS.INVITE_ACCEPT) {
             const invitedID = playerID;
             const inviterID = matchMakingReq.data.inviterID;
-            if (!inviterID || invitedID != matchMakingReq.data.invitedID)
+            if (!inviterID || invitedID != matchMakingReq.data.invitedID || !matchMakingReq.data.tabID || !matchMakingReq.data.inviterTabID)
                 return reply.code(400).send({ errorMessage: "Invalid invite request" });
             const invited = allPlayers.get(invitedID);
             const inviter = allPlayers.get(inviterID);
             if (!invited || !inviter)
                 return reply.code(409).send({ errorMessage: "Players not found" });
+            const inviterPlayer = inviter.find(p => p.tabID === matchMakingReq.data.inviterTabID);
+            if (!inviterPlayer)
+                return reply.code(409).send({ errorMessage: "Inviter player not found" });
             const invitedPlayer = initPlayer(allPlayers, invitedID, matchMakingReq.data.tabID);
-            startGame(app, [inviter[0], invitedPlayer], "multi");
+            startGame(app, [inviterPlayer, invitedPlayer], "multi");
             reply.code(200).send({ message: "Game started!" });
         }
         else if (reqType === "clean_request") {
@@ -96,9 +99,8 @@ export async function gameRoutes(app: FastifyInstance) {
             const players = allPlayers.get(playerID);
             if (players && matchMakingReq.data.tabID) {
                 const player = players.find(p => p.tabID === matchMakingReq.data.tabID);
-                if (player) {
+                if (player)
                     player.matchMaking = false;
-                }
             }
             reply.code(200).send({ message: "Game cleaned up" });
         }
@@ -116,11 +118,9 @@ async function findAvailableOpponent(newPlayer: Player, allPlayers: Map<number, 
         for (const candidate of playerArray) {
             if (!candidate.matchMaking || candidate.ID === newPlayer.ID)
                 continue;
-
             const relation = await getRelation(newPlayer.ID, candidate.ID);
             if (relation?.friendStatus === "blocked")
                 continue;
-
             return candidate;
         }
     }
@@ -146,7 +146,6 @@ export function initPlayer(allPlayers: Map<number, Player[]>, playerID: number, 
         players.push(player);
         allPlayers.set(playerID, players);
     } else {
-        console.log(`----------------------------------- Player with ID=${playerID} and tabID=${tabID} already exists. Reusing existing player.`);
         if (tabID) player.tabID = tabID;
         if (alias) player.alias = alias;
     }
@@ -167,8 +166,6 @@ async function cleanGame(app: FastifyInstance, gameID?: number) {
     if (game) {
         if (!game.isOver)
             await game.endGame();
-        // if (game.players[0]) 
-        //     detachPlayerWS(game.players[0]);
         const idx = allGames.indexOf(game);
         if (idx !== -1)
             allGames.splice(idx, 1);
@@ -262,15 +259,16 @@ const startGame = async (app: FastifyInstance, players: Player[], mode: string, 
             } catch (err) {
                 console.warn("Could not send start_game to user:", err);
             }
-            // const handler = createMovementHandler(newGame, mode);
-            // attachPlayerWS(player, user.WS, handler);
             user.WS.onmessage = (event: MessageEvent) => {
                 const msg: any = JSON.parse(event.data);
                 if (msg.type === "movement") {
-                    if (mode === "multi") newGame.registerInput(msg.playerID, msg.key, msg.status);
-                    if (mode === "local") newGame.registerInputLocal(msg.playerID, msg.key, msg.status);
+                    if (mode === "multi") 
+                        newGame.registerInput(msg.playerID, msg.key, msg.status);
+                    if (mode === "local") 
+                        newGame.registerInputLocal(msg.playerID, msg.key, msg.status);
                 }
             };
+            player.webSocket = user.WS;
         }
     }
     await decount(app, players, gameID);
@@ -326,15 +324,12 @@ const startTournamentGame = async (app: FastifyInstance, gameID: number, hostID:
         console.error("Erreur WebSocket.send() :", err);
     }
 
-    // const handler = createMovementHandlerTournament(game);
-    // hostWS.addEventListener("message", handler);
     hostWS.onmessage = (event: MessageEvent) => {
         const msg: any = JSON.parse(event.data);
-        if (msg.type === "movement") {
+        if (msg.type === "movement")
             game.registerInputLocalTournament(msg.key, msg.status);
-        }
     };
-    // attachPlayerWS(game.players[0], hostWS, handler);
+    game.players[0].webSocket = hostWS;
     await decountWS(hostWS, gameID);
 
     // Vérifier si le jeu ou le tournoi a été supprimé par une clean_request pendant le décompte
@@ -357,77 +352,4 @@ function createMovementHandler(game: Game, mode: string) {
             if (mode === "local") game.registerInputLocal(msg.playerID, msg.key, msg.status);
         }
     };
-}
-
-// function createMovementHandler(game: Game, mode: string) {
-//     return function handler(message: string | Buffer) {
-//         if (!message) {
-//             console.warn("WS received undefined message");
-//             return;
-//         }
-
-//         // Convertir le message en string si c'est un Buffer
-//         let dataStr: string;
-//         if (typeof message === "string") {
-//             dataStr = message;
-//         } else if (Buffer.isBuffer(message)) {
-//             dataStr = message.toString("utf-8");
-//         } else {
-//             console.warn("WS received unexpected data type:", typeof message);
-//             return;
-//         }
-
-//         let msg: any;
-//         try {
-//             msg = JSON.parse(dataStr);
-//         } catch (err) {
-//             console.error("WS invalid JSON:", dataStr);
-//             return;
-//         }
-
-//         if (msg.type === "movement") {
-//             if (mode === "multi") game.registerInput(msg.playerID, msg.key, msg.status);
-//             if (mode === "local") game.registerInputLocal(msg.playerID, msg.key, msg.status);
-//         }
-//     };
-// }
-
-function createMovementHandlerTournament(game: Game) {
-    return function handler(event: MessageEvent) {
-        if (!event.data || typeof event.data !== "string") {
-            console.warn("WS received undefined data");
-            return;
-        }
-        const msg: any = JSON.parse(event.data);
-        if (msg.type === "movement") {
-            game.registerInputLocalTournament(msg.key, msg.status);
-        }
-    };
-}
-
-function attachPlayerWS(player: Player, ws: WebSocket, handler: (data: any) => void) {
-    // si une ancienne ws + handler existait, on la détache proprement
-    if (player.webSocket && player.wsHandler) {
-        // remove previous listener
-        (player.webSocket as any).off?.('message', player.wsHandler);
-        (player.webSocket as any).removeListener?.('message', player.wsHandler);
-    }
-
-    // attacher le nouveau handler sur la ws fournie
-    (ws as any).on?.('message', handler);
-
-    // stocker la ws et le handler sur le player
-    player.webSocket = ws;
-    player.wsHandler = handler;
-}
-
-export function detachPlayerWS(player: Player) {
-    if (!player.webSocket || !player.wsHandler) 
-        return;
-
-    (player.webSocket as any).off?.('message', player.wsHandler);
-    (player.webSocket as any).removeListener?.('message', player.wsHandler);
-
-    player.wsHandler = undefined;
-    player.webSocket = undefined;
 }

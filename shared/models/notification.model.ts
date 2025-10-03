@@ -14,7 +14,8 @@ export class AppNotification {
 		public type: NotificationType,
 		public content: string | null,
 		public createdAt: string | null,
-		public read: number
+		public read: number,
+		public inviterTabID: string
 	) {}
 
 	// ============================================================================
@@ -29,7 +30,8 @@ export class AppNotification {
 			type: this.type,
 			content: this.content,
 			createdAt: this.createdAt,
-			read: this.read
+			read: this.read,
+			inviterTabID: this.inviterTabID
 		};
 	}
 
@@ -50,7 +52,8 @@ export class AppNotification {
 			data.type ?? USER_ONLINE_STATUS.OFFLINE,
 			data.content ?? '',
 			data.createdAt ?? '',
-			data.read ?? 0
+			data.read ?? 0,
+			data.inviterTabID ?? ''
 		);
 	}
 

@@ -38,6 +38,7 @@ export abstract class GamePage extends BasePage {
 	protected relation?: Friend | { errorMessage: string; };
 	protected isInvitationGame: boolean = false;
 	protected replayInvite: boolean = false;
+	public inviterTabID?: string;
 	protected inviteToClean: boolean = true;
 
 	constructor(config: RouteConfig) {
@@ -273,6 +274,7 @@ export abstract class GamePage extends BasePage {
 				console.error("Invite settings not found");
 				return false;
 		}
+		this.inviterTabID = notifService.inviterTabIDs.get(this.relation.id);
 		this.isInvitationGame = true;
 		return true;
 	}
@@ -367,7 +369,8 @@ export abstract class GamePage extends BasePage {
 			inviterID: inviterID,
 			gameID: this.gameID,
 			inviteToClean: inviteToClean,
-			tabID: webSocketService.tabID
+			tabID: webSocketService.tabID,
+			inviterTabID: this.inviterTabID,
 		}
 
 		try {
@@ -667,7 +670,9 @@ export abstract class GamePage extends BasePage {
 				invitedID: invitedID,
 				inviterID: inviterID,
 				gameID: this.gameID,
-				inviteToClean: this.inviteToClean
+				inviteToClean: this.inviteToClean,
+				tabID: webSocketService.tabID,
+				inviterTabID: this.inviterTabID,
 			})], { type: 'application/json' });
 			navigator.sendBeacon("/api/game/playgame", matchMakingReq);
 		}

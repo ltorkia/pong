@@ -80,5 +80,6 @@ export const MatchMakingReqSchema = z.object({
     inviterID: z.number().optional(),
     gameID: z.number().optional(),
     inviteToClean: z.boolean().optional(),
-    tabID: z.string().optional()
+    tabID: z.string().optional(),
+    inviterTabID: z.string().optional()
 });

@@ -88,6 +88,7 @@ export interface RouteParams {
  * - handleGameMessage: fonction pour traiter un message de jeu via WebSocket
  * - handleTournamentMessage: fonction pour traiter un message de tournoi via WebSocket
  * - challengedFriendID: ID de l'ami qui a invité l'utilisateur courant à jouer
+ * - inviterTabID: ID de l'onglet de l'inviteur (pour gérer les invitations multi-onglets)
  * - changeReplayButtonForInvite: fonction pour mettre à jour le bouton de replay si un joueur est réinvité à jouer
  * - setCleanInvite: fonction pour mettre à jour le statut de nettoyage de l'invitation
  * - checkInviteReplayRequest: fonction pour gérer les invite request pour relancer le jeu (invite replay)
@@ -103,6 +104,7 @@ export interface PageInstance {
 	handleGameMessage?: (data: any) => Promise<void>;
 	handleTournamentMessage?: (data: any) => Promise<void>;
 	challengedFriendID?: number;
+	inviterTabID?: string;
 	changeReplayButtonForInvite?(): void;
 	setCleanInvite?(cleanInvite: boolean): void;
 	checkInviteReplayRequest?: () => Promise<boolean>;

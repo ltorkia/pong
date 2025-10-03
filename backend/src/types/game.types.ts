@@ -2,7 +2,6 @@ import { EventEmitter } from "node:stream";
 import { resultGame, addGame, addGamePlayers, cancelledGame, registerUserTournament, createTournament } from "../db/game";
 import { GameData, Player } from "../shared/types/game.types"
 import { JwtPayload } from "./user.types";
-import { detachPlayerWS } from "../routes/game.routes";
 
 const DEG_TO_RAD = Math.PI / 180;
 
@@ -207,7 +206,6 @@ export class Game extends EventEmitter {
         // Cleanup des websockets
         for (const player of this.players) {
             player.webSocket = undefined;
-            // detachPlayerWS(player);
         }
 
         this.emit("finished", this); // envoie un event "finished" qui est capte par une classe parent (TournamentLocal)
@@ -294,11 +292,6 @@ export class TournamentLocal {
     }
 
     public async startTournament(): Promise<void> {
-        // ! Tournoi déjà créé au moment de générer son ID dans la route new_tournament_local
-        // const tournamentID = await createTournament(this.maxPlayers, this.maxPlayers / 2);
-        // if (tournamentID === undefined)
-        //     return; //TODO : put some error
-        // else this.ID = tournamentID;
 
         for (const player of this.players)
             await registerUserTournament(player.ID, this.ID);

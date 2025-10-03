@@ -53,7 +53,8 @@ export type MatchMakingReq = {
     inviterID?: number,
     gameID?: number,
     inviteToClean?: boolean,
-    tabID?: string
+    tabID?: string,
+    inviterTabID?: string
 };
 
 export type decountgame = {
