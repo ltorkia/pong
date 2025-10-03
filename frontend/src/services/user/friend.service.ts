@@ -370,7 +370,7 @@ export class FriendService {
 		const friendId = this.getFriendId(target);
 		const currentUser = currentService.getCurrentUser();
 		const relation = await friendApi.getRelation(currentUser!.id, friendId!);
-		if (!relation || !relation.isOnline() || "errorMessage" in relation) {
+		if (!relation || "errorMessage" in relation || !relation.isOnline) {
 			console.error("errorMessage" in relation ? relation.errorMessage : "Invitation invalide.");
 			return;
 		}
