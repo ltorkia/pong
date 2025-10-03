@@ -59,10 +59,11 @@ CREATE TABLE IF NOT EXISTS Game (
 	n_participants INTEGER NOT NULL DEFAULT 2,
 	begin DATETIME DEFAULT CURRENT_TIMESTAMP,
 	end DATETIME,
-	tournament INTEGER DEFAULT 0 CHECK (tournament IN (0, 1)),
+	tournament INTEGER DEFAULT 0,
 	status TEXT DEFAULT 'waiting' CHECK (status IN ('waiting', 'in_progress', 'cancelled', 'finished')),
 	looser_result INTEGER DEFAULT 0,
 	winner_id INTEGER,
+	type TEXT DEFAULT 'local' CHECK (type IN ('local', 'online')),
 	FOREIGN KEY (winner_id) REFERENCES User(id)
 );
 
@@ -101,14 +102,6 @@ CREATE TABLE IF NOT EXISTS User_Tournament (
     registered_at DATETIME DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (tournament_id) REFERENCES Tournament(id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES User(id)
-);
-
-CREATE TABLE IF NOT EXISTS Tournament_Game (
-	id INTEGER PRIMARY KEY AUTOINCREMENT,
-	tournament_id INTEGER NOT NULL,
-	game_id INTEGER NOT NULL,
-	FOREIGN KEY (tournament_id) REFERENCES Tournament(id) ON DELETE CASCADE,
-	FOREIGN KEY (game_id) REFERENCES Game(id)
 );
 
 -- Chat -> pour gerer les messages echanges

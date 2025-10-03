@@ -35,6 +35,7 @@ export const TournamentLocalSchema = z.object({
     })),
     masterPlayerID: z.number(),
     maxPlayers: z.number().min(4).max(4),
+    tabID: z.string()
 });
 
 export const TournamentReqSchema = z.object({
@@ -78,5 +79,7 @@ export const MatchMakingReqSchema = z.object({
     invitedID: z.number().optional(),
     inviterID: z.number().optional(),
     gameID: z.number().optional(),
-    inviteToClean: z.boolean().optional()
+    inviteToClean: z.boolean().optional(),
+    tabID: z.string().optional(),
+    inviterTabID: z.string().optional()
 });

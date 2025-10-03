@@ -11,6 +11,8 @@ const clamp = (val: number, min: number, max: number) => { return Math.min(Math.
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
+const randomNb = (min: number, max: number) => { return (Math.random() * (max - min) + min) };
+
 const shuffleArray = (array: any[]) => {
     for (let i = array.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -23,67 +25,156 @@ const shuffleArray = (array: any[]) => {
 export class Ball {
     public x: number;
     public y: number;
-    public vAngle: number;
-    public vSpeed: number;
+    public dirX: number;
+    public dirY: number;
+    public vx: number;
+    public vy: number;
+    private initSpeed: number;
+    public speed: number;
     public radius: number;
 
-    move() {
-        this.x += Math.cos(this.vAngle * DEG_TO_RAD) * this.vSpeed;
-        this.y += Math.sin(this.vAngle * DEG_TO_RAD) * this.vSpeed;
-    };
-    verticalCollision() {
-        this.vAngle = (360 - this.vAngle) % 360;
-    }
-    horizontalCollision(players: Player[]) {
-        if ((this.isGoingLeft() && this.y < players[0].pos.y / 2 && players[0].inputDown) ||
-            (this.isGoingRight() && this.y < players[1].pos.y / 2 && players[1].inputDown) ||
-            (this.isGoingLeft() && this.y > players[0].pos.y / 2 && players[0].inputUp) ||
-            (this.isGoingRight() && this.y > players[1].pos.y / 2 && players[1].inputUp))
-            this.vAngle = (180 + this.vAngle + 360) % 360;
-        else
-            this.vAngle = (180 - this.vAngle + 360) % 360;
-
-    }
-    isGoingRight() {
-        return ((this.vAngle >= 0 && this.vAngle < 90) || (this.vAngle >= 270 && this.vAngle <= 360));
-    };
-    isGoingLeft() {
-        return (this.vAngle >= 90 && this.vAngle < 270);
-    };
-    isGoingUp() {
-        return (this.vAngle >= 180 && this.vAngle < 360);
-    }
-    isGoingDown() {
-        return (this.vAngle >= 0 && this.vAngle < 180);
-    }
-    reset() {
+    constructor() {
         this.x = 0;
         this.y = 0;
-        this.vAngle = 60;
-        this.vSpeed = 0.02;
+        this.dirX = 0;
+        this.dirY = 0;
+        this.vx = 0;
+        this.vy = 0;
+        this.initSpeed = 0.015;
+        this.speed = 0;
         this.radius = 0.03;
+        this.reset();
     }
+
+    move() {
+        this.x += this.vx;
+        this.y += this.vy;
+    }
+
+    verticalCollision() {
+        this.vy = -this.vy;
+    }
+
+    horizontalCollision(players: Player[]) {
+        const player = this.vx < 0 ? players[0] : players[1];
+
+        if (this.vx < 0) {
+            this.x = player.pos.x + player.width / 2 + this.radius;
+        } else {
+            this.x = player.pos.x - player.width / 2 - this.radius;
+        }
+
+        // Si la balle va vers le joueur et que le joueur se deplace
+        const ballAboveCenter = this.y < player.pos.y;
+        const playerMovingDown = player.inputDown;
+        const playerMovingUp = player.inputUp;
+        const playerThird = player.height / 3;
+        const playerBegin = player.pos.y - player.height / 2;
+
+        // Distance of ball from top of paddle
+        const relativeY = this.y - playerBegin;
+
+        if (relativeY < playerThird) {
+            this.dirY -= 0.3;
+            this.speed += 0.01;
+        } else if (relativeY > playerThird * 2) {
+            this.dirY += 0.3;
+            this.speed += 0.005;
+        } else {
+            if (!(this.speed - 0.005 < this.initSpeed))
+                this.speed -= 0.005;
+        }
+
+        if (this.vx < 0) {
+            this.x = player.pos.x + player.width / 2 + this.radius;
+        } else {
+            this.x = player.pos.x - player.width / 2 - this.radius;
+        }
+
+        // Inverse la direction si le joueur se déplace dans la même direction que la balle
+        if ((ballAboveCenter && playerMovingDown) || (!ballAboveCenter && playerMovingUp)) {
+            console.log("ball inverted");
+            this.dirX = -this.dirX;
+            this.dirY = -this.dirY;
+            this.speed += 0.001;
+        } else // Rebond normal
+            this.dirX = -this.dirX;
+
+        this.setDirectionVector();
+    }
+
+    isGoingRight() {
+        return this.vx > 0;
+    }
+
+    isGoingLeft() {
+        return this.vx < 0;
+    }
+
+    isGoingUp() {
+        return this.vy < 0;
+    }
+
+    isGoingDown() {
+        return this.vy > 0;
+    }
+
+
+    setDirectionVector() {
+        // Normaliser le vecteur de direction
+        const magnitude = Math.sqrt(this.dirX * this.dirX + this.dirY * this.dirY);
+        if (magnitude > 0) {
+            this.vx = (this.dirX / magnitude) * this.speed;
+            this.vy = (this.dirY / magnitude) * this.speed;
+        }
+    }
+
+    // Méthode utilitaire pour définir la direction avec un angle
+    setDirection(angleDegrees: number, speed: number) {
+        const angleRad = angleDegrees * DEG_TO_RAD;
+        this.speed = speed;
+        this.vx = Math.cos(angleRad) * speed;
+        this.vy = Math.sin(angleRad) * speed;
+    }
+
+    // Méthode utilitaire pour obtenir l'angle actuel
+    getAngle(): number {
+        return Math.atan2(this.vy, this.vx) / DEG_TO_RAD;
+    }
+
+    reset(lastGoal?: boolean[]) {
+        this.x = 0;
+        this.y = 0;
+        this.speed = this.initSpeed;
+
+        if (lastGoal && lastGoal[0]) {
+            this.dirX = -1;
+            this.dirY = randomNb(-0.3, 0.3);
+            this.setDirectionVector();
+        } else {
+            this.dirX = 1;
+            this.dirY = randomNb(-0.3, 0.3);
+            this.setDirectionVector();
+        }
+    }
+
     public checkPlayerCollision(players: Player[]): boolean {
         for (const player of players) {
             const playerBounds = {
                 xRange: { x0: player.pos.x - player.width / 2, x1: player.pos.x + player.width / 2 },
                 yRange: { y0: player.pos.y - player.height / 2, y1: player.pos.y + player.height / 2 }
-            }
+            };
+
             const xClamp = clamp(this.x, playerBounds.xRange.x0, playerBounds.xRange.x1);
             const yClamp = clamp(this.y, playerBounds.yRange.y0, playerBounds.yRange.y1);
-            if (Math.sqrt(Math.pow(this.x - xClamp, 2) + (Math.pow(this.y - yClamp, 2))) <= this.radius / 2)
-                return (true);
+
+            if (Math.sqrt(Math.pow(this.x - xClamp, 2) + Math.pow(this.y - yClamp, 2)) <= this.radius / 2) {
+                return true;
+            }
         }
-        return (false);
-    };
-    constructor() {
-        this.x = 0;
-        this.y = 0;
-        this.vAngle = 60;
-        this.vSpeed = 0.02;
-        this.radius = 0.03;
+        return false;
     }
-};
+}
 
 export class Game extends EventEmitter {
     public players: Player[] = [];
@@ -93,7 +184,7 @@ export class Game extends EventEmitter {
     public gameStarted: boolean = false;
     public isOver: boolean = false;
 
-    private score: number[] = [];
+    private score: number[] = [0, 0];
     public gameID: number = 0;
     public tournamentID?: number;
 
@@ -105,35 +196,64 @@ export class Game extends EventEmitter {
         this.tournamentID = tournamentID;
     }
 
-    private async gameLoop(): Promise<void> {
+    // private async gameLoop(): Promise<void> {
+    //     const fps = 1000 / 60;
+    //     let then = Date.now();
+    //     const startTime = then;
+    //     let frame = 0;
+    //     while (this.gameStarted == true) {
+    //         this.ball.move();
+    //         for (const player of this.players)
+    //             player.move();
+    //         // if (this.ball.x < -0.5 || this.ball.y > 0.5) {
+    //         if (this.ball.checkPlayerCollision(this.players))
+    //             this.ball.horizontalCollision(this.players);
+    //         // }
+    //         // else if (collision && (this.ball.isGoingUp() || this.ball.isGoingDown()))
+    //         //     this.ball.verticalCollision();
+    //         if (this.ball.y + this.ball.radius / 2 <= -1 || this.ball.y + this.ball.radius / 2 >= 1)
+    //             this.ball.verticalCollision();
+    //         if (this.ball.x - this.ball.radius / 2 <= -1 || this.ball.x + this.ball.radius / 2 >= 1)
+    //             return (this.checkScore());
+    //         const now = Date.now();
+    //         if (now - then < fps) {
+    //             await sleep(fps - (now - then));
+    //         }
+    //         frame++;
+    //         this.sendGameUpdate();
+    //         then = Date.now();
+    //     }
+    //     console.log("----------------- GAME ENDED -----------------");
+    // };
+
+        private async gameLoop(): Promise<void> {
         const fps = 1000 / 60;
         let then = Date.now();
         const startTime = then;
         let frame = 0;
         while (this.gameStarted == true) {
-            this.ball.move();
-            for (const player of this.players) {
+            // this.ball.move();
+            for (const player of this.players)
                 player.move();
-                // console.log(player.pos.x, player.pos.y);
-            }
-            const collision: boolean = this.ball.checkPlayerCollision(this.players);
-            if (collision && (this.ball.isGoingRight() || this.ball.isGoingLeft())) {
-                this.ball.horizontalCollision(this.players);
-            }
-            else if (collision && (this.ball.isGoingUp() || this.ball.isGoingDown())) {
-                // console.log("VERTICAL");
-                this.ball.verticalCollision();
-            }
-            // console.log("x: ", this.ball.x, "y :", this.ball.y);
-            if (this.playersCount == 2 && (this.ball.y >= 1 || this.ball.y <= -1)) {
-                // console.log("angle ", this.ball.vAngle);
-                this.ball.verticalCollision();
-            }
-            if (this.ball.x + this.ball.radius / 2 <= -1 || this.ball.x + this.ball.radius / 2 >= 1)
+      
+            // if (this.ball.x < -0.5 || this.ball.y > 0.5) {
+            for (let i = 0; i < 10; i++) {
+                this.ball.x += this.ball.vx / 10;
+                this.ball.y += this.ball.vy / 10;
+
+                if (this.ball.checkPlayerCollision(this.players))
+                    this.ball.horizontalCollision(this.players);
+
+                if (this.ball.y + this.ball.radius / 2 <= -1 || this.ball.y + this.ball.radius / 2 >= 1)
+                    this.ball.verticalCollision();
+                if (this.ball.x - this.ball.radius / 2 <= -1 || this.ball.x + this.ball.radius / 2 >= 1)
                 return (this.checkScore());
+            }
+            // }
+            // else if (collision && (this.ball.isGoingUp() || this.ball.isGoingDown()))
+            //     this.ball.verticalCollision();
             const now = Date.now();
             if (now - then < fps) {
-                // console.log(`i did sleep at frame ${frame}`);
                 await sleep(fps - (now - then));
             }
             frame++;
@@ -149,99 +269,54 @@ export class Game extends EventEmitter {
             this.players[0].pos.y = this.players[1].pos.y = 0;
             this.players[1].pos.x = 1 - this.players[0].width / 2;
         }
+        for (const player of this.players) {
+            player.inputUp = false;
+            player.inputDown = false;
+        }
     };
 
     private checkScore(): void {
-        if (this.ball.x < 0)
-            this.score[0] += 1;
-        else if (this.ball.x > 0)
+        const lastGoal: boolean[] = [];
+        console.log("BALL X Y: ", this.ball.x, " ", this.ball.y);
+
+        if (this.ball.x < 0) {
             this.score[1] += 1;
+            lastGoal[1] = true;
+            console.log("PLAYER X Y: ", this.players[0].pos.x, this.players[0].pos.y);
+        }
+        else if (this.ball.x > 0) {
+            this.score[0] += 1;
+            lastGoal[0] = true;
+            console.log("PLAYER X : ", this.players[1].pos.x, this.players[0].pos.y);
+        }
         this.score.forEach(score => {
-            if (score == 3)
-                return(this.endGame()) ; //await non ? ->voir avec checkscore
+            if (score >= 3) //pq pas == ? 
+                return (this.endGame())
         });
-        this.initRound();
+        this.initRound(lastGoal);
     }
 
     public initGame(): void {
-        for (let i = 0; i < this.players.length; i++)
-            this.score.push(0);
         this.gameStarted = true;
         this.initSizePos();
         this.gameLoop();
     };
 
-    public initRound(): void {
-        this.ball.reset();
+    public initRound(lastGoal?: boolean[]): void {
+        this.ball.reset(lastGoal);
         this.initSizePos();
         this.gameLoop();
     }
-
-    // ! END GAME repensé pour jeu annulé -> le joueur declare forfait donc 3 - ? pour l'autre joueur
-    // ! WIP () - ancien code valide dispo ci-dessous
-    // public async endGame(cancellerID?: number): Promise<void> {
-    //     this.gameStarted = false;
-    //     this.isOver = true;
-
-    //     if (cancellerID) {
-    //         if (this.score[0] === 3 || this.score[1] === 3) {
-    //             console.log("Game already over, game cannot be cancelled.");
-    //             return;
-    //         }
-    //         const isCancellerPlayer0 = cancellerID === this.players[0].ID;
-    //         if (!this.score || this.score.length === 0)
-    //             this.score = isCancellerPlayer0 ? [0, 3] : [3, 0];
-    //         else if (this.score[0] !== 3 && this.score[1] !== 3)
-    //             this.score = isCancellerPlayer0 ? [this.score[0], 3] : [3, this.score[1]];
-    //     }
-
-    //     for (const player of this.players) {
-    //         // inversion du score si pas d’annulation et joueur[1]
-    //         const displayScore =
-    //             !cancellerID && player.ID === this.players[1].ID
-    //                 ? [this.score[1], this.score[0]]
-    //                 : this.score;
-
-    //         if (player.webSocket) {
-    //             player.webSocket.send(
-    //                 JSON.stringify({
-    //                     type: "end",
-    //                     score: displayScore,
-    //                     tournamentID: this.tournamentID || null,
-    //                 })
-    //             );
-    //         }
-    //     }
-
-    //     this.players[0].matchMaking = false;
-    //     this.players[1].matchMaking = false;
-
-    //     const winner = this.getWinner();
-    //     const looser = this.getLooser();
-    //     await resultGame(this.gameID, winner.ID, looser.ID, this.score);
-
-    //     for (const player of this.players)
-    //         player.webSocket = undefined;
-
-    //     this.emit("finished", this);
-    // }
 
     public async endGame(): Promise<void> {
         this.gameStarted = false;
         this.isOver = true;
 
         for (const player of this.players) {
-
-            if (!this.score || this.score.length === 0)
-                this.score = [0, 0];
-            else if (player === this.players[1])
-                this.score = [this.score[1], this.score[0]];
-
             if (player.webSocket) {
                 player.webSocket.send(JSON.stringify({
                     type: "end",
                     score: this.score,
-                    // players: JSON.stringify(this.players.map(p => ({ ID: p.ID, alias: p.alias }))),
                     tournamentID: this.tournamentID || null
                 }));
             }
@@ -261,8 +336,11 @@ export class Game extends EventEmitter {
         else
             await cancelledGame(this.gameID, winner.ID, looser.ID, this.score);
 
-        for (const player of this.players) // clean des websockets si besoin de renvoyer tournoi au front (crash si websocket a l'interieur de JSON)
+        // Cleanup des websockets
+        for (const player of this.players) {
             player.webSocket = undefined;
+        }
+
         this.emit("finished", this); // envoie un event "finished" qui est capte par une classe parent (TournamentLocal)
     }
 
@@ -315,7 +393,7 @@ export class Game extends EventEmitter {
     };
 
     public getWinner() { return this.score[0] == 3 ? this.players[0] : this.players[1] };
-    public getLooser() { return this.score[1] == 3 ? this.players[1] : this.players[0] };
+    public getLooser() { return this.score[1] != 3 ? this.players[1] : this.players[0] };
     public getIsOver() { return this.isOver };
     public getScore() { return this.score };
     public setGameStarted(started: boolean) { this.gameStarted = started };
@@ -347,10 +425,6 @@ export class TournamentLocal {
     }
 
     public async startTournament(): Promise<void> {
-        const tournamentID = await createTournament(this.maxPlayers, this.maxPlayers / 2);
-        if (tournamentID === undefined)
-            return; //TODO : put some error
-        else this.ID = tournamentID;
 
         for (const player of this.players)
             await registerUserTournament(player.ID, this.ID);
@@ -358,15 +432,15 @@ export class TournamentLocal {
         // this.players est melange pour avoir des matchs aleatoire
         shuffleArray(this.players);
 
-        const gameID1 = await addGame(true);
+        const gameID1 = await addGame(this.ID);
         await addGamePlayers(gameID1, this.players[0].ID, this.players[1].ID);
         this.stageOne[0] = new Game(gameID1, 2, [this.players[0], this.players[1]], this.ID);
 
-        const gameID2 = await addGame(true);
+        const gameID2 = await addGame(this.ID);
         await addGamePlayers(gameID2, this.players[2].ID, this.players[3].ID);
         this.stageOne[1] = new Game(gameID2, 2, [this.players[2], this.players[3]], this.ID);
 
-        const stageTwoID = await addGame(true)
+        const stageTwoID = await addGame(this.ID)
         this.stageTwo = new Game(stageTwoID, 2, []); // creee maintenant mais les joueurs sont ajoutes plus tard
 
         // Listeners pour etre notifie quand une game est finie
@@ -379,7 +453,7 @@ export class TournamentLocal {
     public async update(): Promise<void> {
         if (this.stageTwo.getIsOver()) {
             this.winner = this.getWinner(this.stageTwo);
-            return ;
+            return;
         }
         for (const game of this.stageOne) {
             if (game.getIsOver() && !game.players.some((p: Player) => this.stageTwo?.players.includes(p)))
@@ -430,7 +504,7 @@ export class Tournament {
         shuffleArray(this.players);
         let playerIdx = 0;
         for (let i = 0; i < 2; i++) {
-            const gameID = await addGame(true);
+            const gameID = await addGame(this.ID!);
             await addGamePlayers(gameID, this.players[playerIdx].ID, this.players[playerIdx + 1].ID);
             const newGame = new Game(gameID, 2, [this.players[playerIdx], this.players[playerIdx + 1]], this.ID);
             this.stageOneGames.push(newGame);
@@ -441,7 +515,7 @@ export class Tournament {
 
 export class Lobby {
     public currentUser: JwtPayload | null = null;
-    public allPlayers: Player[] = [];
+    public allPlayers: Map<number, Player[]> = new Map();
     public allGames: Game[] = [];
     public allTournaments: Tournament[] = [];
     public allTournamentsLocal: TournamentLocal[] = [];

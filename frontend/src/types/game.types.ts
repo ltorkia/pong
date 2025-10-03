@@ -33,13 +33,14 @@ export class TournamentLocal implements TournamentInterface {
     stageOne?: GameInterface[] | undefined;
     stageTwo?: GameInterface | undefined;
     winner: Player | undefined;
+    tabID?: string;
 
-    constructor(maxPlayers: number, winner: Player, masterPlayerID: number, players: Player[],
-        stageOne?: Game[], stageTwo?: Game[]
-    ) {
+    constructor(maxPlayers: number, winner: Player | undefined, masterPlayerID: number, players: Player[], tabID?: string,
+        stageOne?: Game[], stageTwo?: Game[]) {
         this.maxPlayers = maxPlayers;
         this.masterPlayerID = masterPlayerID;
         this.players = players;
+        this.tabID = tabID;
         this.stageOne = stageOne ?? undefined;
         this.stageTwo = stageTwo ?? undefined;
         this.winner = winner;

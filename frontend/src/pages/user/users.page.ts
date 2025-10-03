@@ -1,12 +1,10 @@
-import DOMPurify from "dompurify";
 import { BasePage } from '../base/base.page';
 import { User } from '../../shared/models/user.model';
 import { dataApi } from '../../api/index.api';
-import { dataService } from '../../services/index.service';
 import { SearchBarComponent } from '../../components/search-bar/search-bar.component';
 import { UserRowComponent } from '../../components/user-row/user-row.component';
 import { PaginationComponent } from '../../components/pagination/pagination.component';
-import { getHTMLElementById, getHTMLElementByClass } from '../../utils/dom.utils';
+import { getHTMLElementById } from '../../utils/dom.utils';
 import { RouteConfig } from '../../types/routes.types';
 import { COMPONENT_NAMES, HTML_COMPONENT_CONTAINERS } from '../../config/components.config';
 import { ComponentConfig, PaginationParams } from '../../types/components.types';
@@ -93,25 +91,6 @@ export class UsersPage extends BasePage {
 	// ===========================================
 	// METHODES PRIVATES
 	// ===========================================
-
-	// /**
-	//  * Vérifie que la configuration d'un composant est valide et la retourne.
-	//  *
-	//  * Vérifie que la configuration du composant est présente dans la configuration
-	//  * de la page, que le composant doit être rendu et que la configuration est
-	//  * valide. Si une des conditions n'est pas remplie, une erreur est lancée.
-	//  * 
-	//  * @param {ComponentName} componentName Le nom du composant à vérifier.
-	//  * @returns {ComponentConfig} La configuration valide du composant.
-	//  * @throws {Error} Si la configuration est invalide.
-	//  */
-	// private checkComponentConfig(componentName: ComponentName): ComponentConfig {
-	// 	const config: ComponentConfig | undefined = this.components?.[componentName];
-	// 	if (!config || !this.shouldRenderComponent(config) || !this.isValidConfig(config, false)) {
-	// 		throw new Error(`Configuration du composant '${componentName}' invalide`);
-	// 	}
-	// 	return config;
-	// }
 
 	/**
 	 * Injecte la barre de recherche dans le DOM.
@@ -228,28 +207,29 @@ export class UsersPage extends BasePage {
 		const instanceKey = `${this.userRowConfig!.name}-${user.id}`;
 		this.addToComponentInstances(instanceKey, rowComponent);
 
-		rowComponent.render().then(() => {
-			const userLine = tempContainer.querySelector('.user-line');
-			if (userLine) {
-				userLine.id = instanceKey;
-				if (user.id === this.currentUser!.id) {
-					(userLine as HTMLElement).style.backgroundColor = '#5e8ca570';
-				}
-				this.removeUser(user);
-				userLine.classList.add('animate-fade-in-up');
+		await rowComponent.render();
 
-				if (user.status === USER_ONLINE_STATUS.ONLINE) {
-					const currentUserLine = this.userList.querySelector(`#${this.userRowConfig!.name}-${this.currentUser!.id}`);
-					if (currentUserLine)
-						currentUserLine.insertAdjacentElement('afterend', userLine);
-					else
-						this.userList.prepend(userLine);
-				} else {
-					userLine.classList.add('line-offline');
-					this.userList.appendChild(userLine);
-				}
-			}
-		})
+		const userLine = tempContainer.querySelector('.user-line');
+		if (!userLine) 
+			return;
+
+		userLine.id = instanceKey;
+		if (user.id === this.currentUser!.id)
+			(userLine as HTMLElement).style.backgroundColor = '#5e8ca570';
+
+		this.removeUser(user);
+		userLine.classList.add('animate-fade-in-up');
+
+		if (user.status === USER_ONLINE_STATUS.ONLINE) {
+			const currentUserLine = this.userList.querySelector(`#${this.userRowConfig!.name}-${this.currentUser!.id}`);
+			if (currentUserLine)
+				currentUserLine.insertAdjacentElement('afterend', userLine);
+			else
+				this.userList.prepend(userLine);
+		} else {
+			userLine.classList.add('line-offline');
+			this.userList.appendChild(userLine);
+		}
 	}
 
 	/**
@@ -268,52 +248,5 @@ export class UsersPage extends BasePage {
 			userLine.classList.add('animate-fade-out-down');
 			userLine.remove();
 		}
-	}
-
-	/**
-	 * Met à jour le statut en ligne d'un utilisateur.
-	 *
-	 * Recherche la ligne utilisateur correspondant à l'ID de l'utilisateur
-	 * passé en paramètre et met à jour son statut en ligne.
-	 *
-	 * @param {User} user - L'utilisateur dont le statut est à mettre à jour.
-	 */
-	public changeOnlineStatus(user: User): void {
-		const userRow = document.getElementById(`${this.userRowConfig!.name}-${user.id}`);
-		if (userRow) {
-			const statusCell = getHTMLElementByClass('status-cell', userRow) as HTMLElement;
-			statusCell.innerHTML = DOMPurify.sanitize(dataService.showStatusLabel(user));
-		}
-	}
-
-	/**
-	 * Met à jour les boutons d'amitié pour une ligne utilisateur
-	 * suite à une modification de la demande d'amitié.
-	 *
-	 * Si un instance de UserRowComponent est fournie, met à jour
-	 * les boutons d'amitié correspondant à l'utilisateur d'ID "from"
-	 * en fonction de la demande d'amitié reçue. Sinon, cherche
-	 * l'instance de UserRowComponent correspondante à l'ID "from"
-	 * dans la liste des instances de composants stockées et la met
-	 * à jour.
-	 *
-	 * @param {number} friendId L'identifiant de l'utilisateur qui a envoyé la demande d'amitié.
-	 * @param {UserRowComponent} userRowInstance L'instance de UserRowComponent
-	 * à mettre à jour. Si non fourni, cherche l'instance dans la liste
-	 * des instances de composants stockées.
-	 * @returns {Promise<void>} Une promesse qui se résout lorsque les boutons
-	 * d'amitié ont été mis à jour.
-	 */
-	public async updateFriendButtons(friendId?: number, userRowInstance?: UserRowComponent): Promise<void> {
-		if (!userRowInstance) {
-			const key = `${COMPONENT_NAMES.USER_ROW}-${friendId}`;
-			userRowInstance = this.getComponentInstance!<UserRowComponent>(key);
-		}
-		const userComponent = userRowInstance as UserRowComponent;
-		if (!userComponent || !userComponent.userline) {
-			console.log(`[${this.constructor.name}] No userline for user id ${friendId}`);
-			return;
-		}
-		await (userRowInstance as UserRowComponent).toggleFriendButton();
 	}
 }

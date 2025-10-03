@@ -1,4 +1,3 @@
-import DOMPurify from "dompurify";
 import { BasePage } from '../base/base.page';
 import { RouteConfig, RouteParams } from '../../types/routes.types';
 import { User } from '../../shared/models/user.model';
@@ -6,9 +5,10 @@ import { Friend } from '../../shared/models/friend.model';
 import { Game } from '../../shared/models/game.model';
 import { Tournament } from '../../shared/models/tournament.model';
 import { dataApi, friendApi } from '../../api/index.api';
-import { dataService } from '../../services/index.service';
+import { dataService, friendService, translateService } from '../../services/index.service';
 import { formatDate } from '../../utils/app.utils';
 import { ROUTE_PATHS } from '../../config/routes.config';
+import { getHTMLElementByClass } from '../../utils/dom.utils';
 
 // ===========================================
 // PROFILE PAGE
@@ -19,12 +19,18 @@ import { ROUTE_PATHS } from '../../config/routes.config';
  */
 export class ProfilePage extends BasePage {
 	private userId?: number;
-	private user: User = null;
+	private user: User | null = null;
 	private userFriends: Friend[] = [];
 	private userGames: Game[] = [];
 	private userTournaments: Tournament[] = [];
 	private isFriend: boolean = false;
 	private isCurrentUserProfile: boolean = false;
+
+	public buttonsLine!: HTMLDivElement;
+	private challengeButton!: HTMLButtonElement;
+	private avatar!: HTMLElement;
+	private username!: HTMLElement;
+	private displayedFriends: Friend[] = [];
 
 	/**
 	 * Constructeur de la page de profil.
@@ -54,9 +60,12 @@ export class ProfilePage extends BasePage {
 	}
 	
 	protected async beforeMount(): Promise<void> {
+		this.username = getHTMLElementByClass('profile-username', this.container) as HTMLElement;
+		this.avatar = getHTMLElementByClass('profile-avatar', this.container) as HTMLElement;
+		this.buttonsLine = getHTMLElementByClass('profile-actions', this.container) as HTMLDivElement;
+		this.challengeButton = getHTMLElementByClass('challenge-button', this.container) as HTMLButtonElement;
 
 		try {
-
 			this.user = await dataApi.getUserStats(this.userId!);
 			this.userFriends = await friendApi.getUserFriends(this.userId!);
 			if (this.userId === this.currentUser!.id)
@@ -79,6 +88,9 @@ export class ProfilePage extends BasePage {
 			console.error('Erreur lors du chargement du profil:', error);
 			throw error;
 		}
+
+		friendService.setFriendPageSettings(this.user!, this.container);
+		friendService.setFriendButtons();
 	}
 
 	/**
@@ -102,16 +114,11 @@ export class ProfilePage extends BasePage {
 	 */
 	protected async mount(): Promise<void> {
 
-		this.renderProfileMain();
+		await this.renderProfileMain();
 		this.renderStats();
 		this.renderFriends();
-		this.renderuserGames();
-		this.setupEventListeners();
+		await this.renderuserGames();
 	}
-
-	// ===========================================
-	// METHODES PRIVATES
-	// ===========================================
 
 	// ===========================================
 	// METHODES DE RENDU
@@ -120,35 +127,22 @@ export class ProfilePage extends BasePage {
 	/**
 	 * Rendu des informations principales du profil
 	 */
-	private renderProfileMain(): void {
-		const section = document.getElementById('profile-main-section') as HTMLDivElement;
-		const template = document.getElementById('profile-main-template') as HTMLTemplateElement;
-		
-		if (!section || !template || !this.user) return;
+	private async renderProfileMain(): Promise<void> {
+		this.renderAvatar();
+		this.username.textContent = this.user!.username;
+		this.renderUserStatus();
 
-		const clone = template.content.cloneNode(true) as DocumentFragment;
-
-		// Avatar
-		this.renderAvatar(clone);
-
-		// Nom d'utilisateur
-		const username = clone.querySelector('.profile-username') as HTMLElement;
-		username.textContent = this.user.username;
-
-		// Statut (en ligne/hors ligne)
-		this.renderUserStatus(clone);
-
-		// Actions (boutons ami, etc.)
-		this.renderProfileActions(clone);
-
-		section.appendChild(clone);
+		if (!this.isCurrentUserProfile) {
+			friendService.setFriendLogo();
+			await friendService.toggleFriendButton();
+			friendService.setButtonDataAttribut();
+		}
 	}
 
 	/**
 	 * Rendu de l'avatar utilisateur
 	 */
-	private async renderAvatar(clone: DocumentFragment): Promise<void> {
-		const avatar = clone.querySelector('.profile-avatar') as HTMLElement;
+	private async renderAvatar(): Promise<void> {
 		const img = document.createElement('img');
 		img.src = await dataService.getUserAvatarURL(this.user!);
 		img.alt = `${this.user!.username}'s avatar`;
@@ -157,59 +151,24 @@ export class ProfilePage extends BasePage {
 		});
 		img.style.opacity = '0';
 		img.style.transition = 'opacity 0.3s ease';
-		avatar.appendChild(img);
+		this.avatar.appendChild(img);
 	}
 
 	/**
 	 * Rendu du statut utilisateur (en ligne/hors ligne)
 	 */
-	private renderUserStatus(clone: DocumentFragment): void {
-		const status = clone.querySelector('.profile-status') as HTMLElement;
-		const statusDot = status.querySelector('div') as HTMLElement;
-		const statusText = status.querySelector('.status-text') as HTMLElement;
-		
-		// TODO: Implémenter la logique pour récupérer le statut en ligne
-		const isOnline = this.user!.isOnline || false;
-		
-		if (isOnline) {
-			status.classList.add('online');
-			statusDot.classList.add('bg-green-400');
-			statusText.textContent = 'online';
-		} else {
-			status.classList.add('offline');
-			statusDot.classList.add('bg-gray-400');
-			statusText.textContent = 'offline';
-		}
-	}
-
-	/**
-	 * Rendu des actions du profil (boutons ami, etc.)
-	 */
-	private renderProfileActions(clone: DocumentFragment): void {
-		const actions = clone.querySelector('.profile-actions') as HTMLElement;
-		
-		// Si c'est notre propre profil, ne pas afficher de boutons
-		if (this.currentUser && this.currentUser.id === this.user!.id) {
-			return;
-		}
-
-		// Bouton ajouter/retirer ami
-		const friendButton = document.createElement('button');
-		friendButton.className = 'btn-friend';
-		
-		if (this.isFriend) {
-			friendButton.className += ' btn-remove-friend';
-			friendButton.textContent = 'Remove';
-			friendButton.setAttribute('data-action', 'remove-friend');
-		} else {
-			friendButton.className += ' btn-add-friend';
-			friendButton.textContent = 'Add friend';
-			friendButton.setAttribute('data-action', 'add-friend');
-		}
-
-		actions.appendChild(friendButton);
-
-		// TODO: Ajouter d'autres boutons si nécessaire (défier, bloquer, etc.)
+	public renderUserStatus(user?: User): void {
+		if (user)
+			this.user = user;
+		const statusDot = this.container.querySelector('.status-cell') as HTMLElement;
+		const logCell = this.container.querySelector('.log-cell') as HTMLElement;
+		statusDot.innerHTML = dataService.showStatusLabel(this.user!);
+		const logDate = dataService.showLogDate(this.user!);
+		if (logDate) {
+			logCell.classList.remove('hidden');
+			logCell.innerHTML = logDate;
+		} else
+			logCell.classList.add('hidden');
 	}
 
 	/**
@@ -222,21 +181,15 @@ export class ProfilePage extends BasePage {
 		if (!section || !template || !this.user) 
 			return;
 
-		// Calcul du win rate
 		const totalGames = this.user.gamePlayed;
 		const winRate = this.user.winRate;
 
 		const stats = [
-			{ value: this.user.gameWin || 0, label: 'Victories' },
-			{ value: this.user.gameLoose || 0, label: 'Losses' },
-			{ value: `${winRate}%`, label: 'Win Rate' },
-			{ value: totalGames, label: 'Game played' }
+			{ value: this.user.gameWin || 0, label: 'Victories', translate: "profile.winLabel" },
+			{ value: this.user.gameLoose || 0, label: 'Losses', translate: "profile.lossLabel" },
+			{ value: `${winRate}%`, label: 'Win Rate', translate: "profile.winRateLabel" },
+			{ value: totalGames, label: 'Game played', translate: "profile.gamePlayedLabel" }
 		];
-
-		// TODO: Ajouter d'autres stats (niveau, rang...)
-		// if (this.user.level) {
-		// 	stats.push({ value: this.user.level, label: 'Niveau' });
-		// }
 
 		stats.forEach(stat => {
 			const clone = template.content.cloneNode(true) as DocumentFragment;
@@ -245,8 +198,10 @@ export class ProfilePage extends BasePage {
 
 			value.textContent = stat.value.toString();
 			label.textContent = stat.label;
+			label.setAttribute('data-ts', stat.translate);
 
 			section.appendChild(clone);
+			translateService.updateLanguage(undefined, section);
 		});
 	}
 
@@ -258,20 +213,16 @@ export class ProfilePage extends BasePage {
 		const template = document.getElementById('friend-card-template') as HTMLTemplateElement;
 		const countElement = document.getElementById('friends-count') as HTMLElement;
 
-		if (!section || !template || !countElement) return;
-
-		countElement.textContent = `(${this.userFriends.length})`;
-
-		// État vide
-		if (this.userFriends.length === 0) {
-			// this.renderEmptyState(section, 'friends');
+		if (!section || !template || !countElement) 
 			return;
-		}
 
-		// Limitation d'affichage (ex: 12 premiers amis)
-		const displayedFriends = this.userFriends.slice(0, 12);
+		this.displayedFriends = this.userFriends.filter((f: Friend) => f.friendStatus === 'accepted');
+		countElement.textContent = `(${this.displayedFriends.length})`;
 
-		displayedFriends.forEach(async (friend) => {
+		if (this.displayedFriends.length === 0)
+			return;
+
+		this.displayedFriends.forEach(async (friend) => {
 			const clone = template.content.cloneNode(true) as DocumentFragment;
 			const card = clone.querySelector('.friend-card') as HTMLElement;
 			const avatar = clone.querySelector('.friend-avatar') as HTMLElement;
@@ -281,75 +232,30 @@ export class ProfilePage extends BasePage {
 			const img = document.createElement('img');
 			img.src = await dataService.getUserAvatarURL(friend);
 			img.alt = `${friend.username}'s avatar`;
+			img.title = `${friend.username}'s profile`;
 			img.className = 'w-full h-full object-cover';
 			avatar.appendChild(img);
 
-			// Nom de l'ami
 			name.textContent = friend.username;
-
-			// Navigation vers le profil de l'ami
-			card.addEventListener('click', () => {
-				// TODO: Implémenter la navigation
-				console.log(`Naviguer vers le profil de ${friend.username}`);
-				// Exemple: this.router.navigate(`/profile/${friend.id}`);
-			});
-
 			section.appendChild(clone);
 		});
-
-		// Afficher "Voir plus" si il y a plus d'amis
-		if (this.userFriends.length > 12) {
-			const viewMoreCard = document.createElement('div');
-			viewMoreCard.className = 'friend-card bg-white/5 border-dashed cursor-pointer hover:bg-white/10';
-			viewMoreCard.innerHTML = DOMPurify.sanitize(`
-				<div class="text-center text-white/60 py-2">
-					<div class="text-2xl mb-2">+</div>
-					<div class="text-xs">Voir plus</div>
-				</div>
-			`);
-			viewMoreCard.addEventListener('click', () => {
-				// TODO: Implémenter l'affichage de tous les amis
-				console.log('Afficher tous les amis');
-			});
-			section.appendChild(viewMoreCard);
-		}
 	}
 
 	/**
 	 * Rendu de l'historique des matchs
 	 */
-	private renderuserGames(): void {
+	private async renderuserGames(): Promise<void> {
 		const section = document.getElementById('match-history-section') as HTMLDivElement;
 		const template = document.getElementById('match-card-template') as HTMLTemplateElement;
 
-		if (!section || !template) return;
-
-		// État vide
-		if (this.userGames.length === 0) {
-			// this.renderEmptyState(section, 'matches');
+		if (!section || !template || this.userGames.length === 0) 
 			return;
-		}
 
-		// Limitation d'affichage (ex: 10 derniers matchs)
-		const recentMatches = this.userGames.slice(0, 10);
-
-		recentMatches.forEach(async (match) => {
+		const recentMatches = this.userGames;
+		for (const match of recentMatches) {
 			const clone = template.content.cloneNode(true) as DocumentFragment;
-			
 			await this.renderMatchCard(clone, match);
 			section.appendChild(clone);
-		});
-
-		// Bouton "Voir plus" si il y a plus de matchs
-		if (this.userGames.length > 10) {
-			const viewMoreButton = document.createElement('button');
-			viewMoreButton.className = 'w-full mt-4 py-3 bg-white/5 hover:bg-white/10 rounded-lg border border-white/20 text-white/70 hover:text-white transition-all duration-200';
-			viewMoreButton.textContent = `See ${this.userGames.length - 10} more matchs`;
-			viewMoreButton.addEventListener('click', () => {
-				// TODO: Implémenter l'affichage de tous les matchs
-				console.log('Charger plus de matchs');
-			});
-			section.appendChild(viewMoreButton);
 		}
 	}
 
@@ -360,7 +266,6 @@ export class ProfilePage extends BasePage {
 		const result = clone.querySelector('.match-result') as HTMLElement;
 		const date = clone.querySelector('.match-date') as HTMLElement;
 		const score = clone.querySelector('.match-score') as HTMLElement;
-		const playerInfos = clone.querySelectorAll('.player-info');
 		const avatars = clone.querySelectorAll('.player-avatar');
 		const names = clone.querySelectorAll('.player-name');
 
@@ -370,17 +275,21 @@ export class ProfilePage extends BasePage {
 		// Résultat
 		result.classList.add(isWin ? 'win' : 'loss');
 		result.textContent = isWin ? 'VICTORY' : 'GAME OVER';
+		result.setAttribute('data-ts', isWin ? 'profile.winResult' : 'profile.lossResult');
 
 		// Date formatée
-		date.textContent = formatDate(match.createdAt || match.date);
+		date.textContent = formatDate(match.end);
+
+		const playerOneScore = isWin ? '3' : match.looserResult;
+		const playerTwoScore = isWin ? match.looserResult : '3';
 
 		// Score
-		score.textContent = match.score || `${match.player1Score} - ${match.player2Score}`;
+		score.textContent = `${playerOneScore} - ${playerTwoScore}`;
+		score.classList.add(isWin ? 'win' : 'loss');
 
-		// TODO: Adapter selon la structure de vos données de match
 		const player1 = this.user!
 		console.log('match.otherPlayers', match.otherPlayers);
-		const player2: User = match.otherPlayers[0];
+		const player2: User | null = match.otherPlayers[0] ?? null;
 
 		// Joueur 1
 		const img1 = document.createElement('img');
@@ -392,31 +301,14 @@ export class ProfilePage extends BasePage {
 
 		// Joueur 2
 		const img2 = document.createElement('img');
+		const playerTwoUsername = player2 ? player2.username : 'Player';
 		img2.src = await dataService.getUserAvatarURL(player2);
-		img2.alt = `${player2.username}'s avatar`;
+		img2.alt = `${playerTwoUsername}'s avatar`;
 		img2.className = 'w-full h-full object-cover';
 		(avatars[1] as HTMLElement).appendChild(img2);
-		(names[1] as HTMLElement).textContent = player2.username;
-	}
-
-	/**
-	 * Rendu d'un état vide
-	 */
-	private renderEmptyState(section: HTMLElement, type: 'friends' | 'matches'): void {
-		const emptyTemplate = document.getElementById('empty-state-template') as HTMLTemplateElement;
-		const clone = emptyTemplate.content.cloneNode(true) as DocumentFragment;
-		const icon = clone.querySelector('.empty-icon') as SVGElement;
-		const text = clone.querySelector('.empty-text') as HTMLElement;
-
-		if (type === 'friends') {
-			icon.innerHTML = DOMPurify.sanitize('<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>');
-			text.textContent = 'No friends';
-		} else if (type === 'matches') {
-			icon.innerHTML = DOMPurify.sanitize('<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>');
-			text.textContent = 'No match';
-		}
-
-		section.appendChild(clone);
+		(names[1] as HTMLElement).textContent = playerTwoUsername;
+		if (!player2)
+			(names[1] as HTMLElement).setAttribute('data-ts', 'game.player');
 	}
 
 	// ===========================================
@@ -426,76 +318,49 @@ export class ProfilePage extends BasePage {
 	/**
 	 * Configuration des gestionnaires d'événements
 	 */
-	private setupEventListeners(): void {
-		// Gestionnaire pour les boutons d'ami
-		document.addEventListener('click', this.handleFriendActions.bind(this));
+	protected attachListeners(): void {
+		const friendCards = document.querySelectorAll('.friend-card');
+		friendCards.forEach(async (friendCard) => {
+			for (const f of this.displayedFriends)
+				if (friendCard.querySelector('.friend-name')!.textContent === f.username) {
+					friendService.profilePath = `/user/${f.id}`;
+					friendCard.addEventListener('click', friendService.handleProfileClick);
+				}
+		});
+		this.challengeButton.addEventListener('click', this.handleChallengeClick);
+		friendService.attachFriendButtonListeners();
 	}
 
-	/**
-	 * Gestionnaire des actions sur les amis
-	 */
-	private async handleFriendActions(event: Event): Promise<void> {
-		const target = event.target as HTMLElement;
-		const action = target.getAttribute('data-action');
+	protected removeListeners(): void {
+		const friendCards = document.querySelectorAll('.friend-card');
+		friendCards.forEach(async (friendCard) => {
+			for (const f of this.displayedFriends)
+				if (friendCard.querySelector('.friend-name')!.textContent === f.username) {
+					friendService.profilePath = `/user/${f.id}`;
+					friendCard.removeEventListener('click', friendService.handleProfileClick);
+				}
+		});
+		this.challengeButton.removeEventListener('click', this.handleChallengeClick);
+		friendService.removeFriendButtonListeners();
+	}
+	
+	// ===========================================
+	// LISTENER HANDLERS
+	// ===========================================
 
-		if (!action || !this.user || !this.currentUser) return;
-
-		try {
-			if (action === 'add-friend') {
-				await this.addFriend();
-			} else if (action === 'remove-friend') {
-				await this.removeFriend();
-			}
-		} catch (error) {
-			console.error('Erreur lors de l\'action ami:', error);
-			// TODO: Afficher un message d'erreur à l'utilisateur
-		}
+	private handleChallengeClick = async (event: Event): Promise<void> => {
+		event.preventDefault();
+		const friend = this.userFriends.find(friend => friend.id === this.userId!) || undefined;
+		friendService.setFriendPageSettings(this.user!, this.container, friend);
+		await friendService.challengeClick(event);
 	}
 
-	/**
-	 * Ajouter en ami
-	 */
-	private async addFriend(): Promise<void> {
-		// const success = await dataApi.sendFriendRequest(this.user!.id); // TODO: Implémenter
-		
-		// if (success) {
-		// 	this.isFriend = true;
-		// 	this.updateFriendButton();
-		// 	// TODO: Afficher un message de succès
-		// }
-	}
+	// ===========================================
+	// CLEANUP
+	// ===========================================
 
-	/**
-	 * Retirer des amis
-	 */
-	private async removeFriend(): Promise<void> {
-		// const success = await dataApi.removeFriend(this.user!.id); // TODO: Implémenter
-		
-		// if (success) {
-		// 	this.isFriend = false;
-		// 	this.updateFriendButton();
-		// 	// TODO: Afficher un message de succès
-		// }
-	}
-
-	/**
-	 * Mise à jour du bouton ami
-	 */
-	private updateFriendButton(): void {
-		const button = document.querySelector('[data-action*="friend"]') as HTMLButtonElement;
-		
-		if (!button) return;
-
-		button.className = 'btn-friend';
-		
-		if (this.isFriend) {
-			button.className += ' btn-remove-friend';
-			button.textContent = 'Remove';
-			button.setAttribute('data-action', 'remove-friend');
-		} else {
-			button.className += ' btn-add-friend';
-			button.textContent = 'add friend';
-			button.setAttribute('data-action', 'add-friend');
-		}
+	public async cleanup(): Promise<void> {
+		await super.cleanup();
+		friendService.cleanup();
 	}
 }

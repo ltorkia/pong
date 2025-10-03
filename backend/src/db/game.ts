@@ -44,13 +44,15 @@ import { GameModel } from '../shared/types/game.types'; // en rouge car dossier 
 
 // export async function getResultGame 
 
-export async function addGame(tournament: boolean = false): Promise<number> {
+export async function addGame(tournament?: number, isOnlineGame?: boolean): Promise<number> {
     const db = await getDb();
+    const tournamentId = tournament ?? 0;
+    const gameType = isOnlineGame ? "online" : "local";
 
     // Insérer le jeu et récupérer son id
     const result = await db.run(
-        `INSERT INTO Game (status, n_participants, tournament) VALUES ('in_progress', 2, ?)`,
-        [tournament ? 1 : 0]
+        `INSERT INTO Game (status, n_participants, tournament, type) VALUES ('in_progress', 2, ?, ?)`,
+        [tournamentId, gameType]
     );
 
     const gameId = result.lastID!;
@@ -258,11 +260,11 @@ export async function createTournament(nParticipants: number, nRound: number): P
 // }
 
 // // Enregistre un joueur dans un tournoi
-export async function registerUserTournament(userId: number, tournamentId: number, gameId?: number, alias?: string) { //a voir ptet a readapter pour quand creation du jeu
+export async function registerUserTournament(userId: number, tournamentId: number, alias?: string) { //a voir ptet a readapter pour quand creation du jeu
     const db = await getDb();
     await db.run(`
-        INSERT INTO User_Tournament (tournament_id, user_id, game_id, alias)
-        VALUES (${tournamentId},${userId}, ${gameId ?? null}, ${alias ?? null})
+        INSERT INTO User_Tournament (tournament_id, user_id, alias)
+        VALUES (${tournamentId},${userId}, ${alias ?? null})
     `);
 }
 

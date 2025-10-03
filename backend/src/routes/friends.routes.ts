@@ -119,9 +119,9 @@ export async function friendsRoutes(app: FastifyInstance) {
 		const data = friendDataCheck as FriendActionInput;
 		let relation: FriendModel = await getRelation(friendId, jwtUser.id);
 		if (!relation)
-			return reply.code(404).send({ errorMessage: 'No relation found'});
+			return reply.code(409).send({ errorMessage: 'No relation found'});
 		if (!isFriendRequestValid(data, relation.friendStatus))
-			return reply.status(403).send({ errorMessage: 'Forbidden' });
+			return reply.status(409).send({ errorMessage: 'Relation conflict' });
 		if (!isValidRequester(data, relation, jwtUser.id))
 			return reply.status(403).send({ errorMessage: 'Forbidden' });
 

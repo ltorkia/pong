@@ -3,9 +3,10 @@ import { TournamentSchema, TournamentReqSchema, TournamentPlayerReadySchema, Sta
 import { Player } from '../shared/types/game.types';
 import { Game, Tournament, TournamentLocal } from '../types/game.types';
 import { TournamentLobbyUpdate, StartTournamentSignal, DismantleSignal } from '../shared/types/websocket.types'
-import { UserWS } from '../types/user.types';
 import { generateUniqueID } from '../shared/functions'
 import { addGame, addGamePlayers, getResultGame, createTournament } from '../db/game';
+import { findPlayerWebSocket } from '../helpers/query.helpers';
+import { initPlayer } from './game.routes';
 
 // Differentes routes pour differents besoins lies aux tournois en remote
 // Les tournois existent en backend dans app.lobby.allTournaments
@@ -62,7 +63,7 @@ export async function tournamentRoutes(app: FastifyInstance) {
         for (const tournamentLocal of allTournamentsLocal) {
             if (tournamentLocal.stageTwo && gameID == tournamentLocal.stageTwo.gameID) {
                 game = tournamentLocal.stageTwo;
-                break ;
+                break;
             }
             game = tournamentLocal.stageOne.find((g: Game) => g.gameID == gameID);
         }
@@ -70,7 +71,7 @@ export async function tournamentRoutes(app: FastifyInstance) {
         if (game)
             return reply.code(200).send(game);
         else
-            return reply.code(404).send({ error: "Game not found in local tournaments"});
+            return reply.code(404).send({ error: "Game not found in local tournaments" });
     })
 
     // Cree un nouveau tournoi
@@ -113,10 +114,12 @@ export async function tournamentRoutes(app: FastifyInstance) {
 
         // -1 pour joueur temporaire (non enregistre, envoye par le front)
         for (const player of tournamentParse.data.players) {
-            if (player.ID == -1)
-                players.push(new Player(generateUniqueID(allPlayers), player.alias));
+            let newPlayer: Player;
+            if (player.ID === -1)
+                newPlayer = initPlayer(allPlayers, generateUniqueID(Array.from(allPlayers.keys())), tournamentParse.data.tabID, player.alias);
             else
-                players.push(new Player(player.ID, player.alias));
+                newPlayer = initPlayer(allPlayers, player.ID, tournamentParse.data.tabID, player.alias);
+            players.push(newPlayer);
         }
         const tournamentID = await createTournament(tournamentParse.data.maxPlayers, tournamentParse.data.maxPlayers / 2);
         if (!tournamentID)
@@ -343,23 +346,23 @@ export async function tournamentRoutes(app: FastifyInstance) {
         for (const game of tournament.stageOneGames) {
             // if (game.isOver)
             // {
-                const resultgame = await getResultGame(game.gameID!);
-                if (resultgame.status != "finished")
-                    continue ;
-                // tournament.stageTwoGames.push(Player(resultgame!.winnerID));
-                // game.isOver = false; // pour ne pas refaire cette operation a la prochaine update
-                const winner = resultgame?.winnerId;
-                if (winner) {
-                    winnerList.push(winner);
-                } else {
-                    return reply.code(404).send({ error: "Winner not found" });
+            const resultgame = await getResultGame(game.gameID!);
+            if (resultgame.status != "finished")
+                continue;
+            // tournament.stageTwoGames.push(Player(resultgame!.winnerID));
+            // game.isOver = false; // pour ne pas refaire cette operation a la prochaine update
+            const winner = resultgame?.winnerId;
+            if (winner) {
+                winnerList.push(winner);
+            } else {
+                return reply.code(404).send({ error: "Winner not found" });
                 console.log("WINNER ID = ", winner);
-                }
+            }
             // }
         }
-        if( winnerList.length != 2)
+        if (winnerList.length != 2)
             return reply.code(404).send({ error: "Not enough winners" });
-        const gameID = await addGame(true);
+        const gameID = await addGame(tournamentID);
         const player1 = new Player(winnerList[0]);
         const player2 = new Player(winnerList[1]);
         await addGamePlayers(gameID, player1.ID, player2.ID);
@@ -370,22 +373,21 @@ export async function tournamentRoutes(app: FastifyInstance) {
     });
 }
 
-
-
-// Update envoyee a tous les participants du tournoi
 const sendToTournamentPlayers = (toSend: any, tournament: Tournament, app: FastifyInstance) => {
     for (const player of tournament.players) {
-        const userWS: UserWS | undefined = app.usersWS.find((user: UserWS) => user.id == player.ID);
-        if (userWS)
-            userWS.WS.send(JSON.stringify(toSend));
+        const ws = findPlayerWebSocket(player.ID, app, player.tabID!);
+        if (ws && ws.readyState === WebSocket.OPEN) {
+            ws.send(JSON.stringify(toSend));
+        }
     }
 };
 
-// Update envoyee a tous les joueurs, pour que tout le monde puisse voir en direct l'etat de chaque tournoi 
 const broadcast = (toSend: any, app: FastifyInstance) => {
-    for (const user of app.usersWS)
-        user.WS.send(JSON.stringify(toSend));
-}
-
-// TODO : quand tournament < 2 lettres, ne s affiche pas jusqu au moment ou on ajoute un tourni + long -> fix ?
-// TODO : front : si on recoit sendToTournamentPlayers -> ready 
+    for (const [userId, sockets] of app.usersWS.entries()) {
+        for (const userWS of sockets) {
+            if (userWS.WS.readyState === WebSocket.OPEN) {
+                userWS.WS.send(JSON.stringify(toSend));
+            }
+        }
+    }
+};

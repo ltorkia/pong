@@ -69,6 +69,7 @@ export async function notificationsRoutes(app: FastifyInstance) {
 		if (!notif || "errorMessage" in notif) {
 			return reply.code(500).send({ errorMessage: notif.errorMessage || 'Error inserting notification'});
 		}
+		(notif as any).inviterTabID = notifData.inviterTabID;
 		sendToSocket(app, [ notif ]);
 		return reply.code(200).send(notif);
 	})

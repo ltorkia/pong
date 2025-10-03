@@ -82,13 +82,13 @@ export interface RouteParams {
  * - render: fonction de rendu HTML
  * - cleanup: fonction de nettoyage avant de changer de page
  * - getComponentInstance: fonction pour récupérer une instance de composant spécifique
- * - updateFriendButtons: fonction pour mettre à jour les boutons d'amitié
- * - changeOnlineStatus: fonction pour mettre à jour l'onlineStatus d'un utilisateur
+ * - renderUserStatus: fonction pour mettre à jour le logo en ligne/hors ligne du profil
  * - injectUser: fonction pour injecter un utilisateur dans la liste des utilisateurs
  * - removeUser: fonction pour supprimer un utilisateur de la liste des utilisateurs
  * - handleGameMessage: fonction pour traiter un message de jeu via WebSocket
  * - handleTournamentMessage: fonction pour traiter un message de tournoi via WebSocket
  * - challengedFriendID: ID de l'ami qui a invité l'utilisateur courant à jouer
+ * - inviterTabID: ID de l'onglet de l'inviteur (pour gérer les invitations multi-onglets)
  * - changeReplayButtonForInvite: fonction pour mettre à jour le bouton de replay si un joueur est réinvité à jouer
  * - setCleanInvite: fonction pour mettre à jour le statut de nettoyage de l'invitation
  * - checkInviteReplayRequest: fonction pour gérer les invite request pour relancer le jeu (invite replay)
@@ -98,13 +98,13 @@ export interface PageInstance {
 	render: () => Promise<void>;
 	cleanup?: () => Promise<void>;
 	getComponentInstance?<T>(name: string): T | undefined;
-	updateFriendButtons?: (friendId?: number, userRowInstance?: UserRowComponent) => Promise<void>;
-	changeOnlineStatus?: (user: User) => Promise<void>;
+	renderUserStatus?(user: User): void;
 	injectUser?: (user: User) => Promise<void>;
 	removeUser?: (user: User) => Promise<void>;
 	handleGameMessage?: (data: any) => Promise<void>;
 	handleTournamentMessage?: (data: any) => Promise<void>;
 	challengedFriendID?: number;
+	inviterTabID?: string;
 	changeReplayButtonForInvite?(): void;
 	setCleanInvite?(cleanInvite: boolean): void;
 	checkInviteReplayRequest?: () => Promise<boolean>;

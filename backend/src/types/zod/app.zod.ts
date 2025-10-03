@@ -35,7 +35,8 @@ export const NotificationInputSchema = z.object({
 	]).optional(),
 	content: z.string().optional(),
 	createdAt: z.string().optional(),
-	read: z.number().optional()
+	read: z.number().optional(),
+	inviterTabID: z.string().optional(),
 });
 
 export const MessageInputSchema = z.object({

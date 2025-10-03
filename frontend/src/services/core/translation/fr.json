@@ -41,8 +41,8 @@
 		"greeting": "Salut",
 		"underTitle": "Prêt·e à jouer dans nos contrées magiques ?",
 		"rulesBtn": "Règles",
-		"localGameBtn": "partie 1v1 locale",
-		"distantGameBtn": "partie 1v1 en ligne",
+		"localGameBtn": "partie 1 contre 1 locale",
+		"distantGameBtn": "partie 1 contre 1 en ligne",
 		"localTournamentBtn": "Tournoi local",
 		"onlineTournamentBtn": "Tournois en ligne"
 
@@ -170,17 +170,26 @@
 	"profile": {
 		"statsTitle": "Stats",
 		"friendsTitle": "Amis",
-		"matchHistoryTitle": "Historique des matchs"
+		"matchHistoryTitle": "Historique des matchs",
+		"tournamentHistoryTitle": "Historique des tournois",
+		"winLabel": "Victoires",
+		"lossLabel": "Défaites",
+		"winRateLabel": "de réussites",
+		"gamePlayedLabel": "Parties jouées",
+		"winResult": "VICTOIRE",
+		"lossResult": "DÉFAITE"
 	},
 
 	"game": {
 		"controlLabel": "COMMANDES",
 		"networkError": "Erreur réseau. Veuillez réessayer plus tard.",
 		"ready": "PRÊT ? APPUYEZ SUR ESPACE POUR COMMENCER",
+        "tournamentGameTitle": "Partie 1 contre 1 Tournoi",
 		"waitingText1": "En attente de ",
 		"waitingText2": " pour commencer...",
 		"waitingTextPlayer": "l'autre joueur",
 		"resultText": "Vous",
+		"player": "Joueur",
 		"player1": "Joueur 1",
 		"player2": "Joueur 2",
 		"loseMessage": "Echec !",
@@ -208,14 +217,23 @@
 		"cancelNo": "C'était une erreur !",
 		"cancelYes": "Oui, s'il vous plaît.",
 		"canceled": "Ce tournoi a été annulé par son propriétaire !",
-		"backToLobby": "Retour au lobby du tournoi...",
+		"backToLobby": "Accueil",
 		"players": "Joueurs : ",
+        "navigateBtn": "Retour au tournoi",
 		"status": "Statut : ",
 		"start": "DÉMARRER !",
         "nextGame": "Prochaine partie :",
         "versus": "contre",
         "winnerBegin": "Nous avons un gagnant !",
-        "winnerEnd": "a gagné le tournoi! Bravo!"
+        "winnerEnd": "a gagné le tournoi! Bravo!",
+        "errors": {
+            "noAlias": "Veuillez entrer un alias.",
+            "full": "Ce tournoi est complet.",
+            "playerAlreadyThere": "Ce joueur existe déjà dans ce tournoi.",
+            "missingField": "Un champ requis est vide.",
+            "missingPlayer": "Pas assez de joueurs pour commencer.",
+            "login": "Mel ou mot de passe invalide."
+        }
 	}
 
 }

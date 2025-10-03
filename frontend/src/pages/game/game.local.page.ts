@@ -2,6 +2,7 @@ import { RouteConfig } from '../../types/routes.types';
 import { GamePage } from './game.page';
 
 export class GameMenuLocal extends GamePage {
+	public challengedFriendID: number = 0;
 
 	constructor(config: RouteConfig) {
 		super(config);

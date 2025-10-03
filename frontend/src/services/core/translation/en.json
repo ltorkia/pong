@@ -42,8 +42,8 @@
 		"greeting": "Hi",
 		"underTitle": "Ready to challenge the magical realm ?",
 		"rulesBtn": "Rules",
-		"localGameBtn": "1v1 local game",
-		"distantGameBtn": "1v1 online game",
+		"localGameBtn": "1 versus 1 local game",
+		"distantGameBtn": "1 versus 1 online game",
 		"localTournamentBtn": "Local tournament",
 		"onlineTournamentBtn": "Online tournaments"
 	},
@@ -170,17 +170,26 @@
 	"profile": {
 		"statsTitle": "Stats",
 		"friendsTitle": "Mates",
-		"matchHistoryTitle": "Match history"
+		"matchHistoryTitle": "Match history",
+		"tournamentHistoryTitle": "Tournament history",
+		"winLabel": "Victories",
+		"lossLabel": "Losses",
+		"winRateLabel": "Win Rate",
+		"gamePlayedLabel": "Game played",
+		"winResult": "VICTORY",
+		"lossResult": "GAME OVER"
 	},
 
 	"game": {
 		"controlLabel": "CONTROLS",
 		"networkError": "Network error. Please try again later.",
 		"ready": "READY? PRESS SPACE TO BEGIN",
+        "tournamentGameTitle": "1 versus 1 Tournament Game",
 		"waitingText1": "Waiting for ",
 		"waitingText2": " to connect...",
 		"waitingTextPlayer": "another player",
 		"resultText": "You",
+		"player": "Player",
 		"player1": "Player 1",
 		"player2": "Player 2",
 		"loseMessage": "You lose !",
@@ -208,13 +217,22 @@
 		"cancelNo": "It's a mistake!",
 		"cancelYes": "Yes please.",
 		"canceled": "This tournament has been canceled by its owner!",
-		"backToLobby": "Back to tournament lobby..",
+		"backToLobby": "Homepage",
 		"players": "Players : ",
+        "navigateBtn": "Back to tournament",
 		"status": "Status : ",
 		"start": "START!",
         "nextGame": "Next Game :",
         "versus": "versus",
         "winnerBegin": "It looks like we got a winner !",
-        "winnerEnd": "just won the Tournament! Congrats!"
+        "winnerEnd": "just won the Tournament! Congrats!",
+        "errors": {
+            "noAlias": "Please enter an alias.",
+            "full": "This tournament is full.",
+            "playerAlreadyThere": "This player already exists in this tournament.",
+            "missingField": "A required field is missing.",
+            "missingPlayer": "Not enough players to start.",
+            "login": "Invalid email or password."
+        }
 	}
 }

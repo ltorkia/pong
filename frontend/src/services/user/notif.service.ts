@@ -1,19 +1,17 @@
 import DOMPurify from "dompurify";
-import { DEFAULT_ROUTE, ROUTE_PATHS } from '../../config/routes.config';
+import { ROUTE_PATHS } from '../../config/routes.config';
 import { notifApi, friendApi, dataApi } from '../../api/index.api';
 import { PageInstance } from '../../types/routes.types';
 import { COMPONENT_NAMES } from '../../config/components.config';
 import { NavbarComponent } from '../../components/navbar/navbar.component';
-import { UserRowComponent } from '../../components/user-row/user-row.component';
 import { User } from '../../shared/models/user.model';
 import { GamePage } from '../../pages/game/game.page';
 import { AppNotification } from '../../shared/models/notification.model';
 import { NotifResponse } from '../../shared/types/response.types';
 import { FRIEND_REQUEST_ACTIONS, FRIEND_NOTIF_CONTENT } from '../../shared/config/constants.config'; // en rouge car dossier local 'shared' != dossier conteneur
 import { isValidNotificationType, isFriendRequestAction, isUserOnlineStatus } from '../../shared/utils/app.utils';
-import { getHTMLElementById } from '../../utils/dom.utils';
 import { FriendRequestAction, NotificationModel, NotificationType } from '../../shared/types/notification.types';
-import { currentService, storageService, translateService, gameService } from '../index.service';
+import { currentService, storageService, translateService, gameService, webSocketService, friendService, pageService } from '../index.service';
 import { router } from '../../router/router';
 
 // ============================================================================
@@ -35,7 +33,8 @@ export class NotifService {
 
 	public currentNotif: AppNotification | null = null;
 	public friendId: number | null = null;
-	public friendName: string | null = null;	
+	public friendName: string | null = null;
+	public inviterTabIDs: Map<number, string> = new Map();
 	
 	private notifHandlers: Map<number, {
 		accept?: EventListener;
@@ -90,7 +89,7 @@ export class NotifService {
 			}
 		}
 		this.updateNotifsCounter();
-		this.refreshFriendButtons();
+		await this.refreshFriendButtons();
 	}
 
 	/**
@@ -140,12 +139,20 @@ export class NotifService {
 	// ===========================================
 
 	private async handleUserOnlineStatus(notif: AppNotification): Promise<void> {
-		if (this.currentPage.config.path === ROUTE_PATHS.USERS) {
+		if (this.currentPage.config.path === ROUTE_PATHS.USERS
+			|| this.currentPage.config.path === ROUTE_PATHS.PROFILE) {
 			this.currentNotif = notif;
 			const user = await dataApi.getUserById(Number(this.currentNotif.from));
 			if (!user)
 				return;
-			await this.currentPage.injectUser!(user);
+			switch (this.currentPage.config.path) {
+				case ROUTE_PATHS.USERS:
+					await this.currentPage.injectUser!(user);
+					break;
+				case ROUTE_PATHS.PROFILE:
+					this.currentPage.renderUserStatus!(user);
+					break;
+			}
 		}
 	}
 
@@ -195,25 +202,20 @@ export class NotifService {
 			storageService.setCurrentNotifs([...this.notifs]);
 			this.displayNotif();
 			await this.deleteAllNotifsFromUser(this.currentNotif!.from, this.currentNotif!.id);
-			if (this.currentPage instanceof GamePage) {
-				if (this.currentPage.config.path === ROUTE_PATHS.GAME_MULTI
-					&& this.currentPage.challengedFriendID === this.currentNotif!.from) {
-					switch (this.currentNotif!.type) {
-						case FRIEND_REQUEST_ACTIONS.INVITE:
-							// TODO: fix update bouton
-							// console.log('ON EST DANS LA CONDITION DE handleNotification');
+			switch (this.currentNotif!.type) {
+				case FRIEND_REQUEST_ACTIONS.INVITE:
+					this.inviterTabIDs.set(Number(this.currentNotif!.from), this.currentNotif!.inviterTabID);
+					console.log("------------Invite settings:", this.currentNotif!, this.inviterTabIDs, this.currentNotif!.inviterTabID);
+					if (this.currentPage instanceof GamePage) {
+						if (this.currentPage.config.path === ROUTE_PATHS.GAME_MULTI
+							&& this.currentPage.challengedFriendID === this.currentNotif!.from) {
+							// TODO: fix update bouton replay
 							this.currentPage.changeReplayButtonForInvite()!;
 							this.currentPage.setCleanInvite();
-							break;
-					}
-				} 
-				else {
-					switch (this.currentNotif!.type) {
-						case FRIEND_REQUEST_ACTIONS.INVITE:
+						} else 
 							this.currentPage.setCleanInvite();
-							break;
 					}
-				}
+					break;
 			}
 		};
 	}
@@ -339,19 +341,15 @@ export class NotifService {
 	}
 
 	/**
-	 * Met à jour les boutons d'amitié pour la page des utilisateurs si elle est affichée.
+	 * Met à jour les boutons d'amitié pour la page des utilisateurs ou du profil si affichée.
 	 *
-	 * Si la page des utilisateurs est affichée, appelle la méthode updateFriendButtons de la page
-	 * pour mettre à jour les boutons d'amitié correspondant à l'utilisateur d'ID "from" en fonction
-	 * de la demande d'amitié reçue.
+	 * Si la page des utilisateurs est affichée, appelle la méthode toggleFriendButtons de friendService
+	 * pour mettre à jour les boutons d'amitié correspondant.
 	 *
-	 * @param {UserRowComponent} [userRowInstance] - L'instance du composant UserRowComponent qui a envoyé la demande d'amitié.
 	 * @returns {Promise<void>} Une promesse qui se résout lorsque les boutons d'amitié ont été mis à jour.
 	 */
-	private async refreshFriendButtons(userRowInstance?: UserRowComponent): Promise<void> {
-		if (this.currentPage.config.path === ROUTE_PATHS.USERS) {
-			await this.currentPage.updateFriendButtons!(this.friendId!, userRowInstance);
-		}
+	private async refreshFriendButtons(): Promise<void> {
+		await friendService.toggleFriendButton();
 	}
 
 	/**
@@ -553,9 +551,10 @@ export class NotifService {
 	 * ! la mise à jour en db + envoi de la notif se font directement dans le back.
 	 *
 	 * @param {FriendRequestAction} action - Action à réaliser sur la demande d'amitié.
+	 * @param {string} [tabID] - Identifiant de l'onglet WebSocket pour les invitations à jouer.
 	 * @returns {Promise<void>}
 	 */
-	public async handleUpdate(action: FriendRequestAction): Promise<void> {
+	public async handleUpdate(action: FriendRequestAction, tabID?: string): Promise<void> {
 		if (!this.friendId || !this.notifData) {
 			console.warn("FriendId et/ou notifData manquant(s)");
 			return;
@@ -568,6 +567,9 @@ export class NotifService {
 		await this.refreshFriendButtons();
 		await this.deleteAllNotifsFromUser(this.notifData.to!);
 		this.displayDefaultNotif();
+		if (tabID)
+			this.notifData.inviterTabID = tabID;
+
 		await notifApi.addNotification(this.notifData!);
 	}
 
@@ -668,12 +670,7 @@ export class NotifService {
 		const target = event.target as HTMLElement;
 		this.setFriendId(target);
 		this.setNotifData(type);
-		const relation = await friendApi.getRelation(this.currentUser!.id, this.friendId!);
-		if (!relation || "errorMessage" in relation || relation.challengedBy) {
-			console.error(relation.errorMessage || "Invitation invalide.");
-			return;
-		}
-		await this.handleUpdate(type);
+		await this.handleUpdate(type, webSocketService.getTabID());
 		if ((this.currentPage.config.path !== ROUTE_PATHS.GAME_MULTI 
 				&& !(this.currentPage instanceof GamePage))
 			|| ((this.currentPage instanceof GamePage)
@@ -693,12 +690,6 @@ export class NotifService {
 		const target = event.target as HTMLElement;
 		this.setFriendId(target);
 		this.setNotifData(type);
-		const relation = await friendApi.getRelation(this.currentUser!.id, this.friendId!);
-		if (!relation || "errorMessage" in relation || relation.challengedBy != this.friendId!) {
-			console.error(relation.errorMessage || "Invitation invalide.");
-			return;
-		}
-
 		if (this.currentPage instanceof GamePage
 			&& this.currentPage.challengedFriendID === this.friendId) {
 			await this.currentPage.checkInviteReplayRequest?.();
@@ -832,7 +823,9 @@ export class NotifService {
 	 * @param content Le contenu de la notification.
 	 * @returns Le label de traduction correspondant.
 	 */
-	private getDataTsLabel(content: string): string {
+	private getDataTsLabel(content: string | null): string {
+		if (!content)
+			return '';
 		if (content.includes(FRIEND_NOTIF_CONTENT.ADD)) 
 			return 'notif.friendRequest';
 		if (content.includes(FRIEND_NOTIF_CONTENT.ACCEPT)) 

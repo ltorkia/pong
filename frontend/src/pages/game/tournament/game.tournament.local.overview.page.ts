@@ -20,14 +20,11 @@ export class GameTournamentLocalOverview extends BasePage {
     private tournament: TournamentLocal | undefined;
     private dataApi = new DataService();
     private users: UserModel[] = [];
-    private winner: Player | undefined;
 
     constructor(config: RouteConfig, params?: RouteParams) {
         super(config);
-        if (params && params.tournamentId) {
+        if (params && params.tournamentId)
             this.tournamentID = Number(params.tournamentId);
-            console.log(this.tournamentID);
-        }
     }
 
     /**
@@ -44,12 +41,16 @@ export class GameTournamentLocalOverview extends BasePage {
         if (!this.tournamentID) {
             console.error("Tournament id undefined");
             this.redirectRoute = ROUTE_PATHS.GAME_TOURNAMENT_LOCAL_MENU;
+            if (sessionStorage.getItem("tournamentID"))
+                sessionStorage.removeItem("tournamentID");
             return false;
         }
         this.tournament = await TournamentService.fetchLocalTournament(this.tournamentID!);
         if (!this.tournament) {
             console.error("Tournament not found");
             this.redirectRoute = ROUTE_PATHS.GAME_TOURNAMENT_LOCAL_MENU;
+            if (sessionStorage.getItem("tournamentID"))
+                sessionStorage.removeItem("tournamentID");
             return false;
         }
         return true;
@@ -60,7 +61,6 @@ export class GameTournamentLocalOverview extends BasePage {
         this.pastilleHTML = await this.fetchHTML("../../../../public/templates/game/tournament/tournament_pastille.html", "#tournament-pastille");
         this.toolTipHTML = await this.fetchHTML("../../../../public/templates/game/tournament/tournament_tooltip.html", "#tooltip");
         await this.fetchUsers();
-        console.log(this.tournament);
     }
 
     // Methode pour fetch une partie de HTML depuis une url
@@ -77,7 +77,6 @@ export class GameTournamentLocalOverview extends BasePage {
         if (div)
             return div.cloneNode(true) as HTMLElement;
         else {
-            console.error("didnt find top container");
             return undefined;
         }
     }
@@ -148,7 +147,9 @@ export class GameTournamentLocalOverview extends BasePage {
             winner.textContent = this.tournament?.winner.alias || this.tournament?.winner.username;
             // Animate the dialog itself
             animateCSS(overlay, "fadeIn").then;
-            animateCSS(dialog, "fadeIn").then(() => dialog.classList.remove("opacity-0"));
+            animateCSS(dialog, "fadeIn").then(() => dialog.classList.remove("opacity-0"))
+                .then(() => animateCSS(winner, "fadeInLeft"))
+                .then(() => winner.classList.remove("opacity-0"));
         }
     }
 
@@ -218,6 +219,7 @@ export class GameTournamentLocalOverview extends BasePage {
                     playerPastille.classList.add("border-red-500");
                 }
             }
+            tooltip.querySelector(`#score-${i}`)!.textContent = String(game.score[i]);
             container.append(playerPastille);
         }
         container.append(tooltip);
@@ -250,6 +252,7 @@ export class GameTournamentLocalOverview extends BasePage {
                 tournamentID: this.tournamentID,
             })], { type: 'application/json' });
             navigator.sendBeacon("/api/game/playgame", matchMakingReq);
+            sessionStorage.removeItem("tournamentID");
             router.navigate("/");
         })
 

@@ -213,6 +213,7 @@ export async function getUserGames(userId: number): Promise<GameModel[]> {
 			g.status,
 			g.looser_result,
 			g.winner_id,
+			g.type,
 			ug.status_win,
 			ug.duration
 		FROM User_Game ug
@@ -233,7 +234,7 @@ export async function getUserGames(userId: number): Promise<GameModel[]> {
 			WHERE ug.game_id = ?
 			AND u.id != ?
 			`,
-			[game.game_id, userId]
+			[game.id, userId]
 		);
 
 		game.other_players = players as SafeUserBasic[];
@@ -271,9 +272,8 @@ export async function getUserTournaments(userId: number): Promise<TournamentMode
 	for (const tournament of tournaments) {
 		const games = await db.all(`
 			SELECT g.id AS game_id, g.begin, g.end, g.status, g.winner_id
-			FROM Tournament_Game tg
-			JOIN Game g ON g.id = tg.game_id
-			WHERE tg.tournament_id = ?
+			FROM Game g
+			WHERE g.tournament = ?
 		`, [tournament.tournament_id]);
 
 		for (const game of games) {

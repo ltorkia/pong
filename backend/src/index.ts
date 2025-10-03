@@ -17,8 +17,8 @@ import { UserWS } from './types/user.types';
 // Ajout du lobby multiplayer a l'interface Fastify
 declare module 'fastify' {
     interface FastifyInstance {
-        lobby: Lobby,
-        usersWS: UserWS[],
+        lobby: Lobby;
+        usersWS: Map<number, UserWS[]>;
     }
 }
 
@@ -28,15 +28,6 @@ async function start() {
 
     // Instanciation de Fastify
     const app = Fastify({
-        // logger: {
-        //     transport: {
-        //         target: 'pino-pretty',
-        //         options: {
-        //             translateTime: 'SYS:standard',
-        //             ignore: 'pid,hostname',
-        //         }
-        //     },
-        // },
         ignoreTrailingSlash: true,		// ignore les / à la fin des urls
         bodyLimit: 10 * 1024 * 1024,	// 10 Mo pour toutes les requêtes
         connectionTimeout: 120000,		// 2 minutes
@@ -91,8 +82,8 @@ async function start() {
     // Initialisation du lobby multiplayer et ajout a l'app
     app.decorate('lobby', new Lobby());
 
-    // Websockets accessible au niveau global
-    const usersWS: UserWS[] = [];
+    // Websockets accessibles au niveau global
+    const usersWS = new Map<number, UserWS[]>();
     app.decorate('usersWS', usersWS);
 
     // Enregistrement des routes

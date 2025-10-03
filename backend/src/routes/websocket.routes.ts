@@ -1,51 +1,44 @@
 import { FastifyInstance } from 'fastify';
 import { UserWS } from '../types/user.types';
-import { Player } from '../shared/types/game.types';
 
 export async function webSocketRoutes(app: FastifyInstance) {
+
     app.get('/ws', { websocket: true }, (connection: WebSocket, req: any) => {
-        console.log("OPENING WEBSOCKET");
-        const allUsers = app.usersWS;
-        const allPlayers = app.lobby.allPlayers;
-        // previent d eventuelles doubles connexions ->marchait pas dans le jeu avant
-        const userIdx = allUsers.findIndex((user: UserWS) => user.id == req.user.id);
-        if (userIdx != -1) {
-            const oldUser = allUsers[userIdx];
-                
-            // Close the old WebSocket connection before removing
-            if (oldUser.WS) {
-                connection.close(1000, 'New connection established');
-                console.log(`CLOSED OLD WEBSOCKET for user ID = ${req.user.id}`);
-                return ;
-            }
-        //     allUsers.splice(userIdx, 1); //supprime des users
-        //     console.log(`DELETED USER ID = ${req.user.id}`);
-        // }
-        // const playerIdx = allPlayers.findIndex((player: Player) => player.ID == req.user.id);
-        // if (playerIdx != -1) {
-        //     allPlayers.splice(playerIdx, 1);
-        //     console.log(`DELETED PLAYER ID = ${req.user.id}`);
-        }
-        allUsers.push(new UserWS(req.user.id, connection));
-        console.log(allUsers);
+        const userId = req.user.id;
+        const tabID = req.query.tabID as string;
 
+        console.log(`OPENING WEBSOCKET for user ${userId}, tabID: ${tabID}`);
+
+        // Crée l'entrée pour l'utilisateur si elle n'existe pas
+        if (!app.usersWS.has(userId))
+            app.usersWS.set(userId, []);
+
+        // Crée le UserWS pour cet onglet
+        const userWS = new UserWS(userId, tabID, connection);
+        app.usersWS.get(userId)!.push(userWS);
+
+        // Gestion de la fermeture de la socket
         connection.onclose = () => {
-            const userIdx = allUsers.findIndex((user: UserWS) => user.id == req.user.id);
-            if (userIdx != -1) {
-                allUsers.splice(userIdx, 1);
-                console.log(`DELETED USER ID = ${req.user.id}`);
-            }
-            const playerIdx = allPlayers.findIndex((player: Player) => player.ID == req.user.id);
-            if (playerIdx != -1) {
-                allPlayers.splice(playerIdx, 1);
-                console.log(`DELETED PLAYER ID = ${req.user.id}`);
-            }
-        }
+            const sockets = app.usersWS.get(userId) || [];
+            app.usersWS.set(userId, sockets.filter((u: UserWS) => u !== userWS));
 
-        connection.onmessage = (event) => {
-            console.log(event);
-        }
-    })
+            if (app.usersWS.get(userId)!.length === 0)
+                app.usersWS.delete(userId);
+
+            console.log(`WebSocket closed for user ${userId}, tab ${tabID}`);
+        };
+
+        // Log des sockets courantes
+        console.log("Current sockets:", [...app.usersWS.entries()]
+            .map(([id, sockets]) => `id: ${id} - ${sockets.length} connections`)
+            .join(", ")
+        );
+
+        // Gestion des messages entrants
+        connection.onmessage = (event: any) => {
+            console.log(`WS message from user ${userId}, tab ${tabID}:`, event.data?.toString());
+        };
+    });
 }
 
   
