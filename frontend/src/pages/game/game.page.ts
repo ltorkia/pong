@@ -1,7 +1,7 @@
 import DOMPurify from "dompurify";
 import { BasePage } from '../base/base.page';
 import { RouteConfig } from '../../types/routes.types';
-import { translateService, currentService, notifService } from '../../services/index.service';
+import { translateService, currentService, notifService, webSocketService } from '../../services/index.service';
 import { gameApi } from '../../api/game/game.api';
 import { MatchMakingReq } from '../../shared/types/websocket.types';
 import { MultiPlayerGame } from '../../components/game/BaseGame.component';
@@ -366,7 +366,8 @@ export abstract class GamePage extends BasePage {
 			invitedID: invitedID,
 			inviterID: inviterID,
 			gameID: this.gameID,
-			inviteToClean: inviteToClean
+			inviteToClean: inviteToClean,
+			tabID: webSocketService.tabID
 		}
 
 		try {

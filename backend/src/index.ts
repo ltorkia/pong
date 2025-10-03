@@ -17,8 +17,10 @@ import { UserWS } from './types/user.types';
 // Ajout du lobby multiplayer a l'interface Fastify
 declare module 'fastify' {
     interface FastifyInstance {
-        lobby: Lobby,
-        usersWS: UserWS[],
+        lobby: Lobby;
+        usersWS: Map<number, UserWS[]>;
+        // usersWS: UserWS[];
+        // usersWS: Map<number, WebSocket[]>;
     }
 }
 
@@ -92,7 +94,10 @@ async function start() {
     app.decorate('lobby', new Lobby());
 
     // Websockets accessible au niveau global
-    const usersWS: UserWS[] = [];
+    // const usersWS: UserWS[] = [];
+    // app.decorate('usersWS', usersWS);
+    // const usersWS = new Map<number, WebSocket[]>();
+    const usersWS = new Map<number, UserWS[]>();
     app.decorate('usersWS', usersWS);
 
     // Enregistrement des routes

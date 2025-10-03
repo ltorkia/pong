@@ -40,7 +40,8 @@ export class MultiPlayerGame {
     constructor(playersCount: number, playerID: number, gameID: number) {
         // const inputs: string[] = ["w", "s", "ArrowUp", "ArrowDown"];
         this.playersCount = playersCount;
-        this.playerWebSocket = webSocketService.getWebSocket()!;
+        const tabID = webSocketService.getTabID();
+        this.playerWebSocket = webSocketService.getWebSocket(tabID)!;
         this.playerID = playerID;
         this.gameID = gameID;
         this.inputUp = false;

@@ -6,6 +6,7 @@ import { TournamentLobbyUpdate, StartTournamentSignal, DismantleSignal } from '.
 import { UserWS } from '../types/user.types';
 import { generateUniqueID } from '../shared/functions'
 import { addGame, addGamePlayers, getResultGame, createTournament } from '../db/game';
+import { findPlayerWebSocket } from '../helpers/query.helpers';
 
 // Differentes routes pour differents besoins lies aux tournois en remote
 // Les tournois existent en backend dans app.lobby.allTournaments
@@ -373,19 +374,36 @@ export async function tournamentRoutes(app: FastifyInstance) {
 
 
 // Update envoyee a tous les participants du tournoi
+// const sendToTournamentPlayers = (toSend: any, tournament: Tournament, app: FastifyInstance) => {
+//     for (const player of tournament.players) {
+//         const userWS: UserWS | undefined = app.usersWS.find((user: UserWS) => user.id == player.ID);
+//         if (userWS)
+//             userWS.WS.send(JSON.stringify(toSend));
+//     }
+// };
 const sendToTournamentPlayers = (toSend: any, tournament: Tournament, app: FastifyInstance) => {
     for (const player of tournament.players) {
-        const userWS: UserWS | undefined = app.usersWS.find((user: UserWS) => user.id == player.ID);
-        if (userWS)
-            userWS.WS.send(JSON.stringify(toSend));
+        const ws = findPlayerWebSocket(player.ID, app, player.tabID!);
+        if (ws && ws.readyState === WebSocket.OPEN) {
+            ws.send(JSON.stringify(toSend));
+        }
     }
 };
 
 // Update envoyee a tous les joueurs, pour que tout le monde puisse voir en direct l'etat de chaque tournoi 
+// const broadcast = (toSend: any, app: FastifyInstance) => {
+//     for (const user of app.usersWS)
+//         user.WS.send(JSON.stringify(toSend));
+// }
 const broadcast = (toSend: any, app: FastifyInstance) => {
-    for (const user of app.usersWS)
-        user.WS.send(JSON.stringify(toSend));
-}
+    for (const [userId, sockets] of app.usersWS.entries()) {
+        for (const userWS of sockets) {
+            if (userWS.WS.readyState === WebSocket.OPEN) {
+                userWS.WS.send(JSON.stringify(toSend));
+            }
+        }
+    }
+};
 
 // TODO : quand tournament < 2 lettres, ne s affiche pas jusqu au moment ou on ajoute un tourni + long -> fix ?
 // TODO : front : si on recoit sendToTournamentPlayers -> ready 

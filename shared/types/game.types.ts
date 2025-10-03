@@ -46,6 +46,7 @@ export type PositionObj = {
 
 export class Player {
     public ID: number;
+    public tabID?: string;
     public webSocket?: WebSocket;
     public inGame: boolean;
     public ready: boolean;

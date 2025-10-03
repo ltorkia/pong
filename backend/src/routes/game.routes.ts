@@ -15,6 +15,7 @@ import { deleteNotificationsFrom } from '../db/notification';
 import { sendToSocket } from '../helpers/notifications.helpers';
 import { NotificationInput } from '../types/zod/app.zod';
 import { TournamentLocal } from '../types/game.types';
+import { getUserWS } from '../helpers/query.helpers';
 
 export async function gameRoutes(app: FastifyInstance) {
     app.post('/playgame', async (request: FastifyRequest, reply: FastifyReply) => {
@@ -34,7 +35,7 @@ export async function gameRoutes(app: FastifyInstance) {
             return reply.status(403).send({ errorMessage: 'Forbidden' });
 
         if (reqType === "matchmaking_request") {
-            const newPlayer = initPlayer(allPlayers, playerID);
+            const newPlayer = initPlayer(allPlayers, playerID, matchMakingReq.data.tabID);
             if (!newPlayer)
                 return reply.code(404).send({ error: "Player not found" });
             newPlayer.matchMaking = true;
@@ -52,6 +53,8 @@ export async function gameRoutes(app: FastifyInstance) {
             const players = initPlayers(allPlayers, playerID, generateUniqueID(allPlayers));
             if (!players || !players[0] || !players[1])
                 return reply.code(404).send({ errorMessage: "Players not found" });
+            players[0].tabID = matchMakingReq.data.tabID;
+            players[1].tabID = matchMakingReq.data.tabID;
             startGame(app, [players[0], players[1]], "local");
             reply.code(200).send({ message: "Local game started" });
         }
@@ -70,7 +73,8 @@ export async function gameRoutes(app: FastifyInstance) {
                 return reply.code(400).send({ errorMessage: "Invalid invite request" });
             const players = initPlayers(allPlayers, inviterID, invitedID);
             if (!players || !players[0] || !players[1])
-                return reply.code(404).send({ errorMessage: "Players not found" });
+                return reply.code(409).send({ errorMessage: "Players not found" });
+            players[0].tabID = matchMakingReq.data.tabID;
             reply.code(200).send({ message: "Invite sent, waiting for acceptance" });
         }
         else if (reqType === FRIEND_REQUEST_ACTIONS.INVITE_ACCEPT) {
@@ -81,7 +85,8 @@ export async function gameRoutes(app: FastifyInstance) {
             const invited = allPlayers.find((p: Player) => p.ID == invitedID);
             const inviter = allPlayers.find((p: Player) => p.ID == inviterID);
             if (!invited || !inviter)
-                return reply.code(404).send({ errorMessage: "Players not found" });
+                return reply.code(409).send({ errorMessage: "Players not found" });
+            invited.tabID = matchMakingReq.data.tabID;
             startGame(app, [inviter, invited], "multi");
             reply.code(200).send({ message: "Game started!" });
         }
@@ -224,12 +229,15 @@ function initPlayers(allPlayers: Player[], currentPlayerId: number, adversaryId:
     return [playerOne, payerTwo];
 }
 
-function initPlayer(allPlayers: Player[], playerID: number) {
+function initPlayer(allPlayers: Player[], playerID: number, tabID?: string) {
     let player = allPlayers.find((p: Player) => p.ID == playerID);
     if (!player) {
         player = new Player(playerID);
         allPlayers.push(player);
-        console.log(`ADDED PLAYER ID = ${playerID}`);
+    }
+    if (tabID) {
+        player.tabID = tabID;
+        console.log(`PLAYER ID = ${playerID} - TABID = ${tabID} (Assigned)`);
     }
     return player;
 }
@@ -298,7 +306,8 @@ async function decount(app: FastifyInstance, players: Player[], gameID: number) 
             return;
 
         for (const player of players) {
-            const user = usersWS.find((user: UserWS) => user.id == player.ID);
+            const user = getUserWS(app, player.ID, player.tabID);
+            // const user = usersWS.find((user: UserWS) => user.id == player.ID);
             if (user && user.WS) {
                 user.WS.send(JSON.stringify({
                     type: "decount_game",
@@ -341,8 +350,9 @@ const startGame = async (app: FastifyInstance, players: Player[], mode: string, 
             WSToSend = { type: "start_game", otherPlayer: adversary, gameID: gameID, mode: mode };
             // console.log(WSToSend);
         }
-
-        const user = usersWS.find((user: UserWS) => user.id == player.ID);
+        console.log("-------------- Looking for user", player.ID, "with tabID", player.tabID);
+        const user = getUserWS(app, player.ID, player.tabID);
+        // const user = usersWS.find((user: UserWS) => user.id == player.ID);
         if (user && user.WS) {
             user.WS.send(JSON.stringify(WSToSend));
             user.WS.onmessage = (event: MessageEvent) => {
@@ -393,7 +403,12 @@ const startTournamentGame = async (app: FastifyInstance, gameID: number, hostID:
     }
 
     allGames.push(game);
-    const host = app.usersWS.find((u: UserWS) => u.id == hostID);
+    // const host = app.usersWS.find((u: UserWS) => u.id == hostID);
+    // if (!host || !host.WS) {
+    //     console.log("Host not found. bye");
+    //     return;
+    // }
+    const host = getUserWS(app, hostID, game.players[0].tabID);
     if (!host || !host.WS) {
         console.log("Host not found. bye");
         return;

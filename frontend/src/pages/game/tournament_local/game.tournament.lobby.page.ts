@@ -255,7 +255,8 @@ export class GameTournamentLobby extends BasePage {
     // }
 
     protected async attachListeners(): Promise<void> {
-        webSocketService.getWebSocket()?.addEventListener("message", (event) => {
+        const tabID = webSocketService.getTabID();
+        webSocketService.getWebSocket(tabID)?.addEventListener("message", (event) => {
             const lobbyUpdate = JSON.parse(event.data);
             console.log(lobbyUpdate);
             if (!lobbyUpdate)

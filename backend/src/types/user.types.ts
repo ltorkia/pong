@@ -52,10 +52,12 @@ export type FastifyFileSizeError = {
 
 export class UserWS {
     id: number;
+	tabID: string;
     WS: WebSocket;
 
-    constructor(id: number, WS: WebSocket) {
+    constructor(id: number, tabID: string, WS: WebSocket) {
         this.id = id;
+        this.tabID = tabID;
         this.WS = WS;
     }
 }
