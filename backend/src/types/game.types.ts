@@ -13,17 +13,6 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 const randomNb = (min: number, max: number) => { return (Math.random() * (max - min) + min) };
 
-const randomAngleRightSide = (): number => {
-    // Choisir aléatoirement si on prend la plage 0-90 ou 270-360
-    if (Math.random() < 0.5) {
-        // Plage 0 à 90
-        return Math.random() * 90;
-    } else {
-        // Plage 270 à 360
-        return 270 + Math.random() * 90;
-    }
-};
-
 const shuffleArray = (array: any[]) => {
     for (let i = array.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -69,20 +58,48 @@ export class Ball {
     horizontalCollision(players: Player[]) {
         const player = this.vx < 0 ? players[0] : players[1];
 
-        // Si la balle va vers le joueur et que le joueur se déplace
-        const ballAboveCenter = this.y < player.pos.y / 2;
+        if (this.vx < 0) {
+            this.x = player.pos.x + player.width / 2 + this.radius;
+        } else {
+            this.x = player.pos.x - player.width / 2 - this.radius;
+        }
+
+        // Si la balle va vers le joueur et que le joueur se deplace
+        const ballAboveCenter = this.y < player.pos.y;
         const playerMovingDown = player.inputDown;
         const playerMovingUp = player.inputUp;
+        const playerThird = player.height / 3;
+        const playerBegin = player.pos.y - player.height / 2;
+
+        // Distance of ball from top of paddle
+        const relativeY = this.y - playerBegin;
+
+        if (relativeY < playerThird) {
+            this.dirY -= 0.3;
+            this.speed += 0.01;
+        } else if (relativeY > playerThird * 2) {
+            this.dirY += 0.3;
+            this.speed += 0.005;
+        } else {
+            if (!(this.speed - 0.005 < this.initSpeed))
+                this.speed -= 0.005;
+        }
+
+        if (this.vx < 0) {
+            this.x = player.pos.x + player.width / 2 + this.radius;
+        } else {
+            this.x = player.pos.x - player.width / 2 - this.radius;
+        }
 
         // Inverse la direction si le joueur se déplace dans la même direction que la balle
         if ((ballAboveCenter && playerMovingDown) || (!ballAboveCenter && playerMovingUp)) {
+            console.log("ball inverted");
             this.dirX = -this.dirX;
             this.dirY = -this.dirY;
             this.speed += 0.001;
         } else // Rebond normal
             this.dirX = -this.dirX;
 
-        
         this.setDirectionVector();
     }
 
@@ -101,6 +118,7 @@ export class Ball {
     isGoingDown() {
         return this.vy > 0;
     }
+
 
     setDirectionVector() {
         // Normaliser le vecteur de direction
@@ -178,24 +196,62 @@ export class Game extends EventEmitter {
         this.tournamentID = tournamentID;
     }
 
-    private async gameLoop(): Promise<void> {
+    // private async gameLoop(): Promise<void> {
+    //     const fps = 1000 / 60;
+    //     let then = Date.now();
+    //     const startTime = then;
+    //     let frame = 0;
+    //     while (this.gameStarted == true) {
+    //         this.ball.move();
+    //         for (const player of this.players)
+    //             player.move();
+    //         // if (this.ball.x < -0.5 || this.ball.y > 0.5) {
+    //         if (this.ball.checkPlayerCollision(this.players))
+    //             this.ball.horizontalCollision(this.players);
+    //         // }
+    //         // else if (collision && (this.ball.isGoingUp() || this.ball.isGoingDown()))
+    //         //     this.ball.verticalCollision();
+    //         if (this.ball.y + this.ball.radius / 2 <= -1 || this.ball.y + this.ball.radius / 2 >= 1)
+    //             this.ball.verticalCollision();
+    //         if (this.ball.x - this.ball.radius / 2 <= -1 || this.ball.x + this.ball.radius / 2 >= 1)
+    //             return (this.checkScore());
+    //         const now = Date.now();
+    //         if (now - then < fps) {
+    //             await sleep(fps - (now - then));
+    //         }
+    //         frame++;
+    //         this.sendGameUpdate();
+    //         then = Date.now();
+    //     }
+    //     console.log("----------------- GAME ENDED -----------------");
+    // };
+
+        private async gameLoop(): Promise<void> {
         const fps = 1000 / 60;
         let then = Date.now();
         const startTime = then;
         let frame = 0;
         while (this.gameStarted == true) {
-            this.ball.move();
+            // this.ball.move();
             for (const player of this.players)
                 player.move();
-            const collision: boolean = this.ball.checkPlayerCollision(this.players);
-            if (collision && (this.ball.isGoingRight() || this.ball.isGoingLeft()))
-                this.ball.horizontalCollision(this.players);
-            else if (collision && (this.ball.isGoingUp() || this.ball.isGoingDown()))
-                this.ball.verticalCollision();
-            if (this.playersCount == 2 && (this.ball.y >= 1 || this.ball.y <= -1))
-                this.ball.verticalCollision();
-            if (this.ball.x + this.ball.radius / 2 <= -1 || this.ball.x + this.ball.radius / 2 >= 1)
+      
+            // if (this.ball.x < -0.5 || this.ball.y > 0.5) {
+            for (let i = 0; i < 10; i++) {
+                this.ball.x += this.ball.vx / 10;
+                this.ball.y += this.ball.vy / 10;
+
+                if (this.ball.checkPlayerCollision(this.players))
+                    this.ball.horizontalCollision(this.players);
+
+                if (this.ball.y + this.ball.radius / 2 <= -1 || this.ball.y + this.ball.radius / 2 >= 1)
+                    this.ball.verticalCollision();
+                if (this.ball.x - this.ball.radius / 2 <= -1 || this.ball.x + this.ball.radius / 2 >= 1)
                 return (this.checkScore());
+            }
+            // }
+            // else if (collision && (this.ball.isGoingUp() || this.ball.isGoingDown()))
+            //     this.ball.verticalCollision();
             const now = Date.now();
             if (now - then < fps) {
                 await sleep(fps - (now - then));
@@ -213,18 +269,25 @@ export class Game extends EventEmitter {
             this.players[0].pos.y = this.players[1].pos.y = 0;
             this.players[1].pos.x = 1 - this.players[0].width / 2;
         }
+        for (const player of this.players) {
+            player.inputUp = false;
+            player.inputDown = false;
+        }
     };
 
     private checkScore(): void {
         const lastGoal: boolean[] = [];
+        console.log("BALL X Y: ", this.ball.x, " ", this.ball.y);
 
         if (this.ball.x < 0) {
             this.score[1] += 1;
             lastGoal[1] = true;
+            console.log("PLAYER X Y: ", this.players[0].pos.x, this.players[0].pos.y);
         }
         else if (this.ball.x > 0) {
             this.score[0] += 1;
             lastGoal[0] = true;
+            console.log("PLAYER X : ", this.players[1].pos.x, this.players[0].pos.y);
         }
         this.score.forEach(score => {
             if (score >= 3)
@@ -239,7 +302,7 @@ export class Game extends EventEmitter {
         this.gameLoop();
     };
 
-    public initRound(lastGoal?: boolean []): void {
+    public initRound(lastGoal?: boolean[]): void {
         this.ball.reset(lastGoal);
         this.initSizePos();
         this.gameLoop();
@@ -250,9 +313,6 @@ export class Game extends EventEmitter {
         this.isOver = true;
 
         for (const player of this.players) {
-            if (player === this.players[1])
-                this.score = [this.score[1], this.score[0]];
-
             if (player.webSocket) {
                 player.webSocket.send(JSON.stringify({
                     type: "end",
@@ -331,7 +391,7 @@ export class Game extends EventEmitter {
     };
 
     public getWinner() { return this.score[0] == 3 ? this.players[0] : this.players[1] };
-    public getLooser() { return this.score[1] == 3 ? this.players[1] : this.players[0] };
+    public getLooser() { return this.score[1] != 3 ? this.players[1] : this.players[0] };
     public getIsOver() { return this.isOver };
     public getScore() { return this.score };
     public setGameStarted(started: boolean) { this.gameStarted = started };

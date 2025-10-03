@@ -194,9 +194,16 @@ export abstract class GamePage extends BasePage {
         switch (data.type) {
 
             case "start_game":
+                const aliases: string[] = [];
+
                 this.gameID = data.gameID;
                 this.adversary = data.otherPlayer;
-                this.game = new MultiPlayerGame(2, this.currentUser!.id, this.gameID);
+                aliases[0] = this.currentUser.username;
+                if (!this.adversary)
+                    aliases[1] = translateService.t("game.player2");
+                else
+                    aliases[1] = this.adversary.username;
+                this.game = new MultiPlayerGame(2, this.currentUser!.id, this.gameID, aliases);
                 break;
 
             case "decount_game":
@@ -537,6 +544,7 @@ export abstract class GamePage extends BasePage {
     protected fillScoreBox(game?: Game): void {
         if (!this.endGamePanel)
             return;
+        console.log(this.currentUser);
         const resMessage = getHTMLElementByClass('res-message', this.endGamePanel) as HTMLElement;
         const resScore = getHTMLElementByClass('res-score', this.endGamePanel) as HTMLElement;
         const spanRes = document.createElement("span");
@@ -576,11 +584,9 @@ export abstract class GamePage extends BasePage {
                 spanRes.textContent = game?.players[0].alias || game?.players[1].alias;
                 spanAdversary.textContent = game?.players[1].alias || game?.players[1].username;
             }
-        } else {
-            spanRes.setAttribute("data-ts", "game.player1");
-            spanRes.textContent = "Player 1";
+        } else { // game locale
+            spanRes.textContent = this.currentUser.username;
             spanAdversary.setAttribute("data-ts", "game.player2");
-            spanAdversary.textContent = `Player 2`;
         }
 
         resScore.append(spanRes, spanScore, spanAdversary);

@@ -1,3 +1,4 @@
+import { animateCSS } from "../../utils/animate.utils";
 import { Triangle } from "../../pages/game/boids.page";
 import { webSocketService } from "../../services/user/user.service";
 import { GameData } from "../../shared/types/game.types"
@@ -20,6 +21,7 @@ export class MultiPlayerGame {
     private gameCanvas: HTMLCanvasElement = document.createElement('canvas');
     private canvasCtx: CanvasRenderingContext2D = this.gameCanvas.getContext("2d", { alpha: true })!;
     private players: PlayerBar[] = [];
+    private aliases: string[];
     private ball = new Ball(this.canvasCtx);
     private score: number[] = [0, 0];
     private scoreChangeFrames: number = 0;
@@ -41,7 +43,7 @@ export class MultiPlayerGame {
     private kindOfGame: string = "multi";
 
 
-    constructor(playersCount: number, playerID: number, gameID: number) {
+    constructor(playersCount: number, playerID: number, gameID: number, aliases: string[]) {
         this.playersCount = playersCount;
         this.playerWebSocket = webSocketService.getWebSocket()!;
         this.playerID = playerID;
@@ -52,6 +54,7 @@ export class MultiPlayerGame {
         for (let i = 0; i < playersCount; i++) {
             this.players.push(new PlayerBar(this.canvasCtx));
         }
+        this.aliases = aliases;
     }
 
     public clearScreen(): void {
@@ -146,10 +149,17 @@ export class MultiPlayerGame {
     public getScore(): number[] { return this.score };
 
     private printScore(): void {
+        this.canvasCtx.font = "5rem 'Courier New', monospace";
         this.canvasCtx.textAlign = "center";  // Centre horizontalement
         this.canvasCtx.textBaseline = "middle"; // Centre verticalement
         const scoreStr = this.score[0].toString() + " " + this.score[1].toString();
         this.canvasCtx.fillText(scoreStr, this.gameCanvas.width / 2, 50);
+    }
+
+    private printAliases(): void {
+        this.canvasCtx.font = "2rem 'Courier New', monospace";
+        this.canvasCtx.fillText(this.aliases[0], (this.gameCanvas.width / 2) / 2, 100);
+        this.canvasCtx.fillText(this.aliases[1], (this.gameCanvas.width / 2) + ((this.gameCanvas.width / 2) / 2), 100);
     }
 
     public registerGameData(newGameState: GameData): void {
@@ -171,16 +181,15 @@ export class MultiPlayerGame {
 
             const t = (targetTime - this.gameStates.timestamps[target]) /
                 (this.gameStates.timestamps[next] - this.gameStates.timestamps[target]);
-            if (this.scoreChangeFrames) {
-                console.log(this.scoreChangeFrames);
-                this.scoreChangeFrames -= 1;
-                this.ball.x = 0;
-                this.ball.y = 0;
-            }
-            else {
+            // if (this.scoreChangeFrames) {
+                // this.scoreChangeFrames -= 1;
+                // this.ball.x = 0;
+                // this.ball.y = 0;
+            // }
+            // else {
                 this.ball.x = lerp(this.gameStates.states[target].ball.x, this.gameStates.states[next].ball.x, t);
                 this.ball.y = lerp(this.gameStates.states[target].ball.y, this.gameStates.states[next].ball.y, t);
-            }
+            // }
             this.players[0].x = this.gameStates.states[next].players[0].pos.x;
             this.players[1].x = this.gameStates.states[next].players[1].pos.x;
             this.players[0].y = this.gameStates.states[next].players[0].pos.y;
@@ -225,6 +234,7 @@ export class MultiPlayerGame {
             player.draw();
         this.ball.draw();
         this.printScore();
+        this.printAliases();
         this.drawMiddleLine();
 
         for (const bird of this.birds) {
@@ -240,10 +250,9 @@ export class MultiPlayerGame {
         const parentContainer: HTMLElement = document.getElementById("pong-section")!;
         this.gameCanvas.height = parentContainer.getBoundingClientRect().height;    // will need to update that every frame later (responsiveness)
         this.gameCanvas.width = parentContainer.getBoundingClientRect().width;
-        this.gameCanvas.style.border = "1px solid black";
-        this.gameCanvas.style.backgroundColor = "black";
+        this.gameCanvas.classList.add("border-1", "border-black" ,"bg-black" ,"bg-opacity-70")
+        animateCSS(this.gameCanvas, "zoomIn");
         this.gameCanvas.style.imageRendering = "pixelated";
-        this.canvasCtx.font = "5rem 'Courier New', monospace";
         parentContainer.append(this.gameCanvas);
     }
 
