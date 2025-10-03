@@ -1,12 +1,10 @@
-import DOMPurify from "dompurify";
 import { BasePage } from '../base/base.page';
 import { User } from '../../shared/models/user.model';
 import { dataApi } from '../../api/index.api';
-import { dataService } from '../../services/index.service';
 import { SearchBarComponent } from '../../components/search-bar/search-bar.component';
 import { UserRowComponent } from '../../components/user-row/user-row.component';
 import { PaginationComponent } from '../../components/pagination/pagination.component';
-import { getHTMLElementById, getHTMLElementByClass } from '../../utils/dom.utils';
+import { getHTMLElementById } from '../../utils/dom.utils';
 import { RouteConfig } from '../../types/routes.types';
 import { COMPONENT_NAMES, HTML_COMPONENT_CONTAINERS } from '../../config/components.config';
 import { ComponentConfig, PaginationParams } from '../../types/components.types';
@@ -93,25 +91,6 @@ export class UsersPage extends BasePage {
 	// ===========================================
 	// METHODES PRIVATES
 	// ===========================================
-
-	// /**
-	//  * Vérifie que la configuration d'un composant est valide et la retourne.
-	//  *
-	//  * Vérifie que la configuration du composant est présente dans la configuration
-	//  * de la page, que le composant doit être rendu et que la configuration est
-	//  * valide. Si une des conditions n'est pas remplie, une erreur est lancée.
-	//  * 
-	//  * @param {ComponentName} componentName Le nom du composant à vérifier.
-	//  * @returns {ComponentConfig} La configuration valide du composant.
-	//  * @throws {Error} Si la configuration est invalide.
-	//  */
-	// private checkComponentConfig(componentName: ComponentName): ComponentConfig {
-	// 	const config: ComponentConfig | undefined = this.components?.[componentName];
-	// 	if (!config || !this.shouldRenderComponent(config) || !this.isValidConfig(config, false)) {
-	// 		throw new Error(`Configuration du composant '${componentName}' invalide`);
-	// 	}
-	// 	return config;
-	// }
 
 	/**
 	 * Injecte la barre de recherche dans le DOM.
@@ -251,29 +230,6 @@ export class UsersPage extends BasePage {
 			userLine.classList.add('line-offline');
 			this.userList.appendChild(userLine);
 		}
-
-		// rowComponent.render().then(() => {
-		// 	const userLine = tempContainer.querySelector('.user-line');
-		// 	if (userLine) {
-		// 		userLine.id = instanceKey;
-		// 		if (user.id === this.currentUser!.id) {
-		// 			(userLine as HTMLElement).style.backgroundColor = '#5e8ca570';
-		// 		}
-		// 		this.removeUser(user);
-		// 		userLine.classList.add('animate-fade-in-up');
-
-		// 		if (user.status === USER_ONLINE_STATUS.ONLINE) {
-		// 			const currentUserLine = this.userList.querySelector(`#${this.userRowConfig!.name}-${this.currentUser!.id}`);
-		// 			if (currentUserLine)
-		// 				currentUserLine.insertAdjacentElement('afterend', userLine);
-		// 			else
-		// 				this.userList.prepend(userLine);
-		// 		} else {
-		// 			userLine.classList.add('line-offline');
-		// 			this.userList.appendChild(userLine);
-		// 		}
-		// 	}
-		// })
 	}
 
 	/**

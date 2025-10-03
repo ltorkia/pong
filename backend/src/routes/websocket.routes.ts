@@ -1,6 +1,5 @@
 import { FastifyInstance } from 'fastify';
 import { UserWS } from '../types/user.types';
-import { Player } from '../shared/types/game.types';
 
 export async function webSocketRoutes(app: FastifyInstance) {
 

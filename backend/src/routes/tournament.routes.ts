@@ -373,16 +373,6 @@ export async function tournamentRoutes(app: FastifyInstance) {
     });
 }
 
-
-
-// Update envoyee a tous les participants du tournoi
-// const sendToTournamentPlayers = (toSend: any, tournament: Tournament, app: FastifyInstance) => {
-//     for (const player of tournament.players) {
-//         const userWS: UserWS | undefined = app.usersWS.find((user: UserWS) => user.id == player.ID);
-//         if (userWS)
-//             userWS.WS.send(JSON.stringify(toSend));
-//     }
-// };
 const sendToTournamentPlayers = (toSend: any, tournament: Tournament, app: FastifyInstance) => {
     for (const player of tournament.players) {
         const ws = findPlayerWebSocket(player.ID, app, player.tabID!);
@@ -392,11 +382,6 @@ const sendToTournamentPlayers = (toSend: any, tournament: Tournament, app: Fasti
     }
 };
 
-// Update envoyee a tous les joueurs, pour que tout le monde puisse voir en direct l'etat de chaque tournoi 
-// const broadcast = (toSend: any, app: FastifyInstance) => {
-//     for (const user of app.usersWS)
-//         user.WS.send(JSON.stringify(toSend));
-// }
 const broadcast = (toSend: any, app: FastifyInstance) => {
     for (const [userId, sockets] of app.usersWS.entries()) {
         for (const userWS of sockets) {
@@ -406,6 +391,3 @@ const broadcast = (toSend: any, app: FastifyInstance) => {
         }
     }
 };
-
-// TODO : quand tournament < 2 lettres, ne s affiche pas jusqu au moment ou on ajoute un tourni + long -> fix ?
-// TODO : front : si on recoit sendToTournamentPlayers -> ready 

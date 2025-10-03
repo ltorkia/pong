@@ -1,6 +1,4 @@
 import { FastifyInstance } from 'fastify';
-// import { UserWS } from '../types/user.types';
-// import type { WebSocket } from 'ws';
 import { NotificationModel, UserOnlineStatus } from '../shared/types/notification.types';
 import { FRIEND_REQUEST_ACTIONS, FRIEND_NOTIF_CONTENT } from '../shared/config/constants.config';
 import { NotificationInput } from '../types/zod/app.zod';
@@ -16,13 +14,6 @@ import { majLastlog } from '../db/usermaj';
  * @param {FastifyInstance} app - L'instance de l'application Fastify.
  * @param {NotificationModel[]} data - Le tableau contenant les notifications à envoyer.
  */
-// export function sendToSocket(app: FastifyInstance, data: NotificationModel[]): void {
-// 	const userWS: UserWS | undefined = app.usersWS.find((user: UserWS) => user.id == data[0].to);
-// 	if (userWS) {
-// 		console.log("→ Envoi WS vers", userWS.id, ":", JSON.stringify(data));
-// 		userWS.WS.send(JSON.stringify(data));
-// 	}
-// }
 export function sendToSocket(app: FastifyInstance, data: NotificationModel[]) {
     const sockets = app.usersWS.get(Number(data[0].to));
     if (!sockets) 
@@ -41,14 +32,6 @@ export function sendToSocket(app: FastifyInstance, data: NotificationModel[]) {
  * @param {number} jwtUserId - L'ID de l'utilisateur identifié par le JWT.
  * @param {NotificationModel[]} data - Le tableau contenant les notifications à envoyer.
  */
-// export function sendToAllSockets(app: FastifyInstance, jwtUserId: number, data: NotificationModel[]): void {
-// 	for (const userWS of app.usersWS) {
-// 		if (jwtUserId === userWS.id)
-// 			continue;
-// 		console.log("→ Envoi WS vers", userWS.id, ":", JSON.stringify(data));
-// 		userWS.WS.send(JSON.stringify(data));
-// 	}
-// }
 export function sendToAllSockets(app: FastifyInstance, jwtUserId: number, data: NotificationModel[]) {
     for (const [userId, sockets] of app.usersWS.entries()) {
         if (userId === jwtUserId) 
@@ -95,16 +78,6 @@ export async function setOnlineStatus(app: FastifyInstance, userId: number, stat
             }
         }
     }
-	// for (const userWS of app.usersWS) {
-	// 	if (userId === userWS.id)
-	// 		continue;
-	// 	notifData.to = userWS.id;
-	// 	const notif = await insertNotification(notifData);
-	// 	if (!notif || 'errorMessage' in notif)
-	// 		return;
-	// 	console.log("→ Envoi WS vers", userWS.id, ":", JSON.stringify([notif]));
-	// 	userWS.WS.send(JSON.stringify([notif]));
-	// }
 }
 
 /**
