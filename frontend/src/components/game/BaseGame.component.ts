@@ -84,6 +84,7 @@ export class MultiPlayerGame {
             gameID: this.gameID,
             key: event.key,
             status: true,
+            tabID: webSocketService.getTabID()
         }))
     };
 
@@ -96,6 +97,7 @@ export class MultiPlayerGame {
             gameID: this.gameID,
             key: event.key,
             status: false,
+            tabID: webSocketService.getTabID()
         }))
     };
 

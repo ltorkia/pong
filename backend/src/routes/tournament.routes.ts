@@ -3,10 +3,10 @@ import { TournamentSchema, TournamentReqSchema, TournamentPlayerReadySchema, Sta
 import { Player } from '../shared/types/game.types';
 import { Game, Tournament, TournamentLocal } from '../types/game.types';
 import { TournamentLobbyUpdate, StartTournamentSignal, DismantleSignal } from '../shared/types/websocket.types'
-import { UserWS } from '../types/user.types';
 import { generateUniqueID } from '../shared/functions'
 import { addGame, addGamePlayers, getResultGame, createTournament } from '../db/game';
 import { findPlayerWebSocket } from '../helpers/query.helpers';
+import { initPlayer } from './game.routes';
 
 // Differentes routes pour differents besoins lies aux tournois en remote
 // Les tournois existent en backend dans app.lobby.allTournaments
@@ -114,10 +114,12 @@ export async function tournamentRoutes(app: FastifyInstance) {
 
         // -1 pour joueur temporaire (non enregistre, envoye par le front)
         for (const player of tournamentParse.data.players) {
-            if (player.ID == -1)
-                players.push(new Player(generateUniqueID(allPlayers), player.alias));
+            let newPlayer: Player;
+            if (player.ID === -1)
+                newPlayer = initPlayer(allPlayers, generateUniqueID(Array.from(allPlayers.keys())), tournamentParse.data.tabID, player.alias);
             else
-                players.push(new Player(player.ID, player.alias));
+                newPlayer = initPlayer(allPlayers, player.ID, tournamentParse.data.tabID, player.alias);
+            players.push(newPlayer);
         }
         const tournamentID = await createTournament(tournamentParse.data.maxPlayers, tournamentParse.data.maxPlayers / 2);
         if (!tournamentID)

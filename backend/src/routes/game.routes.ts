@@ -4,7 +4,6 @@ import { StartGame } from '../shared/types/websocket.types'
 import { Game } from '../types/game.types';
 import { generateUniqueID } from '../shared/functions'
 import { MatchMakingReqSchema } from '../types/zod/game.zod';
-import { UserWS } from '../types/user.types';
 import { getUserStats } from '../db/user';
 import { FRIEND_REQUEST_ACTIONS } from '../shared/config/constants.config';
 import { JwtPayload } from '../types/user.types';
@@ -20,12 +19,13 @@ import { getUserWS } from '../helpers/query.helpers';
 export async function gameRoutes(app: FastifyInstance) {
     app.post('/playgame', async (request: FastifyRequest, reply: FastifyReply) => {
         const matchMakingReq = MatchMakingReqSchema.safeParse(request.body);
-        const reqType = matchMakingReq.data!.type;
+        if (!matchMakingReq.success) {
+            return reply.code(400).send({ error: matchMakingReq.error.errors[0].message });
+        }
+        const reqType = matchMakingReq.data.type;
         console.log("---------- request body /playgame = ", request.body);
 
-        if (!matchMakingReq.success)
-            return reply.code(400).send({ error: matchMakingReq.error.errors[0].message });
-        const { allPlayers } = app.lobby;
+        const allPlayers: Map<number, Player[]> = app.lobby.allPlayers;
         console.log("LOBBY", app.lobby);
 
         // On vérifie que le player est bien le current user
@@ -50,7 +50,7 @@ export async function gameRoutes(app: FastifyInstance) {
             reply.code(200).send({ message: "Successfully added to matchmaking" });
         }
         else if (reqType === "local") {
-            const players = initPlayers(allPlayers, playerID, generateUniqueID(allPlayers));
+            const players = initPlayers(allPlayers, playerID, generateUniqueID(Array.from(allPlayers.keys())));
             if (!players || !players[0] || !players[1])
                 return reply.code(404).send({ errorMessage: "Players not found" });
             players[0].tabID = matchMakingReq.data.tabID;
@@ -82,21 +82,25 @@ export async function gameRoutes(app: FastifyInstance) {
             const inviterID = matchMakingReq.data.inviterID;
             if (!inviterID || invitedID != matchMakingReq.data.invitedID)
                 return reply.code(400).send({ errorMessage: "Invalid invite request" });
-            const invited = allPlayers.find((p: Player) => p.ID == invitedID);
-            const inviter = allPlayers.find((p: Player) => p.ID == inviterID);
+            const invited = allPlayers.get(invitedID);
+            const inviter = allPlayers.get(inviterID);
             if (!invited || !inviter)
                 return reply.code(409).send({ errorMessage: "Players not found" });
-            invited.tabID = matchMakingReq.data.tabID;
-            startGame(app, [inviter, invited], "multi");
+            const invitedPlayer = initPlayer(allPlayers, invitedID, matchMakingReq.data.tabID);
+            startGame(app, [inviter[0], invitedPlayer], "multi");
             reply.code(200).send({ message: "Game started!" });
         }
         else if (reqType === "clean_request") {
             if (matchMakingReq.data.inviteToClean)
                 await cleanInvite(app, playerID, matchMakingReq.data.inviterID, matchMakingReq.data.invitedID);
             await cleanGame(app, matchMakingReq.data.gameID);
-            let player = allPlayers.find((p: Player) => p.ID == playerID);
-            if (player)
-                player.matchMaking = false;
+            const players = allPlayers.get(playerID);
+            if (players && matchMakingReq.data.tabID) {
+                const player = players.find(p => p.tabID === matchMakingReq.data.tabID);
+                if (player) {
+                    player.matchMaking = false;
+                }
+            }
             reply.code(200).send({ message: "Game cleaned up" });
         }
         else if (reqType === "tournament_clean_request") {
@@ -105,152 +109,54 @@ export async function gameRoutes(app: FastifyInstance) {
             console.log(app.lobby.allTournamentsLocal);
             reply.code(200).send({ message: "Tournament clean done" });
         }
-
-        /**
-         * ! ANCIEN CODE D'ELISA POUR LOCAL + REMOTE SI JAMAIS BESOIN DE RECUP
-         */
-        // // MATCHMAKING REQUEST POUR LOCAL
-        // if (reqType === "tournament") //localtorunament
-        // {
-        // 	console.log("LOCAL TOURNAMENT REQUEST RECEIVED : ", matchMakingReq.data);
-        // 	const tournament = app.lobby.allTournaments.find((t: Tournament) => t.ID === matchMakingReq.data.tournamentID)!;
-        // 	console.log("LOBBY TOURNOI : ", tournament);
-        // 	const players = tournament.players;
-        // 	console.log("LOBBY PLAYERS dans tournois: ", players);
-        // 	let game = tournament.stageOneGames[0];
-        // 	if (tournament.stageOneGames[0].launched)
-        // 	{
-        // 		if (!tournament.stageOneGames[1].launched)
-        // 		{
-        // 			console.log("DEJA LANCE, ON CHECK LE RESULTAT POUR LANCER LE 2EME ROUND");
-        // 			const result = await getResultGame(tournament.stageOneGames[0].gameID);
-        // 			if (result){
-        // 				console.log("RESULT TROUVE DANS LA DB POUR LE JEU 1 : ", result);
-        // 				const playerWinner = players.find((p: Player) => p.ID === result.winnerId); // a foutre ailleurs
-        // 				tournament.stageTwoGames[0].players.push(playerWinner!);
-        // 				console.log("RESULTAT DU JEU : ", result);
-        // 			}
-        // 			else
-        // 				return (console.log("Pas de result dans la db pour ce jeu, pb quelque part..."));
-        // 			game = tournament.stageOneGames[1];
-        // 		}
-        // 		if(tournament.stageOneGames[1].launched)
-        // 		{
-        // 			await getResultGame(tournament.stageOneGames[1].gameID).then((result) => {
-        // 				const playerWinner = players.find((p: Player) => p.ID === result.winnerId);
-        // 				tournament.stageTwoGames[0].players.push(playerWinner!);
-        // 				console.log("RESULTAT DU JEU : ", result);
-        // 			});
-        // 			game = tournament.stageTwoGames[0];
-        // 		}
-        // 	}
-        // 	if ((game != tournament.stageTwoGames[0]) || (game == tournament.stageTwoGames[0] && !game.launched))
-        // 	{
-        // 		console.log("GAME TO LAUNCH : ", game);
-        // 		startGame(app, game.players, "local", game, tournament.masterPlayerID); //pas envoye a la bnne personne : ajout de l id du chef du tournoi ?
-        // 		game.launched = true;
-        // 	} //add dans la db l id du tournament -> game
-        // 	else
-        // 		return reply.code(400).send({ error: "All games in this tournament are already launched" });
-        // 	// requete speciale tournoi -> on rajoute ensuite dans le lobby tournoi ?
-        // 	// chaque requete sera envoyee une fois que la personne se sera register dans le front
-        // 	// dans la data : alias + user_name;
-        // 	// si username : check db + register avec alias + username
-        // 	// si alias : creation d un joueur avec ID unique
-
-        // 	// on arrive ici une fois les verifs faites + recheck si bien 4 personnes de dispo dans le tournoi
-        // 	// jeux deja crees ? -> lancement au fur et a mesure -> si 1er deja fait -> 2eme round...
-
-        // 	// cote front maj du html pour afficher les joueurs
-        // 	// ...
-
-        // 	// 
-
-        // }
-
-        // // TOURNAMENT REQUEST POUR REMOTE
-        // // TODO : Kes gens peuvent relancer un game non stop -> creer condition pour l empecher une fois le 1er jeu termine ici ou dans le front
-        // // TODO : gerer les cas d abandon de tournoi (maj db + msg a l autre joueur)
-        // // TODO : gerer le 2eme round du tournoi
-        // if (reqType === "tournament")
-        // {
-        //     console.log("TOURNAMENT REQUEST RECEIVED : ", matchMakingReq.data);
-        //     const tournament = app.lobby.allTournaments.find((t: Tournament) => t.ID === matchMakingReq.data.tournamentID)!;
-        //     console.log("LOBBY TOURNOI : ", tournament);
-        //     // const { players } = tournament.players;
-        //     console.log("LOBBY PLAYERS dans tournois: ", tournament.players);
-        //     // if(tournament.stageTwoGames[0].players.length === 2) // TODO : lancer la 2eme manche
-        //     // {
-        //     //     console.log("DEJA EN STAGE 2, ON LANCE LE JEU DIRECT");
-        //     //     startGame(app, tournament.stageTwoGames[0].players, "multi", tournament.stageTwoGames[0]);
-        //     //     return ;
-        //     // }
-        //     console.log("LOBBY PLAYERS DANS STAGE 1: ", tournament.stageOneGames[0].players);
-        //     let playerOne = tournament.stageOneGames[0].players.find((p: Player) => p.ID === matchMakingReq.data.playerID);
-        //     if (!playerOne)
-        //     {
-        //         playerOne = tournament.stageOneGames[1].players.find((p: Player) => p.ID === matchMakingReq.data.playerID);
-        //         if (!playerOne)
-        //         return reply.code(404).send({ error: "Player not found in tournament" });
-        //     }
-        //     playerOne!.readyforTournament = true;
-        //     console.log("PLAYER ONE READY : ", playerOne);
-        //     reply.code(200).send("Successfully added to tournament matchmaking");
-        //     //vérifier si tous les joueurs sont prêts // a ajuster pour bloquer si 1ere manche deja faite ptet en regardantsi dj resultat dans la db ? 
-        //     const isReady = tournament.players.every((p: Player) => p.readyforTournament);
-        //     if (isReady)
-        //     {
-        //         startGame(app, tournament.stageOneGames[0].players, "multi", tournament.stageOneGames[0]);
-        //         startGame(app, tournament.stageOneGames[1].players, "multi", tournament.stageOneGames[1]);
-        //         for (const player of tournament.players) {
-        //             player.readyforTournament = false;
-        //         }
-        //     }
-        // //     // lancer le tournoi
-        // // // } adapter la suite pour rentrer dans la logique matchmaking multi mais avec dans db tournoi 
     });
 }
 
-async function findAvailableOpponent(newPlayer: Player, allPlayers: Player[]): Promise<Player | null> {
-    for (const candidate of allPlayers) {
-        if (!candidate.matchMaking || candidate.ID === newPlayer.ID)
-            continue;
-        const relation = await getRelation(newPlayer.ID, candidate.ID);
-        if (relation?.friendStatus === "blocked")
-            continue;
-        return candidate;
+async function findAvailableOpponent(newPlayer: Player, allPlayers: Map<number, Player[]>): Promise<Player | null> {
+    for (const playerArray of allPlayers.values()) {
+        for (const candidate of playerArray) {
+            if (!candidate.matchMaking || candidate.ID === newPlayer.ID)
+                continue;
+
+            const relation = await getRelation(newPlayer.ID, candidate.ID);
+            if (relation?.friendStatus === "blocked")
+                continue;
+
+            return candidate;
+        }
     }
     return null;
 }
 
-function initPlayers(allPlayers: Player[], currentPlayerId: number, adversaryId: number) {
+export function initPlayers(allPlayers: Map<number, Player[]>, currentPlayerId: number, adversaryId: number) {
     const playerOne = initPlayer(allPlayers, currentPlayerId);
-    const payerTwo = initPlayer(allPlayers, adversaryId);
-    return [playerOne, payerTwo];
+    const playerTwo = initPlayer(allPlayers, adversaryId);
+    return [playerOne, playerTwo];
 }
 
-function initPlayer(allPlayers: Player[], playerID: number, tabID?: string) {
-    let player = allPlayers.find((p: Player) => p.ID == playerID);
+export function initPlayer(allPlayers: Map<number, Player[]>, playerID: number, tabID?: string, alias?: string) {
+    let players = allPlayers.get(playerID);
+    if (!players) {
+        players = [];
+        allPlayers.set(playerID, players);
+    }
+
+    // Cherche si le player pour ce tabID existe déjà
+    let player = players.find(p => p.tabID === tabID);
     if (!player) {
-        player = new Player(playerID);
-        allPlayers.push(player);
-    }
-    if (tabID) {
+        player = new Player(playerID, alias);
         player.tabID = tabID;
-        console.log(`PLAYER ID = ${playerID} - TABID = ${tabID} (Assigned)`);
+        players.push(player);
     }
+    if (alias) 
+        player.alias = alias;
+
+    console.log(`PLAYER ID=${playerID} TABID=${tabID} ALIAS=${alias}`);
     return player;
 }
 
-function cleanPlayers(allPlayers: Player[], currentPlayer: Player, adversary: Player) {
-    cleanPlayer(allPlayers, currentPlayer.ID);
-    cleanPlayer(allPlayers, adversary.ID);
-}
-
-function cleanPlayer(allPlayers: Player[], playerID: number) {
-    const playerIdx = allPlayers.findIndex((p: Player) => p.ID === playerID);
-    if (playerIdx !== -1)
-        allPlayers.splice(playerIdx, 1);
+function cleanPlayer(allPlayers: Map<number, Player[]>, playerID: number) {
+    allPlayers.delete(playerID);
 }
 
 async function cleanGame(app: FastifyInstance, gameID?: number) {
@@ -261,6 +167,8 @@ async function cleanGame(app: FastifyInstance, gameID?: number) {
     if (game) {
         if (!game.isOver)
             await game.endGame();
+        if (game.players[0]) 
+            detachPlayerWS(game.players[0]);
         const idx = allGames.indexOf(game);
         if (idx !== -1)
             allGames.splice(idx, 1);
@@ -306,15 +214,13 @@ async function decount(app: FastifyInstance, players: Player[], gameID: number) 
             return;
 
         for (const player of players) {
-            const user = getUserWS(app, player.ID, player.tabID);
-            // const user = usersWS.find((user: UserWS) => user.id == player.ID);
-            if (user && user.WS) {
-                user.WS.send(JSON.stringify({
-                    type: "decount_game",
-                    message: i,
-                    gameID: gameID,
-                }));
-            }
+            if (!player.tabID || !player.webSocket) 
+                continue;
+            player.webSocket.send(JSON.stringify({
+                type: "decount_game",
+                message: i,
+                gameID: gameID,
+            }));
         }
         if (i !== 0)
             await new Promise(resolve => setTimeout(resolve, 1000));
@@ -348,23 +254,17 @@ const startGame = async (app: FastifyInstance, players: Player[], mode: string, 
                 : await getUserStats(players[0].ID);
 
             WSToSend = { type: "start_game", otherPlayer: adversary, gameID: gameID, mode: mode };
-            // console.log(WSToSend);
         }
         console.log("-------------- Looking for user", player.ID, "with tabID", player.tabID);
         const user = getUserWS(app, player.ID, player.tabID);
-        // const user = usersWS.find((user: UserWS) => user.id == player.ID);
         if (user && user.WS) {
-            user.WS.send(JSON.stringify(WSToSend));
-            user.WS.onmessage = (event: MessageEvent) => {
-                const msg: any = JSON.parse(event.data);
-                if (msg.type == "movement") {
-                    if (mode === "multi")
-                        newGame.registerInput(msg.playerID, msg.key, msg.status);
-                    if (mode === "local")
-                        newGame.registerInputLocal(msg.playerID, msg.key, msg.status);
-                }
+            try {
+                user.WS.send(JSON.stringify(WSToSend));
+            } catch (err) {
+                console.warn("Could not send start_game to user:", err);
             }
-            player.webSocket = user.WS;
+            const handler = createMovementHandler(newGame, mode);
+            attachPlayerWS(player, user.WS, handler);
         }
     }
     await decount(app, players, gameID);
@@ -401,50 +301,80 @@ const startTournamentGame = async (app: FastifyInstance, gameID: number, hostID:
         console.log("Game not found. bye");
         return;
     }
-
     allGames.push(game);
-    // const host = app.usersWS.find((u: UserWS) => u.id == hostID);
-    // if (!host || !host.WS) {
-    //     console.log("Host not found. bye");
-    //     return;
-    // }
-    const host = getUserWS(app, hostID, game.players[0].tabID);
-    if (!host || !host.WS) {
+
+    if (!game.players[0] || !game.players[0].tabID) {
+        console.log("Host tabID missing. bye");
+        return;
+    }
+    const hostWS = getUserWS(app, game.players[0].ID, game.players[0].tabID)?.WS;
+    if (!hostWS) {
         console.log("Host not found. bye");
         return;
     }
 
-    // console.log(host);
-    const startGame: StartGame = { type: "start_game", gameID: gameID, mode: "tournament" };
-    // console.log({ type: "start_game", gameID: gameID, mode: "tournament"});
+    const startGameWs: StartGame = { type: "start_game", gameID: gameID, mode: "tournament" };
     try {
-        host.WS.send(JSON.stringify(startGame));
+        hostWS.send(JSON.stringify(startGameWs));
     } catch (err) {
-        if (err instanceof DOMException) {
-            console.error("Erreur WebSocket.send() :", err.name, err.message);
-            // Par exemple : "InvalidStateError" si le socket est fermé
-        } else {
-            console.error("Erreur inattendue :", err);
-        }
+        console.error("Erreur WebSocket.send() :", err);
     }
-    host.WS.onmessage = (event: MessageEvent) => {
-        const msg: any = JSON.parse(event.data);
-        if (msg.type == "movement") {
-            game.registerInputLocalTournament(msg.key, msg.status);
-        }
-    }
-    game.players[0].webSocket = host.WS;
-    await decountWS(host.WS, gameID);
+
+    const handler = createMovementHandlerTournament(game);
+    hostWS.addEventListener("message", handler);
+    attachPlayerWS(game.players[0], hostWS, handler);
+    await decountWS(hostWS, gameID);
 
     // Vérifier si le jeu ou le tournoi a été supprimé par une clean_request pendant le décompte
     const gameIndex = allGames.findIndex((g: Game) => g.gameID === gameID);
     if (gameIndex === -1)
         return;
 
-    // ! à insérer quelque part
-    // const tournamentIndex = allTournamentsLocal.findIndex((g: Game) => g.tournamentID === game.tournamentID);
-    // if (tournamentIndex === -1)
-    //     return;
-
     game.initGame();
+}
+
+function createMovementHandler(game: Game, mode: string) {
+    return function handler(event: MessageEvent) {
+        const msg: any = JSON.parse(event.data);
+        if (msg.type === "movement") {
+            if (mode === "multi") game.registerInput(msg.playerID, msg.key, msg.status);
+            if (mode === "local") game.registerInputLocal(msg.playerID, msg.key, msg.status);
+        }
+    };
+}
+
+function createMovementHandlerTournament(game: Game) {
+    return function handler(event: MessageEvent) {
+        const msg: any = JSON.parse(event.data);
+        if (msg.type === "movement") {
+            game.registerInputLocalTournament(msg.key, msg.status);
+        }
+    };
+}
+
+function attachPlayerWS(player: Player, ws: WebSocket, handler: (data: any) => void) {
+    // si une ancienne ws + handler existait, on la détache proprement
+    if (player.webSocket && player.wsHandler) {
+        // remove previous listener
+        (player.webSocket as any).off?.('message', player.wsHandler);
+        (player.webSocket as any).removeListener?.('message', player.wsHandler);
+    }
+
+    // attacher le nouveau handler sur la ws fournie
+    (ws as any).on?.('message', handler);
+
+    // stocker la ws et le handler sur le player
+    player.webSocket = ws;
+    player.wsHandler = handler;
+}
+
+export function detachPlayerWS(player: Player) {
+    if (!player.webSocket || !player.wsHandler) 
+        return;
+
+    (player.webSocket as any).off?.('message', player.wsHandler);
+    (player.webSocket as any).removeListener?.('message', player.wsHandler);
+
+    player.wsHandler = undefined;
+    player.webSocket = undefined;
 }

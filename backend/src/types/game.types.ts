@@ -2,6 +2,7 @@ import { EventEmitter } from "node:stream";
 import { resultGame, addGame, addGamePlayers, cancelledGame, registerUserTournament, createTournament } from "../db/game";
 import { GameData, Player } from "../shared/types/game.types"
 import { JwtPayload } from "./user.types";
+import { detachPlayerWS } from "../routes/game.routes";
 
 const DEG_TO_RAD = Math.PI / 180;
 
@@ -180,16 +181,10 @@ export class Game extends EventEmitter {
         this.isOver = true;
 
         for (const player of this.players) {
-            // if (!this.score || this.score.length === 0)
-                // this.score = [0, 0];
-            /* else */ if (player === this.players[1])
-                this.score = [this.score[1], this.score[0]];
-
             if (player.webSocket) {
                 player.webSocket.send(JSON.stringify({
                     type: "end",
                     score: this.score,
-                    // players: JSON.stringify(this.players.map(p => ({ ID: p.ID, alias: p.alias }))),
                     tournamentID: this.tournamentID || null
                 }));
             }
@@ -209,8 +204,9 @@ export class Game extends EventEmitter {
         else
             await cancelledGame(this.gameID, winner.ID, looser.ID, this.score);
 
-        for (const player of this.players) // clean des websockets si besoin de renvoyer tournoi au front (crash si websocket a l'interieur de JSON)
-            player.webSocket = undefined;
+        // Cleanup des websockets
+        for (const player of this.players)
+            detachPlayerWS(player);
 
         this.emit("finished", this); // envoie un event "finished" qui est capte par une classe parent (TournamentLocal)
     }
@@ -391,7 +387,7 @@ export class Tournament {
 
 export class Lobby {
     public currentUser: JwtPayload | null = null;
-    public allPlayers: Player[] = [];
+    public allPlayers: Map<number, Player[]> = new Map();
     public allGames: Game[] = [];
     public allTournaments: Tournament[] = [];
     public allTournamentsLocal: TournamentLocal[] = [];

@@ -13,14 +13,13 @@ import { initDb } from './db/index.db';
 import { apiRoutes } from './routes/api.routes';
 import { Lobby } from './types/game.types';
 import { UserWS } from './types/user.types';
+import { Player } from './shared/types/game.types';
 
 // Ajout du lobby multiplayer a l'interface Fastify
 declare module 'fastify' {
     interface FastifyInstance {
         lobby: Lobby;
         usersWS: Map<number, UserWS[]>;
-        // usersWS: UserWS[];
-        // usersWS: Map<number, WebSocket[]>;
     }
 }
 
@@ -93,10 +92,7 @@ async function start() {
     // Initialisation du lobby multiplayer et ajout a l'app
     app.decorate('lobby', new Lobby());
 
-    // Websockets accessible au niveau global
-    // const usersWS: UserWS[] = [];
-    // app.decorate('usersWS', usersWS);
-    // const usersWS = new Map<number, WebSocket[]>();
+    // Websockets et players accessible au niveau global
     const usersWS = new Map<number, UserWS[]>();
     app.decorate('usersWS', usersWS);
 

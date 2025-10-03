@@ -254,73 +254,72 @@ export class GameTournamentLobby extends BasePage {
     //     })
     // }
 
-    protected async attachListeners(): Promise<void> {
-        const tabID = webSocketService.getTabID();
-        webSocketService.getWebSocket(tabID)?.addEventListener("message", (event) => {
-            const lobbyUpdate = JSON.parse(event.data);
-            console.log(lobbyUpdate);
-            if (!lobbyUpdate)
-                return;
-            if (lobbyUpdate.type == "tournament_lobby_update" && lobbyUpdate.tournamentID == this.tournamentID) {
-                this.checkPlayersDifference(lobbyUpdate.players);
-                this.tournament!.players = lobbyUpdate.players;
-            } else if (lobbyUpdate.type == "dismantle_signal") {
-                this.handleRedirectModal();
-            } else if (lobbyUpdate.type == "start_tournament_signal")
-            {
-                router.navigate(`/game/tournaments/:${this.tournamentID}`)
-                // fetch appel a la db pour stocker le tournoi avec les joueurs ?
-                // + choper ce qu il y a en lobby ? 
-            }
-        });
+    protected messageHandler = async (event: MessageEvent) => {
+        const lobbyUpdate = JSON.parse(event.data);
+        console.log(lobbyUpdate);
+        if (!lobbyUpdate) return;
 
-        document.getElementById("tournament-join-leave-btn")?.addEventListener("click", async (event) => {
-            
-            const btn = event.target as HTMLElement;
-            btn.textContent = this.joined ? "JOIN" : "LEAVE";
-            if (!this.joined) {
-                this.joined = true;
-                try {
-                    await TournamentService.joinTournament(this.currentUser!.id, this.tournamentID);
-            } catch (error: any) {
-                this.printError(error);
-            }
-                // const btn = event.target as HTMLElement;
-                // btn.textContent = "LEAVE";
-            } else {
-                this.joined = false;
-                console.log('Leaving');
-                TournamentService.leaveTournamentReq(this.currentUser!.id, this.tournamentID);
-                // const btn = event.target as HTMLElement;
-                // btn.textContent = "JOIN";
-            }
-        });
+        if (lobbyUpdate.type === "tournament_lobby_update" && lobbyUpdate.tournamentID === this.tournamentID) {
+            this.checkPlayersDifference(lobbyUpdate.players);
+            this.tournament!.players = lobbyUpdate.players;
+        } else if (lobbyUpdate.type === "dismantle_signal") {
+            this.handleRedirectModal();
+        } else if (lobbyUpdate.type === "start_tournament_signal") {
+            await router.navigate(`/game/tournaments/:${this.tournamentID}`);
+            // fetch appel a la db pour stocker le tournoi avec les joueurs ?
+        }
+    };
 
-        document.getElementById("tournament-ready-btn")?.addEventListener("click", async (event) => {
-            this.ready = !this.ready;
-            const btn = event.target as HTMLElement;
-            btn.textContent = this.ready ? "NOT READY" : "READY"; //TODO = foutre ailleurs pour le module trad
+    protected joinLeaveHandler = async (event: Event) => {
+        const btn = event.target as HTMLElement;
+        btn.textContent = this.joined ? "JOIN" : "LEAVE";
+
+        if (!this.joined) {
+            this.joined = true;
             try {
-                await TournamentService.sendReadyRequest(this.currentUser!.id, this.tournamentID, this.ready);
+                await TournamentService.joinTournament(this.currentUser!.id, this.tournamentID);
             } catch (error: any) {
                 this.printError(error);
-                // this.printError("Please join tournament first!");
             }
-        });
+        } else {
+            this.joined = false;
+            console.log('Leaving');
+            TournamentService.leaveTournamentReq(this.currentUser!.id, this.tournamentID);
+        }
+    };
 
-        document.getElementById("yes-btn")?.addEventListener("click", () => {
-            TournamentService.sendDismantleRequest(this.currentUser!.id, this.tournamentID);
-        })
+    protected readyHandler = async (event: Event) => {
+        this.ready = !this.ready;
+        const btn = event.target as HTMLElement;
+        btn.textContent = this.ready ? "NOT READY" : "READY";
+        try {
+            await TournamentService.sendReadyRequest(this.currentUser!.id, this.tournamentID, this.ready);
+        } catch (error: any) {
+            this.printError(error);
+        }
+    };
 
+    protected yesHandler = () => {
+        TournamentService.sendDismantleRequest(this.currentUser!.id, this.tournamentID);
+    };
 
-        // this.onClientNavigation(async () => {
-        //     if (!this.leavingPage)
-        //         this.leavingPage = true;
-        //     try {
-        //         await TournamentService.leaveTournamentReq(this.currentUser!.id, this.tournamentID);
-        //     } catch (error: any) {
-        //         console.error(error.message);
-        //     }
-        // });
+    protected attachListeners(): void {
+        const tabID = webSocketService.getTabID();
+        const ws = webSocketService.getWebSocket(tabID);
+        if (ws) ws.addEventListener("message", this.messageHandler);
+
+        document.getElementById("tournament-join-leave-btn")?.addEventListener("click", this.joinLeaveHandler);
+        document.getElementById("tournament-ready-btn")?.addEventListener("click", this.readyHandler);
+        document.getElementById("yes-btn")?.addEventListener("click", this.yesHandler);
+    }
+
+    protected removeListeners(): void {
+        const tabID = webSocketService.getTabID();
+        const ws = webSocketService.getWebSocket(tabID);
+        if (ws) ws.removeEventListener("message", this.messageHandler);
+
+        document.getElementById("tournament-join-leave-btn")?.removeEventListener("click", this.joinLeaveHandler);
+        document.getElementById("tournament-ready-btn")?.removeEventListener("click", this.readyHandler);
+        document.getElementById("yes-btn")?.removeEventListener("click", this.yesHandler);
     }
 }
