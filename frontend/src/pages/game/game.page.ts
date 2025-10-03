@@ -500,9 +500,9 @@ export abstract class GamePage extends BasePage {
         panel.innerHTML = "";
         let endGamePanel;
 
-        const navigateTournamentBtnHandler = () => {
+        const navigateTournamentBtnHandler = async () => {
             document.getElementById("navigate-btn")!.removeEventListener("click", navigateTournamentBtnHandler);
-            router.navigate(`/game/tournament_local/${this.tournamentID}`);
+            await router.navigate(`/game/tournament_local/${this.tournamentID}`);
         }
 
         if (this.tournamentID) {
@@ -519,8 +519,9 @@ export abstract class GamePage extends BasePage {
             return;
         }
         this.endGamePanel = endGamePanel.cloneNode(true) as Element;
-        if (this.tournamentID)
+        if (this.tournamentID) {
             this.endGamePanel.querySelector("#navigate-btn")!.addEventListener("click", navigateTournamentBtnHandler);
+        }
         this.fillScoreBox(game);
         this.setReplayButton();
 

@@ -200,7 +200,7 @@ export class FriendService {
 		this.buttons!.forEach(btn => {
 			const element = btn as HTMLButtonElement;
 			if (btn) {
-				element.setAttribute("data-friend-id", this.user!.id);
+				element.setAttribute("data-friend-id", (this.user!.id).toString());
 				element.setAttribute("data-friend-name", this.user!.username);
 			}
 		});

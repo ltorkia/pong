@@ -39,7 +39,7 @@ export class UserRowComponent extends BaseComponent {
 	private profileButton!: HTMLElement;
 	private logCell!: HTMLElement;
 	private challengeButton!: HTMLButtonElement;
-    private boundUpdateHandler?: (data: any) => Promise<void>;
+	private boundUpdateHandler?: (data: any) => Promise<void>;
 
 	/**
 	 * Constructeur du composant de ligne d'utilisateur.

@@ -133,7 +133,7 @@ export class ProfilePage extends BasePage {
     private async updateButtons(): Promise<void> {
         console.log(`[ProfilePage] Mise à jour des boutons pour ${this.user!.username}`);
         const element = userRowsUtils.get(this.config.path, this.user!.id) as HTMLDivElement;
-        friendService.setFriendPageSettings(this.user, element);
+        friendService.setFriendPageSettings(this.user!, element);
         await friendService.toggleFriendButton();
         friendService.setButtonDataAttribut();
     }
@@ -152,7 +152,7 @@ export class ProfilePage extends BasePage {
 
 		if (!this.isCurrentUserProfile) {
 			const element = userRowsUtils.get(this.config.path, this.user!.id) as HTMLDivElement;
-			friendService.setFriendPageSettings(this.user, element);
+			friendService.setFriendPageSettings(this.user!, element);
 			friendService.setFriendLogo();
 			await friendService.toggleFriendButton();
 			friendService.setButtonDataAttribut();
