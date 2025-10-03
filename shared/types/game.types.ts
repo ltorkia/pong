@@ -48,7 +48,6 @@ export class Player {
     public ID: number;
     public tabID?: string;
     public webSocket?: WebSocket;
-    // public webSockets: Map<string, { ws: WebSocket, handler: (ev: MessageEvent) => void }> = new Map();
     public wsHandler?: (event: MessageEvent) => void;
     public inGame: boolean;
     public ready: boolean;
