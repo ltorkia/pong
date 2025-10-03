@@ -3,11 +3,11 @@ import DOMPurify from "dompurify";
 import { Friend } from '../../shared/models/friend.model';
 import { User } from '../../shared/models/user.model';
 import { friendApi } from '../../api/index.api';
-import { currentService, translateService, dataService, notifService, pageService } from '../../services/index.service';
+import { currentService, translateService, dataService, notifService, eventService, pageService } from '../../services/index.service';
 import { UserStatus } from '../../shared/types/user.types';
-import { DB_CONST } from '../../shared/config/constants.config';
+import { DB_CONST, EVENTS } from '../../shared/config/constants.config';
 import { router } from '../../router/router';
-import { getHTMLElementByClass } from '../../utils/dom.utils';
+import { getHTMLElementByClass, userRowsUtils } from '../../utils/dom.utils';
 import { UsersPage } from '../../pages/user/users.page';
 import { ProfilePage } from "../../pages/user/profile.page";
 
@@ -17,10 +17,16 @@ import { ProfilePage } from "../../pages/user/profile.page";
 /**
  * Service de gestion des amis.
  * Centralise toutes les opérations sur les amis.
+ * 
+ * UserRow/Profile click → NotifService.handleXClick() → API call → eventBus.emit('friend:updated') 
+ * → FriendService écoute → Met à jour tous les boutons concernés
+ * → UserRowComponent écoute → Met à jour son propre bouton si c'est lui
+ * → ProfilePage écoute → Met à jour son bouton si c'est lui
  */	
 export class FriendService {
 	public user?: User | null = null;
 	public friend?: Friend | null = null;
+	public userId?: number;
 	public profilePath?: string;
 
 	private container?: HTMLElement;
@@ -35,6 +41,8 @@ export class FriendService {
 	private unfriendButton?: HTMLButtonElement;
 	private challengeButton?: HTMLButtonElement;
 	private buttons?: HTMLButtonElement[] = [];
+
+    private boundUpdateHandler?: (data: any) => Promise<void>;
 	
 	// ===========================================
 	// QUERIES / SELECT / POST REQUEST
@@ -143,14 +151,24 @@ export class FriendService {
 	 * @param {HTMLElement} container - Le conteneur HTML du composant de la page des amis
 	 * @param {Friend} [friend] - L'instance Friend associée à l'utilisateur (facultatif)
 	 */
-	public setFriendPageSettings(user: User, container: HTMLElement, friend?: Friend): void {
+// Option 1 : Accepter User | number
+	public setFriendPageSettings(userOrId: User | number, container: HTMLElement, friend?: Friend): void {
 		this.container = container;
-		this.user = user;
+		
+		if (typeof userOrId === 'number') {
+			this.userId = userOrId;
+			this.user = null;
+		} else {
+			this.user = userOrId;
+			this.userId = userOrId.id;
+		}
+		
+		this.setFriendButtons();
 	}
 
 	public setFriendButtons(): void {
 		this.friendLogoCell = getHTMLElementByClass('friend-logo-cell', this.container) as HTMLElement;
-		this.profilePath = `/user/${this.user!.id}`;
+		this.profilePath = `/user/${this.userId}`;
 		this.buttonCell = getHTMLElementByClass('button-cell', this.container) as HTMLElement;
 		this.addFriendButton = getHTMLElementByClass('add-friend-button', this.buttonCell) as HTMLButtonElement;
 		this.cancelFriendButton = getHTMLElementByClass('cancel-friend-button', this.buttonCell) as HTMLButtonElement;
@@ -182,7 +200,7 @@ export class FriendService {
 		this.buttons!.forEach(btn => {
 			const element = btn as HTMLButtonElement;
 			if (btn) {
-				element.setAttribute("data-friend-id", this.user!.id.toString());
+				element.setAttribute("data-friend-id", this.user!.id);
 				element.setAttribute("data-friend-name", this.user!.username);
 			}
 		});
@@ -204,7 +222,6 @@ export class FriendService {
 		this.unfriendButton!.addEventListener('click', this.unfriendClick);
 		this.blockFriendButton!.addEventListener('click', this.blockFriendClick);
 		this.unblockFriendButton!.addEventListener('click', this.unblockFriendClick);
-		// this.challengeButton!.addEventListener('click', this.challengeClick);
 	}
 
 	public removeFriendButtonListeners(): void {
@@ -215,7 +232,6 @@ export class FriendService {
 		this.unfriendButton!.removeEventListener('click', this.unfriendClick);
 		this.blockFriendButton!.removeEventListener('click', this.blockFriendClick);
 		this.unblockFriendButton!.removeEventListener('click', this.unblockFriendClick);
-		// this.challengeButton!.removeEventListener('click', this.challengeClick);
 	}
 	
 	/**
@@ -229,6 +245,37 @@ export class FriendService {
 		this.buttons!.forEach(btn => btn.classList.add('hidden'));
 	}
 
+    /**
+     * S'abonne aux événements de mise à jour des amis.
+     * Doit être appelé quand le service est prêt à écouter.
+     */
+    public subscribeToFriendEvents(): void {
+		this.boundUpdateHandler = async (data: { userId: number, action?: string }) => {
+			await this.handleFriendUpdate(data);
+		};
+
+		eventService.on(EVENTS.FRIEND_UPDATED, this.boundUpdateHandler);
+	}
+
+    /**
+     * Gère la mise à jour d'un ami suite à un événement.
+     */
+    private async handleFriendUpdate(data: { userId: number, action?: string }): Promise<void> {
+        console.log(`[FriendService] Mise à jour pour l'utilisateur ${data.userId}`, data.action);
+        
+        // Récupérer l'élément correspondant dans la page courante
+        const currentRoute = pageService.currentPage!.config.path;
+        if (!currentRoute) 
+			return;
+
+        const element = userRowsUtils.get(currentRoute, data.userId);
+        if (element) {
+            // Mettre à jour les boutons pour cet utilisateur spécifique
+            this.setFriendPageSettings(data.userId, element);
+            await this.toggleFriendButton();
+        }
+    }
+
 	/**
 	 * Affiche ou masque dynamiquement les boutons d'action liés à l'amitié selon le statut de la relation
 	 * entre l'utilisateur courant et l'utilisateur sélectionné. La méthode commence par masquer tous les boutons,
@@ -237,44 +284,48 @@ export class FriendService {
 	 *
 	 * @returns {Promise<void>} Une promesse qui se résout lorsque l'affichage des boutons est terminé.
 	 */
-	public async toggleFriendButton(): Promise<void> {
-		if (!(pageService.currentPage instanceof UsersPage)
-			&& !(pageService.currentPage instanceof ProfilePage))
-			return; 
-		const currentUser = currentService.getCurrentUser();
-		if (this.user && this.user.id !== currentUser!.id || !this.user) {
-			this.hideAllButtons();
-			this.friend = await this.isFriendWithCurrentUser(this.user!.id);
-			if (!this.friend) {
-				this.friendLogoCell!.innerHTML = DOMPurify.sanitize(`<i class="fa-solid fa-minus"></i>`);
-				this.addFriendButton!.classList.remove('hidden');
-				return;
-			}
-			this.friendLogoCell!.innerHTML = dataService.showFriendLogo(this.friend);
+    // Simplifier toggleFriendButton - juste mettre à jour l'UI locale
+    public async toggleFriendButton(): Promise<void> {
+        if (!(pageService.currentPage instanceof UsersPage)
+            && !(pageService.currentPage instanceof ProfilePage))
+            return;
 
-			if (this.friend.friendStatus === DB_CONST.FRIENDS.STATUS.PENDING) {
-				if (this.friend.requesterId === currentUser!.id) {
-					this.cancelFriendButton!.classList.remove('hidden');
-					return;
-				}
-				this.acceptFriendButton!.classList.remove('hidden');
-				this.declineFriendButton!.classList.remove('hidden');
-			}
-			if (this.friend.friendStatus === DB_CONST.FRIENDS.STATUS.ACCEPTED) {
-				if (this.friend.isOnline() && this.friend.challengedBy !== currentUser!.id)
-					this.challengeButton!.classList.remove('hidden');
-				this.blockFriendButton!.classList.remove('hidden');
-				this.unfriendButton!.classList.remove('hidden');
-			}
-			if (this.friend.friendStatus === DB_CONST.FRIENDS.STATUS.BLOCKED) {
-				if (this.friend.blockedBy === currentUser!.id) {
-					this.unblockFriendButton!.classList.remove('hidden');
-					return;
-				}
-			}
-			translateService.updateLanguage(undefined, this.container);
-		}
-	}
+        const currentUser = currentService.getCurrentUser();
+        if (this.userId && this.userId !== currentUser!.id) {
+            this.hideAllButtons();
+            this.friend = await this.isFriendWithCurrentUser(this.userId);
+            
+            if (!this.friend) {
+                this.friendLogoCell!.innerHTML = DOMPurify.sanitize(`<i class="fa-solid fa-minus"></i>`);
+                this.addFriendButton!.classList.remove('hidden');
+                return;
+            }
+
+            this.friendLogoCell!.innerHTML = dataService.showFriendLogo(this.friend);
+
+            if (this.friend.friendStatus === DB_CONST.FRIENDS.STATUS.PENDING) {
+                if (this.friend.requesterId === currentUser!.id) {
+                    this.cancelFriendButton!.classList.remove('hidden');
+                    return;
+                }
+                this.acceptFriendButton!.classList.remove('hidden');
+                this.declineFriendButton!.classList.remove('hidden');
+            }
+            if (this.friend.friendStatus === DB_CONST.FRIENDS.STATUS.ACCEPTED) {
+                if (this.friend.isOnline() && this.friend.challengedBy !== currentUser!.id)
+                    this.challengeButton!.classList.remove('hidden');
+                this.blockFriendButton!.classList.remove('hidden');
+                this.unfriendButton!.classList.remove('hidden');
+            }
+            if (this.friend.friendStatus === DB_CONST.FRIENDS.STATUS.BLOCKED) {
+                if (this.friend.blockedBy === currentUser!.id) {
+                    this.unblockFriendButton!.classList.remove('hidden');
+                    return;
+                }
+            }
+            translateService.updateLanguage(undefined, this.container);
+        }
+    }
 
 	/**
 	 * Retourne l'identifiant de l'ami associé au bouton ou parent HTMLElement ou
@@ -296,28 +347,6 @@ export class FriendService {
 		}
 		const friendId = button.getAttribute("data-friend-id");
 		return Number(friendId);
-	}
-
-	/**
-	 * Réinitialise les attributs de l'objet FriendService.
-	 * Tous les attributs sont remis à leur valeur par défaut (null, undefined, etc.).
-	 * Cette méthode est appelée lorsque l'objet n'est plus utilisé.
-	 */
-	public cleanup(): void {
-		this.user = null;
-		this.friend = null;
-		this.container = undefined;
-		this.profilePath = undefined;
-		this.buttons = undefined;
-		this.addFriendButton = undefined;
-		this.cancelFriendButton = undefined;
-		this.acceptFriendButton = undefined;
-		this.declineFriendButton = undefined;
-		this.unfriendButton = undefined;
-		this.blockFriendButton = undefined;
-		this.unblockFriendButton = undefined;
-		this.challengeButton = undefined;
-		this.friendLogoCell = undefined;
 	}
 	
 	// ===========================================
@@ -380,4 +409,29 @@ export class FriendService {
 			await notifService.handlePlayClick(event);
 		}
 	}
+
+	// ===========================================
+	// CLEANUP
+	// ===========================================
+
+    public cleanup(): void {
+		if (this.boundUpdateHandler) {
+			eventService.off(EVENTS.FRIEND_UPDATED, this.boundUpdateHandler);
+			this.boundUpdateHandler = undefined;
+		}
+        this.user = null;
+		this.friend = null;
+		this.container = undefined;
+		this.profilePath = undefined;
+		this.buttons = undefined;
+		this.addFriendButton = undefined;
+		this.cancelFriendButton = undefined;
+		this.acceptFriendButton = undefined;
+		this.declineFriendButton = undefined;
+		this.unfriendButton = undefined;
+		this.blockFriendButton = undefined;
+		this.unblockFriendButton = undefined;
+		this.challengeButton = undefined;
+		this.friendLogoCell = undefined;
+    }
 }

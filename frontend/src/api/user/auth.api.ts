@@ -87,8 +87,7 @@ export class AuthApi {
 		const tabID = webSocketService.getTabID();
 		const res: Response = await fetch('/api/auth/register', {
 			method: 'POST',
-			headers: { 'Content-Type': 'application/json',
-				'x-tab-id': tabID },
+			headers: { 'x-tab-id': tabID },
 			body: formData,
 			credentials: 'include',
 		});
@@ -239,7 +238,7 @@ export class AuthApi {
 		const res: Response = await fetch('/api/auth/logout', {
 			method: 'POST',
 			credentials: 'include',
-			headers: {'x-tab-id': tabID},
+			headers: { 'x-tab-id': tabID },
 		});
 		const data: BasicResponse = await res.json();
 		if (!res.ok || data.errorMessage) {

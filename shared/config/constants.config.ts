@@ -94,6 +94,33 @@ export const IMAGE_CONST = {
 }
 
 /**
+ * Constantes pour les noms d'événements..
+ */
+export const EVENTS = {
+	// Événements liés aux amis
+	FRIEND_ADDED: 'friend:added',
+	FRIEND_ACCEPTED: 'friend:accepted',
+	FRIEND_DECLINED: 'friend:declined',
+	FRIEND_CANCELLED: 'friend:cancelled',
+	FRIEND_BLOCKED: 'friend:blocked',
+	FRIEND_UNBLOCKED: 'friend:unblocked',
+	FRIEND_REMOVED: 'friend:removed',
+	FRIEND_UPDATED: 'friend:updated', // Événement générique pour toute mise à jour
+	
+	// Événements liés aux invitations
+	GAME_INVITED: 'game:invited',
+	GAME_INVITE_ACCEPTED: 'game:invite_accepted',
+	GAME_INVITE_CANCELLED: 'game:invite_cancelled',
+	
+	// Événements liés au statut utilisateur
+	USER_STATUS_CHANGED: 'user:status_changed',
+	USER_ONLINE: 'user:online',
+	USER_OFFLINE: 'user:offline',
+} as const;
+
+export type EventName = typeof EVENTS[keyof typeof EVENTS];
+
+/**
  * Définit les états possibles d'un utilisateur en ligne.
  * Utilisés dans les notifications.
  * 

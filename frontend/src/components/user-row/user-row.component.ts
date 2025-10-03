@@ -4,11 +4,13 @@ import template from './user-row.component.html?raw'
 import { BaseComponent } from '../base/base.component';
 import { RouteConfig } from '../../types/routes.types';
 import { ComponentConfig } from '../../types/components.types';
-import { dataService, friendService } from '../../services/index.service';
-import { getHTMLElementByClass } from '../../utils/dom.utils';
+import { dataService, friendService, eventService } from '../../services/index.service';
+import { getHTMLElementByClass, userRowsUtils } from '../../utils/dom.utils';
 import { User } from '../../shared/models/user.model';
 import { Friend } from '../../shared/models/friend.model';
 import { dataApi } from '../../api/index.api';
+import { EVENTS } from '../../shared/config/constants.config';
+import { router } from '../../router/router';
 
 // ===========================================
 // USER ROW COMPONENT
@@ -37,6 +39,7 @@ export class UserRowComponent extends BaseComponent {
 	private profileButton!: HTMLElement;
 	private logCell!: HTMLElement;
 	private challengeButton!: HTMLButtonElement;
+    private boundUpdateHandler?: (data: any) => Promise<void>;
 
 	/**
 	 * Constructeur du composant de ligne d'utilisateur.
@@ -86,7 +89,7 @@ export class UserRowComponent extends BaseComponent {
 	 *
 	 * @returns {Promise<void>} Une promesse qui se résout lorsque les éléments HTML ont été stockés.
 	 */
-	protected async beforeMount(): Promise<void> {
+    protected async beforeMount(): Promise<void> {
 		this.user = await dataApi.getUserStats(this.user!.id);
 		this.userline = getHTMLElementByClass('user-line', this.container) as HTMLDivElement;
 		this.avatarImg = getHTMLElementByClass('avatar-img', this.container) as HTMLImageElement;
@@ -98,9 +101,17 @@ export class UserRowComponent extends BaseComponent {
 		this.logCell = getHTMLElementByClass('log-cell', this.container) as HTMLElement;
 		this.challengeButton = getHTMLElementByClass('challenge-button', this.container) as HTMLButtonElement;
 
-		friendService.setFriendPageSettings(this.user!, this.container);
-		friendService.setFriendButtons();
-	}
+        friendService.setFriendPageSettings(this.user!, this.container);
+        userRowsUtils.set(this.routeConfig!.path, this.user!.id, this.userline);
+
+        // S'abonner aux mises à jour pour cet utilisateur
+        this.boundUpdateHandler = async (data: { userId: number }) => {
+            if (data.userId === this.user!.id) {
+                await this.updateButtons();
+            }
+        };
+        eventService.on(EVENTS.FRIEND_UPDATED, this.boundUpdateHandler);
+    }
 
 	/**
 	 * Méthode de montage du composant de la ligne d'utilisateur.
@@ -126,6 +137,8 @@ export class UserRowComponent extends BaseComponent {
 			if (logDate)
 				this.logCell.innerHTML = logDate;
 		}
+		const element = userRowsUtils.get(this.routeConfig.path, this.user!.id) as HTMLDivElement;
+		friendService.setFriendPageSettings(this.user, element);
 		await friendService.toggleFriendButton();
 		friendService.setButtonDataAttribut();
 	}
@@ -136,8 +149,7 @@ export class UserRowComponent extends BaseComponent {
 	 * - Attribue un listener au bloc avatar/username pour rediriger vers le profil.
 	 */
 	protected attachListeners(): void {
-		friendService.profilePath = `/user/${this.user!.id}`;
-		this.profileButton.addEventListener('click', friendService.handleProfileClick);
+		this.profileButton.addEventListener('click', this.handleProfileClick);
 		this.challengeButton.addEventListener('click', this.handleChallengeClick);
 		friendService.attachFriendButtonListeners();
 	}
@@ -146,8 +158,7 @@ export class UserRowComponent extends BaseComponent {
 	 * Enlève les listeners.
 	 */
 	protected removeListeners(): void {
-		friendService.profilePath = `/user/${this.user!.id}`;
-		this.profileButton.removeEventListener('click', friendService.handleProfileClick);
+		this.profileButton.removeEventListener('click', this.handleProfileClick);
 		this.challengeButton.removeEventListener('click', this.handleChallengeClick);
 		friendService.removeFriendButtonListeners();
 	}
@@ -155,6 +166,14 @@ export class UserRowComponent extends BaseComponent {
 	// ===========================================
 	// METHODES PRIVATES
 	// ===========================================
+
+    private async updateButtons(): Promise<void> {
+        console.log(`[UserRowComponent] Mise à jour des boutons pour ${this.user!.username}`);
+        const element = userRowsUtils.get(this.routeConfig.path, this.user!.id) as HTMLDivElement;
+        friendService.setFriendPageSettings(this.user, element);
+        await friendService.toggleFriendButton();
+        friendService.setButtonDataAttribut();
+    }
 
 	/**
 	 * Charge le template HTML du composant en mode développement
@@ -187,9 +206,13 @@ export class UserRowComponent extends BaseComponent {
 	// LISTENER HANDLERS
 	// ===========================================
 
+	public handleProfileClick = async (event: Event): Promise<void> => {
+		event.preventDefault();
+		await router.navigate(`/user/${this.user!.id}`);
+	};
+
 	private handleChallengeClick = async (event: Event): Promise<void> => {
 		event.preventDefault();
-		friendService.setFriendPageSettings(this.user!, this.container);
 		await friendService.challengeClick(event);
 	}
 
@@ -197,8 +220,12 @@ export class UserRowComponent extends BaseComponent {
 	// CLEANUP
 	// ===========================================
 
-	public async cleanup(): Promise<void> {
-		await super.cleanup();
-		friendService.cleanup();
-	}
+    public async cleanup(): Promise<void> {
+        if (this.boundUpdateHandler) {
+            eventService.off(EVENTS.FRIEND_UPDATED, this.boundUpdateHandler);
+            this.boundUpdateHandler = undefined;
+        }
+        await super.cleanup();
+        friendService.cleanup();
+    }
 }

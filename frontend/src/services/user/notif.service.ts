@@ -8,10 +8,10 @@ import { User } from '../../shared/models/user.model';
 import { GamePage } from '../../pages/game/game.page';
 import { AppNotification } from '../../shared/models/notification.model';
 import { NotifResponse } from '../../shared/types/response.types';
-import { FRIEND_REQUEST_ACTIONS, FRIEND_NOTIF_CONTENT } from '../../shared/config/constants.config'; // en rouge car dossier local 'shared' != dossier conteneur
+import { FRIEND_REQUEST_ACTIONS, FRIEND_NOTIF_CONTENT, EVENTS } from '../../shared/config/constants.config'; // en rouge car dossier local 'shared' != dossier conteneur
 import { isValidNotificationType, isFriendRequestAction, isUserOnlineStatus } from '../../shared/utils/app.utils';
 import { FriendRequestAction, NotificationModel, NotificationType } from '../../shared/types/notification.types';
-import { currentService, storageService, translateService, gameService, webSocketService, friendService, pageService } from '../index.service';
+import { currentService, storageService, translateService, eventService, gameService, webSocketService, friendService, pageService } from '../index.service';
 import { router } from '../../router/router';
 
 // ============================================================================
@@ -85,11 +85,14 @@ export class NotifService {
 					const friend = await dataApi.getUserById(Number(this.friendId!));
 					this.friendName = friend!.username;
 					await this.handleNotification();
+					await eventService.emit(EVENTS.FRIEND_UPDATED, { 
+						userId: this.friendId,
+						action: notif.type
+					});
 				}
 			}
 		}
 		this.updateNotifsCounter();
-		await this.refreshFriendButtons();
 	}
 
 	/**
@@ -205,7 +208,6 @@ export class NotifService {
 			switch (this.currentNotif!.type) {
 				case FRIEND_REQUEST_ACTIONS.INVITE:
 					this.inviterTabIDs.set(Number(this.currentNotif!.from), this.currentNotif!.inviterTabID);
-					console.log("------------Invite settings:", this.currentNotif!, this.inviterTabIDs, this.currentNotif!.inviterTabID);
 					if (this.currentPage instanceof GamePage) {
 						if (this.currentPage.config.path === ROUTE_PATHS.GAME_MULTI
 							&& this.currentPage.challengedFriendID === this.currentNotif!.from) {
@@ -338,18 +340,6 @@ export class NotifService {
 			return;
 		for (const notif of notifs)
 			await this.deleteNotif(notif.id);
-	}
-
-	/**
-	 * Met à jour les boutons d'amitié pour la page des utilisateurs ou du profil si affichée.
-	 *
-	 * Si la page des utilisateurs est affichée, appelle la méthode toggleFriendButtons de friendService
-	 * pour mettre à jour les boutons d'amitié correspondant.
-	 *
-	 * @returns {Promise<void>} Une promesse qui se résout lorsque les boutons d'amitié ont été mis à jour.
-	 */
-	private async refreshFriendButtons(): Promise<void> {
-		await friendService.toggleFriendButton();
 	}
 
 	/**
@@ -540,6 +530,13 @@ export class NotifService {
 		this.notifHandlers.clear();
 	}
 
+
+
+
+
+
+
+
 	/**
 	 * Accepte une demande d'amitié, bloque et débloque un ami.
 	 *
@@ -554,24 +551,30 @@ export class NotifService {
 	 * @param {string} [tabID] - Identifiant de l'onglet WebSocket pour les invitations à jouer.
 	 * @returns {Promise<void>}
 	 */
-	public async handleUpdate(action: FriendRequestAction, tabID?: string): Promise<void> {
-		if (!this.friendId || !this.notifData) {
-			console.warn("FriendId et/ou notifData manquant(s)");
-			return;
-		}
-		const res = await friendApi.updateFriend(this.friendId, action);
-		if ('errorMessage' in res) {
-			console.error(res.errorMessage);
-			return;
-		}
-		await this.refreshFriendButtons();
-		await this.deleteAllNotifsFromUser(this.notifData.to!);
-		this.displayDefaultNotif();
-		if (tabID)
-			this.notifData.inviterTabID = tabID;
+    public async handleUpdate(action: FriendRequestAction, tabID?: string): Promise<void> {
+        if (!this.friendId || !this.notifData) {
+            console.warn("FriendId et/ou notifData manquant(s)");
+            return;
+        }
+        const res = await friendApi.updateFriend(this.friendId, action);
+        if ('errorMessage' in res) {
+            console.error(res.errorMessage);
+            return;
+        }
 
-		await notifApi.addNotification(this.notifData!);
-	}
+        // Evénement pour mettre à jour les boutons sur les pages de profil ou d'utilisateurs
+        await eventService.emit(EVENTS.FRIEND_UPDATED, { 
+            userId: this.friendId, 
+            action: action 
+        });
+
+        await this.deleteAllNotifsFromUser(this.notifData.to!);
+        this.displayDefaultNotif();
+        if (tabID)
+            this.notifData.inviterTabID = tabID;
+
+        await notifApi.addNotification(this.notifData!);
+    }
 
 	/**
 	 * Supprime un ami de l'utilisateur courant.
@@ -584,38 +587,48 @@ export class NotifService {
 	 * @param {FriendRequestAction} action - Action à-REALISER sur la demande d'amitié.
 	 * @returns {Promise<void>}
 	 */
-	public async handleDelete(action: FriendRequestAction): Promise<void> {
-		if (!this.friendId || !this.notifData) {
-			console.warn("FriendId et/ou notifData manquant(s)");
-			return;
-		}
-		let res = await friendApi.removeFriend(this.friendId, action);
-		if ('errorMessage' in res) {
-			console.error(res.errorMessage);
-			return;
-		}
-		await this.refreshFriendButtons();
-		await this.deleteAllNotifsFromUser(this.notifData!.to!);
-		this.displayDefaultNotif();
-		await notifApi.addNotification(this.notifData!);
-	}
+    public async handleDelete(action: FriendRequestAction): Promise<void> {
+        if (!this.friendId || !this.notifData) {
+            console.warn("FriendId et/ou notifData manquant(s)");
+            return;
+        }
+        let res = await friendApi.removeFriend(this.friendId, action);
+        if ('errorMessage' in res) {
+            console.error(res.errorMessage);
+            return;
+        }
+
+        // Evénement pour mettre à jour les boutons sur les pages de profil ou d'utilisateurs
+        await eventService.emit(EVENTS.FRIEND_UPDATED, { 
+            userId: this.friendId, 
+            action: action 
+        });
+
+        await this.deleteAllNotifsFromUser(this.notifData!.to!);
+        this.displayDefaultNotif();
+        await notifApi.addNotification(this.notifData!);
+    }
 
 	// ===========================================
 	// LISTENERS
 	// ===========================================
 
-	public handleAddClick = async (event: Event): Promise<void> => {
-		const target = event.target as HTMLElement;
-		this.setFriendId(target);
-		let res = await friendApi.addFriend(this.friendId!);
-		if ('errorMessage' in res) {
-			console.error(res.errorMessage);
-			return;
-		}
-		await this.refreshFriendButtons();
-		this.setNotifData(FRIEND_REQUEST_ACTIONS.ADD);
-		await notifApi.addNotification(this.notifData!);
-	}
+    public handleAddClick = async (event: Event): Promise<void> => {
+        const target = event.target as HTMLElement;
+        this.setFriendId(target);
+        let res = await friendApi.addFriend(this.friendId!);
+        if ('errorMessage' in res) {
+            console.error(res.errorMessage);
+            return;
+        }
+        await eventService.emit(EVENTS.FRIEND_UPDATED, { 
+			userId: this.friendId,
+			action: FRIEND_REQUEST_ACTIONS.ADD
+		 });
+
+        this.setNotifData(FRIEND_REQUEST_ACTIONS.ADD);
+        await notifApi.addNotification(this.notifData!);
+    }
 
 	public handleCancelClick = async (event: Event): Promise<void> => {
 		const type: NotificationType = FRIEND_REQUEST_ACTIONS.CANCEL;
@@ -698,13 +711,6 @@ export class NotifService {
 			return;
 		}
 		await router.navigate(`/game/multi/${this.friendId!}`);
-		await this.handleUpdate(type);
-	}
-
-	public handleCancelInvite = async (friendId: number): Promise<void> => {
-		const type: NotificationType = FRIEND_REQUEST_ACTIONS.INVITE_CANCEL;
-		this.setFriendId(friendId);
-		this.setNotifData(type);
 		await this.handleUpdate(type);
 	}
 

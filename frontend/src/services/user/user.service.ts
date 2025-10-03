@@ -8,6 +8,7 @@ import { FriendService } from './friend.service';
 import { WebSocketService } from './websocket.service';
 import { NotifService } from './notif.service';
 import { GameService } from './game.service';
+import { EventService } from './event.service';
 
 // ===========================================
 // USER SERVICE - SINGLETONS
@@ -28,3 +29,6 @@ export const friendService = new FriendService();
 export const webSocketService = new WebSocketService();
 export const notifService = new NotifService();
 export const gameService = new GameService();
+export const eventService = new EventService();
+
+friendService.subscribeToFriendEvents();

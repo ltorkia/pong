@@ -4,11 +4,12 @@ import { User } from '../../shared/models/user.model';
 import { Friend } from '../../shared/models/friend.model';
 import { Game } from '../../shared/models/game.model';
 import { Tournament } from '../../shared/models/tournament.model';
+import { EVENTS } from '../../shared/config/constants.config';
 import { dataApi, friendApi } from '../../api/index.api';
-import { dataService, friendService, translateService } from '../../services/index.service';
+import { dataService, friendService, translateService, eventService } from '../../services/index.service';
 import { formatDate } from '../../utils/app.utils';
 import { ROUTE_PATHS } from '../../config/routes.config';
-import { getHTMLElementByClass } from '../../utils/dom.utils';
+import { getHTMLElementByClass, userRowsUtils } from '../../utils/dom.utils';
 
 // ===========================================
 // PROFILE PAGE
@@ -31,6 +32,8 @@ export class ProfilePage extends BasePage {
 	private avatar!: HTMLElement;
 	private username!: HTMLElement;
 	private displayedFriends: Friend[] = [];
+
+    private boundUpdateHandler?: (data: any) => Promise<void>;
 
 	/**
 	 * Constructeur de la page de profil.
@@ -65,6 +68,9 @@ export class ProfilePage extends BasePage {
 		this.buttonsLine = getHTMLElementByClass('profile-actions', this.container) as HTMLDivElement;
 		this.challengeButton = getHTMLElementByClass('challenge-button', this.container) as HTMLButtonElement;
 
+        friendService.setFriendPageSettings(this.userId!, this.container);
+        userRowsUtils.set(this.config!.path, this.userId!, this.buttonsLine);
+
 		try {
 			this.user = await dataApi.getUserStats(this.userId!);
 			this.userFriends = await friendApi.getUserFriends(this.userId!);
@@ -75,23 +81,28 @@ export class ProfilePage extends BasePage {
 			this.userGames = await dataApi.getUserGames(this.userId!);
 			this.userTournaments = await dataApi.getUserTournaments(this.userId!);
 
-			console.log('this.user', this.user);
-			console.log('this.userGames', this.userGames);
-			console.log('this.userTournaments', this.userTournaments);
-			console.log('this.userFriends', this.userFriends);
-			console.log('this.isCurrentUserProfile', this.isCurrentUserProfile);
-			console.log('this.isFriend', this.isFriend);
-			console.log('this.userGames', this.userGames);
-			console.log('this.userTournaments', this.userTournaments);
+			// S'abonner aux mises à jour pour cet utilisateur
+			this.boundUpdateHandler = async (data: { userId: number }) => {
+				if (data.userId === this.user!.id) {
+					await this.updateButtons();
+				}
+			};
+			eventService.on(EVENTS.FRIEND_UPDATED, this.boundUpdateHandler);
+
+			// console.log('this.user', this.user);
+			// console.log('this.userGames', this.userGames);
+			// console.log('this.userTournaments', this.userTournaments);
+			// console.log('this.userFriends', this.userFriends);
+			// console.log('this.isCurrentUserProfile', this.isCurrentUserProfile);
+			// console.log('this.isFriend', this.isFriend);
+			// console.log('this.userGames', this.userGames);
+			// console.log('this.userTournaments', this.userTournaments);
 
 		} catch (error) {
 			console.error('Erreur lors du chargement du profil:', error);
 			throw error;
 		}
-
-		friendService.setFriendPageSettings(this.user!, this.container);
-		friendService.setFriendButtons();
-	}
+    }
 
 	/**
 	 * Méthode de montage de la page de profil utilisateur.
@@ -113,12 +124,19 @@ export class ProfilePage extends BasePage {
 	 * @throws {Error} Si l'ID utilisateur est invalide ou manquant.
 	 */
 	protected async mount(): Promise<void> {
-
 		await this.renderProfileMain();
 		this.renderStats();
 		this.renderFriends();
 		await this.renderuserGames();
 	}
+
+    private async updateButtons(): Promise<void> {
+        console.log(`[ProfilePage] Mise à jour des boutons pour ${this.user!.username}`);
+        const element = userRowsUtils.get(this.config.path, this.user!.id) as HTMLDivElement;
+        friendService.setFriendPageSettings(this.user, element);
+        await friendService.toggleFriendButton();
+        friendService.setButtonDataAttribut();
+    }
 
 	// ===========================================
 	// METHODES DE RENDU
@@ -133,6 +151,8 @@ export class ProfilePage extends BasePage {
 		this.renderUserStatus();
 
 		if (!this.isCurrentUserProfile) {
+			const element = userRowsUtils.get(this.config.path, this.user!.id) as HTMLDivElement;
+			friendService.setFriendPageSettings(this.user, element);
 			friendService.setFriendLogo();
 			await friendService.toggleFriendButton();
 			friendService.setButtonDataAttribut();
@@ -288,7 +308,7 @@ export class ProfilePage extends BasePage {
 		score.classList.add(isWin ? 'win' : 'loss');
 
 		const player1 = this.user!
-		console.log('match.otherPlayers', match.otherPlayers);
+		// console.log('match.otherPlayers', match.otherPlayers);
 		const player2: User | null = match.otherPlayers[0] ?? null;
 
 		// Joueur 1
@@ -359,8 +379,12 @@ export class ProfilePage extends BasePage {
 	// CLEANUP
 	// ===========================================
 
-	public async cleanup(): Promise<void> {
-		await super.cleanup();
-		friendService.cleanup();
-	}
+    public async cleanup(): Promise<void> {
+        if (this.boundUpdateHandler) {
+            eventService.off(EVENTS.FRIEND_UPDATED, this.boundUpdateHandler);
+            this.boundUpdateHandler = undefined;
+        }
+        await super.cleanup();
+        friendService.cleanup();
+    }
 }
