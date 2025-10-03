@@ -530,13 +530,6 @@ export class NotifService {
 		this.notifHandlers.clear();
 	}
 
-
-
-
-
-
-
-
 	/**
 	 * Accepte une demande d'amitié, bloque et débloque un ami.
 	 *
