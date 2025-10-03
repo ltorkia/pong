@@ -47,9 +47,9 @@ docker compose up --build
 <!-- 
 TODO : GoogleSigne Avatar -> ? Lee quand ca bug ? 
 TODO : mettre nb de points dans les regles dans front
-TODO: gros bug quand 2 pages connectees / 2 websockets de stockees --- piste : si nouvelle tab ouverte l ancienne se close
-
-TODO : erase les players fictifs dans game local DONE - check multi
+TODO : erase les players fictifs dans game local DONE - check multi - check post merge a faire
 TODO : DB jeu interrompu - DOne - need more tests
+TODO : en tournoi -> mettre les alias + noms correspondants aussi dans les jeux
+TODO : ajouter dans la db : maj user tournament au fur et a me sure ou a la fin du tournoi + revoir les links users tournament -> utile pour les ID inconnus ?
 -->
 

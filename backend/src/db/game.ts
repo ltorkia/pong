@@ -238,6 +238,57 @@ export async function createTournament(nParticipants: number, nRound: number): P
     return tournament.lastID;
 }
 
+// Update tournament end
+export async function endTournament(tournamentId: number): Promise<boolean> {
+  const db = await getDb();
+  
+  try {
+    const result = await db.run(
+      `UPDATE Tournament 
+       SET ended_at = CURRENT_TIMESTAMP,
+           tournament_status = 'finished'
+       WHERE id = ?`,
+      [tournamentId]
+    );
+    
+    return true;
+  } catch (error) {
+    console.error('Error ending tournament:', error);
+    return false;
+  }
+}
+
+// Update tournament status
+export async function updateTournamentStatus(
+  tournamentId: number,
+  status: 'pending' | 'in_progress' | 'cancelled' | 'finished'
+): Promise<boolean> {
+  const db = await getDb();
+  
+  try {
+    const updates: string[] = ['tournament_status = ?'];
+    const params: any[] = [status];
+    
+    // Set ended_at when finishing or cancelling
+    if (status === 'finished' || status === 'cancelled') {
+      updates.push('ended_at = CURRENT_TIMESTAMP');
+    }
+    
+    params.push(tournamentId);
+    
+    const result = await db.run(
+      `UPDATE Tournament SET ${updates.join(', ')} WHERE id = ?`,
+      params
+    );
+    
+    return true;
+  } catch (error) {
+    console.error('Error updating tournament status:', error);
+    return false;
+  }
+}
+
+
 // // Crée un jeu et retourne son id
 // export async function createGame(nParticipants: number, tournamentId?: number) { //ptet pas necessaire si on reprend la logique remote
 //     const db = await getDb();   

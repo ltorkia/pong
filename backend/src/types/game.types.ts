@@ -1,5 +1,5 @@
 import { EventEmitter } from "node:stream";
-import { resultGame, addGame, addGamePlayers, cancelledGame, registerUserTournament, createTournament } from "../db/game";
+import { resultGame, addGame, addGamePlayers, cancelledGame, registerUserTournament, createTournament, endTournament, updateTournamentStatus } from "../db/game";
 import { GameData, Player } from "../shared/types/game.types"
 import { JwtPayload } from "./user.types";
 
@@ -432,6 +432,7 @@ export class TournamentLocal {
         // this.players est melange pour avoir des matchs aleatoire
         shuffleArray(this.players);
 
+        await updateTournamentStatus(this.ID, "in_progress");
         const gameID1 = await addGame(this.ID);
         await addGamePlayers(gameID1, this.players[0].ID, this.players[1].ID);
         this.stageOne[0] = new Game(gameID1, 2, [this.players[0], this.players[1]], this.ID);
@@ -453,6 +454,8 @@ export class TournamentLocal {
     public async update(): Promise<void> {
         if (this.stageTwo.getIsOver()) {
             this.winner = this.getWinner(this.stageTwo);
+            // await endTournament(this.ID); //maj tournament in db
+            await updateTournamentStatus(this.ID, "finished");
             return;
         }
         for (const game of this.stageOne) {
