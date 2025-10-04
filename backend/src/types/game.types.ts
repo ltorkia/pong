@@ -183,6 +183,7 @@ export class Game extends EventEmitter {
 
     public gameStarted: boolean = false;
     public isOver: boolean = false;
+    public cancellerID: number = 0;
 
     private score: number[] = [0, 0];
     public gameID: number = 0;
@@ -312,34 +313,32 @@ export class Game extends EventEmitter {
         this.gameStarted = false;
         this.isOver = true;
 
+        // Si un joueur quitte la page / cancel le game, il déclare forfait -> 3 points pour l'autre joueur
+        if (this.cancellerID) {
+            this.score[0] = (this.cancellerID === this.players[1].ID) ? MAX_SCORE : this.score[0];
+            this.score[1] = (this.cancellerID === this.players[0].ID) ? MAX_SCORE : this.score[1];
+        }
+
         for (const player of this.players) {
+
+            // Il faut quand même inverser le score pour le display du joueur 2, mais en copiant le tableau this.score
+            let scoreToDisplay = [...this.score];
+            if (player === this.players[1])
+                scoreToDisplay.reverse();
+
             if (player.webSocket) {
                 player.webSocket.send(JSON.stringify({
                     type: "end",
-                    score: this.score,
+                    score: scoreToDisplay,
                     tournamentID: this.tournamentID || null
                 }));
             }
-        }
-        this.players[0].matchMaking = false;
-        this.players[1].matchMaking = false;
-
-        if (this.score[0] === this.score[1]) {
-            await cancelledGame(this.gameID, 0, 0, this.score);
-            return;
-        }
-        const winner = this.getWinner();
-        const looser = this.getLooser();
-
-        if (this.score[0] === 3 || this.score[1] === 3)
-            await resultGame(this.gameID, winner.ID, looser.ID, this.score);
-        else
-            await cancelledGame(this.gameID, winner.ID, looser.ID, this.score);
-
-        // Cleanup des websockets
-        for (const player of this.players) {
+            player.matchMaking = false;
             player.webSocket = undefined;
         }
+        
+        const winnerID = this.getWinnerID();
+        await resultGame(this.gameID, winnerID, this.score);
 
         this.emit("finished", this); // envoie un event "finished" qui est capte par une classe parent (TournamentLocal)
     }
@@ -347,7 +346,7 @@ export class Game extends EventEmitter {
     private sendGameUpdate() {
         const gameUpdate = new GameData(this.players, this.ball, this.score);
         for (const player of this.players) {
-            if (!this.tournamentID && this.players[1] == player) {
+            if (this.players[1] == player) {
                 gameUpdate.ball.x *= -1;
                 gameUpdate.players[1].pos.x *= -1;
                 gameUpdate.players[0].pos.x *= -1;
@@ -392,8 +391,7 @@ export class Game extends EventEmitter {
         }
     };
 
-    public getWinner() { return this.score[0] == 3 ? this.players[0] : this.players[1] };
-    public getLooser() { return this.score[1] != 3 ? this.players[1] : this.players[0] };
+    public getWinnerID() { return this.score[0] === MAX_SCORE ? this.players[0].ID : this.players[1].ID };
     public getIsOver() { return this.isOver };
     public getScore() { return this.score };
     public setGameStarted(started: boolean) { this.gameStarted = started };

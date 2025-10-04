@@ -87,7 +87,7 @@ export async function updateStartGame(gameId: number) {
     );
 }
 
-export async function resultGame(gameId: number, winnerId: number, looserId: number, score: number[]){
+export async function resultGame(gameId: number, winnerId: number, score: number[]){
     const db = await getDb();
 
     const minScore = Math.min(score[0], score[1]);
@@ -100,7 +100,8 @@ export async function resultGame(gameId: number, winnerId: number, looserId: num
             winner_id = ?,
             looser_result = ?
         WHERE id = ?;
-`, [winnerId, minScore, gameId]);
+    `, 
+    [winnerId, minScore, gameId]);
 
     await db.run(`
         UPDATE User_Game
@@ -112,11 +113,11 @@ export async function resultGame(gameId: number, winnerId: number, looserId: num
             )
         WHERE game_id = ?;
         `, 
- [winnerId, gameId, gameId, gameId]);
+    [winnerId, gameId, gameId, gameId]);
 
 }
 
-export async function cancelledGame(gameId: number, winnerId: number, looserId: number, score: number[]){
+export async function cancelledGame(gameId: number, winnerId: number, score: number[]){
     const db = await getDb();
     const minScore = Math.min(score[0], score[1]);
 
@@ -127,7 +128,8 @@ export async function cancelledGame(gameId: number, winnerId: number, looserId: 
             winner_id = ?,
             looser_result = ?
         WHERE id = ?;
-`, [winnerId, gameId, minScore]);
+        `, 
+    [winnerId, gameId, minScore]);
 
     await db.run(`
         UPDATE User_Game
@@ -139,11 +141,11 @@ export async function cancelledGame(gameId: number, winnerId: number, looserId: 
             )
         WHERE game_id = ?;
         `, 
- [winnerId, gameId, gameId, gameId]);
+    [winnerId, gameId, gameId, gameId]);
 }
 
 // ptet pas utile
-export async function waitingGame(gameId: number, winnerId: number, looserId: number, score: number[]){
+export async function waitingGame(gameId: number, winnerId: number, score: number[]){
     const db = await getDb();
     const minScore = Math.min(score[0], score[1]);
 
@@ -155,7 +157,7 @@ export async function waitingGame(gameId: number, winnerId: number, looserId: nu
             winner_id = ?
             looser_result = ?
         WHERE id = ?;
-`, [winnerId, gameId, minScore]);
+    `, [winnerId, gameId, minScore]);
 
     await db.run(`
         UPDATE User_Game
@@ -167,7 +169,7 @@ export async function waitingGame(gameId: number, winnerId: number, looserId: nu
             )
         WHERE game_id = ?;
         `, 
- [winnerId, gameId, gameId, gameId]);
+    [winnerId, gameId, gameId, gameId]);
 }
 
 export async function getResultGame(gameId: number)

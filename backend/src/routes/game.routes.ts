@@ -95,7 +95,7 @@ export async function gameRoutes(app: FastifyInstance) {
         else if (reqType === "clean_request") {
             if (matchMakingReq.data.inviteToClean)
                 await cleanInvite(app, playerID, matchMakingReq.data.inviterID, matchMakingReq.data.invitedID);
-            await cleanGame(app, matchMakingReq.data.gameID);
+            await cleanGame(app, playerID, matchMakingReq.data.gameID);
             const players = allPlayers.get(playerID);
             if (players && matchMakingReq.data.tabID) {
                 const player = players.find(p => p.tabID === matchMakingReq.data.tabID);
@@ -158,14 +158,16 @@ function cleanPlayer(allPlayers: Map<number, Player[]>, playerID: number) {
     allPlayers.delete(playerID);
 }
 
-async function cleanGame(app: FastifyInstance, gameID?: number) {
+async function cleanGame(app: FastifyInstance, playerID: number, gameID?: number) {
     if (!gameID)
         return;
     const { allGames } = app.lobby;
     const game = allGames.find((game: Game) => game.gameID == gameID);
     if (game) {
-        if (!game.isOver)
+        if (!game.isOver) {
+            game.cancellerID = playerID;
             await game.endGame();
+        }
         const idx = allGames.indexOf(game);
         if (idx !== -1)
             allGames.splice(idx, 1);
