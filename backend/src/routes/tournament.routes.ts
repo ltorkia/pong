@@ -4,9 +4,11 @@ import { Player } from '../shared/types/game.types';
 import { Game, Tournament, TournamentLocal } from '../types/game.types';
 import { TournamentLobbyUpdate, StartTournamentSignal, DismantleSignal } from '../shared/types/websocket.types'
 import { generateUniqueID } from '../shared/functions'
-import { addGame, addGamePlayers, getResultGame, createTournament } from '../db/game';
+import { addGame, addGamePlayers, getResultGame, createTournament, incrementUserTournamentStats } from '../db/game';
 import { findPlayerWebSocket } from '../helpers/query.helpers';
 import { initPlayer } from './game.routes';
+import { getUsersGame } from '../db/user';
+// import { SafeUserBasic } from '../shared/types/user.types';
 
 // Differentes routes pour differents besoins lies aux tournois en remote
 // Les tournois existent en backend dans app.lobby.allTournaments
@@ -354,6 +356,14 @@ export async function tournamentRoutes(app: FastifyInstance) {
             const winner = resultgame?.winnerId;
             if (winner) {
                 winnerList.push(winner);
+                const looser = await getUsersGame(game.gameID, winner);
+                console.log("im heeeeeeeeere ////////////////");
+                if (looser != undefined)
+                {
+                    await incrementUserTournamentStats(tournamentID, winner, true);
+                    await incrementUserTournamentStats(tournamentID, looser.id, false);
+                }
+
             } else {
                 return reply.code(404).send({ error: "Winner not found" });
                 console.log("WINNER ID = ", winner);

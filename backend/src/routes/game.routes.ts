@@ -34,6 +34,8 @@ export async function gameRoutes(app: FastifyInstance) {
         if (playerID != jwtUser.id)
             return reply.status(403).send({ errorMessage: 'Forbidden' });
 
+        // await cleanGameOver(app, playerID);
+
         if (reqType === "matchmaking_request") {
             const newPlayer = initPlayer(allPlayers, playerID, matchMakingReq.data.tabID!);
             if (!newPlayer)
@@ -113,19 +115,55 @@ export async function gameRoutes(app: FastifyInstance) {
     });
 }
 
-async function findAvailableOpponent(newPlayer: Player, allPlayers: Map<number, Player[]>): Promise<Player | null> {
-    for (const playerArray of allPlayers.values()) {
-        for (const candidate of playerArray) {
-            if (!candidate.matchMaking || candidate.ID === newPlayer.ID)
-                continue;
-            const relation = await getRelation(newPlayer.ID, candidate.ID);
-            if (relation?.friendStatus === "blocked")
-                continue;
-            return candidate;
+
+const cleanGameOver = async (app: FastifyInstance, playerID: number) => {
+    const { allGames } = app.lobby;
+    // const {}
+    for (const game of allGames)
+        {
+            console.log("gaaaame", game);
+            const idx = allGames.indexOf(game);
+            if (playerID === game.players[0].ID || playerID === game.players[1].ID)
+                {   
+                    // console.log("test");
+                    cleanGameOver(app, playerID);
+                    break;
+                    // // let {majgames} = app.lobby.idx;
+                    // // while (playerID === majgame.players[0].ID || playerID === majgame.players[1].ID)
+                    //     continue;
+                    
+                    // await game.endGame();
+                    // allGames.splice(idx,1);
+                }
+            }
         }
+        
+        async function findAvailableOpponent(newPlayer: Player, allPlayers: Map<number, Player[]>): Promise<Player | null> {
+            for (const playerArray of allPlayers.values()) {
+                for (const candidate of playerArray) {
+                    if (!candidate.matchMaking || candidate.ID === newPlayer.ID)
+                        continue;
+                    const relation = await getRelation(newPlayer.ID, candidate.ID);
+                    if (relation?.friendStatus === "blocked")
+                        continue;
+                    return candidate;
+                }
+                // });
+            }
+            return null;
     }
-    return null;
-}
+    
+//     async function findAvailableOpponent(newPlayer: Player, allPlayers: Player[]): Promise<Player | null> {
+//     for (const candidate of allPlayers) {
+//         if (!candidate.matchMaking || candidate.ID === newPlayer.ID)
+//             continue;
+//         const relation = await getRelation(newPlayer.ID, candidate.ID);
+//         if (relation?.friendStatus === "blocked")
+//             continue;
+//         return candidate;
+//     }
+//     return null;
+// }
 
 export function initPlayers(allPlayers: Map<number, Player[]>, currentPlayerId: number, adversaryId: number, tabID?: string): [Player, Player] {
     const playerOne = initPlayer(allPlayers, currentPlayerId, tabID);
@@ -162,6 +200,7 @@ async function cleanGame(app: FastifyInstance, playerID: number, gameID?: number
     if (!gameID)
         return;
     const { allGames } = app.lobby;
+    const { allPlayers } = app.lobby;
     const game = allGames.find((game: Game) => game.gameID == gameID);
     if (game) {
         if (!game.isOver) {
@@ -239,6 +278,22 @@ async function decountWS(ws: WebSocket, gameID: number) {
 const startGame = async (app: FastifyInstance, players: Player[], mode: string, gameCreated?: Game) => {
     const { allGames } = app.lobby;
     const isOnlineGame = mode === "multi" ? true : false;
+
+    // pour checker si joueur deja en jeu et eviter de relancer le jeu si conflit de socket 
+    // --> peut etre desactiver le alluser qui supprime de nouveaux sockets d un meme utilisateur si fonctionne
+    // for (const game of allGames)
+    // {
+    //     console.log("gaaaame", game);
+    //     console.log("gaaaamecreated ", gameCreated);
+    //     if (gameCreated && game.gameID === gameCreated.gameID)
+    //     {
+    //         console.log("heeeeere");
+    //         continue ;
+    //     }
+    //     if (players[0].ID === game.players[0].ID || players[1].ID === game.players[1].ID ||
+    //         players[1].ID === game.players[0].ID || players[0].ID === game.players[1].ID)
+    //             await game.endGame(); //a checker 
+    // }
     const gameID = await addGame(undefined, isOnlineGame);
     await addGamePlayers(gameID, players[0].ID, players[1].ID);
     const newGame = gameCreated || new Game(gameID, 2, players);
@@ -281,7 +336,6 @@ const startGame = async (app: FastifyInstance, players: Player[], mode: string, 
         return;
 
     newGame.initGame();
-
 }
 
 const startTournamentGame = async (app: FastifyInstance, gameID: number, hostID: number) => {

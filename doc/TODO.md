@@ -42,3 +42,14 @@ FRONT
 Copier les fichiers .env du back et du front manuellement et:
 docker compose up --build
 ------------------------------------------------------------------------
+
+<!-- MEMO ELISA -->
+<!-- 
+TODO : GoogleSigne Avatar -> ? Lee quand ca bug ? 
+TODO : mettre nb de points dans les regles dans front
+TODO : erase les players fictifs dans game local DONE - check multi - check post merge a faire
+TODO : DB jeu interrompu - DOne - need more tests
+TODO : en tournoi -> mettre les alias + noms correspondants aussi dans les jeux
+TODO : ajouter dans la db : maj user tournament au fur et a me sure ou a la fin du tournoi + revoir les links users tournament -> utile pour les ID inconnus ?
+-->
+

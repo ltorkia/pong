@@ -121,15 +121,15 @@ export async function cancelledGame(gameId: number, winnerId: number, score: num
     const db = await getDb();
     const minScore = Math.min(score[0], score[1]);
 
-    await db.run(`
-        UPDATE Game
-        SET status = 'cancelled',
-            end = CURRENT_TIMESTAMP,
-            winner_id = ?,
-            looser_result = ?
-        WHERE id = ?;
-        `, 
-    [winnerId, gameId, minScore]);
+        // Mise à jour de la table Game
+        await db.run(`
+            UPDATE Game
+            SET status = 'cancelled',
+                end = CURRENT_TIMESTAMP,
+                winner_id = ?,
+                looser_result = ?
+            WHERE id = ?;
+        `, [winnerId, minScore, gameId]); // Ordre corrigé : winnerId, minScore, gameId
 
     await db.run(`
         UPDATE User_Game
@@ -200,6 +200,83 @@ export async function createTournament(nParticipants: number, nRound: number): P
         [nParticipants, nRound]
     );
     return tournament.lastID;
+}
+
+// Update tournament end
+export async function endTournament(tournamentId: number): Promise<boolean> {
+  const db = await getDb();
+  
+  try {
+    const result = await db.run(
+      `UPDATE Tournament 
+       SET ended_at = CURRENT_TIMESTAMP,
+           tournament_status = 'finished'
+       WHERE id = ?`,
+      [tournamentId]
+    );
+    
+    return true;
+  } catch (error) {
+    console.error('Error ending tournament:', error);
+    return false;
+  }
+}
+
+// Update tournament status
+export async function updateTournamentStatus(
+  tournamentId: number,
+  status: 'pending' | 'in_progress' | 'cancelled' | 'finished'
+): Promise<boolean> {
+  const db = await getDb();
+  
+  try {
+    const updates: string[] = ['tournament_status = ?'];
+    const params: any[] = [status];
+    
+    // Set ended_at when finishing or cancelling
+    if (status === 'finished' || status === 'cancelled') {
+      updates.push('ended_at = CURRENT_TIMESTAMP');
+    }
+    
+    params.push(tournamentId);
+    
+    const result = await db.run(
+      `UPDATE Tournament SET ${updates.join(', ')} WHERE id = ?`,
+      params
+    );
+    
+    return true;
+  } catch (error) {
+    console.error('Error updating tournament status:', error);
+    return false;
+  }
+}
+
+
+// Increment wins/losses (useful for game results)
+export async function incrementUserTournamentStats(
+  tournamentId: number,
+  userId: number,
+  win: boolean,
+  scoreIncrement: number = 0
+): Promise<boolean> {
+  const db = await getDb();
+  
+  try {
+    const result = await db.run(
+      `UPDATE User_Tournament 
+       SET wins = wins + ?,
+           losses = losses + ?,
+           score = score + ?
+       WHERE tournament_id = ? AND user_id = ?`,
+      [win ? 1 : 0, win ? 0 : 1, scoreIncrement, tournamentId, userId]
+    );
+    
+    return true;
+  } catch (error) {
+    console.error('Error incrementing user tournament stats:', error);
+    return false;
+  }
 }
 
 // // Crée un jeu et retourne son id
