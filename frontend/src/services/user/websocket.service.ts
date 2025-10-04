@@ -15,6 +15,13 @@ export class WebSocketService {
 		handleClose: (e: CloseEvent) => void; 
 		handleError: (e: Event) => void; 
 	}> = new Map();
+	
+	// Paramètres de reconnexion
+	private reconnectTimeouts: Map<string, number> = new Map();
+	private reconnectAttempts: Map<string, number> = new Map();
+	private maxReconnectAttempts = 5;
+	private reconnectDelay = 2000; // 2 secondes
+	private shouldReconnect: Map<string, boolean> = new Map();
 
 	/**
 	 * Retourne l'ID de l'onglet actuel, en générant un nouvel ID si nécessaire.
@@ -47,6 +54,7 @@ export class WebSocketService {
 		if (this.isConnecting.get(id))
 			return this.connectionPromises.get(id);
 
+		this.shouldReconnect.set(id, true);
 		this.isConnecting.set(id, true);
 
 		const promise = new Promise<void>((resolve, reject) => {
@@ -62,16 +70,17 @@ export class WebSocketService {
 				ws.addEventListener("open", () => {
 					clearTimeout(timeout);
 					this.isConnecting.set(id, false);
+					this.reconnectAttempts.set(id, 0);
 					console.log(`WEBSOCKET CONNECTED!`);
 					console.log(`-- TabID: ${id}`);
-					this.setupWebSocketHandlers(id, ws); // tous les listeners centralisés ici
+					this.setupWebSocketHandlers(id, ws);
 					resolve();
 				});
 
 				ws.addEventListener("error", (err) => {
 					clearTimeout(timeout);
 					this.isConnecting.set(id, false);
-					console.error(`Erreur WebSocket TabID ${id}:`, err);
+					console.error(`Erreur WebSocket.`);
 					reject(err);
 				});
 
@@ -85,9 +94,46 @@ export class WebSocketService {
 		this.connectionPromises.set(id, promise);
 		try {
 			await promise;
+		} catch (error) {
+			this.attemptReconnect(id);
+			throw error;
 		} finally {
 			this.connectionPromises.delete(id);
 		}
+	}
+
+	/**
+	 * Tente de reconnecter le WebSocket après une déconnexion
+	 */
+	private attemptReconnect(tabID: string) {
+		if (!this.shouldReconnect.get(tabID)) {
+			console.log(`Reconnexion désactivée pour tab ${tabID}`);
+			return;
+		}
+
+		const attempts = this.reconnectAttempts.get(tabID) || 0;
+		if (attempts >= this.maxReconnectAttempts) {
+			console.error(`Nombre maximum de tentatives de reconnexion atteint pour tab ${tabID}`);
+			this.shouldReconnect.set(tabID, false);
+			return;
+		}
+
+		// Annuler tout timeout de reconnexion précédent
+		const existingTimeout = this.reconnectTimeouts.get(tabID);
+		if (existingTimeout) {
+			clearTimeout(existingTimeout);
+		}
+
+		// Calculer le délai
+		const delay = this.reconnectDelay * Math.pow(1.5, attempts);
+		console.warn(`Tentative ${attempts + 1}/${this.maxReconnectAttempts} de reconnexion websocket.`);
+		
+		const timeout = setTimeout(async () => {
+			this.reconnectAttempts.set(tabID, attempts + 1);
+			await this.openWebSocket(tabID);
+		}, delay);
+
+		this.reconnectTimeouts.set(tabID, Number(timeout));
 	}
 
 	/**
@@ -124,14 +170,20 @@ export class WebSocketService {
 			}
 		};
 
-		const handleClose = () => {
+		const handleClose = (event: CloseEvent) => {
 			console.log(`WebSocket fermé pour tab ${tabID}`);
 			this.sockets.delete(tabID);
 			this.handlers.delete(tabID);
+			
+			// Tenter une reconnexion si ce n'est pas une fermeture normale
+			if (event.code !== 1000 && this.shouldReconnect.get(tabID)) {
+				console.warn(`Fermeture anormale détectée, tentative de reconnexion...`);
+				this.attemptReconnect(tabID);
+			}
 		};
 
-		const handleError = (error: Event) => {
-			console.error(`Erreur WebSocket pour tab ${tabID}:`, error);
+		const handleError = () => {
+			console.error(`Erreur WebSocket.`);
 		};
 
 		ws.addEventListener("message", handleMessage);
@@ -148,6 +200,16 @@ export class WebSocketService {
 		const id = tabID || this.tabID;
 		if (!id) return;
 
+		// Désactiver la reconnexion automatique
+		this.shouldReconnect.set(id, false);
+		
+		// Annuler tout timeout de reconnexion en cours
+		const timeout = this.reconnectTimeouts.get(id);
+		if (timeout) {
+			clearTimeout(timeout);
+			this.reconnectTimeouts.delete(id);
+		}
+
 		const ws = this.sockets.get(id);
 		if (!ws) return;
 
@@ -161,9 +223,10 @@ export class WebSocketService {
 			this.handlers.delete(id);
 		}
 
-		ws.close();
+		ws.close(1000, "Fermeture normale");
 		this.sockets.delete(id);
 		this.isConnecting.delete(id);
+		this.reconnectAttempts.delete(id);
 		console.log(`WebSocket fermé pour tab ${id}`);
 	}
 
@@ -173,5 +236,23 @@ export class WebSocketService {
 	public isConnected(tabID: string): boolean {
 		const ws = this.sockets.get(tabID);
 		return !!ws && ws.readyState === WebSocket.OPEN;
+	}
+
+	/**
+	 * Nettoyer toutes les ressources (à appeler lors de la destruction de l'application)
+	 */
+	public cleanup() {
+		// Fermer toutes les connexions
+		this.sockets.forEach((_, tabID) => {
+			this.closeWebSocket(tabID);
+		});
+		
+		// Nettoyer tous les timeouts
+		this.reconnectTimeouts.forEach(timeout => clearTimeout(timeout));
+		this.reconnectTimeouts.clear();
+		
+		// Nettoyer toutes les maps
+		this.shouldReconnect.clear();
+		this.reconnectAttempts.clear();
 	}
 }
