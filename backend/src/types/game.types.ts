@@ -425,14 +425,13 @@ export class TournamentLocal {
     }
 
     public async startTournament(): Promise<void> {
-
         for (const player of this.players)
             await registerUserTournament(player.ID, this.ID, player.alias);
 
         // this.players est melange pour avoir des matchs aleatoire
         shuffleArray(this.players);
-
         await updateTournamentStatus(this.ID, "in_progress");
+
         const gameID1 = await addGame(this.ID);
         await addGamePlayers(gameID1, this.players[0].ID, this.players[1].ID);
         this.stageOne[0] = new Game(gameID1, 2, [this.players[0], this.players[1]], this.ID);

@@ -123,7 +123,7 @@ export async function friendsRoutes(app: FastifyInstance) {
 		if (!isFriendRequestValid(data, relation.friendStatus))
 			return reply.status(409).send({ errorMessage: 'Relation conflict' });
 		if (!isValidRequester(data, relation, jwtUser.id))
-			return reply.status(403).send({ errorMessage: 'Forbidden' });
+			return reply.status(409).send({ errorMessage: 'Forbidden request' });
 
 		switch (data) {
 			case FRIEND_REQUEST_ACTIONS.ACCEPT:

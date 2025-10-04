@@ -33,6 +33,7 @@ export class NotifService {
 	public currentNotif: AppNotification | null = null;
 	public friendId: number | null = null;
 	public friendName: string | null = null;
+	private clickedNotifId: number | null = null;
 	public inviterTabIDs: Map<number, string> = new Map();
 	
 	private notifHandlers: Map<number, {
@@ -88,6 +89,7 @@ export class NotifService {
 			}
 		}
 		this.updateNotifsCounter();
+		this.currentNotif = null;
 		this.friendId = null;
 		this.friendName = null;
 	}
@@ -135,6 +137,14 @@ export class NotifService {
 		}
 	}
 
+	/**
+	 * Gère le conflit erreur 409 du back en supprimant la notification actuelle.
+	 */
+	public async handleConflict(): Promise<void> {
+		await this.deleteNotif(this.clickedNotifId!);
+		this.clickedNotifId = null;
+	}
+
 	// ===========================================
 	// METHODES PRIVATES
 	// ===========================================
@@ -175,13 +185,13 @@ export class NotifService {
 
 		// Sinon, parcourt les notifications et crée un élément HTML pour chacune
 		this.updateNotifsCounter();
-		this.notifs.forEach(async (notifDb: AppNotification) => {
+		for (const notifDb of this.notifs) {
 			this.currentNotif = notifDb;
 			this.friendId = this.currentNotif.from;
 			const friend = await dataApi.getUserById(Number(this.friendId!));
 			this.friendName = friend!.username;
 			this.displayNotif();
-		});
+		}
 	}
 
 	/**
@@ -292,6 +302,10 @@ export class NotifService {
 	 */
 	private async deleteNotif(notifId?: number): Promise<void> {
 		const id = notifId ?? this.currentNotif!.id;
+		if (!id) {
+			console.warn(`[${this.constructor.name}] Identifiant de notification introuvable`);
+			return;
+		}
 		const notifIndex = this.notifs.findIndex((notif) => notif.id === id);
 
 		if (notifIndex === -1) {
@@ -577,6 +591,7 @@ export class NotifService {
 		const target = event.target as HTMLElement;
 		if (!this.friendId)
 			this.setFriendId(target);
+		this.setClickedNotifId(target);
 		let res = await friendApi.addFriend(this.friendId!);
 		if ('errorMessage' in res) {
 			console.error(res.errorMessage);
@@ -592,6 +607,7 @@ export class NotifService {
 		const target = event.target as HTMLElement;
 		if (!this.friendId)
 			this.setFriendId(target);
+		this.setClickedNotifId(target);
 		this.setNotifData(type, 1);
 		await this.handleDelete(type);
 	}
@@ -601,6 +617,7 @@ export class NotifService {
 		const target = event.target as HTMLElement;
 		if (!this.friendId)
 			this.setFriendId(target);
+		this.setClickedNotifId(target);
 		this.setNotifData(type, 1);
 		await this.handleDelete(type);
 	}
@@ -610,6 +627,7 @@ export class NotifService {
 		const target = event.target as HTMLElement;
 		if (!this.friendId)
 			this.setFriendId(target);
+		this.setClickedNotifId(target);
 		this.setNotifData(type);
 		await this.handleUpdate(type);
 	}
@@ -619,6 +637,7 @@ export class NotifService {
 		const target = event.target as HTMLElement;
 		if (!this.friendId)
 			this.setFriendId(target);
+		this.setClickedNotifId(target);
 		this.setNotifData(type, 1);
 		await this.handleUpdate(type);
 	}
@@ -628,6 +647,7 @@ export class NotifService {
 		const target = event.target as HTMLElement;
 		if (!this.friendId)
 			this.setFriendId(target);
+		this.setClickedNotifId(target);
 		this.setNotifData(type, 1);
 		await this.handleUpdate(type);
 	}
@@ -637,6 +657,7 @@ export class NotifService {
 		const target = event.target as HTMLElement;
 		if (!this.friendId)
 			this.setFriendId(target);
+		this.setClickedNotifId(target);
 		this.setNotifData(type, 1);
 		await this.handleDelete(type);
 	}
@@ -647,6 +668,7 @@ export class NotifService {
 		if (!this.friendId)
 			this.setFriendId(target);
 		this.setNotifData(type);
+		this.setClickedNotifId(target);
 		await this.handleUpdate(type, webSocketService.getTabID());
 		if ((this.currentPage.config.path !== ROUTE_PATHS.GAME_MULTI 
 				&& !(this.currentPage instanceof GamePage))
@@ -667,6 +689,7 @@ export class NotifService {
 		const target = event.target as HTMLElement;
 		if (!this.friendId)
 			this.setFriendId(target);
+		this.setClickedNotifId(target);
 		this.setNotifData(type);
 		if (this.currentPage instanceof GamePage
 			&& this.currentPage.challengedFriendID === this.friendId) {
@@ -719,6 +742,21 @@ export class NotifService {
 		}
 		const friendId = button.getAttribute("data-friend-id");
 		this.friendId = Number(friendId);
+	}
+
+	/**
+	 * Récupère l'identifiant de la notification courante en fonction de l'élément HTML cliqué.
+	 * 
+	 * @param {HTMLElement} target - Élément HTML cliqué.
+	 */
+	private setClickedNotifId(target: HTMLElement): void {
+		const div = target.closest('div[id]') as HTMLElement | null;
+		if (!div) {
+			console.error("Pas d'id trouvé pour la notif courante.'");
+			return;
+		}
+		const notifIdStr = div.id.replace(/^notif-/, ""); 
+		this.clickedNotifId = Number(notifIdStr);
 	}
 
 	/**

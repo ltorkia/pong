@@ -1,6 +1,7 @@
-import { currentService } from '../services/index.service';
+import { currentService, notifService, pageService } from '../services/index.service';
 import { router } from '../router/router';
 import { DEFAULT_ROUTE } from '../config/routes.config';
+import { ROUTE_PATHS } from '../config/routes.config';
 
 // ===========================================
 // APP UTILS
@@ -71,10 +72,13 @@ export async function secureFetch(url: string, options?: RequestInit): Promise<R
 		throw new Error('Session expirée ou non autorisée');
 	} else if (res.status === 409) {
 		console.warn(`[secureFetch] Conflit (status ${res.status})`);
-		await router.redirect(DEFAULT_ROUTE);
-		throw new Error('Relation bloquée ou invalide');
+		await notifService.handleConflict();
+		if (pageService.currentPage && pageService.currentPage.config.path === ROUTE_PATHS.GAME_MULTI
+			&& pageService.currentPage.challengedFriendID === notifService.friendId) {
+			await router.redirect(DEFAULT_ROUTE);
+		}
+		throw new Error('Ressource invalide');
 	}
-
 	return res;
 }
 

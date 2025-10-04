@@ -178,9 +178,8 @@ export async function getResultGame(gameId: number)
     const game = await db.get(`
     	SELECT id, n_participant, begin, end, tournament, status, looser_result, winner_id 
 		FROM Game
-        Where id = ${gameId};
-	`
-   );
+        Where id = ?`, 
+        [gameId]);
    return snakeToCamel(game) as GameModel;
 }
 // resultgame dans fichier user -> a deplacer ici ? 
@@ -204,79 +203,79 @@ export async function createTournament(nParticipants: number, nRound: number): P
 
 // Update tournament end
 export async function endTournament(tournamentId: number): Promise<boolean> {
-  const db = await getDb();
-  
-  try {
-    const result = await db.run(
-      `UPDATE Tournament 
-       SET ended_at = CURRENT_TIMESTAMP,
-           tournament_status = 'finished'
-       WHERE id = ?`,
-      [tournamentId]
-    );
-    
-    return true;
-  } catch (error) {
-    console.error('Error ending tournament:', error);
-    return false;
-  }
+    const db = await getDb();
+
+    try {
+        const result = await db.run(
+            `UPDATE Tournament 
+            SET ended_at = CURRENT_TIMESTAMP,
+                tournament_status = 'finished'
+            WHERE id = ?`,
+            [tournamentId]
+        );
+        
+        return true;
+    } catch (error) {
+        console.error('Error ending tournament:', error);
+        return false;
+    }
 }
 
 // Update tournament status
 export async function updateTournamentStatus(
-  tournamentId: number,
-  status: 'pending' | 'in_progress' | 'cancelled' | 'finished'
-): Promise<boolean> {
-  const db = await getDb();
-  
-  try {
-    const updates: string[] = ['tournament_status = ?'];
-    const params: any[] = [status];
-    
-    // Set ended_at when finishing or cancelling
-    if (status === 'finished' || status === 'cancelled') {
-      updates.push('ended_at = CURRENT_TIMESTAMP');
+        tournamentId: number,
+        status: 'pending' | 'in_progress' | 'cancelled' | 'finished'
+    ): Promise<boolean> {
+    const db = await getDb();
+
+    try {
+        const updates: string[] = ['tournament_status = ?'];
+        const params: any[] = [status];
+        
+        // Set ended_at when finishing or cancelling
+        if (status === 'finished' || status === 'cancelled') {
+            updates.push('ended_at = CURRENT_TIMESTAMP');
+        }
+        
+        params.push(tournamentId);
+        
+        const result = await db.run(
+            `UPDATE Tournament SET ${updates.join(', ')} WHERE id = ?`,
+            params
+        );
+        
+        return true;
+    } catch (error) {
+        console.error('Error updating tournament status:', error);
+        return false;
     }
-    
-    params.push(tournamentId);
-    
-    const result = await db.run(
-      `UPDATE Tournament SET ${updates.join(', ')} WHERE id = ?`,
-      params
-    );
-    
-    return true;
-  } catch (error) {
-    console.error('Error updating tournament status:', error);
-    return false;
-  }
 }
 
 
 // Increment wins/losses (useful for game results)
 export async function incrementUserTournamentStats(
-  tournamentId: number,
-  userId: number,
-  win: boolean,
-  scoreIncrement: number = 0
-): Promise<boolean> {
-  const db = await getDb();
-  
-  try {
-    const result = await db.run(
-      `UPDATE User_Tournament 
-       SET wins = wins + ?,
-           losses = losses + ?,
-           score = score + ?
-       WHERE tournament_id = ? AND user_id = ?`,
-      [win ? 1 : 0, win ? 0 : 1, scoreIncrement, tournamentId, userId]
-    );
-    
-    return true;
-  } catch (error) {
-    console.error('Error incrementing user tournament stats:', error);
-    return false;
-  }
+        tournamentId: number,
+        userId: number,
+        win: boolean,
+        scoreIncrement: number = 0
+    ): Promise<boolean> {
+    const db = await getDb();
+
+    try {
+        const result = await db.run(
+        `UPDATE User_Tournament 
+        SET wins = wins + ?,
+            losses = losses + ?,
+            score = score + ?
+        WHERE tournament_id = ? AND user_id = ?`,
+        [win ? 1 : 0, win ? 0 : 1, scoreIncrement, tournamentId, userId]
+        );
+        
+        return true;
+    } catch (error) {
+        console.error('Error incrementing user tournament stats:', error);
+        return false;
+    }
 }
 
 // // Crée un jeu et retourne son id
@@ -301,12 +300,13 @@ export async function incrementUserTournamentStats(
 // }
 
 // // Enregistre un joueur dans un tournoi
-export async function registerUserTournament(userId: number, tournamentId: number, alias?: string) { //a voir ptet a readapter pour quand creation du jeu
+export async function registerUserTournament(userId: number, tournamentId: number, alias?: string) {
     const db = await getDb();
     await db.run(`
         INSERT INTO User_Tournament (tournament_id, user_id, alias)
-        VALUES (${tournamentId},${userId}, ${alias ?? null})
-    `);
+        VALUES (?, ?, ?)`,
+        [tournamentId, userId, alias ?? null]
+    );
 }
 
 // // // Exemple d'utilisation
