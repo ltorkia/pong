@@ -14,9 +14,7 @@ import { MultiPlayerGame } from '../../components/game/BaseGame.component';
  */
 export class CurrentService {
 	private currentUser: User | null = null;
-	private currentGame: MultiPlayerGame | null = null;
-	private isGameInit: boolean = false;
-	private isGameRunning: boolean = false;
+	private isCurrentGameInit: Map<string, boolean> = new Map();
 
 	// -------------------------------
 	// USER
@@ -163,30 +161,21 @@ export class CurrentService {
 	}
 
 	// -------------------------------
-	// ONLINE GAME
+	// CURRENT GAME
 	// -------------------------------
 
 	public setGameInit(isInit: boolean = false) {
-		this.isGameInit = isInit;
+		const tabID = webSocketService.getTabID();
+		this.isCurrentGameInit.set(tabID, isInit);
 	}
 	public getGameInit(): boolean {
-		return this.isGameInit;
-	}
-	public setGameRunning(isRunning: boolean = false) {
-		this.isGameRunning = isRunning;
-	}
-	public getGameRunning(): boolean {
-		return this.isGameRunning;
-	}
-	public setCurrentGame(game: MultiPlayerGame) {
-		this.currentGame = game;
-	}
-	public getCurrentGame(): MultiPlayerGame | null {
-		return this.currentGame;
+		const tabID = webSocketService.getTabID();
+		return this.isCurrentGameInit.get(tabID) || false;
 	}
 	public clearCurrentGame() {
-		this.isGameInit = false;
-		this.isGameRunning = false;
-		this.currentGame = null;
+		const tabID = webSocketService.getTabID();
+		if (this.isCurrentGameInit.has(tabID)) {
+			this.isCurrentGameInit.delete(tabID);
+		}
 	}
 }

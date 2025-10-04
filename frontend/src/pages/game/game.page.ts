@@ -216,7 +216,6 @@ export abstract class GamePage extends BasePage {
                 this.showTimer(data.message);
                 if (data.message == 0) {
                     await this.initGame();
-                    currentService.setGameRunning(true);
                 }
                 break;
 
