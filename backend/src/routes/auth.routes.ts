@@ -26,7 +26,6 @@ export async function authRoutes(app: FastifyInstance) {
 
     app.post('/register', async (request: FastifyRequest, reply: FastifyReply) => {
         try {
-            const tabID = (request.headers['x-tab-id'] as string);
             const elements = await request.parts({
                 limits: {
                     fileSize: 5 * 1024 * 1024
@@ -77,7 +76,7 @@ export async function authRoutes(app: FastifyInstance) {
             }
 
             let user = await getUser(null, userToInsert.email);
-            await ProcessAuth(app, userInfos, reply, tabID);
+            await ProcessAuth(app, userInfos, reply);
 
             return reply.status(200).send({
                 statusCode: 200,
@@ -106,7 +105,6 @@ export async function authRoutes(app: FastifyInstance) {
 
     app.post('/login', async (request: FastifyRequest, reply: FastifyReply) => {
         try {
-            const tabID = (request.headers['x-tab-id'] as string);
             const userdataCheck = await checkParsing(LoginInputSchema, request.body);
             if (isParsingError(userdataCheck))
                 return reply.status(400).send(userdataCheck);
@@ -137,7 +135,7 @@ export async function authRoutes(app: FastifyInstance) {
 
             const user: UserModel = await getUser(validUser.id);
             if (user.active2Fa === DB_CONST.USER.ACTIVE_2FA.DISABLED) {
-                await ProcessAuth(app, validUser, reply, tabID);
+                await ProcessAuth(app, validUser, reply);
             }
 
             return reply.status(200).send({
@@ -200,7 +198,6 @@ export async function authRoutes(app: FastifyInstance) {
 
     app.post('/2FAreceive/:method', async (request: FastifyRequest, reply: FastifyReply) => {
         const { method } = request.params as { method: string };
-        const tabID = (request.headers['x-tab-id'] as string);
         const userdataCheck = await checkParsing(LoginInputSchema, request.body);
         if (isParsingError(userdataCheck))
             return reply.status(400).send(userdataCheck);
@@ -240,7 +237,7 @@ export async function authRoutes(app: FastifyInstance) {
                 errorMessage: 'Impossible de récupérer l’utilisateur après authentification'
             });
         }
-        await ProcessAuth(app, checkUser, reply, tabID);
+        await ProcessAuth(app, checkUser, reply);
         return reply.status(200).send({
             statusCode: 200,
             message: 'Successfully logged in.',
@@ -290,7 +287,6 @@ export async function authRoutes(app: FastifyInstance) {
     /* -------------------------------------------------------------------------- */
 
     app.post('/google', async (request: FastifyRequest, reply: FastifyReply) => {
-        const tabID = (request.headers['x-tab-id'] as string);
         const { id_token } = request.body as { id_token: string };
         if (!id_token) {
             return reply.status(400).send({ errorMessage: 'Token Google manquant' });
@@ -361,7 +357,7 @@ export async function authRoutes(app: FastifyInstance) {
             }
 
             // on valide l authentification + redonne les donnees user avec tout a jour
-            await ProcessAuth(app, user, reply, tabID);
+            await ProcessAuth(app, user, reply);
             const userData: UserModel = await getUser(null, email);
             return reply.status(200).send({
                 statusCode: 200,

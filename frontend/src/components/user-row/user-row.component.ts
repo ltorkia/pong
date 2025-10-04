@@ -4,12 +4,10 @@ import template from './user-row.component.html?raw'
 import { BaseComponent } from '../base/base.component';
 import { RouteConfig } from '../../types/routes.types';
 import { ComponentConfig } from '../../types/components.types';
-import { dataService, friendService, eventService } from '../../services/index.service';
-import { getHTMLElementByClass, userRowsUtils } from '../../utils/dom.utils';
+import { dataService, friendService } from '../../services/index.service';
+import { getHTMLElementByClass } from '../../utils/dom.utils';
 import { User } from '../../shared/models/user.model';
-import { Friend } from '../../shared/models/friend.model';
 import { dataApi } from '../../api/index.api';
-import { EVENTS } from '../../shared/config/constants.config';
 import { router } from '../../router/router';
 
 // ===========================================
@@ -29,7 +27,6 @@ import { router } from '../../router/router';
  */
 export class UserRowComponent extends BaseComponent {
 	protected user?: User | null = null;
-	protected friend?: Friend | null = null;
 	public userline!: HTMLDivElement;
 	private avatarImg!: HTMLImageElement;
 	private nameCell!: HTMLElement;
@@ -39,7 +36,6 @@ export class UserRowComponent extends BaseComponent {
 	private profileButton!: HTMLElement;
 	private logCell!: HTMLElement;
 	private challengeButton!: HTMLButtonElement;
-	private boundUpdateHandler?: (data: any) => Promise<void>;
 
 	/**
 	 * Constructeur du composant de ligne d'utilisateur.
@@ -89,7 +85,7 @@ export class UserRowComponent extends BaseComponent {
 	 *
 	 * @returns {Promise<void>} Une promesse qui se résout lorsque les éléments HTML ont été stockés.
 	 */
-    protected async beforeMount(): Promise<void> {
+	protected async beforeMount(): Promise<void> {
 		this.user = await dataApi.getUserStats(this.user!.id);
 		this.userline = getHTMLElementByClass('user-line', this.container) as HTMLDivElement;
 		this.avatarImg = getHTMLElementByClass('avatar-img', this.container) as HTMLImageElement;
@@ -100,18 +96,7 @@ export class UserRowComponent extends BaseComponent {
 		this.profileButton = getHTMLElementByClass('profile-button', this.levelCell) as HTMLElement;
 		this.logCell = getHTMLElementByClass('log-cell', this.container) as HTMLElement;
 		this.challengeButton = getHTMLElementByClass('challenge-button', this.container) as HTMLButtonElement;
-
-        friendService.setFriendPageSettings(this.user!, this.container);
-        userRowsUtils.set(this.routeConfig!.path, this.user!.id, this.userline);
-
-        // S'abonner aux mises à jour pour cet utilisateur
-        this.boundUpdateHandler = async (data: { userId: number }) => {
-            if (data.userId === this.user!.id) {
-                await this.updateButtons();
-            }
-        };
-        eventService.on(EVENTS.FRIEND_UPDATED, this.boundUpdateHandler);
-    }
+	}
 
 	/**
 	 * Méthode de montage du composant de la ligne d'utilisateur.
@@ -130,50 +115,30 @@ export class UserRowComponent extends BaseComponent {
 		this.nameCell.textContent = this.user!.username;
 		if (this.user!.id !== this.currentUser!.id)
 			this.statusCell.innerHTML = dataService.showStatusLabel(this.user!);
-		friendService.setFriendLogo();
 		this.winrate.textContent = `${this.user!.winRate}%`;
 		if (this.user!.id !== this.currentUser!.id) {
 			const logDate = dataService.showLogDate(this.user!);
 			if (logDate)
 				this.logCell.innerHTML = logDate;
 		}
-		const element = userRowsUtils.get(this.routeConfig.path, this.user!.id) as HTMLDivElement;
-		friendService.setFriendPageSettings(this.user, element);
-		await friendService.toggleFriendButton();
-		friendService.setButtonDataAttribut();
 	}
 
-	/**
-	 * Attribue les listeners.
-	 * 
-	 * - Attribue un listener au bloc avatar/username pour rediriger vers le profil.
-	 */
 	protected attachListeners(): void {
 		this.profileButton.addEventListener('click', this.handleProfileClick);
-		this.challengeButton.addEventListener('click', this.handleChallengeClick);
-		friendService.attachFriendButtonListeners();
+		this.challengeButton.addEventListener('click', 
+			friendService.createChallengeHandler(this.user!.id)
+		);
+		friendService.attachButtonListeners(this.container, this.user!.id, this.user!.username);
 	}
 
-	/**
-	 * Enlève les listeners.
-	 */
 	protected removeListeners(): void {
 		this.profileButton.removeEventListener('click', this.handleProfileClick);
-		this.challengeButton.removeEventListener('click', this.handleChallengeClick);
-		friendService.removeFriendButtonListeners();
+		friendService.removeButtonListeners(this.container);
 	}
 
 	// ===========================================
 	// METHODES PRIVATES
 	// ===========================================
-
-    private async updateButtons(): Promise<void> {
-        console.log(`[UserRowComponent] Mise à jour des boutons pour ${this.user!.username}`);
-        const element = userRowsUtils.get(this.routeConfig.path, this.user!.id) as HTMLDivElement;
-        friendService.setFriendPageSettings(this.user, element);
-        await friendService.toggleFriendButton();
-        friendService.setButtonDataAttribut();
-    }
 
 	/**
 	 * Charge le template HTML du composant en mode développement
@@ -210,22 +175,4 @@ export class UserRowComponent extends BaseComponent {
 		event.preventDefault();
 		await router.navigate(`/user/${this.user!.id}`);
 	};
-
-	private handleChallengeClick = async (event: Event): Promise<void> => {
-		event.preventDefault();
-		await friendService.challengeClick(event);
-	}
-
-	// ===========================================
-	// CLEANUP
-	// ===========================================
-
-    public async cleanup(): Promise<void> {
-        if (this.boundUpdateHandler) {
-            eventService.off(EVENTS.FRIEND_UPDATED, this.boundUpdateHandler);
-            this.boundUpdateHandler = undefined;
-        }
-        await super.cleanup();
-        friendService.cleanup();
-    }
 }

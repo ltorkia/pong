@@ -92,7 +92,7 @@ export async function notificationsRoutes(app: FastifyInstance) {
 		}
 		
 		// On met à jour la notification en base de données et on la renvoie à l'utilisateur concerné
-		const updatedNotifs = await sendUpdateNotification(app, notif);
+		const updatedNotifs = await sendUpdateNotification(notif);
 		if (!updatedNotifs || 'errorMessage' in updatedNotifs)
 			return reply.code(500).send({ errorMessage: updatedNotifs?.errorMessage || "Unknown error updating notification" });
 		

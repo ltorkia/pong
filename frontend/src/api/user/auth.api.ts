@@ -84,10 +84,8 @@ export class AuthApi {
 	 *  ou un objet d'erreur.
 	 */
 	public async registerUser(formData: FormData): Promise<AuthResponse> {
-		const tabID = webSocketService.getTabID();
 		const res: Response = await fetch('/api/auth/register', {
 			method: 'POST',
-			headers: { 'x-tab-id': tabID },
 			body: formData,
 			credentials: 'include',
 		});
@@ -113,11 +111,9 @@ export class AuthApi {
 	 * l'utilisateur authentifié ou un message d'erreur.
 	 */
 	public async loginUser(userData: Record<string, string>): Promise<AuthResponse> {
-		const tabID = webSocketService.getTabID();
 		const res: Response = await fetch('/api/auth/login', {
 			method: 'POST',
-			headers: { 'Content-Type': 'application/json',
-				'x-tab-id': tabID },
+			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify(userData),
 			credentials: 'include',
 		});
@@ -143,11 +139,9 @@ export class AuthApi {
 	 * @returns {Promise<AuthResponse>} Promesse résolue avec une fois que le code est envoyé.
 	 */
 	public async send2FA(userData: Record<string, string>, method: TwoFaMethod): Promise<AuthResponse> {
-		const tabID = webSocketService.getTabID();
 		const res: Response = await fetch(`/api/auth/2FAsend/${method}`, {
 			method: 'POST',
-			headers: { 'Content-Type': 'application/json',
-				'x-tab-id': tabID },
+			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify(userData),
 			credentials: 'include',
 		});
@@ -177,11 +171,9 @@ export class AuthApi {
 	 * authentifié ou un message d'erreur.
 	 */
 	public async twofaConnectUser(userData: Record<string, string>, method: TwoFaMethod): Promise<AuthResponse> {
-		const tabID = webSocketService.getTabID();
 		const res: Response = await fetch(`/api/auth/2FAreceive/${method}`, {
 			method: 'POST',
-			headers: { 'Content-Type': 'application/json',
-				'x-tab-id': tabID },
+			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify(userData),
 			credentials: 'include',
 		});
@@ -207,11 +199,9 @@ export class AuthApi {
 	 * @returns {Promise<AuthResponse>} Promesse qui se résout lorsque l'opération est terminée.
 	 */
 	public async googleConnectUser(id_token: string): Promise<AuthResponse> {
-		const tabID = webSocketService.getTabID();
 		const res = await fetch('/api/auth/google', {
 			method: 'POST',
-			headers: { 'Content-Type': 'application/json',
-				'x-tab-id': tabID },
+			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({ id_token }),
 			credentials: 'include',
 		});

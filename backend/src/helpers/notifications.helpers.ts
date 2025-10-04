@@ -2,7 +2,7 @@ import { FastifyInstance } from 'fastify';
 import { NotificationModel, UserOnlineStatus } from '../shared/types/notification.types';
 import { FRIEND_REQUEST_ACTIONS, FRIEND_NOTIF_CONTENT } from '../shared/config/constants.config';
 import { NotificationInput } from '../types/zod/app.zod';
-import { getTwinNotifications, updateNotification, deleteNotification } from '../db/notification';
+import { getTwinNotifications, updateNotification } from '../db/notification';
 import { isValidNotificationType } from '../shared/utils/app.utils';
 import { insertNotification } from '../db/notification';
 import { majLastlog } from '../db/usermaj';
@@ -49,7 +49,6 @@ export function sendToAllSockets(app: FastifyInstance, jwtUserId: number, data: 
  * Met à jour l'état en ligne de l'utilisateur courant 
  * et envoie une notification à tous les utilisateurs connectés, 
  * à l'exception de l'utilisateur identifié par le JWT.
- * @param {FastifyInstance} app - L'instance de l'application Fastify.
  * @param {number} userId - L'ID de l'utilisateur.
  * @param {UserOnlineStatus} status - L'état en ligne (en ligne, absent, etc.) à définir pour l'utilisateur.
  */
@@ -86,12 +85,11 @@ export async function setOnlineStatus(app: FastifyInstance, userId: number, stat
  * les met à jour en utilisant le type donné dans le paramètre `data`,
  * puis les envoie mises à jour via WebSockets.
  * 
- * @param {FastifyInstance} app - L'instance de l'application Fastify.
  * @param {NotificationModel} data - Les données de la notification, y compris le type.
  * @returns {Promise<NotificationModel[] | { errorMessage: string }>} Une promesse qui se résout lorsque les notifications sont mises à jour 
  * et envoyées via WebSockets, ou par un message d'erreur.
  */
-export async function sendUpdateNotification(app: FastifyInstance, data: NotificationModel): Promise<NotificationModel[] | { errorMessage: string }> {
+export async function sendUpdateNotification(data: NotificationModel): Promise<NotificationModel[] | { errorMessage: string }> {
 
 	const twinNotifs = await getTwinNotifications(data);
 	if (!twinNotifs || 'errorMessage' in twinNotifs)
@@ -108,26 +106,6 @@ export async function sendUpdateNotification(app: FastifyInstance, data: Notific
 		updatedNotifs.push(updatedRes);
 	}
 	return updatedNotifs;
-}
-
-/**
- * Supprime une notification et ses potentiels doublons et les envoie via WebSockets.
- * Cette fonction récupère la notification et ses potentiels doublons, les supprime si la relation
- * est en attente, puis les envoie supprimées via WebSockets pour référence.
- * 
- * @param {FastifyInstance} app - L'instance de l'application Fastify.
- * @param {NotificationModel[]} data - Les données des notifications.
- * @returns {Promise<NotificationModel[] | { errorMessage: string }>} Une promesse qui se résout lorsque les notifications sont supprimées
- * et envoyées via WebSockets, ou par un message d'erreur.
- */
-export async function sendDeleteNotification(app: FastifyInstance, data: NotificationModel[]): Promise<NotificationModel[] | { errorMessage: string }> {
-	const deletedNotifs: NotificationModel[] = [];
-	for (const notif of data) {
-		notif.type = FRIEND_REQUEST_ACTIONS.DELETE;
-		deletedNotifs.push(notif);
-		await deleteNotification(notif.id);
-	}
-	return deletedNotifs;
 }
 
 /**

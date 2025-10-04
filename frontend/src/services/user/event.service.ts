@@ -6,6 +6,25 @@
  * principalement pour la gestion des amis, affichage des boutons sur les pages de profil
  * et la liste des utilisateur.
  * Permet aux composants de s'abonner et d'émettre des événements sans se connaître.
+ * 
+ *  UserRow/Profile click - NotifService.handleXClick() - API call - eventService.emit('friend:updated') 
+ * - FriendService écoute - Met à jour tous les boutons concernés
+ * - UserRowComponent écoute - Met à jour son propre bouton si c'est lui
+ * - ProfilePage écoute - Met à jour son bouton si c'est lui
+ * 
+ * Clic sur un bouton (UserRow/Profile/Notification):
+ *
+ * Si dans une NOTIFICATION : 
+ * - NotifService utilise directement this.friendId/friendName
+ * - handleXClick() - API - eventService.emit('friend:updated')
+ *
+ * Si dans UserRow/Profile :
+ * - Handler créé par FriendService injecte userId/username dans NotifService
+ * - NotifService.handleXClick() - API - eventService.emit('friend:updated')
+ *
+ * FriendService écoute 'friend:updated' (abonnement global unique)
+ * - Trouve tous les containers avec data-user-id correspondant
+ * - Met à jour les boutons de TOUS ces containers en une seule passe
  */
 
 type EventCallback = (data?: any) => void | Promise<void>;
@@ -72,7 +91,7 @@ export class EventService {
 	 * Affiche tous les événements enregistrés (debug).
 	 */
 	public debug(): void {
-		console.log('=== Event Bus Debug ===');
+		console.log('=== Event Debug ===');
 		for (const [eventName, callbacks] of this.events.entries()) {
 			console.log(`Event: ${eventName}, Listeners: ${callbacks.size}`);
 		}

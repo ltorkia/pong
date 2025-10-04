@@ -6,10 +6,12 @@ import { UserRowComponent } from '../../components/user-row/user-row.component';
 import { PaginationComponent } from '../../components/pagination/pagination.component';
 import { getHTMLElementById } from '../../utils/dom.utils';
 import { RouteConfig } from '../../types/routes.types';
+import { eventService } from '../../services/index.service';
 import { COMPONENT_NAMES, HTML_COMPONENT_CONTAINERS } from '../../config/components.config';
 import { ComponentConfig, PaginationParams } from '../../types/components.types';
 import { SafeUserModel, PaginatedUsers, PaginationInfos, SearchParams } from '../../shared/types/user.types';
 import { USER_ONLINE_STATUS } from '../../shared/config/constants.config';
+import { EVENTS } from '../../shared/config/constants.config';
 
 // ===========================================
 // USERS PAGE
@@ -229,6 +231,11 @@ export class UsersPage extends BasePage {
 		} else {
 			userLine.classList.add('line-offline');
 			this.userList.appendChild(userLine);
+		}
+
+		if (user.id !== this.currentUser!.id) {
+			userLine.setAttribute('data-user-id', user.id.toString());
+			await eventService.emit(EVENTS.FRIEND_UPDATED, { userId: user.id });
 		}
 	}
 

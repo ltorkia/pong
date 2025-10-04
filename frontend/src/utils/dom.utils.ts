@@ -219,34 +219,3 @@ export function getHTMLScriptElement(srcValue: string, container: Document | Par
 	}
 	return element;
 }
-
-export type UserMap = Map<number, HTMLDivElement>;
-export type RouteMap = Map<string, UserMap>;
-
-/** Crée une routeMap vide */
-export const userRowsUtils = {
-	rows: new Map<string, UserMap>(),
-
-	/** Récupère la map pour une route, ou la crée si elle n'existe pas */
-	getRouteMap(route: string): UserMap {
-		if (!this.rows.has(route)) {
-			this.rows.set(route, new Map());
-		}
-		return this.rows.get(route)!;
-	},
-
-	/** Ajoute ou met à jour l'élément HTML pour un utilisateur donné sur une route */
-	set(route: string, userId: number, element: HTMLDivElement) {
-		this.getRouteMap(route).set(userId, element);
-	},
-
-	/** Récupère l'élément HTML d'un utilisateur pour une route */
-	get(route: string, userId: number): HTMLDivElement | undefined {
-		return this.rows.get(route)?.get(userId);
-	},
-
-	/** Supprime l'entrée d'un utilisateur pour une route */
-	delete(route: string, userId: number) {
-		this.rows.get(route)?.delete(userId);
-	}
-};

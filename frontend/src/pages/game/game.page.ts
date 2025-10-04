@@ -285,7 +285,11 @@ export abstract class GamePage extends BasePage {
 				console.error("Invite settings not found");
 				return false;
 		}
-		this.inviterTabID = notifService.inviterTabIDs.get(this.relation.id);
+		if (this.requestType === "invite-accept") {
+			if (!notifService.inviterTabIDs.has(this.relation.id)) 
+				return false;
+			this.inviterTabID = notifService.inviterTabIDs.get(this.relation.id);
+		}
 		this.isInvitationGame = true;
 		return true;
 	}
@@ -366,11 +370,10 @@ export abstract class GamePage extends BasePage {
 	 * @param {"local" | "matchmaking_request" | "tournament" | "invite" | "invite-accept" | "clean_request" | "tournament_clean_request"} type Le type de partie (matchmaking, invite, tournament).
 	 * @param {number} [invitedID] L'ID du joueur invité si la partie est une invitation.
 	 * @param {number} [inviterID] L'ID du joueur qui invite si la partie est une invitation.
-	 * @param {boolean} [inviteToClean] Indique si le joueur doit se supprimer des joueurs actifs au refresh.
 	 * @returns {Promise<void>} La promesse qui se résout lorsque la partie est lancée.
 	 */
 	protected async sendMatchMakingRequest(type: "local" | "matchmaking_request" | "tournament" | "invite" | "invite-accept" | "clean_request" | "tournament_clean_request",
-		invitedID?: number, inviterID?: number, inviteToClean?: boolean): Promise<void> {
+		invitedID?: number, inviterID?: number): Promise<void> {
 		const message = type;
 		const matchMakingReq: MatchMakingReq = {
 			type: message,
@@ -379,7 +382,7 @@ export abstract class GamePage extends BasePage {
 			invitedID: invitedID,
 			inviterID: inviterID,
 			gameID: this.gameID,
-			inviteToClean: inviteToClean,
+			inviteToClean: this.inviteToClean,
 			tabID: webSocketService.getTabID(),
 			inviterTabID: this.inviterTabID,
 		}
@@ -666,13 +669,12 @@ export abstract class GamePage extends BasePage {
                     break;
             }
         }
-
 		if (!this.isPageRefreshing) {
 			notifService.notifs = notifService.notifs.filter((notif) => notif.from == this.challengedFriendID
 				&& notif.content !== null && notif.content !== '');
 			if (notifService.navbarInstance?.notifsWindow)
 				notifService.displayDefaultNotif();
-			await this.sendMatchMakingRequest("clean_request", invitedID, inviterID, this.inviteToClean);
+			await this.sendMatchMakingRequest("clean_request", invitedID, inviterID);
 		}
 		else {
 			const matchMakingReq = new Blob([JSON.stringify({
@@ -688,6 +690,10 @@ export abstract class GamePage extends BasePage {
 			})], { type: 'application/json' });
 			navigator.sendBeacon("/api/game/playgame", matchMakingReq);
 		}
+        if (this.game) {
+            this.game.stopGameLoop();
+            this.game.cleanupListeners();
+        }
 		currentService.clearCurrentGame();
 	}
 }

@@ -23,21 +23,14 @@ export function generateJwt(app: FastifyInstance, user: JwtPayload) {
  * @param reply Réponse HTTP
  * @param tabID Identifiant unique de l'onglet navigateur
  */
-export async function ProcessAuth(app: FastifyInstance, user: Partial<UserPassword>, reply: FastifyReply, tabID: string) {
+export async function ProcessAuth(app: FastifyInstance, user: Partial<UserPassword>, reply: FastifyReply) {
 	const userId = user.id!;
 	const token = generateJwt(app, { id: userId });
 	setAuthCookie(reply, token);
 	setStatusCookie(reply);
 
-	let userSockets = app.usersWS.get(userId);
-	if (!userSockets) {
-		userSockets = [];
-		app.usersWS.set(userId, userSockets);
-	}
-
-	if (!userSockets.some(u => u.tabID === tabID)) {
+	if (!app.usersWS.has(userId))
 		await setOnlineStatus(app, userId, USER_ONLINE_STATUS.ONLINE);
-	}
 }
 
 /**
