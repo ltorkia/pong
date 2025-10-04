@@ -289,6 +289,32 @@ export async function updateTournamentStatus(
 }
 
 
+// Increment wins/losses (useful for game results)
+export async function incrementUserTournamentStats(
+  tournamentId: number,
+  userId: number,
+  win: boolean,
+  scoreIncrement: number = 0
+): Promise<boolean> {
+  const db = await getDb();
+  
+  try {
+    const result = await db.run(
+      `UPDATE User_Tournament 
+       SET wins = wins + ?,
+           losses = losses + ?,
+           score = score + ?
+       WHERE tournament_id = ? AND user_id = ?`,
+      [win ? 1 : 0, win ? 0 : 1, scoreIncrement, tournamentId, userId]
+    );
+    
+    return true;
+  } catch (error) {
+    console.error('Error incrementing user tournament stats:', error);
+    return false;
+  }
+}
+
 // // Crée un jeu et retourne son id
 // export async function createGame(nParticipants: number, tournamentId?: number) { //ptet pas necessaire si on reprend la logique remote
 //     const db = await getDb();   

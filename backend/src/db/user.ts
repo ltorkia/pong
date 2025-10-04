@@ -243,6 +243,29 @@ export async function getUserGames(userId: number): Promise<GameModel[]> {
 	return snakeArrayToCamel(games) as GameModel[];
 }
 
+export async function getUsersGame(gameId: number, userId: number): Promise<SafeUserBasic | undefined> {
+	// console.log("hellooooo");
+    try {
+        const db = await getDb();
+        const player = await db.get(
+            `
+            SELECT u.id, u.username, u.avatar
+            FROM User_Game ug
+            JOIN User u ON u.id = ug.user_id
+            WHERE ug.game_id = ?
+            AND u.id != ?
+            LIMIT 1
+            `,
+            [gameId, userId]
+        );
+		// console.log("nooooooooooh", player);
+        return snakeToCamel(player) as SafeUserBasic;
+    } catch (error) {
+        console.error(`Error fetching user for game ${gameId}:`, error);
+        return undefined;
+    }
+}
+
 export async function getUserTournaments(userId: number): Promise<TournamentModel[]> {
 	const db = await getDb();
 

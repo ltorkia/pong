@@ -132,7 +132,7 @@ const cleanGameOver = async (app: FastifyInstance, playerID: number) => {
             const idx = allGames.indexOf(game);
             if (playerID === game.players[0].ID || playerID === game.players[1].ID)
                 {   
-                    console.log("test");
+                    // console.log("test");
                     cleanGameOver(app, playerID);
                     break;
                     // // let {majgames} = app.lobby.idx;

@@ -2,6 +2,8 @@ import { EventEmitter } from "node:stream";
 import { resultGame, addGame, addGamePlayers, cancelledGame, registerUserTournament, createTournament, endTournament, updateTournamentStatus } from "../db/game";
 import { GameData, Player } from "../shared/types/game.types"
 import { JwtPayload } from "./user.types";
+import { getUsersGame } from "../db/user";
+import { incrementUserTournamentStats } from "../db/game";
 
 const DEG_TO_RAD = Math.PI / 180;
 
@@ -427,7 +429,7 @@ export class TournamentLocal {
     public async startTournament(): Promise<void> {
 
         for (const player of this.players)
-            await registerUserTournament(player.ID, this.ID);
+            await registerUserTournament(player.ID, this.ID, player.alias);
 
         // this.players est melange pour avoir des matchs aleatoire
         shuffleArray(this.players);
@@ -454,13 +456,23 @@ export class TournamentLocal {
     public async update(): Promise<void> {
         if (this.stageTwo.getIsOver()) {
             this.winner = this.getWinner(this.stageTwo);
-            // await endTournament(this.ID); //maj tournament in db
+            await incrementUserTournamentStats(this.ID, this.winner.ID, true);
+            const looser = await getUsersGame(this.stageTwo.gameID, this.winner.ID);
+            if (looser != undefined)
+                await incrementUserTournamentStats(this.ID, looser.id, false);
             await updateTournamentStatus(this.ID, "finished");
             return;
         }
         for (const game of this.stageOne) {
             if (game.getIsOver() && !game.players.some((p: Player) => this.stageTwo?.players.includes(p)))
-                this.stageTwo?.players.push(this.getWinner(game));
+            {
+                const winner = this.getWinner(game);
+                this.stageTwo?.players.push(winner);
+                await incrementUserTournamentStats(this.ID, winner.ID, true);
+                const looser = await getUsersGame(game.gameID, winner.ID);
+                if (looser != undefined)
+                    await incrementUserTournamentStats(this.ID, looser.id, false);
+            }
         }
         if (this.stageTwo.players.length == 2)
             await addGamePlayers(this.stageTwo.gameID, this.players[0].ID, this.players[1].ID);
@@ -501,7 +513,7 @@ export class Tournament {
 
     public async startTournament(): Promise<void> {
         for (const player of this.players)
-            await registerUserTournament(player.ID, this.ID!);
+            await registerUserTournament(player.ID, this.ID!, player.alias);
 
         // this.players est melange pour avoir des matchs aleatoire
         shuffleArray(this.players);
