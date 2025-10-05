@@ -58,6 +58,11 @@ export class ProfilePage extends BasePage {
 			this.redirectRoute = ROUTE_PATHS.HOME;
 			return false;
 		}
+		if (this.userId !== this.currentUser!.id) {
+			const relation = await friendApi.getRelation(this.currentUser!.id, this.userId);
+			if (relation && relation.blockedBy === this.userId)
+				return false;
+		}
 		return true;
 	}
 	
@@ -110,11 +115,17 @@ export class ProfilePage extends BasePage {
 		await this.renderProfileMain();
 		this.renderStats();
 		this.renderFriends();
+		await this.renderUserTournaments();
 		await this.renderuserGames();
 
 		// Déclencher la mise à jour initiale des boutons si ce n'est pas notre profil
 		if (!this.isCurrentUserProfile) {
 			await eventService.emit(EVENTS.FRIEND_UPDATED, { userId: this.userId });
+			
+			const buttonActions = document.querySelector('#button-actions') as HTMLDivElement;
+			if (!buttonActions)
+				return;
+			buttonActions.classList.remove('hidden');
 		}
 	}
 
@@ -153,14 +164,7 @@ export class ProfilePage extends BasePage {
 		if (user)
 			this.user = user;
 		const statusDot = this.container.querySelector('.status-cell') as HTMLElement;
-		const logCell = this.container.querySelector('.log-cell') as HTMLElement;
 		statusDot.innerHTML = dataService.showStatusLabel(this.user!);
-		const logDate = dataService.showLogDate(this.user!);
-		if (logDate) {
-			logCell.classList.remove('hidden');
-			logCell.innerHTML = logDate;
-		} else
-			logCell.classList.add('hidden');
 	}
 
 	/**
@@ -177,16 +181,19 @@ export class ProfilePage extends BasePage {
 		const winRate = this.user.winRate;
 
 		const stats = [
-			{ value: this.user.gameWin || 0, label: 'Victories', translate: "profile.winLabel" },
-			{ value: this.user.gameLoose || 0, label: 'Losses', translate: "profile.lossLabel" },
-			{ value: `${winRate}%`, label: 'Win Rate', translate: "profile.winRateLabel" },
-			{ value: totalGames, label: 'Game played', translate: "profile.gamePlayedLabel" }
+			{ icon: `<i class="fa-solid fa-trophy"></i>`, value: this.user.gameWin || 0, label: 'Victories', translate: "profile.winLabel" },
+			{ icon: `<i class="fa-solid fa-circle-xmark"></i>`, value: this.user.gameLoose || 0, label: 'Losses', translate: "profile.lossLabel" },
+			{ icon: `<i class="fa-solid fa-star-half-stroke"></i>`, value: `${winRate}%`, label: 'Win Rate', translate: "profile.winRateLabel" },
+			{ icon: `<i class="fa-solid fa-table-tennis-paddle-ball"></i>`, value: totalGames, label: 'Game played', translate: "profile.gamePlayedLabel" }
 		];
 
 		stats.forEach(stat => {
 			const clone = template.content.cloneNode(true) as DocumentFragment;
 			const value = clone.querySelector('.stat-value') as HTMLElement;
 			const label = clone.querySelector('.stat-label') as HTMLElement;
+			const icon = clone.querySelector('.stat-icon') as HTMLElement;
+
+			icon.innerHTML = stat.icon;
 
 			value.textContent = stat.value.toString();
 			label.textContent = stat.label;
@@ -229,8 +236,14 @@ export class ProfilePage extends BasePage {
 			avatar.appendChild(img);
 
 			name.textContent = friend.username;
+			card.setAttribute('data-friend-id', friend.id);
 			section.appendChild(clone);
 		});
+
+		const friendSection = document.getElementById('friends') as HTMLDivElement;
+		if (!friendSection)
+			return;
+		friendSection.classList.remove('hidden');
 	}
 
 	/**
@@ -239,15 +252,23 @@ export class ProfilePage extends BasePage {
 	private async renderuserGames(): Promise<void> {
 		const section = document.getElementById('match-history-section') as HTMLDivElement;
 		const template = document.getElementById('match-card-template') as HTMLTemplateElement;
+		const countElement = document.getElementById('match-count') as HTMLElement;
+		const historyBox = document.querySelector("#historyBox");
 
-		if (!section || !template || this.userGames.length === 0) 
+		if (!section || !template || !countElement || !historyBox) 
 			return;
 
-		const recentMatches = this.userGames;
-		for (const match of recentMatches) {
-			const clone = template.content.cloneNode(true) as DocumentFragment;
-			await this.renderMatchCard(clone, match);
-			section.appendChild(clone);
+		countElement.textContent = `(${this.userGames.length})`;
+		if (this.userGames.length > 0 || this.userTournaments.length > 0) {
+			historyBox.classList.remove('hidden');
+
+			if (!this.userGames || !this.userGames.length)
+				return;
+			for (const match of this.userGames) {
+				const clone = template.content.cloneNode(true) as DocumentFragment;
+				await this.renderMatchCard(clone, match);
+				section.appendChild(clone);
+			}
 		}
 	}
 
@@ -276,7 +297,7 @@ export class ProfilePage extends BasePage {
 		const playerTwoScore = isWin ? match.looserResult : '3';
 
 		// Score
-		score.textContent = `${playerOneScore} - ${playerTwoScore}`;
+		score.textContent = `${playerOneScore} : ${playerTwoScore}`;
 		score.classList.add(isWin ? 'win' : 'loss');
 
 		const player1 = this.user!
@@ -301,6 +322,32 @@ export class ProfilePage extends BasePage {
 		(names[1] as HTMLElement).textContent = playerTwoUsername;
 		if (!player2)
 			(names[1] as HTMLElement).setAttribute('data-ts', 'game.player');
+	}
+
+	/**
+	 * Rendu de l'historique des tournois
+	 */
+	private async renderUserTournaments(): Promise<void> {
+
+		const countElement = document.getElementById('tournament-count') as HTMLElement;
+		const historyBox = document.querySelector("#historyBox");
+
+		if (!countElement || !historyBox) 
+			return;
+
+		countElement.textContent = `(${this.userTournaments.length})`;
+
+		if (this.userTournaments.length > 0 || this.userGames.length > 0) {
+			historyBox.classList.remove('hidden');
+
+			if (!this.userTournaments || !this.userTournaments.length)
+				return;
+			// for (const tournament of this.userTournaments) {
+			// 	const clone = template.content.cloneNode(true) as DocumentFragment;
+			// 	await this.renderMatchCard(clone, tournament);
+			// 	section.appendChild(clone);
+			// }
+		}
 	}
 
 	// ===========================================
@@ -341,7 +388,11 @@ export class ProfilePage extends BasePage {
 
 	private handleFriendCardClick = async (event: Event): Promise<void> => {
 		event.preventDefault();
-		const card = (event.currentTarget as HTMLElement);
+		const card = (event.target as HTMLElement).closest('div[data-friend-id]') as HTMLElement | null;
+		if (!card) {
+			console.error("Pas de friendId sur le bouton ou parent");
+			return;
+		}
 		const friendId = card.getAttribute('data-friend-id');
 		if (friendId) {
 			await router.navigate(`/user/${friendId}`);

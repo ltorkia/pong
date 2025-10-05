@@ -418,10 +418,7 @@ export class TournamentLocal {
 
     public getWinner(game: Game): Player {
         const score = game.getScore();
-        if (score[0] == 3)
-            return game.players[0];
-        else
-            return game.players[1];
+        return score[0] > score[1] ? game.players[0] : game.players[1];
     }
 
     public async startTournament(): Promise<void> {

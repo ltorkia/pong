@@ -54,7 +54,13 @@ export default {
 			backgroundImage: {
 				'body-bg-img': images.forestWallpaper,
 				'stardust-pattern': images.stardustPattern,
-				'leaves-pattern': images.leavesPattern
+				'leaves-pattern': images.leavesPattern,
+				'particles': images.particles,
+				'fireflies': images.fireflies
+			},
+			backgroundSize: {
+				'auto-full': 'auto 100%',
+				'auto-mi-full': 'auto 200%',
 			},
 			/**
 			 * Les padding et marges.

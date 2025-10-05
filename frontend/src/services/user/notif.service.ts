@@ -87,7 +87,7 @@ export class NotifService {
                 	if (notif.read === 0) {
 						await this.handleNotification();
 					}
-					const userButtonToUpdate = this.currentNotif!.from == this.currentUser!.id ? this.currentNotif!.to : this.currentNotif!.from;
+					const userButtonToUpdate = notif.from == this.currentUser!.id ? notif.to : notif.from;
 					await eventService.emit(EVENTS.FRIEND_UPDATED, { userId: Number(userButtonToUpdate) });
 				}
 			}
@@ -484,10 +484,8 @@ export class NotifService {
 	 */
 	private removeListeners(notifId: number): void {
 		const notifItem = this.navbarInstance!.notifsWindow.querySelector<HTMLDivElement>(`#notif-${notifId}`);
-		if (!notifItem) {
-			console.warn(`[${this.constructor.name}] Élément DOM #notif-${notifId} introuvable pour suppression des listeners`);
+		if (!notifItem)
 			return;
-		}
 
 		const handlers = this.notifHandlers.get(notifId);
 		if (!handlers) {

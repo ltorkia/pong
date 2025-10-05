@@ -1,103 +1,139 @@
-			<div class="section-box mid-full-box">
-				<div class="profile-container">
-					<!-- Header avec informations principales -->
-					<div class="profile-header">
-						<div id="profile-main-section">
-							<div class="profile-avatar-section items-center">
-								<div class="profile-avatar"></div>
-								<div class="profile-info relative">
-									<div class="status-cell"></div>
-									<h1 class="profile-username"></h1>
-									<div class="cell log-cell"></div>
-									<div class="profile-actions">
-										<div class="cell button-cell">
-											<button class="hidden add-friend-button">
-												<i class="fa-solid fa-plus"></i>
-												<span data-ts="users.addFriend">Add friend</span>
-											</button>
-											<button class="hidden accept-friend-button">
-												<i class="fa-solid fa-plus"></i>
-												<span data-ts="users.acceptFriend">Accept</span>
-											</button>
-											<button class="hidden decline-friend-button">
-												<i class="fa-solid fa-xmark"></i>
-												<span data-ts="users.declineFriend">Decline</span>
-											</button>
-											<button class="hidden cancel-friend-button">
-												<i class="fa-solid fa-xmark"></i>
-												<span data-ts="users.cancelFriend">Cancel friend request</span>
-											</button>
-											<button class="hidden challenge-button">
-												<i class="fa-solid fa-bolt"></i>
-												<span data-ts="users.challenge">Play</span>
-											</button>
-											<button class="hidden unfriend-button">
-												<i class="fa-solid fa-xmark"></i>
-												<span data-ts="users.unfriend">Unfriend</span>
-											</button>
-											<button class="hidden block-friend-button" data-ts="users.blockFriend" data-type="title" title="Block">
-												<i class="fa-solid fa-ban"></i>
-											</button>
-											<button class="hidden unblock-friend-button">
-												<i class="fa-solid fa-check"></i>
-												<span data-ts="users.unblockFriend">Unblock</span>
-											</button>
-										</div>
-										<div class="cell friend-logo-cell"></div>
-									</div>
-								</div>
+			<div class="section-box large-box">
+				<div class="profile-container">	
+
+					<div class="section-box header-username">
+						<div class="bloc-title m-0">
+							<div class="profile-info page-title relative m-0">
+								<div class="status-cell"></div>
+								<h1 class="profile-username"></h1>
+								<div class="cell log-cell"></div>
 							</div>
 						</div>
 					</div>
 
-					<!-- Statistiques -->
-					<div class="section-box">
-						<h2 class="section-title" data-ts="profile.statsTitle">
-							Stats
-						</h2>
-						<div id="stats-section" class="stats-grid">
-							<!-- Statistiques dynamiques -->
+					<div class="profile-grid">
+
+						<!-- Header avec informations principales -->
+						<div class="profile-header">
+							<div id="profile-main-section">
+								<div class="profile-avatar-section section-box particles justify-center items-center">
+
+									<div class="profile-avatar-container">
+										<div class="profile-avatar"></div>
+
+										<div class="profile-actions-container">
+											<!-- Boutons -->
+											<div class="profile-actions">
+												<div id="button-actions" class="section-box cell button-cell hidden">
+													<button class="hidden add-friend-button">
+														<i class="fa-solid fa-plus"></i>
+														<span data-ts="users.addFriend">Add friend</span>
+													</button>
+													<button class="hidden accept-friend-button">
+														<i class="fa-solid fa-plus"></i>
+														<span data-ts="users.acceptFriend">Accept</span>
+													</button>
+													<button class="hidden decline-friend-button">
+														<i class="fa-solid fa-xmark"></i>
+														<span data-ts="users.declineFriend">Decline</span>
+													</button>
+													<button class="hidden cancel-friend-button">
+														<i class="fa-solid fa-xmark"></i>
+														<span data-ts="users.cancelFriend">Cancel friend request</span>
+													</button>
+													<button class="hidden challenge-button">
+														<i class="fa-solid fa-bolt"></i>
+														<span data-ts="users.challenge">Play</span>
+													</button>
+													<button class="hidden unfriend-button">
+														<i class="fa-solid fa-xmark"></i>
+														<span data-ts="users.unfriend">Unfriend</span>
+													</button>
+													<button class="hidden block-friend-button" data-ts="users.blockFriend" data-type="title" title="Block">
+														<i class="fa-solid fa-ban"></i>
+													</button>
+													<button class="hidden unblock-friend-button">
+														<i class="fa-solid fa-check"></i>
+														<span data-ts="users.unblockFriend">Unblock</span>
+													</button>
+												</div>
+												<div class="cell friend-logo-cell"></div>
+											</div>
+
+										</div>
+									</div>
+								</div>
+							</div>
 						</div>
+
+						<!-- Statistiques -->
+						<div class="section-box flex-1 justify-center items-center">
+							<div id="stats-section" class="stats-grid">
+								<!-- Statistiques dynamiques -->
+							</div>
+						</div>
+
 					</div>
 
-					<!-- Amis -->
-					<div class="section-box">
-						<h2 class="section-title">
-							<span data-ts="profile.friendsTitle">Mates</span>
-							<span id="friends-count" class=" text-white/80 font-normal">
-								<!-- Nombre d'amis -->
-							</span>
-						</h2>
-						<div id="friends-section" class="friends-grid">
-							<!-- Liste des amis dynamique -->
+					<div id="friends" class="profile-grid hidden">
+
+						<div class="section-box">
+
+							<!-- Amis -->
+							<div class="section-box items-start">
+								<h2 class="section-title">
+									<span data-ts="profile.friendsTitle">Mates</span>
+									<span id="friends-count" class=" text-white/80 font-normal">
+										<!-- Nombre d'amis -->
+									</span>
+								</h2>
+								<div id="friends-section" class="friends-grid">
+									<!-- Liste des amis dynamique -->
+								</div>
+							</div>
 						</div>
+
 					</div>
 
-					<!-- Historique des matchs -->
-					<div class="section-box">
-						<h2 class="section-title" data-ts="profile.matchHistoryTitle">
-							Match history
-						</h2>
-						<div id="match-history-section" class="match-history">
-							<!-- Historique dynamique -->
-						</div>
-					</div>
+					<div id="historyBox" class="profile-grid hidden">
 
-					<!-- Historique des tournois -->
-					<div class="section-box">
-						<h2 class="section-title" data-ts="profile.tournamentHistoryTitle">
-							Tournament history
-						</h2>
-						<div id="tournament-history-section" class="match-history">
-							<!-- Historique dynamique -->
+						<!-- Historique des matchs -->
+						<div id="match-box" class="section-box">
+							<h2 class="section-title">
+								<span data-ts="profile.matchHistoryTitle">Match history</span>
+								<span id="match-count" class=" text-white/80 font-normal">
+									<!-- Nombre de matchs -->
+								</span>
+							</h2>
+							<div id="match-history-section" class="match-history">
+								<!-- Historique dynamique -->
+							</div>
 						</div>
+
+						<!-- Historique des tournois -->
+						<div id="tournament-box" class="section-box">
+							<h2 class="section-title">
+								<span data-ts="profile.tournamentHistoryTitle">Tournament history</span>
+								<span id="tournament-count" class=" text-white/80 font-normal">
+									<!-- Nombre de tournois -->
+								</span>
+							</h2>
+							<div id="tournament-history-section" class="match-history">
+								<!-- Historique dynamique -->
+							</div>
+						</div>
+
 					</div>
+					<div class="footer-profile"></div>
 				</div>
 			</div>
 
 			<!-- Templates -->
 			<template id="stat-card-template">
 				<div class="stat-card">
+					<div class="stat-icon">
+						<!-- Icone -->
+					</div>
 					<div class="stat-value">
 						<!-- Valeur -->
 					</div>

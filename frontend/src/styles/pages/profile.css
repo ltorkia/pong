@@ -1,25 +1,58 @@
 @layer components {
 	.profile-container {
-		@apply flex flex-col gap-6 p-4 max-w-7xl mx-auto
-		tablet:gap-8 tablet:p-6 tablet:min-w-[700px]
-		desktop:gap-10 desktop:p-8;
+		@apply flex flex-col gap-4 p-4 w-full;
+	}
+
+	.profile-container .online {
+		@apply bg-[#5ebb80];
+	}
+
+	.profile-container .offline {
+		@apply bg-[#de9494];
 	}
 
 	.profile-container .section-box {
 		@apply w-full;
 	}
 
+	.header-username {
+		@apply bg-black/40 border-t-0 border-b-2 border-l-2 border-r-2 shadow-lg border-white/60
+		rounded-tl-full rounded-tr-full;
+	}
+
 	.profile-header {
-		@apply bg-gradient-to-br from-blue-500/20 to-purple-600/20 backdrop-blur-sm 
+		@apply bg-gradient-to-br from-black/20 to-pastel-blue/20 backdrop-blur-sm 
 		rounded-xl border border-white/20 p-6 shadow-lg
 		tablet:p-8
 		desktop:p-10;
 	}
 
+	.profile-grid {
+		@apply flex gap-2 flex-col
+		desktop:flex-row desktop:gap-4;
+	}
+
 	.profile-avatar-section {
-		@apply flex flex-col items-center gap-4
-		tablet:flex-row tablet:items-start tablet:gap-8
+		@apply flex flex-row items-center gap-4 bg-white/20
+		tablet:flex-col tablet:items-start tablet:gap-8
 		desktop:gap-10;
+	}
+
+	.profile-avatar-section .friend-logo-cell i, .stat-icon i {
+		@apply text-[#272b36]
+	}
+
+	.stat-icon i {
+		@apply text-[2rem];
+	}
+
+	.stat-icon {
+		@apply border-b-2 border-black/30 pb-2;
+	}
+
+	.profile-avatar-container {
+		@apply flex flex-col items-center
+		tablet:flex-row;
 	}
 
 	.profile-avatar {
@@ -33,8 +66,7 @@
 	}
 
 	.profile-info {
-		@apply flex-1 flex flex-col justify-center gap-4
-		tablet:justify-start;
+		@apply flex flex-col justify-center;
 	}
 
 	.profile-username {
@@ -43,10 +75,20 @@
 		desktop:text-4xl;
 	}
 
+	.profile-actions-container {
+		@apply flex flex-row justify-center items-center gap-4;
+	}
+
 	.profile-actions {
 		@apply flex flex-col gap-3
 		mobile:flex-row mobile:justify-center
-		tablet:justify-start;
+		/* tablet:justify-start; */
+	}
+
+	#button-actions {
+		@apply mt-2 flex-col bg-[#9d9d9d4d]
+		tablet:ml-4 tablet:mt-0 tablet:flex-row
+		desktop:flex-col;
 	}
 
 	.btn-friend {
@@ -77,7 +119,7 @@
 	}
 
 	.stat-value {
-		@apply text-3xl font-bold text-[#455167] mb-2
+		@apply text-3xl font-bold text-[#455167]
 		tablet:text-4xl;
 	}
 
@@ -88,6 +130,9 @@
 
 	.section-title {
 		@apply text-base font-bold text-white mb-4 flex items-center gap-3 uppercase tracking-widest
+		absolute -top-10 right-10 shadow-lg
+		border-b-2 border-white/60
+		bg-black/40 px-4 py-2 rounded-full
 		tablet:text-2xl tablet:mb-6;
 	}
 
@@ -104,7 +149,7 @@
 	}
 
 	.friend-card {
-		@apply bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm
+		@apply bg-gradient-to-br from-white/20 to-white/15 backdrop-blur-sm
 		rounded-lg border border-white/20 p-4 text-center shadow-lg
 		hover:from-white/15 hover:to-white/10 transition-all duration-200
 		cursor-pointer;
@@ -181,8 +226,9 @@
 	}
 
 	.match-score {
-		@apply text-white text-lg font-bold tracking-widest
-		tablet:text-4xl;
+		@apply text-white text-lg font-bold tracking-widest font-classic flex justify-center items-center
+		bg-white/30 backdrop-blur-sm border border-white/20 rounded-lg px-3 py-1
+		tablet:text-2xl;
 	}
 	.match-score.win {
 		@apply text-[#015b63];
@@ -206,5 +252,10 @@
 
 	.empty-text {
 		@apply text-white/60 text-lg;
+	}
+
+	.footer-profile {
+		@apply bg-black/40 border-b-0 border-t-2 border-l-2 border-r-2 shadow-lg border-white/60
+		rounded-bl-full rounded-br-full h-[84px];
 	}
 }

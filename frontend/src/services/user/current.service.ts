@@ -1,7 +1,6 @@
 import { User } from '../../shared/models/user.model';
 import { UserModel, SafeUserModel } from '../../shared/types/user.types';
 import { storageService, webSocketService, pageService } from '../index.service';
-import { MultiPlayerGame } from '../../components/game/BaseGame.component';
 
 // ===========================================
 // CURRENT SERVICE
