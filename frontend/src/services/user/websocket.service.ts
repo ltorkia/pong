@@ -149,7 +149,7 @@ export class WebSocketService {
 				if (Array.isArray(receivedData) && receivedData.every(isNotificationModel)) {
 					const data = receivedData as NotificationModel[];
 					const formatedData = AppNotification.fromJSONArray(data) as AppNotification[];
-					console.log('Notification reçue:', formatedData);
+					// console.log('Notification reçue:', formatedData);
 					await notifService.handleNotifications(formatedData);
 					return;
 				}

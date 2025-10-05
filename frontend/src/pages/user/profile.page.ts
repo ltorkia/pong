@@ -62,7 +62,7 @@ export class ProfilePage extends BasePage {
 		}
 		if (this.userId !== this.currentUser!.id) {
 			const relation = await friendApi.getRelation(this.currentUser!.id, this.userId);
-			if (relation && relation.blockedBy === this.userId)
+			if (relation && !('errorMessage' in relation) && relation.blockedBy === this.userId)
 				return false;
 		}
 		return true;
@@ -238,7 +238,7 @@ export class ProfilePage extends BasePage {
 			avatar.appendChild(img);
 
 			name.textContent = friend.username;
-			card.setAttribute('data-friend-id', friend.id);
+			card.setAttribute('data-friend-id', (friend.id).toString());
 			section.appendChild(clone);
 		});
 
