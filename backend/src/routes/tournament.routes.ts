@@ -331,56 +331,56 @@ export async function tournamentRoutes(app: FastifyInstance) {
         }
     });
 
-    // permet de recuperer les resultats des games du tournoi et de creer la deuxieme manche avec les winners
-    app.post("/update_tournament_games", async (request: FastifyRequest, reply: FastifyReply) => {
-        const { id } = request.params as { id: string };
-        const tournamentID = Number(id);
-        const allTournaments = app.lobby.allTournaments;
-        const tournament = allTournaments.find((t: Tournament) => t.ID == tournamentID);
-        const winnerList: number[] = [];
+//     // permet de recuperer les resultats des games du tournoi et de creer la deuxieme manche avec les winners
+//     app.post("/update_tournament_games", async (request: FastifyRequest, reply: FastifyReply) => {
+//         const { id } = request.params as { id: string };
+//         const tournamentID = Number(id);
+//         const allTournaments = app.lobby.allTournaments;
+//         const tournament = allTournaments.find((t: Tournament) => t.ID == tournamentID);
+//         const winnerList: number[] = [];
 
-        // let newGame = new Game(2, [new Player(1), new Player(2)], "multi");
-        // recuperer les resultats des games du tournoi depuis la db
-        if (!tournament)
-            return reply.code(404).send({ error: "Tournament not found" });
+//         // let newGame = new Game(2, [new Player(1), new Player(2)], "multi");
+//         // recuperer les resultats des games du tournoi depuis la db
+//         if (!tournament)
+//             return reply.code(404).send({ error: "Tournament not found" });
 
-        // const newGame = new Game(2, [new Player(1), new Player(2)], "multi");
-        for (const game of tournament.stageOneGames) {
-            // if (game.isOver)
-            // {
-            const resultgame = await getResultGame(game.gameID!);
-            if (resultgame.status != "finished")
-                continue;
-            // tournament.stageTwoGames.push(Player(resultgame!.winnerID));
-            // game.isOver = false; // pour ne pas refaire cette operation a la prochaine update
-            const winner = resultgame?.winnerId;
-            if (winner) {
-                winnerList.push(winner);
-                const looser = await getUsersGame(game.gameID, winner);
-                console.log("im heeeeeeeeere ////////////////");
-                if (looser != undefined)
-                {
-                    await incrementUserTournamentStats(tournamentID, winner, true);
-                    await incrementUserTournamentStats(tournamentID, looser.id, false);
-                }
+//         // const newGame = new Game(2, [new Player(1), new Player(2)], "multi");
+//         for (const game of tournament.stageOneGames) {
+//             // if (game.isOver)
+//             // {
+//             const resultgame = await getResultGame(game.gameID!);
+//             if (resultgame.status != "finished")
+//                 continue;
+//             // tournament.stageTwoGames.push(Player(resultgame!.winnerID));
+//             // game.isOver = false; // pour ne pas refaire cette operation a la prochaine update
+//             const winner = resultgame?.winnerId;
+//             if (winner) {
+//                 winnerList.push(winner);
+//                 const looser = await getUsersGame(game.gameID, winner);
+//                 // console.log("im heeeeeeeeere ////////////////");
+//                 if (looser != undefined)
+//                 {
+//                     await incrementUserTournamentStats(tournamentID, winner, true);
+//                     await incrementUserTournamentStats(tournamentID, looser.id, false);
+//                 }
 
-            } else {
-                return reply.code(404).send({ error: "Winner not found" });
-                console.log("WINNER ID = ", winner);
-            }
-            // }
-        }
-        if (winnerList.length != 2)
-            return reply.code(404).send({ error: "Not enough winners" });
-        const gameID = await addGame(tournamentID);
-        const player1 = new Player(winnerList[0]);
-        const player2 = new Player(winnerList[1]);
-        await addGamePlayers(gameID, player1.ID, player2.ID);
-        tournament.stageTwoGames.push(new Game(gameID, 2, [player1, player2], tournamentID));
-        // return winnerList;
-        sendToTournamentPlayers({ type: "tournament_update_second_round", players: tournament?.players }, tournament!, app);
-        return reply.code(200).send("Update sent to all players");
-    });
+//             } else {
+//                 return reply.code(404).send({ error: "Winner not found" });
+//                 console.log("WINNER ID = ", winner);
+//             }
+//             // }
+//         }
+//         if (winnerList.length != 2)
+//             return reply.code(404).send({ error: "Not enough winners" });
+//         const gameID = await addGame(tournamentID);
+//         const player1 = new Player(winnerList[0]);
+//         const player2 = new Player(winnerList[1]);
+//         await addGamePlayers(gameID, player1.ID, player2.ID);
+//         tournament.stageTwoGames.push(new Game(gameID, 2, [player1, player2], tournamentID));
+//         // return winnerList;
+//         sendToTournamentPlayers({ type: "tournament_update_second_round", players: tournament?.players }, tournament!, app);
+//         return reply.code(200).send("Update sent to all players");
+//     });
 }
 
 const sendToTournamentPlayers = (toSend: any, tournament: Tournament, app: FastifyInstance) => {

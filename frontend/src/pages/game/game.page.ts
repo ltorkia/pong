@@ -201,11 +201,9 @@ export abstract class GamePage extends BasePage {
 
             case "start_game":
                 const aliases: string[] = [];
-                console.log("///dataaaaaa////", data)
 
                 this.gameID = data.gameID;
                 this.adversary = data.otherPlayer;
-                console.log("//////////////////adversary is ", this.adversary)
                 aliases[0] = this.currentUser.username;
                 if (!this.adversary)
                     aliases[1] = translateService.t("game.player2");
