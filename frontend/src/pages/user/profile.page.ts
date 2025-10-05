@@ -34,6 +34,8 @@ export class ProfilePage extends BasePage {
 	private username!: HTMLElement;
 	private displayedFriends: Friend[] = [];
 
+    private challengeHandler?: (event: Event) => Promise<void>;
+
 	/**
 	 * Constructeur de la page de profil.
 	 *
@@ -215,7 +217,7 @@ export class ProfilePage extends BasePage {
 		if (!section || !template || !countElement) 
 			return;
 
-		this.displayedFriends = this.userFriends.filter((f: Friend) => f.friendStatus === 'accepted');
+		this.displayedFriends = this.userFriends.filter((f: Friend) => f.friendStatus !== 'pending');
 		countElement.textContent = `(${this.displayedFriends.length})`;
 
 		if (this.displayedFriends.length === 0)
@@ -358,26 +360,21 @@ export class ProfilePage extends BasePage {
 	 * Configuration des gestionnaires d'événements
 	 */
 	protected attachListeners(): void {
-		// Navigation vers les profils d'amis
-		const friendCards = document.querySelectorAll('.friend-card');
-		friendCards.forEach((card) => {
-			card.addEventListener('click', this.handleFriendCardClick);
-		});
-
-		// Challenge button
-		this.challengeButton.addEventListener('click', friendService.createChallengeHandler(this.userId!));
-		
-		// Boutons d'ami via le service centralisé (si ce n'est pas notre profil)
+		const friendsSection = document.getElementById('friends-section');
+		if (friendsSection)
+			friendsSection.addEventListener('click', this.handleFriendCardClick);
+        this.challengeHandler = friendService.createChallengeHandler(this.userId!);
+        this.challengeButton.addEventListener('click', this.challengeHandler);
 		if (!this.isCurrentUserProfile)
 			friendService.attachButtonListeners(this.buttonsLine, this.userId!, this.user!.username);
 	}
 
 	protected removeListeners(): void {
-		const friendCards = document.querySelectorAll('.friend-card');
-		friendCards.forEach((card) => {
-			card.removeEventListener('click', this.handleFriendCardClick);
-		});
-		
+		const friendsSection = document.getElementById('friends-section');
+		if (friendsSection)
+			friendsSection.removeEventListener('click', this.handleFriendCardClick);
+		if (this.challengeButton && this.challengeHandler)
+			this.challengeButton.removeEventListener('click', this.challengeHandler);
 		if (!this.isCurrentUserProfile)
 			friendService.removeButtonListeners(this.buttonsLine);
 	}
@@ -387,15 +384,14 @@ export class ProfilePage extends BasePage {
 	// ===========================================
 
 	private handleFriendCardClick = async (event: Event): Promise<void> => {
-		event.preventDefault();
-		const card = (event.target as HTMLElement).closest('div[data-friend-id]') as HTMLElement | null;
-		if (!card) {
-			console.error("Pas de friendId sur le bouton ou parent");
+		const card = (event.target as HTMLElement).closest('.friend-card') as HTMLElement | null;
+		if (!card)
 			return;
-		}
+		
+		event.preventDefault();
 		const friendId = card.getAttribute('data-friend-id');
-		if (friendId) {
+		
+		if (friendId)
 			await router.navigate(`/user/${friendId}`);
-		}
 	};
 }

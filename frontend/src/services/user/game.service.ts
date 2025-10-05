@@ -19,7 +19,6 @@ export class GameService {
 	 */
 	public async invitePlayer(type: "local" | "matchmaking_request" | "tournament" | "invite" | "invite-accept" | "clean_request" | "tournament_clean_request", invitedId: number, inviterTabID?: string, tournamentID?: number): Promise<void> {
 		const currentUser = currentService.getCurrentUser();
-		console.log("[handleChallengeClick] Avant invitePlayer, friendId =", invitedId);
 		if (currentUser!.id === invitedId) {
 			throw new Error("You cannot play with yourself.");
 		}

@@ -134,7 +134,7 @@ export async function updateRelationshipConfirmed(userId1: number, userId2: numb
 
 	await db.run(`
 		UPDATE Friends
-		SET friend_status = 'accepted'
+		SET friend_status = 'accepted', blocked_by = NULL
 		WHERE user1_id = ? AND user2_id = ?
 	`, [user1, user2]);
 

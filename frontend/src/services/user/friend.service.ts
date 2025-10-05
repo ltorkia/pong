@@ -1,4 +1,3 @@
-
 import DOMPurify from "dompurify";
 import { Friend } from '../../shared/models/friend.model';
 import { friendApi } from '../../api/index.api';
@@ -127,14 +126,11 @@ export class FriendService {
 	 */
 	public subscribeToFriendEvents(): void {
 		this.boundUpdateHandler = async (data: { userId: number }) => {
-			console.log(`[FriendService] Mise à jour globale pour userId=${data.userId}`);
-			
-			// Trouver tous les containers qui affichent cet utilisateur
 			const containers = document.querySelectorAll(`[data-user-id="${data.userId}"]`);
 			
-			for (const container of containers) {
+			for (const container of containers)
 				await this.updateButtons(container as HTMLElement, data.userId);
-			}
+
 			await notifService.deleteAllNotifsFromUser(data.userId, notifService.currentNotif?.id);
 			notifService.displayDefaultNotif();
 		};

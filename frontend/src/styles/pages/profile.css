@@ -15,11 +15,6 @@
 		@apply w-full;
 	}
 
-	.header-username {
-		@apply bg-black/40 border-t-0 border-b-2 border-l-2 border-r-2 shadow-lg border-white/60
-		rounded-tl-full rounded-tr-full;
-	}
-
 	.profile-header {
 		@apply bg-gradient-to-br from-black/20 to-pastel-blue/20 backdrop-blur-sm 
 		rounded-xl border border-white/20 p-6 shadow-lg
@@ -70,7 +65,7 @@
 	}
 
 	.profile-username {
-		@apply text-2xl font-bold text-white ml-4
+		@apply max-w-[200px] text-2xl font-bold text-white ml-4 whitespace-normal break-words
 		tablet:text-3xl
 		desktop:text-4xl;
 	}
@@ -243,6 +238,7 @@
 
 	.empty-state {
 		@apply text-center py-12;
+    	text-shadow: 1px 1px 1px #2c2c2c;
 	}
 
 	.empty-icon {
@@ -252,10 +248,5 @@
 
 	.empty-text {
 		@apply text-white/60 text-lg;
-	}
-
-	.footer-profile {
-		@apply bg-black/40 border-b-0 border-t-2 border-l-2 border-r-2 shadow-lg border-white/60
-		rounded-bl-full rounded-br-full h-[84px];
 	}
 }

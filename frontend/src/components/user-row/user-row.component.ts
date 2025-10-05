@@ -36,6 +36,7 @@ export class UserRowComponent extends BaseComponent {
 	private profileButton!: HTMLElement;
 	private logCell!: HTMLElement;
 	private challengeButton!: HTMLButtonElement;
+    private challengeHandler?: (event: Event) => Promise<void>;
 
 	/**
 	 * Constructeur du composant de ligne d'utilisateur.
@@ -125,9 +126,8 @@ export class UserRowComponent extends BaseComponent {
 
 	protected attachListeners(): void {
 		this.profileButton.addEventListener('click', this.handleProfileClick);
-		this.challengeButton.addEventListener('click', 
-			friendService.createChallengeHandler(this.user!.id)
-		);
+        this.challengeHandler = friendService.createChallengeHandler(this.user!.id!);
+        this.challengeButton.addEventListener('click', this.challengeHandler);
 		friendService.attachButtonListeners(this.container, this.user!.id, this.user!.username);
 	}
 
