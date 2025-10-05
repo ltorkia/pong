@@ -1,9 +1,9 @@
 import { EventEmitter } from "node:stream";
 import { resultGame, addGame, addGamePlayers, cancelledGame, registerUserTournament, createTournament, endTournament, updateTournamentStatus } from "../db/game";
 import { GameData, Player } from "../shared/types/game.types"
-import { JwtPayload } from "./user.types";
 import { getUsersGame } from "../db/user";
 import { incrementUserTournamentStats } from "../db/game";
+import { resetPlayer } from "../routes/game.routes";
 
 const DEG_TO_RAD = Math.PI / 180;
 
@@ -60,47 +60,48 @@ export class Ball {
     horizontalCollision(players: Player[]) {
         const player = this.vx < 0 ? players[0] : players[1];
 
+        // Position relative de la balle par rapport au haut du paddle
+        const playerBegin = player.pos.y - player.height / 2;
+        const relativeY = this.y - playerBegin;
+
+        const topZone = player.height * 0.25;   // 25%
+        const middleZone = player.height * 0.5; // 50%
+
+        if (relativeY < topZone) {
+            this.dirY = -1;   // pousse fort vers le haut
+            if (!(this.speed + 0.005 > 0.5)) this.speed += 0.005;
+        }
+        else if (relativeY < topZone + middleZone) {
+            this.dirY = randomNb(-0.25, 0.25);
+            if (!(this.speed - 0.001 < this.initSpeed)) this.speed -= 0.001;
+        }
+        else {
+            console.log("hit bottom");
+            this.dirY = 1;   // pousse fort vers le bas
+            if (!(this.speed + 0.005 > 0.5)) this.speed += 0.005;
+        }
+
+        // Correction de position de la balle pour éviter "collage"
         if (this.vx < 0) {
             this.x = player.pos.x + player.width / 2 + this.radius;
         } else {
             this.x = player.pos.x - player.width / 2 - this.radius;
         }
 
-        // Si la balle va vers le joueur et que le joueur se deplace
+        // Rebonds : normal ou "inversé" si le joueur suit la balle
         const ballAboveCenter = this.y < player.pos.y;
         const playerMovingDown = player.inputDown;
         const playerMovingUp = player.inputUp;
-        const playerThird = player.height / 3;
-        const playerBegin = player.pos.y - player.height / 2;
 
-        // Distance of ball from top of paddle
-        const relativeY = this.y - playerBegin;
-
-        if (relativeY < playerThird) {
-            this.dirY -= 0.3;
-            this.speed += 0.01;
-        } else if (relativeY > playerThird * 2) {
-            this.dirY += 0.3;
-            this.speed += 0.005;
-        } else {
-            if (!(this.speed - 0.005 < this.initSpeed))
-                this.speed -= 0.005;
-        }
-
-        if (this.vx < 0) {
-            this.x = player.pos.x + player.width / 2 + this.radius;
-        } else {
-            this.x = player.pos.x - player.width / 2 - this.radius;
-        }
-
-        // Inverse la direction si le joueur se déplace dans la même direction que la balle
         if ((ballAboveCenter && playerMovingDown) || (!ballAboveCenter && playerMovingUp)) {
             console.log("ball inverted");
             this.dirX = -this.dirX;
             this.dirY = -this.dirY;
             this.speed += 0.001;
-        } else // Rebond normal
+        } else {
+            console.log("rebond normal");
             this.dirX = -this.dirX;
+        }
 
         this.setDirectionVector();
     }
@@ -150,11 +151,11 @@ export class Ball {
         this.speed = this.initSpeed;
 
         if (lastGoal && lastGoal[0]) {
-            this.dirX = -1;
+            this.dirX = 1;
             this.dirY = randomNb(-0.3, 0.3);
             this.setDirectionVector();
         } else {
-            this.dirX = 1;
+            this.dirX = -1;
             this.dirY = randomNb(-0.3, 0.3);
             this.setDirectionVector();
         }
@@ -184,6 +185,7 @@ export class Game extends EventEmitter {
     private playersCount: number = 0;
 
     public gameStarted: boolean = false;
+    public isPaused: boolean = false;
     public isOver: boolean = false;
     public cancellerID: number = 0;
 
@@ -199,37 +201,7 @@ export class Game extends EventEmitter {
         this.tournamentID = tournamentID;
     }
 
-    // private async gameLoop(): Promise<void> {
-    //     const fps = 1000 / 60;
-    //     let then = Date.now();
-    //     const startTime = then;
-    //     let frame = 0;
-    //     while (this.gameStarted == true) {
-    //         this.ball.move();
-    //         for (const player of this.players)
-    //             player.move();
-    //         // if (this.ball.x < -0.5 || this.ball.y > 0.5) {
-    //         if (this.ball.checkPlayerCollision(this.players))
-    //             this.ball.horizontalCollision(this.players);
-    //         // }
-    //         // else if (collision && (this.ball.isGoingUp() || this.ball.isGoingDown()))
-    //         //     this.ball.verticalCollision();
-    //         if (this.ball.y + this.ball.radius / 2 <= -1 || this.ball.y + this.ball.radius / 2 >= 1)
-    //             this.ball.verticalCollision();
-    //         if (this.ball.x - this.ball.radius / 2 <= -1 || this.ball.x + this.ball.radius / 2 >= 1)
-    //             return (this.checkScore());
-    //         const now = Date.now();
-    //         if (now - then < fps) {
-    //             await sleep(fps - (now - then));
-    //         }
-    //         frame++;
-    //         this.sendGameUpdate();
-    //         then = Date.now();
-    //     }
-    //     console.log("----------------- GAME ENDED -----------------");
-    // };
-
-        private async gameLoop(): Promise<void> {
+    private async gameLoop(): Promise<void> {
         const fps = 1000 / 60;
         let then = Date.now();
         const startTime = then;
@@ -238,23 +210,22 @@ export class Game extends EventEmitter {
             // this.ball.move();
             for (const player of this.players)
                 player.move();
-      
+
             // if (this.ball.x < -0.5 || this.ball.y > 0.5) {
             for (let i = 0; i < 10; i++) {
                 this.ball.x += this.ball.vx / 10;
                 this.ball.y += this.ball.vy / 10;
 
-                if (this.ball.checkPlayerCollision(this.players))
+                if (this.ball.checkPlayerCollision(this.players)) {
+                    console.log("horizontal")
                     this.ball.horizontalCollision(this.players);
+                }
 
                 if (this.ball.y + this.ball.radius / 2 <= -1 || this.ball.y + this.ball.radius / 2 >= 1)
                     this.ball.verticalCollision();
                 if (this.ball.x - this.ball.radius / 2 <= -1 || this.ball.x + this.ball.radius / 2 >= 1)
-                return (this.checkScore());
+                    return (this.checkScore());
             }
-            // }
-            // else if (collision && (this.ball.isGoingUp() || this.ball.isGoingDown()))
-            //     this.ball.verticalCollision();
             const now = Date.now();
             if (now - then < fps) {
                 await sleep(fps - (now - then));
@@ -296,7 +267,10 @@ export class Game extends EventEmitter {
             if (score >= 3) //pq pas == ? 
                 return (this.endGame())
         });
-        this.initRound(lastGoal);
+
+        this.isPaused = true;
+        this.sendGameUpdate();
+        // this.initRound(lastGoal);
     }
 
     public initGame(): void {
@@ -335,8 +309,12 @@ export class Game extends EventEmitter {
                     tournamentID: this.tournamentID || null
                 }));
             }
-            player.matchMaking = false;
-            player.webSocket = undefined;
+
+            if (this.tournamentID) {
+                player.matchMaking = false;
+                player.webSocket = undefined;
+            } else
+                resetPlayer(player);
         }
         
         const winnerID = this.getWinnerID();
@@ -444,6 +422,13 @@ export class TournamentLocal {
         for (const game of this.stageOne)
             game.on("finished", (g: Game) => this.update());
         this.stageTwo.on("finished", (g: Game) => this.update());
+
+        // Reset des players à la fin du tournoi
+        this.stageTwo.on("finished", () => {
+            for (const player of this.players) {
+                resetPlayer(player);
+            }
+        });
     }
 
     // si les games du premier tour sont finies, update pour determiner la derniere game

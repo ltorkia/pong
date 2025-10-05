@@ -1,9 +1,6 @@
-// import { Tournament } from "../../shared/types/game.types";
-import { showAlert } from '../../utils/dom.utils';
 import { UserModel } from '../../shared/types/user.types';
 import { TournamentLobbyUpdate, PlayerReadyUpdate, DismantleTournament, StartTournament } from "../../shared/types/websocket.types";
 import { Game, Tournament, TournamentLocal } from "../../types/game.types";
-import { GameInterface } from "../../shared/types/game.types";
 
 export class TournamentAPI {
 
@@ -52,7 +49,6 @@ export class TournamentAPI {
         });
         if (!res.ok) {
             const error = await res.json();
-            // showAlert(error, 'Tournament'); //TODO : dans le front, check si deja dans lobby tournament players et en fonction afficher d office LEAVE et pas JOIN
             console.log(error);
             throw new Error(error.error);
         }
@@ -127,7 +123,6 @@ export class TournamentAPI {
     }
 
     public async postNewLocalTournament(newTournament: TournamentLocal): Promise<void> {
-        console.log(JSON.stringify(newTournament));
         const res: Response = await fetch('/api/game/new_tournament_local', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },

@@ -36,7 +36,7 @@ export async function gameRoutes(app: FastifyInstance) {
         // await cleanGameOver(app, playerID);
 
         if (reqType === "matchmaking_request") {
-            const newPlayer = initPlayer(allPlayers, playerID, matchMakingReq.data.tabID!);
+            const newPlayer = initPlayer(allPlayers, playerID, matchMakingReq.data.tabID);
             if (!newPlayer)
                 return reply.code(404).send({ error: "Player not found" });
             newPlayer.matchMaking = true;
@@ -51,10 +51,9 @@ export async function gameRoutes(app: FastifyInstance) {
             reply.code(200).send({ message: "Successfully added to matchmaking" });
         }
         else if (reqType === "local") {
-            let players = initPlayers(allPlayers, playerID, generateUniqueID(Array.from(allPlayers.keys())));
-            if (!players || !players[0] || !players[1] || !matchMakingReq.data.tabID)
+            let players = initPlayers(allPlayers, playerID, generateUniqueID(Array.from(allPlayers.keys())), matchMakingReq.data.tabID);
+            if (!players || !players[0] || !players[1])
                 return reply.code(404).send({ errorMessage: "Players not found" });
-            players = initPlayers(allPlayers, players[0].ID, players[1].ID, matchMakingReq.data.tabID);
             startGame(app, [players[0], players[1]], "local");
             reply.code(200).send({ message: "Local game started" });
         }
@@ -178,8 +177,16 @@ export function initPlayer(allPlayers: Map<number, Player[]>, playerID: number, 
     return player;
 }
 
-function cleanPlayer(allPlayers: Map<number, Player[]>, playerID: number) {
-    allPlayers.delete(playerID);
+export function resetPlayer(player: Player) {
+    player.inGame = false;
+    player.matchMaking = false;
+    player.ready = false;
+    player.readyforTournament = false;
+    player.webSocket = undefined;
+    player.pos = { x: 0, y: 0 };
+    player.width = 0.02;
+    player.height = 0.40;
+    player.alias = undefined;
 }
 
 async function cleanGame(app: FastifyInstance, playerID: number, gameID?: number) {

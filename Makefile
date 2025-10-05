@@ -53,6 +53,16 @@ prod: # Lance le projet en mode prod (compile les fichiers statiques, pas de hot
 	@sh -c 'echo "prod" > .mode'
 	@$(MAKE) -s build up copy-local
 
+prod-dev: # Lance le projet en mode prod (compile les fichiers statiques, pas de hot reload, pas de build docker)
+	@echo "\n${CYAN}#######################################################${NC}"
+	@echo "${CYAN}####                                               ####${NC}"
+	@echo "${CYAN}####                   MODE PROD-DEV               ####${NC}"
+	@echo "${CYAN}####                                               ####${NC}"
+	@echo "${CYAN}#######################################################${NC}"
+	@sh -c 'echo "prod" > .mode'
+	@$(MAKE) -s up copy-local
+
+
 #########################################################
 #############          CONFIG RULES           ###########
 #########################################################
@@ -115,7 +125,8 @@ build: prepare-docker sync-env # Construit les images Docker
 
 up: # Lance les services
 	@echo "\n$(YELLOW)• Lancement des services...$(NC)"
-	docker compose -f $(COMPOSE_FILE) up -d --remove-orphans
+# 	docker compose -f $(COMPOSE_FILE) up -d --remove-orphans
+	sudo docker compose -f $(COMPOSE_FILE) up -d --remove-orphans
 	@echo "\n$(GREEN)=================================$(NC)"
 	@echo "$(GREEN)// APP: $(APP_URL) //$(NC)"
 	@echo "$(GREEN)=================================$(NC)"
