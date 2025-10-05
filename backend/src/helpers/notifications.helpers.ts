@@ -14,8 +14,8 @@ import { majLastlog } from '../db/usermaj';
  * @param {FastifyInstance} app - L'instance de l'application Fastify.
  * @param {NotificationModel[]} data - Le tableau contenant les notifications à envoyer.
  */
-export function sendToSocket(app: FastifyInstance, data: NotificationModel[]) {
-    const sockets = app.usersWS.get(Number(data[0].to));
+export function sendToSocket(app: FastifyInstance, data: NotificationModel[], id: number) {
+    const sockets = app.usersWS.get(id);
     if (!sockets) 
         return;
 

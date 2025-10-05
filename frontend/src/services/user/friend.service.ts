@@ -135,6 +135,8 @@ export class FriendService {
 			for (const container of containers) {
 				await this.updateButtons(container as HTMLElement, data.userId);
 			}
+			await notifService.deleteAllNotifsFromUser(data.userId, notifService.currentNotif?.id);
+			notifService.displayDefaultNotif();
 		};
 		eventService.on(EVENTS.FRIEND_UPDATED, this.boundUpdateHandler);
 	}
@@ -145,6 +147,8 @@ export class FriendService {
 	 */
 	private async updateButtons(container: HTMLElement, userId: number): Promise<void> {
 		const currentUser = currentService.getCurrentUser();
+		if (!currentUser || userId === currentUser.id)
+			return;
 		
 		// Récupérer les éléments du container
 		const friendLogoCell = container.querySelector('.friend-logo-cell') as HTMLElement;
@@ -255,15 +259,9 @@ export class FriendService {
 			// Injecter le contexte dans NotifService
 			notifService.friendId = userId;
 			notifService.friendName = username;
-			
-			try {
-				// Appeler le handler de NotifService
-				await notifHandler.call(notifService, event);
-			} finally {
-				// Nettoyer le contexte
-				notifService.friendId = null;
-				notifService.friendName = null;
-			}
+
+			// Appeler le handler de NotifService
+			await notifHandler.call(notifService, event);
 		};
 	}
 

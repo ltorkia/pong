@@ -10,7 +10,6 @@ import { JwtPayload } from '../types/user.types';
 import { updateInvitePlayer, getRelation } from '../db/friend';
 import { insertNotification } from '../db/notification';
 import { addGame, addGamePlayers } from '../db/game';
-import { deleteNotificationsFrom } from '../db/notification';
 import { sendToSocket } from '../helpers/notifications.helpers';
 import { NotificationInput } from '../types/zod/app.zod';
 import { TournamentLocal } from '../types/game.types';
@@ -215,7 +214,6 @@ async function cleanTournament(app: FastifyInstance, tournamentID?: number) {
 async function cleanInvite(app: FastifyInstance, playerID: number, inviterID?: number, invitedID?: number) {
     if (!inviterID || !invitedID || playerID != inviterID)
         return;
-    await deleteNotificationsFrom(invitedID);
     await updateInvitePlayer(invitedID, playerID, true);
     let notifData: NotificationInput = {
         type: FRIEND_REQUEST_ACTIONS.INVITE_CANCEL,
@@ -226,7 +224,8 @@ async function cleanInvite(app: FastifyInstance, playerID: number, inviterID?: n
     const notif = await insertNotification(notifData);
     if (!notif || 'errorMessage' in notif)
         return;
-    sendToSocket(app, [notif]);
+    sendToSocket(app, [ notif ], notif.to);
+    sendToSocket(app, [ notif ], notif.from);
 }
 
 async function decount(app: FastifyInstance, players: Player[], gameID: number) {

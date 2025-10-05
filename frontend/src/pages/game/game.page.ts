@@ -270,20 +270,17 @@ export abstract class GamePage extends BasePage {
 	 * @returns {Promise<boolean>} La promesse qui se résout lorsque les vérifications sont terminées.
 	 */
 	protected async handleInviteSettings(): Promise<boolean> {
+		this.requestType = "invite";
 		this.relation = await friendApi.getRelation(this.currentUser!.id, this.challengedFriendID);
 		if (!this.relation || 'errorMessage' in this.relation || !this.relation.waitingInvite)
 			return false;
 		switch (this.currentUser!.id) {
-			case this.relation.challengedBy:
-				this.requestType = "invite";
-				break;
 			case this.relation.isChallenged:
 				this.requestType = "invite-accept";
 				break;
-			default:
-				console.error("Invite settings not found");
-				return false;
 		}
+        if (this.relation.blockedBy)
+            return false;
 		if (this.requestType === "invite-accept") {
 			if (!notifService.inviterTabIDs.has(this.relation.id)) 
 				return false;
@@ -340,13 +337,6 @@ export abstract class GamePage extends BasePage {
      */
     public setCleanInvite(cleanInvite: boolean = false): void {
         this.inviteToClean = cleanInvite;
-    }
-
-    protected updateInviteNotification(): void {
-        notifService.notifs = notifService.notifs.filter((notif) => notif.from == this.challengedFriendID
-            && notif.content !== null && notif.content !== '');
-        if (notifService.navbarInstance!.notifsWindow)
-            notifService.displayDefaultNotif();
     }
 
     /**
@@ -561,7 +551,6 @@ export abstract class GamePage extends BasePage {
     protected fillScoreBox(game?: Game): void {
         if (!this.endGamePanel)
             return;
-        console.log(this.currentUser);
         const resMessage = getHTMLElementByClass('res-message', this.endGamePanel) as HTMLElement;
         const resScore = getHTMLElementByClass('res-score', this.endGamePanel) as HTMLElement;
         const spanRes = document.createElement("span");
@@ -669,13 +658,8 @@ export abstract class GamePage extends BasePage {
             }
         }
 		if (!this.isPageRefreshing) {
-			notifService.notifs = notifService.notifs.filter((notif) => notif.from == this.challengedFriendID
-				&& notif.content !== null && notif.content !== '');
-			if (notifService.navbarInstance?.notifsWindow)
-				notifService.displayDefaultNotif();
 			await this.sendMatchMakingRequest("clean_request", invitedID, inviterID);
-		}
-		else {
+		} else {
 			const matchMakingReq = new Blob([JSON.stringify({
 				type: "clean_request",
 				playerID: this.currentUser!.id,

@@ -70,7 +70,11 @@ export async function notificationsRoutes(app: FastifyInstance) {
 			return reply.code(500).send({ errorMessage: notif.errorMessage || 'Error inserting notification'});
 		}
 		(notif as any).inviterTabID = notifData.inviterTabID;
-		sendToSocket(app, [ notif ]);
+		sendToSocket(app, [ notif ], notif.to);
+
+		// Envoyer aussi à l'expéditeur pour synchronisation des onglets
+		const syncNotif = { ...notif, read: 1 };
+		sendToSocket(app, [ syncNotif ], notif.from);
 		return reply.code(200).send(notif);
 	})
 
@@ -102,7 +106,6 @@ export async function notificationsRoutes(app: FastifyInstance) {
 
 	// --- Supprime une notification ---
 	app.delete('/:notifId', async (request: FastifyRequest, reply: FastifyReply) => {
-		const jwtUser = request.user as JwtPayload;
 		let { notifId } = request.params as { notifId: number };
 		notifId = Number(notifId);
 		if (isNaN(notifId) || notifId <= 0) {
@@ -112,10 +115,7 @@ export async function notificationsRoutes(app: FastifyInstance) {
 		// Vérifie que la notif existe et appartient à l'utilisateur
 		let notif = await getNotification(notifId);
 		if (!notif || 'errorMessage' in notif)
-			return reply.code(404).send({ errorMessage: 'Notification not found'});
-		if (![notif.to, notif.from].includes(jwtUser.id)) {
-			return reply.code(403).send({ errorMessage: 'Forbidden' });
-		}
+			return reply.code(410).send({ errorMessage: 'Conflict: notification not found'});
 
 		// On supprime la notification de la base de données et on la renvoie à l'utilisateur concerné
 		await deleteNotification(notifId);
