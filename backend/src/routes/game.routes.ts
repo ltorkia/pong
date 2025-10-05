@@ -111,6 +111,22 @@ export async function gameRoutes(app: FastifyInstance) {
             reply.code(200).send({ message: "Tournament clean done" });
         }
     });
+
+
+    app.get("/:id", async (request: FastifyRequest, reply: FastifyReply) => {
+        const { id } = request.params as { id: string };
+        const gameID = Number(id);
+        const { allGames } = app.lobby;
+
+        const foundGame = allGames.find((g: Game) => g.gameID == gameID);
+        if (foundGame)
+            return reply.code(200).send({
+                playersID: [foundGame.players[0].ID, foundGame.players[1].ID],
+                score: foundGame.getScore(),
+            });
+        else
+            return reply.code(200).send({ error: "Game not found" });
+    });
 }
 
 async function findAvailableOpponent(newPlayer: Player, allPlayers: Map<number, Player[]>): Promise<Player | null> {
@@ -140,12 +156,14 @@ export function initPlayer(allPlayers: Map<number, Player[]>, playerID: number, 
     let player = tabID ? players.find(p => p.tabID === tabID) : undefined;
     
     if (!player) {
+        console.log("player not found !")
         player = new Player(playerID);
         if (tabID) player.tabID = tabID;
         if (alias) player.alias = alias;
         players.push(player);
         allPlayers.set(playerID, players);
     } else {
+        console.log("player found!")
         if (tabID) player.tabID = tabID;
         if (alias) player.alias = alias;
     }
@@ -211,7 +229,7 @@ async function decount(app: FastifyInstance, players: Player[], gameID: number) 
             return;
 
         for (const player of players) {
-            if (!player.tabID || !player.webSocket) 
+            if (!player.tabID || !player.webSocket)
                 continue;
             player.webSocket.send(JSON.stringify({
                 type: "decount_game",
@@ -262,10 +280,14 @@ const startGame = async (app: FastifyInstance, players: Player[], mode: string, 
             user.WS.onmessage = (event: MessageEvent) => {
                 const msg: any = JSON.parse(event.data);
                 if (msg.type === "movement") {
-                    if (mode === "multi") 
+                    if (mode === "multi")
                         newGame.registerInput(msg.playerID, msg.key, msg.status);
-                    if (mode === "local") 
+                    if (mode === "local")
                         newGame.registerInputLocal(msg.playerID, msg.key, msg.status);
+                } else if (msg.type === "go" && newGame.isPaused) {
+                    console.log("go received");
+                    newGame.isPaused = false;
+                    newGame.initRound();
                 }
             };
             player.webSocket = user.WS;
@@ -291,13 +313,13 @@ const startTournamentGame = async (app: FastifyInstance, gameID: number, hostID:
     for (const tournamentLocal of allTournamentsLocal) {
         if (tournamentLocal.stageTwo && tournamentLocal.stageTwo.gameID == gameID) {
             game = tournamentLocal.stageTwo;
-            tournament = tournamentLocal;
+            // tournament = tournamentLocal;
             break;
         }
         const foundGame = tournamentLocal.stageOne.find((g: Game) => g.gameID == gameID);
         if (foundGame) {
             game = foundGame;
-            tournament = tournamentLocal;
+            // tournament = tournamentLocal;
             break;
         }
     }
@@ -317,17 +339,23 @@ const startTournamentGame = async (app: FastifyInstance, gameID: number, hostID:
         return;
     }
 
-    const startGameWs: StartGame = { type: "start_game", gameID: gameID, mode: "tournament" };
-    try {
-        hostWS.send(JSON.stringify(startGameWs));
-    } catch (err) {
-        console.error("Erreur WebSocket.send() :", err);
-    }
+    const startGameWs: StartGame = {
+        type: "start_game",
+        gameID: gameID,
+        mode: "tournament",
+        player1Alias: game.players[0].alias,
+        player2Alias: game.players[1].alias,
+    };
 
+    hostWS.send(JSON.stringify(startGameWs));
     hostWS.onmessage = (event: MessageEvent) => {
         const msg: any = JSON.parse(event.data);
         if (msg.type === "movement")
             game.registerInputLocalTournament(msg.key, msg.status);
+        else if (msg.type === "go") {
+            console.log("go received");
+            game.initRound();
+        }
     };
     game.players[0].webSocket = hostWS;
     await decountWS(hostWS, gameID);

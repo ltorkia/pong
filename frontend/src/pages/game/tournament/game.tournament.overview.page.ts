@@ -137,7 +137,7 @@ export class GameTournamentOverview extends BasePage {
                     const img = playerPastille.querySelector("#user-avatar") as HTMLImageElement;
                     img.src = await this.dataApi.getUserAvatarURL(user! as User);
                     newTooltip.querySelector(`#player-${j}`)!.textContent = user!.username;
-                    if (this.currentUser.id == user.id)
+                    if (this.currentUser && user && this.currentUser.id == user.id)
                         newTooltip.querySelector("button")!.classList.remove("hidden");
                 } else
                     playerPastille.textContent = "?";

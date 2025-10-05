@@ -7,6 +7,8 @@ export type StartGame = {
     otherPlayer?: SafeUserModel, //a modifier
     userId1?: SafeUserModel,
     userId2?: SafeUserModel,
+    player1Alias?: string,
+    player2Alias?: string,
     gameID: number,
     mode: string
 };

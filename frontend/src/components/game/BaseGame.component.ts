@@ -1,8 +1,8 @@
 import { animateCSS } from "../../utils/animate.utils";
-import { Triangle } from "../../pages/game/boids.page";
 import { webSocketService } from "../../services/user/user.service";
 import { GameData } from "../../shared/types/game.types"
 import { PlayerBar, Ball } from "./ToolsGame.component";
+import { Triangle } from "../../types/game.types";
 
 const randomNb = (min: number, max: number) => { return (Math.random() * (max - min) + min) };
 const lerp = (a: number, b: number, t: number) => { return a + t * (b - a) };
@@ -21,10 +21,10 @@ export class MultiPlayerGame {
     private gameCanvas: HTMLCanvasElement = document.createElement('canvas');
     private canvasCtx: CanvasRenderingContext2D = this.gameCanvas.getContext("2d", { alpha: true })!;
     private players: PlayerBar[] = [];
-    private aliases: string[];
+    public aliases: string[];
     private ball = new Ball(this.canvasCtx);
     private score: number[] = [0, 0];
-    private scoreChangeFrames: number = 0;
+    private goalScored: boolean = false;
     private frameReq: number = 0;
     private playersCount: number = 0;
     private clearFillStyle: number = 1;
@@ -36,6 +36,7 @@ export class MultiPlayerGame {
     private playerID: number;
     public gameID: number;
     public gameStates: { states: GameData[], timestamps: number[] };
+    private targetTimeStamp: number = 0;
     public birds: Triangle[] = [];
     private gameLoopBind: any;
     private testStartTime = 0;
@@ -142,13 +143,6 @@ export class MultiPlayerGame {
         })
     };
 
-    public setScore(score: number[]): void {
-        if (this.score[0] != score[0] || this.score[1] != score[1]) {
-            this.score = score;
-            this.scoreChangeFrames = 10;
-        }
-    };
-
     public getScore(): number[] { return this.score };
 
     private printScore(): void {
@@ -174,7 +168,60 @@ export class MultiPlayerGame {
         }
     }
 
+    public setScore(score: number[]): void {
+        if (this.score[0] != score[0] || this.score[1] != score[1]) {
+            this.score = score;
+            this.goalScored = true;
+
+            console.log("GOAL SCORE TRUE");
+            const now = performance.now();
+            const targetTime = now - BUFFER_DELAY;
+            this.targetTimeStamp = getTargetTimestamp(this.gameStates.timestamps, targetTime);
+        }
+    };
+
     public setAllPositions(): void {
+        if (this.goalScored) {
+            console.log("YES");
+            if (this.targetTimeStamp + 1 == this.gameStates.states.length) {
+                animateCSS(this.gameCanvas, "headShake");
+                this.goalScored = false;
+                const lastIndex = this.gameStates.states.length - 1;
+
+                this.ball.x = this.gameStates.states[lastIndex].ball.x;
+                this.ball.y = this.gameStates.states[lastIndex].ball.y;
+                this.players[0].x = this.gameStates.states[lastIndex].players[0].pos.x;
+                this.players[1].x = this.gameStates.states[lastIndex].players[1].pos.x;
+                this.players[0].y = this.gameStates.states[lastIndex].players[0].pos.y;
+                this.players[1].y = this.gameStates.states[lastIndex].players[1].pos.y;
+
+                setTimeout(() => {
+                    this.gameStates.states = [];
+                    this.gameStates.timestamps = [];
+                    this.playerWebSocket.send(JSON.stringify({
+                        type: "go",
+                        playerID: this.playerID,
+                        gameID: this.gameID,
+                        tabID: webSocketService.getTabID()
+                    }))
+                    console.log(webSocketService.getTabID());
+                    console.log("sent go");
+                }, 500);
+            } else {
+                console.log("ELSE YES");
+                const target = this.targetTimeStamp;
+                const next = target + 1;
+
+                this.ball.x = lerp(this.gameStates.states[target].ball.x, this.gameStates.states[next].ball.x, 0.5);
+                this.ball.y = lerp(this.gameStates.states[target].ball.y, this.gameStates.states[next].ball.y, 0.5);
+                this.players[0].x = lerp(this.gameStates.states[target].players[0].pos.x, this.gameStates.states[next].players[0].pos.x, 0.5);
+                this.players[0].y = lerp(this.gameStates.states[target].players[0].pos.y, this.gameStates.states[next].players[0].pos.y, 0.5);
+                this.players[1].x = lerp(this.gameStates.states[target].players[1].pos.x, this.gameStates.states[next].players[1].pos.x, 0.5);
+                this.players[1].y = lerp(this.gameStates.states[target].players[1].pos.y, this.gameStates.states[next].players[1].pos.y, 0.5);
+                this.targetTimeStamp += 1;
+            }
+
+        }
         const now = performance.now();
         const targetTime = now - BUFFER_DELAY;
 
@@ -182,22 +229,18 @@ export class MultiPlayerGame {
         if (target) {
             const next = target + 1;
 
-            const t = (targetTime - this.gameStates.timestamps[target]) /
+            let t = (targetTime - this.gameStates.timestamps[target]) /
                 (this.gameStates.timestamps[next] - this.gameStates.timestamps[target]);
-            // if (this.scoreChangeFrames) {
-                // this.scoreChangeFrames -= 1;
-                // this.ball.x = 0;
-                // this.ball.y = 0;
-            // }
-            // else {
-                this.ball.x = lerp(this.gameStates.states[target].ball.x, this.gameStates.states[next].ball.x, t);
-                this.ball.y = lerp(this.gameStates.states[target].ball.y, this.gameStates.states[next].ball.y, t);
-            // }
-            this.players[0].x = this.gameStates.states[next].players[0].pos.x;
-            this.players[1].x = this.gameStates.states[next].players[1].pos.x;
-            this.players[0].y = this.gameStates.states[next].players[0].pos.y;
-            this.players[1].y = this.gameStates.states[next].players[1].pos.y;
+            t = Math.max(0, Math.min(1, t));
+
+            this.ball.x = lerp(this.gameStates.states[target].ball.x, this.gameStates.states[next].ball.x, t);
+            this.ball.y = lerp(this.gameStates.states[target].ball.y, this.gameStates.states[next].ball.y, t);
+            this.players[0].x = lerp(this.gameStates.states[target].players[0].pos.x, this.gameStates.states[next].players[0].pos.x, t);
+            this.players[0].y = lerp(this.gameStates.states[target].players[0].pos.y, this.gameStates.states[next].players[0].pos.y, t);
+            this.players[1].x = lerp(this.gameStates.states[target].players[1].pos.x, this.gameStates.states[next].players[1].pos.x, t);
+            this.players[1].y = lerp(this.gameStates.states[target].players[1].pos.y, this.gameStates.states[next].players[1].pos.y, t);
         } else {
+            console.log("didnt find gamestate");
             if (this.gameStates.states.length) {
                 const lastIndex = this.gameStates.states.length - 1;
 
@@ -240,12 +283,14 @@ export class MultiPlayerGame {
         this.printAliases();
         this.drawMiddleLine();
 
-        for (const bird of this.birds) {
-            bird.target.x = (this.ball.x + 1) / 2 * this.gameCanvas.width;
-            bird.target.y = (1 - ((this.ball.y + 1) / 2)) * this.gameCanvas.height;
+        const targetX = (this.ball.x + 1) / 2 * this.gameCanvas.width;
+        const targetY = (1 - ((this.ball.y + 1) / 2)) * this.gameCanvas.height;
+        this.birds.forEach((bird: Triangle) => {
+            if (targetX) bird.target.x = targetX;
+            if (targetY) bird.target.y = targetY;
             bird.update();
             bird.draw("rgba(0, 255, 0, 0.5)");
-        }
+        })
         this.frameReq = requestAnimationFrame(this.gameLoopBind);
     };
 
@@ -253,7 +298,7 @@ export class MultiPlayerGame {
         const parentContainer: HTMLElement = document.getElementById("pong-section")!;
         this.gameCanvas.height = parentContainer.getBoundingClientRect().height;    // will need to update that every frame later (responsiveness)
         this.gameCanvas.width = parentContainer.getBoundingClientRect().width;
-        this.gameCanvas.classList.add("border-1", "border-black" ,"bg-black" ,"bg-opacity-70")
+        this.gameCanvas.classList.add("border-1", "border-black", "bg-black", "bg-opacity-70")
         animateCSS(this.gameCanvas, "zoomIn");
         this.gameCanvas.style.imageRendering = "pixelated";
         parentContainer.append(this.gameCanvas);

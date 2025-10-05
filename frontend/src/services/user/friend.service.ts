@@ -370,14 +370,14 @@ export class FriendService {
 		const friendId = this.getFriendId(target);
 		const currentUser = currentService.getCurrentUser();
 		const relation = await friendApi.getRelation(currentUser!.id, friendId!);
-		if (!relation || !relation.isOnline() || "errorMessage" in relation) {
-			console.error("errorMessage" in relation ? relation.errorMessage : "Invitation invalide.");
-			return;
-		}
-		if (!relation.challengedBy) 
-			await notifService.handleChallengeClick(event);
-		else if (relation.challengedBy === relation.id) {
-			await notifService.handlePlayClick(event);
-		}
+		// if (!relation || !relation.isOnline() || "errorMessage" in relation) {
+			// console.error("errorMessage" in relation ? relation.errorMessage : "Invitation invalide.");
+			// return;
+		// }
+		// if (!relation.challengedBy) 
+			// await notifService.handleChallengeClick(event);
+		// else if (relation.challengedBy === relation.id) {
+			// await notifService.handlePlayClick(event);
+		// }
 	}
 }

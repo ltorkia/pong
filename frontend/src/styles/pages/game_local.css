@@ -22,14 +22,14 @@
 
 	.ready-text {
 		@apply mt-5 text-xl font-semibold text-center tracking-widest p-5 uppercase
-		border border-white/20 rounded-2xl bg-[#313030] text-center cursor-default select-none;
+		border border-white/20 rounded-2xl bg-[#313030] bg-opacity-30 text-center cursor-default select-none;
 	}
 	.start-space {
 		@apply hidden
 		desktop:block; 
 	}
 	.start-click {
-		@apply block hover:cursor-pointer hover:bg-[#3c3c3c] transition
+		@apply block hover:cursor-pointer hover:bg-opacity-50
 		desktop:hidden; 
 	}
 	.wait-wrapper {

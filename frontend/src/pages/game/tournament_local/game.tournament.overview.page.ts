@@ -1,14 +1,12 @@
 import { BasePage } from '../../base/base.page';
-import { GamePage } from '../game.page';
 import { RouteConfig } from '../../../types/routes.types';
 import { Game, Tournament } from '../../../types/game.types';
 import { TournamentService } from '../../../api/game/game.api';
-import { router } from '../../../router/router';
 import { UserModel } from '../../../shared/types/user.types';
 import { DataService } from '../../../services/user/data.service';
 import { Player } from '../../../shared/types/game.types';
 import { User } from '../../../shared/models/user.model';
-import { ROUTE_PATHS } from '../../config/routes.config';
+import { ROUTE_PATHS } from '../../../config/routes.config';
 
 const MAX_PLAYERS = 4;
 const MIN_PLAYERS = 4;
