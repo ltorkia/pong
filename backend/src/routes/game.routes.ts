@@ -268,6 +268,7 @@ const startGame = async (app: FastifyInstance, players: Player[], mode: string, 
     await addGamePlayers(gameID, players[0].ID, players[1].ID);
     const newGame = gameCreated || new Game(gameID, 2, players);
     allGames.push(newGame);
+    console.log("////////////////////////////mode = ", mode);
 
     let WSToSend = { type: "start_game", gameID: gameID, mode: mode } as StartGame;
     for (const player of players) {
