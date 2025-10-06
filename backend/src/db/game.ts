@@ -1,48 +1,6 @@
-import { FastifyInstance, FastifyRegister, FastifyReply, FastifyRequest } from "fastify";
 import { getDb } from "./index.db";
-import { Game } from "../types/game.types";
-import { snakeToCamel, snakeArrayToCamel } from '../helpers/types.helpers';
+import { snakeToCamel } from '../helpers/types.helpers';
 import { GameModel } from '../shared/types/game.types'; // en rouge car dossier local 'shared' != dossier conteneur
-// import { GameModel } from '../../shared/types/game.types';
-
-
-// export async function gameDBRoutes(app: FastifyInstance) {
-//     const db = await getDb();
-
-//     app.post('/new_game', async (request: FastifyRequest, reply: FastifyReply) => {
-//         const { n_participants, tournament, status, looser_result } = request.body;
-
-//         const result = await db.run(
-//             `INSERT INTO Game (n_participants, tournament, status, looser_result)
-//             VALUES (?, ?, ?, ?)`,
-//             [n_participants, tournament ?? 0, status ?? 'waiting', looser_result ?? 0]
-//         );
-
-//         return { id: result.lastID, message: 'Game created' };
-//     });
-//     app.
-
-// export async function addGame(userId1: number, userId2: number): Promise<GameModel> {
-// export async function addGame(userId1: number, userId2: number){
-//     const db = await getDb();
-
-//     await db.exec(`
-//         BEGIN TRANSACTION;
-
-//         INSERT INTO Game (status, n_participants) 
-//         VALUES ('in_progress', 2);
-
-//         INSERT INTO User_Game (game_id, user_id)
-//         VALUES (last_insert_rowid(), ${userId1});
-
-//         INSERT INTO User_Game (game_id, user_id)
-//         VALUES (last_insert_rowid(), ${userId2});
-
-//     COMMIT;`,
-// 	);
-// }
-
-// export async function getResultGame 
 
 export async function addGame(tournament?: number, isOnlineGame?: boolean): Promise<number> {
     const db = await getDb();
@@ -278,28 +236,7 @@ export async function incrementUserTournamentStats(
     }
 }
 
-// // Crée un jeu et retourne son id
-// export async function createGame(nParticipants: number, tournamentId?: number) { //ptet pas necessaire si on reprend la logique remote
-//     const db = await getDb();   
-//     const stmt = db.run(`
-//         INSERT INTO Game (n_participants, tournament)
-//         VALUES (?, ?)
-//     `);
-//     // const info = stmt.run(nParticipants, tournamentId || 0);
-//     // return info.lastInsertRowid as number;
-// }
-
-// // Enregistre un joueur dans un jeu
-// export async function registerUserGame(userId: number, gameId: number, statusWin?: number, duration?: number) { //ptet pas necessaire si on reprend la logique remote
-//     const db = await getDb();
-//     const stmt = db.run(`
-//         INSERT INTO User_Game (game_id, user_id, status_win, duration)
-//         VALUES (${gameId}, ${userId}, ?, ?)
-//     `);
-//     // stmt.run(gameId, userId, statusWin ?? null, duration ?? 0);
-// }
-
-// // Enregistre un joueur dans un tournoi
+// Enregistre un joueur dans un tournoi
 export async function registerUserTournament(userId: number, tournamentId: number, alias?: string) {
     const db = await getDb();
     await db.run(`
@@ -308,11 +245,3 @@ export async function registerUserTournament(userId: number, tournamentId: numbe
         [tournamentId, userId, alias ?? null]
     );
 }
-
-// // // Exemple d'utilisation
-// // function setupTournamentWithTwoGames(usersId: number[]) {
-// //     // 1. Créer le tournoi
-// //     const tournamentId = createTournament(usersId.length, 2);
-
-// //     // 2. Créer deux jeux
-// // }

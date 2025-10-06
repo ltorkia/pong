@@ -1,7 +1,6 @@
 import { getDb } from './index.db';
 import { snakeToCamel, snakeArrayToCamel } from '../helpers/types.helpers';
-import { FriendModel, ChatModel } from '../shared/types/friend.types';	// en rouge car dossier local 'shared' != dossier conteneur
-import { SafeUserBasic } from '../shared/types/user.types';
+import { FriendModel } from '../shared/types/friend.types';	// en rouge car dossier local 'shared' != dossier conteneur
 
 export async function getAllRelations() {
 	const db = await getDb();
@@ -14,9 +13,6 @@ export async function getAllRelations() {
 	return snakeArrayToCamel(relations);
 }
 
-// pour choper les friends, mais implique qu un element chat soit forcement cree des qu on devient ami
-//  -> comment ajouter un ami ? nouvelle page ?
-//  -> version ou on decide d avoir forcement de cree par defaut une donnee avec le client en tant que sender et receveur
 export async function getUserFriends(userId: number): Promise<FriendModel[]> {
 	const db = await getDb();
 	const friends = await db.all(`
@@ -221,62 +217,3 @@ export async function addUserFriend(userId1: number, userId2: number): Promise<F
 	const relation = await getRelation(userId1, userId2);
 	return snakeToCamel(relation) as FriendModel;
 }
-
-
-//  -------------------------- brouillon chat - pas teste --------------------------------------------
-// export async function addMessageToChat(sender_id: number, receiver_id: number, message: string) {
-// 	const db = await getDb();
-
-// 	await db.run(`
-//         INSERT INTO Friends (sender_id, receiver_id, message)
-// 		VALUES (?, ?, ?)
-//         `,
-// 		[sender_id, receiver_id, message]
-// 	);
-// }
-
-// export async function getUserChat(userId1: number, userId2: number) {
-// 	const db = await getDb();
-// 	const chat = await db.all(`
-// 		SELECT c.message, c.time_send, c.id, c.sender_id, c.receiver_id
-// 		FROM Chat c
-// 		WHERE (sender_id = ? AND receiver_id = ?)
-// 		OR (sender_id = ? AND receiver_id = ?)
-// 		ORDER BY c.time_send ASC
-// 		`,
-// 		[userId1, userId2, userId2, userId1]
-// 	);
-
-// 	const other_user = await db.get(`
-// 		SELECT u.id, u.username, u.avatar
-// 		FROM User u
-// 		WHERE u.id != ?
-// 		`,
-// 		[userId2]
-// 	);
-// 	return {
-// 		messages : snakeArrayToCamel(chat) as ChatModel[],
-// 		otherUser: snakeToCamel(other_user) as SafeUserBasic 
-// 	};
-// }
-
-// export async function extractMessagesToChat(sender_id: number, receiver_id: number) {
-// 	const db = await getDb();
-
-// 	const messages = await db.get(`
-//         SELECT *
-// 		FROM Chat c
-// 		JOIN User u ON
-// 		(
-// 			(c.sender_id = ? AND c.receiver_id = ?)
-// 			OR
-// 			(c.sender_id = ? AND c.receiver_id = ?)
-// 		)
-// 		VALUES (?, ?, ?, ?)
-//         `,
-// 		[sender_id, receiver_id, receiver_id, sender_id]
-// 	);
-// 	return snakeToCamel(messages) as ChatModel[];
-// }
-// requete pour add un message + route avec a la fin envoi d un socket au receiver
-// requete pour recuperer tous les messages

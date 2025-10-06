@@ -5,10 +5,7 @@ import { UserPassword, User2FA, UserForChangeData } from '../types/user.types';
 import { DB_CONST } from '../shared/config/constants.config'; // en rouge car dossier local 'shared' != dossier conteneur
 import { UserModel, SafeUserModel, SafeUserBasic } from '../shared/types/user.types'; // en rouge car dossier local 'shared' != dossier conteneur
 import { TournamentModel, GameModel } from '../shared/types/game.types'; // en rouge car dossier local 'shared' != dossier conteneur
-// import { Tournament } from '../shared/models/tournament.model';
-// import { Game } from '../shared/models/game.model';
 import { snakeToCamel, snakeArrayToCamel } from '../helpers/types.helpers';
-// import { ChatModel } from '../shared/types/friend.types';
 
 // retourne les infos de tous les users
 export async function getAllUsers() {
@@ -316,28 +313,3 @@ export async function getUserTournaments(userId: number): Promise<TournamentMode
 
 	return snakeArrayToCamel(tournaments) as TournamentModel[];
 }
-		
-// export async function getUserChat(userId1: number, userId2: number) {
-// 	const db = await getDb();
-// 	const chat = await db.all(`
-// 		SELECT c.message, c.time_send, c.id, c.sender_id, c.receiver_id
-// 		FROM Chat c
-// 		WHERE (sender_id = ? AND receiver_id = ?)
-// 		OR (sender_id = ? AND receiver_id = ?)
-// 		ORDER BY c.time_send ASC
-// 		`,
-// 		[userId1, userId2, userId2, userId1]
-// 	);
-
-// 	const other_user = await db.get(`
-// 		SELECT u.id, u.username, u.avatar
-// 		FROM User u
-// 		WHERE u.id != ?
-// 		`,
-// 		[userId2]
-// 	);
-// 	return {
-// 		messages : snakeArrayToCamel(chat) as ChatModel[],
-// 		otherUser: snakeToCamel(other_user) as SafeUserBasic 
-// 	};
-// }
