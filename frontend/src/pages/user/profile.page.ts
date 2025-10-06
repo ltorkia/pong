@@ -23,6 +23,7 @@ export class ProfilePage extends BasePage {
 	private userId?: number;
 	private user: User | null = null;
 	private userFriends: Friend[] = [];
+	private allUserGames: Game[] = [];
 	private userGames: Game[] = [];
 	private userTournaments: Tournament[] = [];
 	private isFriend: boolean = false;
@@ -86,7 +87,11 @@ export class ProfilePage extends BasePage {
 				this.isFriend = true;
 			}
 			
-			this.userGames = await dataApi.getUserGames(this.userId!);
+			this.allUserGames = await dataApi.getUserGames(this.userId!);
+			this.userGames = this.allUserGames.filter(game => 
+					game.tournament === 0 
+					&& (game.status === 'finished' || game.status === 'cancelled')) 
+				|| [];
 			this.userTournaments = await dataApi.getUserTournaments(this.userId!);
 		} catch (error) {
 			console.error('Erreur lors du chargement du profil:', error);
@@ -292,6 +297,14 @@ export class ProfilePage extends BasePage {
 		result.textContent = isWin ? 'VICTORY' : 'GAME OVER';
 		result.setAttribute('data-ts', isWin ? 'profile.winResult' : 'profile.lossResult');
 
+		// Statut
+		if (match.status === 'cancelled') {
+			const status = clone.querySelector('.match-status') as HTMLElement;
+			status.classList.add('cancelled');
+			status.textContent = 'FORFEIT';
+			status.setAttribute('data-ts', 'profile.cancelled');
+		}
+
 		// Date formatée
 		date.textContent = formatDate(match.end);
 
@@ -303,7 +316,6 @@ export class ProfilePage extends BasePage {
 		score.classList.add(isWin ? 'win' : 'loss');
 
 		const player1 = this.user!
-		// console.log('match.otherPlayers', match.otherPlayers);
 		const player2: User | null = match.otherPlayers[0] ?? null;
 
 		// Joueur 1
@@ -330,11 +342,12 @@ export class ProfilePage extends BasePage {
 	 * Rendu de l'historique des tournois
 	 */
 	private async renderUserTournaments(): Promise<void> {
-
+		const section = document.getElementById('tournament-history-section') as HTMLDivElement;
+		const template = document.getElementById('tournament-card-template') as HTMLTemplateElement;
 		const countElement = document.getElementById('tournament-count') as HTMLElement;
 		const historyBox = document.querySelector("#historyBox");
 
-		if (!countElement || !historyBox) 
+		if (!section || !template || !countElement || !historyBox) 
 			return;
 
 		countElement.textContent = `(${this.userTournaments.length})`;
@@ -344,11 +357,24 @@ export class ProfilePage extends BasePage {
 
 			if (!this.userTournaments || !this.userTournaments.length)
 				return;
-			// for (const tournament of this.userTournaments) {
-			// 	const clone = template.content.cloneNode(true) as DocumentFragment;
-			// 	await this.renderMatchCard(clone, tournament);
-			// 	section.appendChild(clone);
-			// }
+			for (const tournament of this.userTournaments) {
+				const clone = template.content.cloneNode(true) as DocumentFragment;
+				await this.renderTournamentCard(clone, tournament);
+				section.appendChild(clone);
+			}
+		}
+	}
+
+
+	/**
+	 * Rendu de l'historique des tournois
+	 */
+	private async renderTournamentCard(clone: DocumentFragment, tournament: any): Promise<void> {
+		const template = document.getElementById('match-card-template') as HTMLTemplateElement;
+		for (const match of tournament.games) {
+			const matchClone = template.content.cloneNode(true) as DocumentFragment;
+			await this.renderMatchCard(matchClone, match);
+			clone.appendChild(matchClone);
 		}
 	}
 

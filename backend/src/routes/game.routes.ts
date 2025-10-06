@@ -89,13 +89,7 @@ export async function gameRoutes(app: FastifyInstance) {
         else if (reqType === "clean_request") {
             if (matchMakingReq.data.inviteToClean)
                 await cleanInvite(app, playerID, matchMakingReq.data.inviterID, matchMakingReq.data.invitedID);
-            await cleanGame(app, playerID, matchMakingReq.data.gameID);
-            const players = allPlayers.get(playerID);
-            if (players && matchMakingReq.data.tabID) {
-                const player = players.find(p => p.tabID === matchMakingReq.data.tabID);
-                if (player)
-                    player.matchMaking = false;
-            }
+            await stopGame(app, playerID, matchMakingReq.data.gameID);
             reply.code(200).send({ message: "Game cleaned up" });
         }
         else if (reqType === "tournament_clean_request") {
@@ -141,34 +135,48 @@ export function initPlayer(allPlayers: Map<number, Player[]>, playerID: number, 
     return player;
 }
 
-async function cleanGame(app: FastifyInstance, playerID: number, gameID?: number) {
-    if (!gameID)
-        return;
-    const { allGames } = app.lobby;
-    const game = allGames.find((game: Game) => game.gameID == gameID);
-    if (game) {
-        if (!game.isOver) {
+async function stopGame(app: FastifyInstance, playerID: number, gameID?: number) {
+    if (!gameID) return;
+    try {
+        const { allGames } = app.lobby;
+        const game = allGames.find((g: Game) => g.gameID == gameID);
+        if (game && !game.isOver) {
             game.cancellerID = playerID;
             await game.endGame();
         }
-        const idx = allGames.indexOf(game);
-        if (idx !== -1)
-            allGames.splice(idx, 1);
+    } catch (err) {
+        console.warn("Error stopping game:", err);
     }
 }
 
-export function cleanPlayers(allPlayers: Map<number, Player[]>, game: Game) {
-    for (const player of game.players) {
-        if (game.isOver) { 
-            if (game.tournamentID && player.inTournament) {
+export function cleanGame(lobby: [Map< number, Player[]>, Game[]], game: Game) {
+	if (!game.isOver)
+        return;
+    const players = game.players;
+    for (const player of players) {
+	    if (game.tournamentID && player.inTournament) {
                 player.matchMaking = false;
                 player.webSocket = undefined;
-            } else {
-                resetPlayer(player);
-                if (allPlayers.has(player.ID) && player.isTemp)
-                    allPlayers.delete(player.ID);
-            }
+        } else {
+            resetPlayer(player);
+
+            // Retirer le joueur de la partie
+            game.playersCount -= 1;
+            // const idx = game.players.indexOf(player);
+            // if (idx !== -1)
+            //     game.players.splice(idx, 1);
+
+            // Retirer le joueur du lobby
+            if (lobby[0].has(player.ID) && player.isTemp)
+                lobby[0].delete(player.ID);
         }
+    }
+
+	// Si plus aucun joueur, on supprime la partie du lobby
+	if (game.playersCount === 0) {
+		const idx = lobby[1].indexOf(game);
+		if (idx !== -1)
+			lobby[1].splice(idx, 1);
     }
 }
 
@@ -244,8 +252,8 @@ const startGame = async (app: FastifyInstance, players: Player[], mode: string, 
     const { allGames, allPlayers } = app.lobby;
     const isOnlineGame = mode === "multi" ? true : false;
     const gameID = await addGame(undefined, isOnlineGame);
-    await addGamePlayers(gameID, players[0].ID, players[1].ID);
-    const newGame = gameCreated || new Game(gameID, 2, players, allPlayers);
+    await addGamePlayers(gameID, [players[0].ID, players[1].ID]);
+    const newGame = gameCreated || new Game(gameID, 2, players, [allPlayers, allGames]);
     allGames.push(newGame);
 
     let WSToSend = { type: "start_game", gameID: gameID, mode: mode } as StartGame;

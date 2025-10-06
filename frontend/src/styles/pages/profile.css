@@ -180,8 +180,8 @@
 		mobile:flex-row mobile:items-center mobile:justify-between;
 	}
 
-	.match-result {
-		@apply inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-bold;
+	.match-result, .cancelled {
+		@apply inline-flex items-center gap-2 px-3 py-1 rounded-lg text-sm font-bold;
 	}
 
 	.match-result.win {
@@ -190,6 +190,10 @@
 
 	.match-result.loss {
 		@apply bg-[#53212194] text-[#d5d5d5] border border-[#634d4d4d];
+	}
+
+	.match-status.cancelled {
+		@apply bg-[#14151491] text-[#e4ffee] border border-[#3441394d];
 	}
 
 	.match-date {

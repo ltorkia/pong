@@ -17,15 +17,16 @@ export async function addGame(tournament?: number, isOnlineGame?: boolean): Prom
     return gameId;
 }
 
-export async function addGamePlayers(gameId: number, userId1: number, userId2: number) {
+export async function addGamePlayers(gameId: number, userIds: number[], aliases?: string[]) {
     const db = await getDb();
+    const playerAliases = aliases ?? ["", ""];
     await db.run(
-        `INSERT INTO User_Game (game_id, user_id) VALUES (?, ?)`,
-        [gameId, userId1]
+        `INSERT INTO User_Game (game_id, user_id, alias) VALUES (?, ?, ?)`,
+        [gameId, userIds[0], playerAliases[0]]
     );
     await db.run(
-        `INSERT INTO User_Game (game_id, user_id) VALUES (?, ?)`,
-        [gameId, userId2]
+        `INSERT INTO User_Game (game_id, user_id, alias) VALUES (?, ?, ?)`,
+        [gameId, userIds[1], playerAliases[1]]
     );
 }
 
@@ -45,21 +46,22 @@ export async function updateStartGame(gameId: number) {
     );
 }
 
-export async function resultGame(gameId: number, winnerId: number, score: number[]){
+export async function resultGame(gameId: number, winnerId: number, score: number[], isCancelled: boolean = false) {
     const db = await getDb();
 
     const minScore = Math.min(score[0], score[1]);
     console.log("resultGame,  score = ", score, " minScore = ", minScore);
+    const status = isCancelled ? "cancelled" : "finished";
 
     await db.run(`
         UPDATE Game
-        SET status = 'finished',
+        SET status = ?,
             end = CURRENT_TIMESTAMP,
             winner_id = ?,
             looser_result = ?
         WHERE id = ?;
     `, 
-    [winnerId, minScore, gameId]);
+    [status, winnerId, minScore, gameId]);
 
     await db.run(`
         UPDATE User_Game
@@ -140,14 +142,6 @@ export async function getResultGame(gameId: number)
         [gameId]);
    return snakeToCamel(game) as GameModel;
 }
-// resultgame dans fichier user -> a deplacer ici ? 
-
-// const db = new Database("pong.db"); // ou le chemin vers ta DB
-
-// interface User {
-    //     id: number;
-    //     alias: string;
-    // }
 
 // Crée un tournoi et retourne son id
 export async function createTournament(nParticipants: number, nRound: number): Promise<number | undefined> {

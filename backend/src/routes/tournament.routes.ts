@@ -17,7 +17,9 @@ export async function tournamentRoutes(app: FastifyInstance) {
 
         const tournament = allTournamentsLocal.find((t: TournamentLocal) => t.ID == tournamentID);
         if (tournament) {
-            return reply.code(200).send(tournament);
+            const tournamentCopy = { ...tournament } as any;
+            delete tournamentCopy.lobby;
+            return reply.code(200).send(tournamentCopy);
         } else {
             return reply.code(404).send({ error: "Tournament not found" });
         }
@@ -50,7 +52,7 @@ export async function tournamentRoutes(app: FastifyInstance) {
     app.post("/new_tournament_local", async (request: FastifyRequest, reply: FastifyReply) => {
         const tournamentParse = TournamentLocalSchema.safeParse(request.body);
 
-        const { allPlayers } = app.lobby;
+        const { allPlayers, allGames } = app.lobby;
 
         // Validation de donnees
         if (!tournamentParse.success) {
@@ -77,7 +79,7 @@ export async function tournamentRoutes(app: FastifyInstance) {
             tournamentParse.data.maxPlayers,
             tournamentParse.data.masterPlayerID,
             tournamentID,
-            allPlayers
+            [allPlayers, allGames]
         );
         app.lobby.allTournamentsLocal.push(newTournament);
         await newTournament.startTournament();

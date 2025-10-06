@@ -177,7 +177,8 @@
 		"winRateLabel": "Win Rate",
 		"gamePlayedLabel": "Game played",
 		"winResult": "VICTORY",
-		"lossResult": "GAME OVER"
+		"lossResult": "GAME OVER",
+		"cancelled": "FORFEIT"
 	},
 
 	"game": {

@@ -61,6 +61,7 @@ export interface SafeUserModel {
 	isDesactivated: number;
 	notifications?: AppNotification[];
 	friendStatus?: FriendStatus | null;
+	alias?: string;
 }
 
 /**
@@ -96,6 +97,7 @@ export interface SafeUserBasic {
 	id:number;
 	username: string;
 	avatar: string;
+	alias?: string;
 }
 
 /**

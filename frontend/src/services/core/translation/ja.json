@@ -176,7 +176,8 @@
 		"winRateLabel": "勝率",
 		"gamePlayedLabel": "プレイしたゲーム数",
 		"winResult": "勝利",
-		"lossResult": "敗北"
+		"lossResult": "敗北",
+		"cancelled": "キャンセル"
 	},
 
 	"game": {

@@ -71,6 +71,7 @@ CREATE TABLE IF NOT EXISTS Game (
 CREATE TABLE IF NOT EXISTS User_Game (
 	game_id INTEGER NOT NULL,												-- necessaire pour ensuite faire les foreign key et relier les tables entre elles
 	user_id INTEGER NOT NULL,
+	alias TEXT,
 	status_win INTEGER DEFAULT NULL CHECK (status_win IN (0, 1)),			-- 0 = perdu 1 = gagne (pas de NULL car on ne peut pas avoir un jeu sans resultat)
 	duration INTEGER DEFAULT 0,												-- Duree du jeu (pas en DATETIME car DATETIME = une date + heure))
 	FOREIGN KEY (game_id) REFERENCES Game(id) ON DELETE CASCADE,			-- ON DELETE CASCADE: si le jeu est supprime on supprime le resultat du jeu

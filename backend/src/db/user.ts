@@ -234,7 +234,7 @@ export async function getUserGames(userId: number): Promise<GameModel[]> {
 			[game.id, userId]
 		);
 
-		game.other_players = players as SafeUserBasic[];
+		game.other_players = snakeArrayToCamel(players) as SafeUserBasic[];
 	}
 
 	return snakeArrayToCamel(games) as GameModel[];
@@ -255,7 +255,6 @@ export async function getUsersGame(gameId: number, userId: number): Promise<Safe
             `,
             [gameId, userId]
         );
-		// console.log("nooooooooooh", player);
         return snakeToCamel(player) as SafeUserBasic;
     } catch (error) {
         console.error(`Error fetching user for game ${gameId}:`, error);
@@ -291,24 +290,24 @@ export async function getUserTournaments(userId: number): Promise<TournamentMode
 	// Pour chaque tournoi, récupérer les parties et les autres joueurs
 	for (const tournament of tournaments) {
 		const games = await db.all(`
-			SELECT g.id AS game_id, g.begin, g.end, g.status, g.winner_id
+			SELECT g.id AS game_id, g.begin, g.end, g.status, g.winner_id, ug.alias
 			FROM Game g
+			JOIN User_Game ug ON g.id = ug.game_id
 			WHERE g.tournament = ?
 		`, [tournament.tournament_id]);
 
 		for (const game of games) {
 			const players = await db.all(`
-				SELECT u.id, u.username, u.avatar
+				SELECT u.id, u.username, u.avatar, ug.alias
 				FROM User_Game ug
 				JOIN User u ON u.id = ug.user_id
 				WHERE ug.game_id = ?
 				AND u.id != ?
 			`, [game.game_id, userId]);
-
-			game.other_players = players as SafeUserBasic[];
+			game.other_players = snakeArrayToCamel(players) as SafeUserBasic[];
 		}
-
 		tournament.games = snakeArrayToCamel(games) as GameModel[];
+		console.log('---------tournament.games', tournament.games);
 	}
 
 	return snakeArrayToCamel(tournaments) as TournamentModel[];
