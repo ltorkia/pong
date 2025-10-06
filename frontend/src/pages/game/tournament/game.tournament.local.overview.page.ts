@@ -241,7 +241,7 @@ export class GameTournamentLocalOverview extends BasePage {
 
     protected async mount(): Promise<void> {
         await this.displayTournament();
-        document.getElementById("app")!.classList.add("rotate-[-90deg]", "origin-center", "w-[100vh]", "h-[100vw]", "flex-row");
+        // document.getElementById("app")!.classList.add("rotate-[-90deg]", "origin-center", "w-[100vh]", "h-[100vw]", "flex-row");
     }
 
     protected attachListeners(): void {
