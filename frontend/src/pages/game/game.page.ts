@@ -203,18 +203,14 @@ export abstract class GamePage extends BasePage {
                 const aliases: string[] = [];
 
                 this.gameID = data.gameID;
-                this.adversary = data.otherPlayer;
+                // this.adversary = data.otherPlayer;
+
                 aliases[0] = this.currentUser.username;
-                if (!this.adversary)
-                    aliases[1] = translateService.t("game.player2");
-                else
-                    aliases[1] = this.adversary.username;
-                if (data.mode == "tournament" && this.players)
-                {
-                    if (this.players[0].alias)
-                        aliases[0] = this.players[0].alias;
-                    if (this.players[1].alias)
-                        aliases[1] = this.players[1].alias;
+                aliases[1] = this.adversary?.username || translateService.t("game.player2");
+
+                if (data.mode === "tournament" && this.players) {
+                aliases[0] = this.players[0]?.alias || aliases[0];
+                aliases[1] = this.players[1]?.alias || aliases[1];
                 }
                 this.game = new MultiPlayerGame(2, this.currentUser!.id, this.gameID, aliases);
                 break;
