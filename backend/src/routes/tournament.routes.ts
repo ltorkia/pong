@@ -63,9 +63,10 @@ export async function tournamentRoutes(app: FastifyInstance) {
         for (const player of tournamentParse.data.players) {
             let newPlayer: Player;
             if (player.ID === -1)
-                newPlayer = initPlayer(allPlayers, generateUniqueID(Array.from(allPlayers.keys())), tournamentParse.data.tabID, player.alias);
+                newPlayer = initPlayer(allPlayers, generateUniqueID(Array.from(allPlayers.keys())), tournamentParse.data.tabID, true, player.alias);
             else
-                newPlayer = initPlayer(allPlayers, player.ID, tournamentParse.data.tabID, player.alias);
+                newPlayer = initPlayer(allPlayers, player.ID, tournamentParse.data.tabID, false, player.alias);
+            newPlayer.inTournament = true;
             players.push(newPlayer);
         }
         const tournamentID = await createTournament(tournamentParse.data.maxPlayers, tournamentParse.data.maxPlayers / 2);
@@ -76,6 +77,7 @@ export async function tournamentRoutes(app: FastifyInstance) {
             tournamentParse.data.maxPlayers,
             tournamentParse.data.masterPlayerID,
             tournamentID,
+            allPlayers
         );
         app.lobby.allTournamentsLocal.push(newTournament);
         await newTournament.startTournament();
