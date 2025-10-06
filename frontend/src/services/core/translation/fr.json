@@ -227,6 +227,7 @@
         "winnerBegin": "Nous avons un gagnant !",
         "winnerEnd": "a gagné le tournoi! Bravo!",
         "errors": {
+            "invalidAlias": "Pseudo invalide.",
             "noAlias": "Veuillez entrer un alias.",
             "full": "Ce tournoi est complet.",
             "playerAlreadyThere": "Ce joueur existe déjà dans ce tournoi.",

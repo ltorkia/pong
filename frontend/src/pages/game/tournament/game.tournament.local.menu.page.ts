@@ -119,6 +119,8 @@ export class GameMenuTournamentLocal extends BasePage {
 
     // Check et ajout du player a this.players pour creation d'un futur nouveau tournoi
     private addPlayer(alias: string, user?: UserModel) {
+        if (alias.trim() == "")
+            return (this.printError("invalidAlias"));
         if (this.players.length >= this.playersNb)
             return (this.printError("full"), null);
         if (user && (this.players.find(player => player.username == user.username ||
