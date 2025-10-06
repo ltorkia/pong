@@ -82,7 +82,10 @@ export class GameTournamentList extends BasePage {
 
 	private printError(error: string): void {
 		const errorDiv = document.createElement("div");
-		const container = document.getElementById("alias-container");
+		
+        // let container, tournamentBox;
+        
+        const container = document.getElementById("alias-container");
 		const tournamentBox = document.querySelectorAll("#input-box")[1];
 		errorDiv.textContent = error;
 		errorDiv.classList.add(

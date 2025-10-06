@@ -185,7 +185,7 @@ export class GameTournamentLocalOverview extends BasePage {
             pastille.textContent = "?";
             if (tooltipH2Name)
                 tooltipH2Name.textContent = "?";
-            return playerPastille; 
+            return playerPastille;
         }
 
         const user = this.users.find((u: UserModel) => u.id == player.ID);
