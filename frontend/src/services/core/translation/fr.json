@@ -161,10 +161,10 @@
 	"dashboard": {
 		"pageTitle": "Statistiques",
 		"underTitle": "Stats de jeu et plus encore",
-		"totalGames": "Parties jouées: ",
-		"winRate": "Taux de victoire: ",
-		"averageScore": "Score moyen: ",
-		"streak": "Séries: "
+		"totalGames": "Parties jouées",
+		"winRate": "Taux de victoire",
+		"averageScore": "Score moyen",
+		"streak": "Séries"
 	},
 
 	"profile": {

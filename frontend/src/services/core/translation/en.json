@@ -161,10 +161,10 @@
 	"dashboard": {
 		"pageTitle": "Dashboard",
 		"underTitle": "Game statistics and more",
-		"totalGames": "Game played: ",
-		"winRate": "Win rate: ",
-		"averageScore": "Average score: ",
-		"streak": "Streaks: "
+		"totalGames": "Game played",
+		"winRate": "Win rate",
+		"averageScore": "Average score",
+		"streak": "Streaks"
 	},
 
 	"profile": {

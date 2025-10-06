@@ -572,16 +572,18 @@ export abstract class GamePage extends BasePage {
 
         const gameHasBeenCancelled = this.finalScore[0] !== 3 && this.finalScore[1] !== 3;
 
-        let gameInfos;
+        // ! Pas besoin de requête à la DB, le back envoie le score au bon format sur la socket
+        // let gameInfos;
 
-        const res = await fetch(`/api/game/${this.gameID}`);
-        if (res.ok) {
-            gameInfos = await res.json();
-            console.log(gameInfos);
-            if (this.currentUser!.id != gameInfos.playersID[0]) {
-                [this.finalScore[0], this.finalScore[1]] = [this.finalScore[1], this.finalScore[0]];
-            }
-        }
+        // const res = await fetch(`/api/game/${this.gameID}`);
+        // if (res.ok) {
+        //     gameInfos = await res.json();
+        //     console.log(gameInfos);
+        //     if (this.currentUser!.id != gameInfos.playersID[0]) {
+        //         [this.finalScore[0], this.finalScore[1]] = [this.finalScore[1], this.finalScore[0]];
+        //     }
+        // }
+        // score.textContent = `${this.finalScore[0]} - ${this.finalScore[1]}`;
         score.textContent = `${this.finalScore[0]} - ${this.finalScore[1]}`;
 
         if (this.adversary && !gameHasBeenCancelled) {

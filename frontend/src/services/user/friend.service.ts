@@ -1,7 +1,7 @@
 import DOMPurify from "dompurify";
 import { Friend } from '../../shared/models/friend.model';
 import { friendApi } from '../../api/index.api';
-import { currentService, translateService, dataService, notifService, eventService, pageService } from '../../services/index.service';
+import { currentService, translateService, dataService, notifService, eventService } from '../../services/index.service';
 import { UserStatus } from '../../shared/types/user.types';
 import { DB_CONST, EVENTS } from '../../shared/config/constants.config';
 

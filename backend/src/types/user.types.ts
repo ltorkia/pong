@@ -54,6 +54,7 @@ export class UserWS {
     id: number;
 	tabID: string;
     WS: WebSocket;
+	isAlive: boolean = false;
 
     constructor(id: number, tabID: string, WS: WebSocket) {
         this.id = id;

@@ -14,6 +14,7 @@ import { sendToSocket } from '../helpers/notifications.helpers';
 import { NotificationInput } from '../types/zod/app.zod';
 import { TournamentLocal } from '../types/game.types';
 import { getUserWS } from '../helpers/query.helpers';
+import { attachWSHandler } from '../routes/websocket.routes';
 
 export async function gameRoutes(app: FastifyInstance) {
     app.post('/playgame', async (request: FastifyRequest, reply: FastifyReply) => {
@@ -113,7 +114,6 @@ export async function gameRoutes(app: FastifyInstance) {
     });
 }
 
-
 const cleanGameOver = async (app: FastifyInstance, playerID: number) => {
     const { allGames } = app.lobby;
     // const {}
@@ -135,7 +135,7 @@ const cleanGameOver = async (app: FastifyInstance, playerID: number) => {
         }
     }
 }
-        
+
 async function findAvailableOpponent(newPlayer: Player, allPlayers: Map<number, Player[]>): Promise<Player | null> {
     for (const playerArray of allPlayers.values()) {
         for (const candidate of playerArray) {
@@ -186,7 +186,6 @@ export function resetPlayer(player: Player) {
     player.pos = { x: 0, y: 0 };
     player.width = 0.02;
     player.height = 0.40;
-    player.alias = undefined;
 }
 
 async function cleanGame(app: FastifyInstance, playerID: number, gameID?: number) {
@@ -293,15 +292,7 @@ const startGame = async (app: FastifyInstance, players: Player[], mode: string, 
             } catch (err) {
                 console.warn("Could not send start_game to user:", err);
             }
-            user.WS.onmessage = (event: MessageEvent) => {
-                const msg: any = JSON.parse(event.data);
-                if (msg.type === "movement") {
-                    if (mode === "multi") 
-                        newGame.registerInput(msg.playerID, msg.key, msg.status);
-                    if (mode === "local") 
-                        newGame.registerInputLocal(msg.playerID, msg.key, msg.status);
-                }
-            };
+            attachWSHandler(user, player, newGame, mode);
             player.webSocket = user.WS;
         }
     }
@@ -344,26 +335,21 @@ const startTournamentGame = async (app: FastifyInstance, gameID: number, hostID:
         console.log("Host tabID missing. bye");
         return;
     }
-    const hostWS = getUserWS(app, hostID, game.players[0].tabID)?.WS;
-    if (!hostWS) {
+    const host = getUserWS(app, hostID, game.players[0].tabID);
+    if (!host || !host.WS) {
         console.log("Host not found. bye");
         return;
     }
 
-    const startGameWs: StartGame = { type: "start_game", gameID: gameID, mode: "tournament" };
+    const startGameWS: StartGame = { type: "start_game", gameID: gameID, mode: "tournament" };
     try {
-        hostWS.send(JSON.stringify(startGameWs));
+        host.WS.send(JSON.stringify(startGameWS));
     } catch (err) {
         console.error("Erreur WebSocket.send() :", err);
     }
-
-    hostWS.onmessage = (event: MessageEvent) => {
-        const msg: any = JSON.parse(event.data);
-        if (msg.type === "movement")
-            game.registerInputLocalTournament(msg.key, msg.status);
-    };
-    game.players[0].webSocket = hostWS;
-    await decountWS(hostWS, gameID);
+    attachWSHandler(host, game.players[0], game, "tournament");
+    game.players[0].webSocket = host.WS;
+    await decountWS(host.WS, gameID);
 
     // Vérifier si le jeu ou le tournoi a été supprimé par une clean_request pendant le décompte
     const gameIndex = allGames.findIndex((g: Game) => g.gameID === gameID);
