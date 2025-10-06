@@ -241,6 +241,7 @@ export class GameTournamentLocalOverview extends BasePage {
 
     protected async mount(): Promise<void> {
         await this.displayTournament();
+        // document.getElementById("app")!.classList.add("rotate-[-90deg]", "origin-center", "w-[100vh]", "h-[100vw]", "flex-row");
     }
 
     protected attachListeners(): void {
@@ -260,7 +261,7 @@ export class GameTournamentLocalOverview extends BasePage {
 
         for (const match of allMatches) {
             const tooltip = match.querySelector("#tooltip");
-            match.addEventListener("mouseenter", (event) => {
+            match.addEventListener("mouseenter", () => {
                 tooltip!.classList.remove("opacity-0", "pointer-events-none");
                 tooltip!.classList.add("opacity-100");
                 tooltip?.querySelector("h2");
