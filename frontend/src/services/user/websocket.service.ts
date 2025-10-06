@@ -143,12 +143,12 @@ export class WebSocketService {
 		const handleMessage = async (event: MessageEvent) => {
 			try {
 				const receivedData = JSON.parse(event.data);
-				if (!receivedData) 
+				if (!receivedData)
 					return;
 
 				// Ping (répondre avec un pong pour dire au serveur que la socket est vivante)
 				if (receivedData.type === 'ping-check') {
-					console.log('Ping recu');
+					// console.log('Ping recu');
 					ws.send(JSON.stringify({ type: 'pong-check' }));
 					return;
 				}
