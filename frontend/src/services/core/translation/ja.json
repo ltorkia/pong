@@ -226,6 +226,7 @@
         "winnerBegin": "ついに勝者が決まった!",
         "winnerEnd": "トーナメントで優勝しました！おめでとう！",
         "errors": {
+            "invalidAlias": "無効な別名です。",
             "noAlias": "別名を入力してください。",
             "full": "このトーナメントは満員です。",
             "playerAlreadyThere": "この大会にはこの選手がすでに参加しています。",
