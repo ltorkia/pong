@@ -31,6 +31,8 @@ export class UsersPage extends BasePage {
 	private userRowConfig: ComponentConfig | null = null;
 	private paginationConfig: ComponentConfig | null = null;
 
+	private searchBarComponent: SearchBarComponent | null = null;
+
 	private searchBar!: HTMLElement;
 	private userList!: HTMLElement;
 	private paginationContainer!: HTMLElement;
@@ -90,6 +92,16 @@ export class UsersPage extends BasePage {
 		await this.injectPagination();
 	}
 
+	/**
+	 * Retire les event listeners associés au composant de la barre de recherche.
+	 * 
+	 * Cette méthode retiree l'event listener associé à l'événement 'search' du composant
+	 * de la barre de recherche. Elle est appelée lorsque la page est démontée.
+	 */
+	protected removeListeners(): void {
+		this.searchBarComponent!.container.removeEventListener('search', this.handleSearchEvent);
+	}
+
 	// ===========================================
 	// METHODES PRIVATES
 	// ===========================================
@@ -103,20 +115,36 @@ export class UsersPage extends BasePage {
 	 * @returns {Promise<void>} Une promesse qui se résout lorsque le composant est injecté.
 	 */
 	private async injectSearchBar(): Promise<void> {
-		const searchBarComponent = new SearchBarComponent(this.config, this.searchBarConfig!, this.searchBar);
-		await searchBarComponent.render();
+		this.searchBarComponent = new SearchBarComponent(this.config, this.searchBarConfig!, this.searchBar);
+		await this.searchBarComponent.render();
 		console.log(`[${this.constructor.name}] Composant '${this.searchBarConfig!.name}' généré`);
 		
-		searchBarComponent.container.addEventListener('search', async (event: Event) => {
-		const params = (event as CustomEvent).detail;
-			await this.injectUserList(params);
-			if (!params.searchTerm && !params.status && !params.friendsOnly)
-				this.paginationInfos!.incCurrUser = true;
-			else
-				this.paginationInfos!.incCurrUser = false;
-			await this.injectPagination();
-		});
+		this.searchBarComponent.container.addEventListener('search', this.handleSearchEvent);
 	}
+
+	/**
+	 * Gère l'événement de recherche déclenché par l'utilisateur.
+	 *
+	 * Cette méthode extrait les paramètres de recherche de l'événement, met à jour la liste des utilisateurs en fonction,
+	 * et ajuste l'état de la pagination en conséquence. Si aucun paramètre de recherche n'est fourni, 
+	 * l'utilisateur courant est inclus dans la pagination, sinon, il est exclu.
+	 * Enfin, la pagination est mise à jour.
+	 *
+	 * @param event - L'objet événement contenant les paramètres de recherche dans sa propriété `detail`.
+	 * @returns Une promesse qui se résout lorsque la liste des utilisateurs et la pagination ont été mises à jour.
+	 */
+	private handleSearchEvent = async (event: Event): Promise<void> => {
+		const params = (event as CustomEvent).detail;
+		await this.injectUserList(params);
+
+		if (!params.searchTerm && !params.status && !params.friendsOnly) {
+			this.paginationInfos!.incCurrUser = true;
+		} else {
+			this.paginationInfos!.incCurrUser = false;
+		}
+
+		await this.injectPagination();
+	};
 
 	/**
 	 * Injecte les lignes du tableau de la liste des utilisateurs (user-row) dans le DOM.
