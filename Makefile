@@ -125,8 +125,8 @@ build: prepare-docker sync-env # Construit les images Docker
 
 up: # Lance les services
 	@echo "\n$(YELLOW)• Lancement des services...$(NC)"
-# 	docker compose -f $(COMPOSE_FILE) up -d --remove-orphans
-	sudo docker compose -f $(COMPOSE_FILE) up -d --remove-orphans
+	docker compose -f $(COMPOSE_FILE) up -d --remove-orphans
+# 	sudo docker compose -f $(COMPOSE_FILE) up -d --remove-orphans
 	@echo "\n$(GREEN)=================================$(NC)"
 	@echo "$(GREEN)// APP: $(APP_URL) //$(NC)"
 	@echo "$(GREEN)=================================$(NC)"

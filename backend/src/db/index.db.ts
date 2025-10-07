@@ -1,10 +1,12 @@
-import { open } from 'sqlite';
+import { open, Database } from 'sqlite';
 import sqlite3 from 'sqlite3';
 import path from 'path';
 import { readFile } from 'fs/promises';
 
 const dbPath = path.resolve('./data/database.db');
 const sqlPath = path.resolve('./sql/init.sql');
+
+let dbInstance: Database | null = null;
 
 // initialise la db
 export async function initDb() {
@@ -20,6 +22,7 @@ export async function initDb() {
 
 // recupere la db
 export async function getDb() {
-	const db = await open({ filename: dbPath, driver: sqlite3.Database });
-	return db;
+	 if (!dbInstance) 
+		dbInstance = await open({ filename: dbPath, driver: sqlite3.Database });
+	return dbInstance;
 }

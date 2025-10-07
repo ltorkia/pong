@@ -181,14 +181,21 @@ export abstract class GamePage extends BasePage {
     private getAliases(data: any): string[] {
         const aliases: string[] = [];
 
-        if (data.player1Alias || data.player2Alias) { // case tournament
-            return [data.player1Alias, data.player2Alias];
-        }
         aliases[0] = this.currentUser!.username;
-        if (!data.otherPlayer)
-            aliases[1] = translateService.t("game.player2"); // case local
-        else
-            aliases[1] = data.otherPlayer.username; // case remote
+        aliases[1] = this.adversary?.username || translateService.t("game.player2");
+
+        if (data.mode === "tournament" && this.players) {
+            aliases[0] = this.players[0]?.alias || aliases[0];
+            aliases[1] = this.players[1]?.alias || aliases[1];
+        }
+        // if (data.player1Alias || data.player2Alias) { // case tournament
+        //     return [data.player1Alias, data.player2Alias];
+        // }
+        // aliases[0] = this.currentUser!.username;
+        // if (!data.otherPlayer)
+        //     aliases[1] = translateService.t("game.player2"); // case local
+        // else
+        //     aliases[1] = data.otherPlayer.username; // case remote
         return aliases;
     }
 
