@@ -15,6 +15,7 @@ import { NotificationInput } from '../types/zod/app.zod';
 import { TournamentLocal } from '../types/game.types';
 import { getUserWS } from '../helpers/query.helpers';
 import { attachWSHandler } from '../routes/websocket.routes';
+import { Lobby } from '../types/game.types'
 
 export async function gameRoutes(app: FastifyInstance) {
     app.post('/playgame', async (request: FastifyRequest, reply: FastifyReply) => {
@@ -90,10 +91,11 @@ export async function gameRoutes(app: FastifyInstance) {
             if (matchMakingReq.data.inviteToClean)
                 await cleanInvite(app, playerID, matchMakingReq.data.inviterID, matchMakingReq.data.invitedID);
             await stopGame(app, playerID, matchMakingReq.data.gameID);
+            console.log("LOBBY APRES", app.lobby);
             reply.code(200).send({ message: "Game cleaned up" });
         }
         else if (reqType === "tournament_clean_request") {
-            await cleanTournament(app.lobby.allTournamentsLocal, matchMakingReq.data.tournamentID!);
+            await cleanTournament(app.lobby, matchMakingReq.data.tournamentID!);
             console.log("cleaned tournament");
             console.log(app.lobby.allTournamentsLocal);
             reply.code(200).send({ message: "Tournament clean done" });
@@ -143,13 +145,14 @@ async function stopGame(app: FastifyInstance, playerID: number, gameID?: number)
         if (game && !game.isOver) {
             game.cancellerID = playerID;
             await game.endGame();
+            cleanGame(game, [app.lobby.allPlayers, allGames]);
         }
     } catch (err) {
         console.warn("Error stopping game:", err);
     }
 }
 
-export function cleanGame(lobby: [Map< number, Player[]>, Game[]], game: Game) {
+export function cleanGame(game: Game, lobby?: [Map< number, Player[]>, Game[]]) {
 	if (!game.isOver)
         return;
     const players = game.players;
@@ -160,13 +163,13 @@ export function cleanGame(lobby: [Map< number, Player[]>, Game[]], game: Game) {
         } else {
             resetPlayer(player);
             game.playersCount -= 1;
-            if (lobby[0].has(player.ID) && player.isTemp)
+            if (lobby && lobby[0].has(player.ID) && player.isTemp)
                 lobby[0].delete(player.ID);
         }
     }
 
 	// Si plus aucun joueur, on supprime la partie du lobby
-	if (game.playersCount === 0) {
+	if (lobby && game.playersCount <= 0) {
 		const idx = lobby[1].indexOf(game);
 		if (idx !== -1)
 			lobby[1].splice(idx, 1);
@@ -199,12 +202,17 @@ async function cleanInvite(app: FastifyInstance, playerID: number, inviterID?: n
     sendToSocket(app, [ notif ], notif.from);
 }
 
-async function cleanTournament(tournamentsLocal: TournamentLocal[], tournamentID: number) {
-    const tournament = tournamentsLocal.find((t: TournamentLocal) => t.ID === tournamentID);
+async function cleanTournament(lobby: Lobby, tournamentID: number) {
+    const tournament = lobby.allTournamentsLocal.find((t: TournamentLocal) => t.ID === tournamentID);
     if (tournament) {
-        const idx = tournamentsLocal.indexOf(tournament);
+        const games = [tournament.stageOne[0], tournament.stageOne[1], tournament.stageTwo];
+        games.forEach((game) => {
+            game.players.forEach((p: Player) => { p.inTournament = false; });
+            cleanGame(game, [lobby.allPlayers, lobby.allGames]);
+        });
+        const idx = lobby.allTournamentsLocal.indexOf(tournament);
         if (idx !== -1)
-            tournamentsLocal.splice(idx, 1);
+            lobby.allTournamentsLocal.splice(idx, 1);
     }
 }
 
@@ -242,11 +250,11 @@ async function decountWS(ws: WebSocket, gameID: number) {
 }
 
 const startGame = async (app: FastifyInstance, players: Player[], mode: string, gameCreated?: Game) => {
-    const { allGames, allPlayers } = app.lobby;
+    const { allGames } = app.lobby;
     const isOnlineGame = mode === "multi" ? true : false;
     const gameID = await addGame(undefined, isOnlineGame);
     await addGamePlayers(gameID, [players[0].ID, players[1].ID]);
-    const newGame = gameCreated || new Game(gameID, 2, players, [allPlayers, allGames]);
+    const newGame = gameCreated || new Game(gameID, 2, players);
     allGames.push(newGame);
 
     let WSToSend = { type: "start_game", gameID: gameID, mode: mode } as StartGame;

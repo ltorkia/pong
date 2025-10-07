@@ -75,8 +75,7 @@ export async function tournamentRoutes(app: FastifyInstance) {
             players,
             tournamentParse.data.maxPlayers,
             tournamentParse.data.masterPlayerID,
-            tournamentID,
-            [allPlayers, allGames]
+            tournamentID
         );
         app.lobby.allTournamentsLocal.push(newTournament);
         await newTournament.startTournament();

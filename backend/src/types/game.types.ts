@@ -191,27 +191,14 @@ export class Game extends EventEmitter {
     public gameID: number = 0;
     public tournamentID?: number;
 
-    private lobby: [Map< number, Player[]>, Game[]];
-
-    constructor(gameID: number, playersCount: number, players: Player[], lobby: [Map< number, Player[]>, Game[]], tournamentID?: number) {
+    constructor(gameID: number, playersCount: number, players: Player[],tournamentID?: number) {
         super();
         this.gameID = gameID;
         this.playersCount = playersCount;
         this.players = players;
         this.tournamentID = tournamentID;
-        this.lobby = lobby;
     }
 
-    public toJSON() {
-        return {
-            gameID: this.gameID,
-            players: this.players,
-            score: this.score,
-            isOver: this.isOver,
-            gameStarted: this.gameStarted,
-            tournamentID: this.tournamentID
-        };
-    }
     // private async gameLoop(): Promise<void> {
     //     const fps = 1000 / 60;
     //     let then = Date.now();
@@ -349,7 +336,8 @@ export class Game extends EventEmitter {
                 }));
             }
         }
-        cleanGame(this.lobby, this);
+        // cleanGame(this.lobby, this);
+        cleanGame(this);
         const winnerID = this.getWinnerID();
         const isCancelled = this.cancellerID ? true : false;
         await resultGame(this.gameID, winnerID, this.score, isCancelled);
@@ -419,27 +407,13 @@ export class TournamentLocal {
     public ID: number;
     public stageOne: Game[] = [];
     public stageTwo!: Game;
-    private lobby: [Map< number, Player[]>, Game[]];
 
-    constructor(players: Player[], maxPlayers: number, masterPlayerID: number, ID: number, lobby: [Map< number, Player[]>, Game[]]) {
+    constructor(players: Player[], maxPlayers: number, masterPlayerID: number, ID: number) {
         this.players = players;
         this.maxPlayers = maxPlayers;
         this.winner = undefined;
         this.masterPlayerID = masterPlayerID;
         this.ID = ID ?? 0;
-        this.lobby = lobby;
-    }
-
-    public toJSON() {
-        return {
-            ID: this.ID,
-            maxPlayers: this.maxPlayers,
-            masterPlayerID: this.masterPlayerID,
-            winner: this.winner,
-            players: this.players,
-            stageOne: this.stageOne,
-            stageTwo: this.stageTwo
-        };
     }
 
     public getWinner(game: Game): Player {
@@ -457,14 +431,14 @@ export class TournamentLocal {
 
         const gameID1 = await addGame(this.ID);
         await addGamePlayers(gameID1, [this.players[0].ID, this.players[1].ID], [this.players[0].alias ?? "", this.players[1].alias ?? ""]);
-        this.stageOne[0] = new Game(gameID1, 2, [this.players[0], this.players[1]], this.lobby, this.ID);
+        this.stageOne[0] = new Game(gameID1, 2, [this.players[0], this.players[1]], this.ID);
 
         const gameID2 = await addGame(this.ID);
         await addGamePlayers(gameID2, [this.players[2].ID, this.players[3].ID], [this.players[2].alias ?? "", this.players[3].alias ?? ""]);
-        this.stageOne[1] = new Game(gameID2, 2, [this.players[2], this.players[3]], this.lobby, this.ID);
+        this.stageOne[1] = new Game(gameID2, 2, [this.players[2], this.players[3]], this.ID);
 
         const stageTwoID = await addGame(this.ID)
-        this.stageTwo = new Game(stageTwoID, 2, [], this.lobby, this.ID); // creee maintenant mais les joueurs sont ajoutes plus tard
+        this.stageTwo = new Game(stageTwoID, 2, [], this.ID); // creee maintenant mais les joueurs sont ajoutes plus tard
 
         // Listeners pour etre notifie quand une game est finie
         for (const game of this.stageOne)
@@ -481,11 +455,6 @@ export class TournamentLocal {
             if (looser != undefined)
                 await incrementUserTournamentStats(this.ID, looser.id, false);
             await updateTournamentStatus(this.ID, "finished");
-            const games = [this.stageOne[0], this.stageOne[1], this.stageTwo];
-            games.forEach((game) => {
-                this.players.forEach((p: Player) => { p.inTournament = false; });
-                cleanGame(this.lobby, game);
-            });
             return;
         }
         for (const game of this.stageOne) {
