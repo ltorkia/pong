@@ -35,6 +35,7 @@ export class ProfilePage extends BasePage {
 	private username!: HTMLElement;
 	private displayedFriends: Friend[] = [];
 
+	private tournamentHeaderListeners: Map<HTMLElement, EventListener> = new Map();
     private challengeHandler?: (event: Event) => Promise<void>;
 
 	/**
@@ -282,61 +283,113 @@ export class ProfilePage extends BasePage {
 	/**
 	 * Rendu d'une carte de match
 	 */
-	private async renderMatchCard(clone: DocumentFragment, match: any): Promise<void> {
+	private async renderMatchCard(clone: DocumentFragment, match: any, round?: number): Promise<void> {
+		const matchStatus = clone.querySelector('.match-status') as HTMLElement;
 		const result = clone.querySelector('.match-result') as HTMLElement;
 		const date = clone.querySelector('.match-date') as HTMLElement;
 		const score = clone.querySelector('.match-score') as HTMLElement;
+		const matchWinner = clone.querySelector('.match-winner') as HTMLElement;
 		const avatars = clone.querySelectorAll('.player-avatar');
 		const names = clone.querySelectorAll('.player-name');
 
-		// Déterminer qui a gagné
-		const isWin = match.winnerId === this.user!.id;
-		
-		// Résultat
-		result.classList.add(isWin ? 'win' : 'loss');
-		result.textContent = isWin ? 'VICTORY' : 'GAME OVER';
-		result.setAttribute('data-ts', isWin ? 'profile.winResult' : 'profile.lossResult');
+		const isTournament = round !== undefined;
+		const user = this.user!;
 
-		// Statut
+		// Joueurs
+		let player1 = user;
+		let player2 = match.otherPlayers[0] ?? null;
+		if (isTournament) {
+			player1 = match.otherPlayers[0] ?? null;
+			player2 = match.otherPlayers[1] ?? null;
+		}
+
+		let isPlayerInMatch = true;
+		if (isTournament)
+			isPlayerInMatch = match.otherPlayers.some((p: any) => p.id === user.id);
+		const isWin = match.winnerId === user.id;
+
+		if (isTournament) {
+			const roundBox = clone.querySelector('.match-round') as HTMLElement;
+			const span = document.createElement('span');
+			const spanNumber = document.createElement('span');
+			span.setAttribute('data-ts', 'profile.roundLabel');
+			spanNumber.textContent = ` ${round + 1}`;
+			roundBox.append(span, spanNumber);
+			roundBox.classList.remove('hidden');
+		}
+
+		// Résultat principal
+		if (isPlayerInMatch && !isTournament) {
+			result.classList.add(isWin ? 'win' : 'loss');
+			result.textContent = isWin ? 'VICTORY' : 'GAME OVER';
+			result.setAttribute('data-ts', isWin ? 'profile.winResult' : 'profile.lossResult');
+		}
+
 		if (match.status === 'cancelled') {
-			const status = clone.querySelector('.match-status') as HTMLElement;
-			status.classList.add('cancelled');
-			status.textContent = 'FORFEIT';
-			status.setAttribute('data-ts', 'profile.cancelled');
+			matchStatus.classList.add('cancelled');
+			matchStatus.setAttribute('data-ts', 'profile.cancelled');
+		}
+
+		if (match.status === 'finished' || match.status === 'cancelled') {
+			const i = document.createElement('i');
+			i.classList.add('fa-solid', 'fa-medal');
+			const span = document.createElement('span');
+			span.textContent = this.getWinnerName([match]);
+			matchWinner.append(i, span);
 		}
 
 		// Date formatée
-		date.textContent = formatDate(match.end);
+		if (!isTournament)
+			date.textContent = formatDate(match.end);
 
-		const playerOneScore = isWin ? '3' : match.looserResult;
-		const playerTwoScore = isWin ? match.looserResult : '3';
+		// Scores
+		let playerOneScore: string;
+		let playerTwoScore: string;
 
-		// Score
+		if (isPlayerInMatch) {
+			playerOneScore = isWin ? '3' : match.looserResult;
+			playerTwoScore = isWin ? match.looserResult : '3';
+		} else {
+			playerOneScore = match.winnerId ? '3' : '-';
+			playerTwoScore = match.looserResult ?? '-';
+		}
+
 		score.textContent = `${playerOneScore} : ${playerTwoScore}`;
-		score.classList.add(isWin ? 'win' : 'loss');
+		if (isPlayerInMatch)
+			score.classList.add(isWin ? 'win' : 'loss');
 
-		const player1 = this.user!
-		const player2: User | null = match.otherPlayers[0] ?? null;
+		// Si le joueur courant fait partie du match, il doit être affiché en premier
+		if (isPlayerInMatch && player2 && player2.id === user.id) {
+			[player1, player2] = [player2, player1];
+		}
 
-		// Joueur 1
+		const playerOneUsername = isTournament ? (player1.alias || player1.username) : player1.username;
+		const playerTwoUsername = isTournament ? (player2.alias || player2.username) : (player2.username || 'Player');
+
+		// Avatar + nom - joueur 1
 		const img1 = document.createElement('img');
 		img1.src = await dataService.getUserAvatarURL(player1);
-		img1.alt = `${player1.username}'s avatar`;
+		img1.alt = `${playerOneUsername}'s avatar`;
 		img1.className = 'w-full h-full object-cover';
-		(avatars[0] as HTMLElement).appendChild(img1);
-		(names[0] as HTMLElement).textContent = player1.username;
+		avatars[0].appendChild(img1);
+		(names[0] as HTMLElement).textContent = playerOneUsername;
 
-		// Joueur 2
+		// Avatar + nom - joueur 2
 		const img2 = document.createElement('img');
-		const playerTwoUsername = player2 ? player2.username : 'Player';
 		img2.src = await dataService.getUserAvatarURL(player2);
 		img2.alt = `${playerTwoUsername}'s avatar`;
 		img2.className = 'w-full h-full object-cover';
-		(avatars[1] as HTMLElement).appendChild(img2);
+		avatars[1].appendChild(img2);
 		(names[1] as HTMLElement).textContent = playerTwoUsername;
-		if (!player2)
+		if (playerTwoUsername === 'Player')
 			(names[1] as HTMLElement).setAttribute('data-ts', 'game.player');
+
+		if (player1.id === user.id)
+			(names[0] as HTMLElement).classList.add('font-bold', 'text-blue-800');
+		if (player2.id === user.id)
+			(names[1] as HTMLElement).classList.add('font-bold', 'text-blue-800');
 	}
+
 
 	/**
 	 * Rendu de l'historique des tournois
@@ -351,12 +404,12 @@ export class ProfilePage extends BasePage {
 			return;
 
 		countElement.textContent = `(${this.userTournaments.length})`;
-
 		if (this.userTournaments.length > 0 || this.userGames.length > 0) {
 			historyBox.classList.remove('hidden');
 
 			if (!this.userTournaments || !this.userTournaments.length)
 				return;
+
 			for (const tournament of this.userTournaments) {
 				const clone = template.content.cloneNode(true) as DocumentFragment;
 				await this.renderTournamentCard(clone, tournament);
@@ -365,17 +418,95 @@ export class ProfilePage extends BasePage {
 		}
 	}
 
-
 	/**
 	 * Rendu de l'historique des tournois
 	 */
 	private async renderTournamentCard(clone: DocumentFragment, tournament: any): Promise<void> {
-		const template = document.getElementById('match-card-template') as HTMLTemplateElement;
-		for (const match of tournament.games) {
-			const matchClone = template.content.cloneNode(true) as DocumentFragment;
-			await this.renderMatchCard(matchClone, match);
-			clone.appendChild(matchClone);
+		const header = clone.querySelector('.tournament-header') as HTMLElement;
+		if (!header) 
+			return;
+
+		const result = clone.querySelector('.tournament-result') as HTMLElement;
+		const date = clone.querySelector('.tournament-date') as HTMLElement;
+		const matchWinner = clone.querySelector('.match-winner') as HTMLElement;
+
+		if (tournament.wins == 2) {
+			result.classList.add('win');
+			result.setAttribute('data-ts', 'profile.winResult');
+		} else if (tournament.tournamentStatus !== 'finished') {
+			result.classList.add('in-progress');
+			result.setAttribute('data-ts', 'profile.inProgress');
+		} else {
+			result.classList.add('loss');
+			result.setAttribute('data-ts', 'profile.lossResult');
 		}
+
+		if (tournament.tournamentStatus === 'finished') {
+			const i = document.createElement('i');
+			i.classList.add('fa-solid', 'fa-trophy');
+			const span = document.createElement('span');
+			span.textContent = this.getWinnerName(tournament.games);
+			matchWinner.append(i, span);
+		}
+
+		date.textContent = formatDate(tournament.endedAt);
+
+		// Ajouter le bouton "+"
+		if (tournament.games.length !== 0) {
+			const div = document.createElement('div');
+			div.classList.add('see-more');
+			const i = document.createElement('i');
+			i.classList.add('fa-solid', 'fa-plus');
+			div.appendChild(i);
+			header.appendChild(div);
+		}
+
+		// Créer le container des matchs
+		const container = document.createElement('div');
+		container.classList.add('tournament-match-container', 'hidden'); // caché par défaut
+		container.id = `tournament-${tournament.tournamentId}`;
+
+		const template = document.getElementById('match-card-template') as HTMLTemplateElement;
+		for (let i = 0; i < tournament.games.length; i++) {
+			const matchClone = template.content.cloneNode(true) as DocumentFragment;
+			await this.renderMatchCard(matchClone, tournament.games[i], i);
+			container.appendChild(matchClone);
+		}
+
+		// Ajouter le container juste après le header
+		header.insertAdjacentElement('afterend', container);
+	}
+
+	private getWinnerName(games: any): string {
+		if (!games?.length) 
+			return '';
+
+		if (games.length === 1)
+			return (this.user!.id === games[0].winnerId) ? ' ' + this.user!.username : ' ' + (games[0].otherPlayers[0].username || 'Player');
+
+		// Trouver le match avec la date la plus récente
+		const lastGame = games.reduce((latest: Game | null, current: Game) => {
+			if (!latest) 
+				return current;
+			if (!latest.end)
+				return current;
+			if (!current.end)
+				return latest;
+			return new Date(current.end) > new Date(latest.end) ? current : latest;
+		}, null as Game | null);
+
+		if (!lastGame || !lastGame.winnerId) 
+			return '';
+
+		// Trouver le joueur gagnant dans la liste des joueurs des games
+		for (const game of games) {
+			for (const player of game.otherPlayers || []) {
+				if (player.userId === lastGame.winnerId || player.id === lastGame.winnerId) {
+					return ' ' + player.alias || player.username || `Player #${player.userId}`;
+				}
+			}
+		}
+		return ` Player #${lastGame.winnerId}`;
 	}
 
 	// ===========================================
@@ -393,6 +524,7 @@ export class ProfilePage extends BasePage {
         this.challengeButton.addEventListener('click', this.challengeHandler);
 		if (!this.isCurrentUserProfile)
 			friendService.attachButtonListeners(this.buttonsLine, this.userId!, this.user!.username);
+		this.setupTournamentToggles();
 	}
 
 	protected removeListeners(): void {
@@ -403,6 +535,10 @@ export class ProfilePage extends BasePage {
 			this.challengeButton.removeEventListener('click', this.challengeHandler);
 		if (!this.isCurrentUserProfile)
 			friendService.removeButtonListeners(this.buttonsLine);
+		this.tournamentHeaderListeners.forEach((handler, header) => {
+			header.removeEventListener('click', handler);
+		});
+		this.tournamentHeaderListeners.clear();
 	}
 	
 	// ===========================================
@@ -420,4 +556,39 @@ export class ProfilePage extends BasePage {
 		if (friendId)
 			await router.navigate(`/user/${friendId}`);
 	};
+	
+private tournamentSeeMoreClickHandler = (event: Event) => {
+		const button = (event.target as HTMLElement).closest('.see-more') as HTMLElement;
+		if (!button) 
+			return;
+
+		// Cherche le container juste après le header
+		const header = button.closest('.tournament-header') as HTMLElement;
+		if (!header) 
+			return;
+
+		const container = header.nextElementSibling as HTMLElement;
+		if (!container) 
+			return;
+
+		if (container.classList.contains('animate-fade-in-up')) {
+			container.classList.remove('animate-fade-in-up');
+			container.classList.add('animate-fade-out-down');
+			container.classList.add('hidden');
+		} else {
+			container.classList.remove('hidden');
+			container.classList.remove('animate-fade-out-down');
+			container.classList.add('animate-fade-in-up');
+		}
+		// container.classList.toggle('hidden');
+	};
+	
+	private setupTournamentToggles(): void {
+		const headers = this.container.querySelectorAll<HTMLElement>('.tournament-card .tournament-header .see-more');
+		headers.forEach(header => {
+			// On garde une référence pour pouvoir le remove
+			header.addEventListener('click', this.tournamentSeeMoreClickHandler);
+			this.tournamentHeaderListeners.set(header, this.tournamentSeeMoreClickHandler);
+		});
+	}
 }

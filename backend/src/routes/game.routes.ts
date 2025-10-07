@@ -159,14 +159,7 @@ export function cleanGame(lobby: [Map< number, Player[]>, Game[]], game: Game) {
                 player.webSocket = undefined;
         } else {
             resetPlayer(player);
-
-            // Retirer le joueur de la partie
             game.playersCount -= 1;
-            // const idx = game.players.indexOf(player);
-            // if (idx !== -1)
-            //     game.players.splice(idx, 1);
-
-            // Retirer le joueur du lobby
             if (lobby[0].has(player.ID) && player.isTemp)
                 lobby[0].delete(player.ID);
         }

@@ -164,7 +164,7 @@
 		text-overflow: ellipsis;
 	}
 
-	.match-history {
+	.match-history, .tournament-history {
 		@apply space-y-4
 		tablet:w-full;
 	}
@@ -175,28 +175,32 @@
 		tablet:p-4 tablet:w-full;
 	}
 
-	.match-header {
+	.match-header, .tournament-header {
 		@apply flex flex-col gap-3 mb-2 p-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg
 		mobile:flex-row mobile:items-center mobile:justify-between;
 	}
 
-	.match-result, .cancelled {
+	.match-result, .cancelled, .match-round, .tournament-result {
 		@apply inline-flex items-center gap-2 px-3 py-1 rounded-lg text-sm font-bold;
 	}
 
-	.match-result.win {
+	.match-result.win, .tournament-result.win {
 		@apply bg-[#0c4b2491] text-green-300 border border-green-500/30;
 	}
 
-	.match-result.loss {
+	.match-result.loss, .tournament-result.loss {
 		@apply bg-[#53212194] text-[#d5d5d5] border border-[#634d4d4d];
 	}
 
-	.match-status.cancelled {
+	.match-status.cancelled, .match-round, .tournament-result.in-progress {
 		@apply bg-[#14151491] text-[#e4ffee] border border-[#3441394d];
 	}
 
-	.match-date {
+	.match-round {
+		@apply bg-[#39435d91];
+	}
+
+	.match-date, .tournament-date {
 		@apply text-gray-600 text-sm font-classic
 		mobile:text-right
 		tablet:text-base;
@@ -215,17 +219,30 @@
 		tablet:w-20 tablet:h-20;
 	}
 
+	.player-name, .match-winner {
+		@apply text-black/90 font-medium text-sm italic
+		tablet:text-xl;
+	}
+
 	.player-name {
-		@apply max-w-24 text-black/90 font-medium text-sm italic
-		tablet:text-xl tablet:max-w-28;
+		@apply max-w-24
+		tablet:max-w-28;
 		
 		overflow: hidden;
 		white-space: nowrap;
 		text-overflow: ellipsis;
 	}
 
+	.match-winner {
+		@apply text-[#5b4930];
+	}
+
+	.match-map {
+		@apply flex flex-row gap-1 justify-center items-center;
+	}
+
 	.match-score {
-		@apply text-white text-lg font-bold tracking-widest font-classic flex justify-center items-center
+		@apply text-[#6f6f6f] text-lg font-bold tracking-widest font-classic flex justify-center items-center
 		bg-white/30 backdrop-blur-sm border border-white/20 rounded-lg px-3 py-1
 		tablet:text-2xl;
 	}
@@ -235,22 +252,8 @@
 	.match-score.loss {
 		@apply text-[#7d4343];
 	}
-
-	.vs-text {
-		@apply text-white/60 font-medium mx-2;
-	}
-
-	.empty-state {
-		@apply text-center py-12;
-    	text-shadow: 1px 1px 1px #2c2c2c;
-	}
-
-	.empty-icon {
-		@apply w-16 h-16 text-white/30 mx-auto mb-4
-		tablet:w-20 tablet:h-20;
-	}
-
-	.empty-text {
-		@apply text-white/60 text-lg;
+	
+	.see-more {
+		@apply cursor-pointer;
 	}
 }

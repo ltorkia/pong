@@ -202,6 +202,16 @@ export class Game extends EventEmitter {
         this.lobby = lobby;
     }
 
+    public toJSON() {
+        return {
+            gameID: this.gameID,
+            players: this.players,
+            score: this.score,
+            isOver: this.isOver,
+            gameStarted: this.gameStarted,
+            tournamentID: this.tournamentID
+        };
+    }
     // private async gameLoop(): Promise<void> {
     //     const fps = 1000 / 60;
     //     let then = Date.now();
@@ -420,6 +430,18 @@ export class TournamentLocal {
         this.lobby = lobby;
     }
 
+    public toJSON() {
+        return {
+            ID: this.ID,
+            maxPlayers: this.maxPlayers,
+            masterPlayerID: this.masterPlayerID,
+            winner: this.winner,
+            players: this.players,
+            stageOne: this.stageOne,
+            stageTwo: this.stageTwo
+        };
+    }
+
     public getWinner(game: Game): Player {
         const score = game.getScore();
         return score[0] > score[1] ? game.players[0] : game.players[1];
@@ -438,7 +460,7 @@ export class TournamentLocal {
         this.stageOne[0] = new Game(gameID1, 2, [this.players[0], this.players[1]], this.lobby, this.ID);
 
         const gameID2 = await addGame(this.ID);
-        await addGamePlayers(gameID2, [this.players[2].ID, this.players[3].ID], [this.players[0].alias ?? "", this.players[1].alias ?? ""]);
+        await addGamePlayers(gameID2, [this.players[2].ID, this.players[3].ID], [this.players[2].alias ?? "", this.players[3].alias ?? ""]);
         this.stageOne[1] = new Game(gameID2, 2, [this.players[2], this.players[3]], this.lobby, this.ID);
 
         const stageTwoID = await addGame(this.ID)
@@ -478,7 +500,11 @@ export class TournamentLocal {
             }
         }
         if (this.stageTwo.players.length == 2)
-            await addGamePlayers(this.stageTwo.gameID, [this.players[0].ID, this.players[1].ID], [this.players[0].alias ?? "", this.players[1].alias ?? ""]);
+        await addGamePlayers(
+            this.stageTwo.gameID,
+            this.stageTwo.players.map(p => p.ID),
+            this.stageTwo.players.map(p => p.alias ?? "")
+        );
         console.log("SCORE : ", this.stageOne[0].getScore());
     }
 }

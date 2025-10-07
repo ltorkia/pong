@@ -178,7 +178,9 @@
 		"gamePlayedLabel": "Game played",
 		"winResult": "VICTORY",
 		"lossResult": "GAME OVER",
-		"cancelled": "FORFEIT"
+		"cancelled": "FORFEIT",
+		"roundLabel": "ROUND",
+		"inProgress": "IN PROGRESS"
 	},
 
 	"game": {

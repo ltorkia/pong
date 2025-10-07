@@ -178,7 +178,9 @@
 		"gamePlayedLabel": "Parties jouées",
 		"winResult": "VICTOIRE",
 		"lossResult": "DÉFAITE",
-		"cancelled": "FORFAIT"
+		"cancelled": "FORFAIT",
+		"roundLabel": "ROUND",
+		"inProgress": "EN COURS"
 	},
 
 	"game": {

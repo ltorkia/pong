@@ -14,12 +14,9 @@ export async function tournamentRoutes(app: FastifyInstance) {
         const tournamentID = Number(id);
 
         const { allTournamentsLocal } = app.lobby;
-
         const tournament = allTournamentsLocal.find((t: TournamentLocal) => t.ID == tournamentID);
         if (tournament) {
-            const tournamentCopy = { ...tournament } as any;
-            delete tournamentCopy.lobby;
-            return reply.code(200).send(tournamentCopy);
+            return reply.code(200).send(tournament);
         } else {
             return reply.code(404).send({ error: "Tournament not found" });
         }

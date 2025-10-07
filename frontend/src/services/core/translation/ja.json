@@ -177,7 +177,9 @@
 		"gamePlayedLabel": "プレイしたゲーム数",
 		"winResult": "勝利",
 		"lossResult": "敗北",
-		"cancelled": "キャンセル"
+		"cancelled": "キャンセル",
+		"roundLabel": "ラウンド",
+		"inProgress": "進行中"
 	},
 
 	"game": {

@@ -13,6 +13,7 @@ export interface GameModel {
 	statusWin: 0 | 1 | null;        // 0 = perdu, 1 = gagné, null = pas encore joué
 	duration: number;               // durée du jeu en secondes ou unités définies
 	otherPlayers: SafeUserBasic[];  // les autres participants
+    result?: number;
 }
 
 export interface TournamentModel {

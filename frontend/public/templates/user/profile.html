@@ -119,7 +119,7 @@
 										<!-- Nombre de tournois -->
 									</span>
 								</h2>
-								<div id="tournament-history-section" class="match-history">
+								<div id="tournament-history-section" class="tournament-history">
 									<!-- Historique dynamique -->
 								</div>
 							</div>
@@ -159,7 +159,10 @@
 			<template id="match-card-template">
 				<div class="match-card">
 					<div class="match-header">
-						<div>
+						<div class="match-map">
+							<div class="match-round hidden">
+								<!-- Round -->
+							</div>
 							<div class="match-result">
 								<!-- Résultat -->
 							</div>
@@ -167,8 +170,13 @@
 								<!-- Statut -->
 							</div>
 						</div>
-						<div class="match-date">
-							<!-- Date -->
+						<div class="match-map">
+							<div class="match-winner">
+								<!-- winner -->
+							</div>
+							<div class="ml-4 match-date">
+								<!-- Date -->
+							</div>
 						</div>
 					</div>
 					<div class="match-players">
@@ -199,36 +207,18 @@
 				<div class="tournament-card">
 					<div class="tournament-header">
 						<div>
+							<div class="tournament-alias">
+								<!-- Résultat -->
+							</div>
 							<div class="tournament-result">
 								<!-- Résultat -->
 							</div>
-							<div class="tournament-status">
-								<!-- Statut -->
-							</div>
+						</div>
+						<div class="match-winner">
+							<!-- Joueurs -->
 						</div>
 						<div class="tournament-date">
 							<!-- Date -->
-						</div>
-					</div>
-					<div class="tournament-players">
-						<div class="player-info">
-							<div class="player-avatar">
-								<!-- Avatar joueur 1 -->
-							</div>
-							<span class="player-name">
-								<!-- Nom joueur 1 -->
-							</span>
-						</div>
-						<div class="tournament-score">
-							<!-- Score -->
-						</div>
-						<div class="player-info">
-							<span class="player-name">
-								<!-- Nom joueur 2 -->
-							</span>
-							<div class="player-avatar">
-								<!-- Avatar joueur 2 -->
-							</div>
 						</div>
 					</div>
 				</div>

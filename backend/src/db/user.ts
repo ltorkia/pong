@@ -6,6 +6,7 @@ import { DB_CONST } from '../shared/config/constants.config'; // en rouge car do
 import { UserModel, SafeUserModel, SafeUserBasic } from '../shared/types/user.types'; // en rouge car dossier local 'shared' != dossier conteneur
 import { TournamentModel, GameModel } from '../shared/types/game.types'; // en rouge car dossier local 'shared' != dossier conteneur
 import { snakeToCamel, snakeArrayToCamel } from '../helpers/types.helpers';
+import { Game } from '../shared/models/game.model';
 
 // retourne les infos de tous les users
 export async function getAllUsers() {
@@ -225,23 +226,23 @@ export async function getUserGames(userId: number): Promise<GameModel[]> {
 	for (const game of games) {
 		const players = await db.all(
 			`
-			SELECT u.id, u.username, u.avatar
+			SELECT u.id, u.username, u.avatar, ug.alias
 			FROM User_Game ug
-			JOIN User u ON u.id = ug.user_id
+			LEFT JOIN User u ON u.id = ug.user_id
 			WHERE ug.game_id = ?
-			AND u.id != ?
+			AND ug.user_id != ?
 			`,
 			[game.id, userId]
 		);
 
 		game.other_players = snakeArrayToCamel(players) as SafeUserBasic[];
 	}
+	// console.log('games', games);
 
 	return snakeArrayToCamel(games) as GameModel[];
 }
 
 export async function getUsersGame(gameId: number, userId: number): Promise<SafeUserBasic | undefined> {
-	// console.log("hellooooo");
     try {
         const db = await getDb();
         const player = await db.get(
@@ -265,8 +266,8 @@ export async function getUsersGame(gameId: number, userId: number): Promise<Safe
 export async function getUserTournaments(userId: number): Promise<TournamentModel[]> {
 	const db = await getDb();
 
-	// Récupérer les tournois où est inscrit l’utilisateur
-	const tournaments = await db.all(`
+	// Récupère les tournois du joueur
+	const tournaments: any[] = (await db.all(`
 		SELECT 
 			ut.tournament_id,
 			ut.alias,
@@ -285,30 +286,199 @@ export async function getUserTournaments(userId: number): Promise<TournamentMode
 		JOIN Tournament t ON t.id = ut.tournament_id
 		WHERE ut.user_id = ?
 		ORDER BY t.started_at DESC
-	`, [userId]);
+	`, [userId])) || [];
 
-	// Pour chaque tournoi, récupérer les parties et les autres joueurs
 	for (const tournament of tournaments) {
-		const games = await db.all(`
-			SELECT g.id AS game_id, g.begin, g.end, g.status, g.winner_id, ug.alias
+		// Récupère toutes les games du tournoi
+		const rawGames: any[] = (await db.all(`
+			SELECT 
+				g.id,
+				g.n_participants,
+				g.begin,
+				g.end,
+				g.tournament,
+				g.status,
+				g.looser_result,
+				g.winner_id,
+				g.type
 			FROM Game g
-			JOIN User_Game ug ON g.id = ug.game_id
-			WHERE g.tournament = ?
-		`, [tournament.tournament_id]);
+			WHERE g.tournament = ? AND status = 'finished'
+			ORDER BY g.begin DESC
+		`, [tournament.tournament_id])) || [];
+
+		// CamelCase avant d'ajouter otherPlayers
+		const games: GameModel[] = snakeArrayToCamel(rawGames) as GameModel[];
 
 		for (const game of games) {
-			const players = await db.all(`
-				SELECT u.id, u.username, u.avatar, ug.alias
-				FROM User_Game ug
-				JOIN User u ON u.id = ug.user_id
-				WHERE ug.game_id = ?
-				AND u.id != ?
-			`, [game.game_id, userId]);
-			game.other_players = snakeArrayToCamel(players) as SafeUserBasic[];
+			const players = (await db.all(`
+			SELECT 
+				ug.user_id,
+				u.username,
+				u.avatar,
+				ug.alias,
+				ug.status_win
+			FROM User_Game ug
+			LEFT JOIN User u ON u.id = ug.user_id
+			WHERE ug.game_id = ?
+			`, [game.id])) || [];
+
+			const cleanedPlayers: SafeUserBasic[] = players.map((p: any) => ({
+				id: p.user_id ?? 0,
+				username: p.username ?? p.alias ?? 'Player',
+				avatar: p.avatar ?? 'default.png',
+				alias: p.alias,
+				statusWin: p.status_win === 1 ? 1 : p.status_win === 0 ? 0 : null
+			}));
+
+			// Joueur courant
+			const userGame = cleanedPlayers.find(p => p.id === userId);
+
+			// Calcul de la durée
+			game.duration = game.end && game.begin
+				? Math.max(0, Math.floor((new Date(game.end).getTime() - new Date(game.begin).getTime()) / 1000))
+				: 0;
+
+			// Statut du joueur courant (0 = perdu, 1 = gagné, null = pas joué)
+			game.statusWin = userGame?.statusWin ?? null;
+
+			// Tri des joueurs pour affichage
+			let orderedPlayers: SafeUserBasic[];
+			if (userGame) {
+				// Joueur courant en premier, puis les autres
+				const others = cleanedPlayers.filter(p => p.id !== userId);
+				orderedPlayers = [userGame, ...others];
+			} else {
+				// Sinon, gagnant(s) en premier
+				orderedPlayers = [...cleanedPlayers].sort((a, b) =>
+					a.statusWin === 1 ? -1 : b.statusWin === 1 ? 1 : 0
+				);
+			}
+			game.otherPlayers = orderedPlayers;
 		}
-		tournament.games = snakeArrayToCamel(games) as GameModel[];
-		console.log('---------tournament.games', tournament.games);
+		tournament.games = games;
 	}
 
+	// Enfin, camelCase pour les tournois (sans toucher aux games déjà transformés)
 	return snakeArrayToCamel(tournaments) as TournamentModel[];
 }
+
+
+
+
+
+
+
+
+// export async function getUserTournaments(userId: number): Promise<TournamentModel[]> {
+// 	const db = await getDb();
+
+// 	const tournaments = await db.all(`
+// 		SELECT 
+// 			ut.tournament_id,
+// 			ut.alias,
+// 			ut.score,
+// 			ut.wins,
+// 			ut.losses,
+// 			ut.round_reached,
+// 			ut.status,
+// 			ut.registered_at,
+// 			t.n_participants,
+// 			t.n_round,
+// 			t.started_at,
+// 			t.ended_at,
+// 			t.tournament_status
+// 		FROM User_Tournament ut
+// 		JOIN Tournament t ON t.id = ut.tournament_id
+// 		WHERE ut.user_id = ?
+// 		ORDER BY t.started_at DESC
+// 	`, [userId]);
+
+// 	for (const tournament of tournaments) {
+// 		const games = await db.all(`
+// 			SELECT 
+// 				g.id,
+// 				g.n_participants,
+// 				g.begin,
+// 				g.end,
+// 				g.tournament,
+// 				g.status,
+// 				g.looser_result,
+// 				g.winner_id,
+// 				g.type
+// 			FROM Game g
+// 			WHERE g.tournament = ? AND g.status = 'finished'
+// 			ORDER BY g.begin DESC
+// 		`, [tournament.tournament_id]);
+
+// 		for (const game of games) {
+// 			const players = await db.all(`
+// 				SELECT u.id, u.username, u.avatar, ug.alias
+// 				FROM User_Game ug
+// 				LEFT JOIN User u ON u.id = ug.user_id
+// 				WHERE ug.game_id = ?
+// 			`, [game.id]);
+
+// 			// // On récupère les infos spécifiques au joueur courant, s'il a joué cette game
+// 			// const userGame = players.find((p: { id: number }) => p.id === userId);
+
+// 			// // On ordonne les joueurs :
+// 			// let orderedPlayers;
+// 			// if (userGame) {
+// 			// 	// Le joueur courant est premier
+// 			// 	const others = players.filter((p: { id: number }) => p.id !== userId);
+// 			// 	orderedPlayers = [userGame, ...others];
+// 			// } else {
+// 			// 	// Le joueur courant n’a pas joué cette partie → garder l’ordre naturel
+// 			// 	orderedPlayers = players;
+// 			// }
+
+// 			// On trie pour que le gagnant soit toujours en premier
+// 			players.sort((a, b) => {
+// 				if (a.status_win === 'win') return -1;
+// 				if (b.status_win === 'win') return 1;
+// 				return 0;
+// 			});
+// 			game.other_players = snakeArrayToCamel(orderedPlayers) as SafeUserBasic[];
+
+// 			// Ajout des infos du joueur courant si elles existent
+// 			if (userGame) {
+// 				const stats = await db.get(`
+// 					SELECT status_win, duration
+// 					FROM User_Game
+// 					WHERE user_id = ? AND game_id = ?
+// 				`, [userId, game.id]);
+
+// 				game.status_win = stats?.status_win ?? null;
+// 				game.duration = stats?.duration ?? 0;
+// 			} else {
+// 				game.status_win = null;
+// 				game.duration = 0;
+// 			}
+// 		}
+
+// 		// for (const game of games) {
+// 		// 	const players = await db.all(`
+// 		// 		SELECT u.id, u.username, u.avatar, ug.alias
+// 		// 		FROM User_Game ug
+// 		// 		LEFT JOIN User u ON u.id = ug.user_id
+// 		// 		WHERE ug.game_id = ?
+// 		// 	`, [game.id]);
+
+// 		// 	const userGame = await db.get(`
+// 		// 		SELECT status_win, duration
+// 		// 		FROM User_Game
+// 		// 		WHERE user_id = ? AND game_id = ?
+// 		// 	`, [userId, game.id]);
+
+// 		// 	game.other_players = snakeArrayToCamel(players) as SafeUserBasic[];
+// 		// 	console.log(game.other_players);
+// 		// 	game.status_win = userGame?.status_win ?? null;
+// 		// 	game.duration = userGame?.duration ?? 0;
+// 		// }
+
+// 		tournament.games = snakeArrayToCamel(games) as GameModel[];
+// 		console.log(tournament);
+// 	}
+
+// 	return snakeArrayToCamel(tournaments) as TournamentModel[];
+// }
