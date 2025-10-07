@@ -60,10 +60,10 @@ export class Player {
     public alias?: string;
 
     move() {
-        if (this.inputUp == true && this.pos.y + (this.height / 2) + 0.025 < 1) 
-            this.pos.y += 0.025;
-        else if (this.inputDown == true && this.pos.y - (this.height / 2) - 0.025 > -1)
-            this.pos.y -= 0.025;
+        if (this.inputUp == true && this.pos.y + (this.height / 2) + 0.03 < 1) 
+            this.pos.y += 0.03;
+        else if (this.inputDown == true && this.pos.y - (this.height / 2) - 0.03 > -1)
+            this.pos.y -= 0.03;
     }
 
     constructor(ID: number, alias?: string) {
@@ -105,10 +105,10 @@ export interface GameInterface {
 }
 
 export interface TournamentInterface {
-    name: string;
+    name?: string;
     alias?: string;
     maxPlayers: number;
-    ID: number;
+    ID?: number;
     masterPlayerID?: number;
     isStarted?: boolean;
     players?: Player[];

@@ -1,9 +1,9 @@
 import { EventEmitter } from "node:stream";
-import { resultGame, addGame, addGamePlayers, cancelledGame, registerUserTournament, createTournament, endTournament, updateTournamentStatus } from "../db/game";
+import { resultGame, addGame, addGamePlayers, registerUserTournament, updateTournamentStatus } from "../db/game";
 import { GameData, Player } from "../shared/types/game.types"
-import { JwtPayload } from "./user.types";
 import { getUsersGame } from "../db/user";
 import { incrementUserTournamentStats } from "../db/game";
+import { resetPlayer } from "../routes/game.routes";
 
 const DEG_TO_RAD = Math.PI / 180;
 
@@ -335,8 +335,11 @@ export class Game extends EventEmitter {
                     tournamentID: this.tournamentID || null
                 }));
             }
-            player.matchMaking = false;
-            player.webSocket = undefined;
+            if (this.tournamentID) {
+                player.matchMaking = false;
+                player.webSocket = undefined;
+            } else
+                resetPlayer(player);
         }
         
         const winnerID = this.getWinnerID();
@@ -359,7 +362,7 @@ export class Game extends EventEmitter {
         }
     };
 
-    public registerInputLocal(playerID: number, key: string, status: boolean): void { //peut etre ajouter le type de jeu jsp
+    public registerInputLocal(playerID: number, key: string, status: boolean): void {
         for (const player of this.players) {
             if (player.ID == playerID) {
                 if (key == "w" && player.inputUp != status) player.inputUp = status;
@@ -384,7 +387,7 @@ export class Game extends EventEmitter {
             this.players[1].inputDown = status;
     }
 
-    public registerInput(playerID: number, key: string, status: boolean): void { //peut etre ajouter le type de jeu jsp
+    public registerInput(playerID: number, key: string, status: boolean): void {
         for (const player of this.players) {
             if (player.ID == playerID) {
                 if (key == "w" && player.inputUp != status) player.inputUp = status;
@@ -444,6 +447,13 @@ export class TournamentLocal {
         for (const game of this.stageOne)
             game.on("finished", (g: Game) => this.update());
         this.stageTwo.on("finished", (g: Game) => this.update());
+
+        // Reset des players à la fin du tournoi
+        this.stageTwo.on("finished", () => {
+            for (const player of this.players) {
+                resetPlayer(player);
+            }
+        });
     }
 
     // si les games du premier tour sont finies, update pour determiner la derniere game

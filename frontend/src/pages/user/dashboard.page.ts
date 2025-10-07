@@ -115,8 +115,10 @@ export class DashboardPage extends BasePage {
 	 * Rendu du graphique de ligne
 	 */
 	private renderLineChart(): void {
-		const labels = this.userGames.map(game => game.begin);
-		const data = this.userGames.map(game => game.avgScore);
+		const labels = undefined;
+		const data = undefined;
+		// const labels = this.userGames.map(game => game.begin);
+		// const data = this.userGames.map(game => game.avgScore);
 
 		new Chart(this.lineCtx, {
 			type: 'line',

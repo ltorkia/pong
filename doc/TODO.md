@@ -25,6 +25,14 @@ FRONT
 - Jeu + responsive : bouton a faire pour le responsive du jeu en mode sans clavier
 - Jeu : esthetique pour dire qui a gagne, qui est a gauche ou a droite 
 
+<!-- URGENT
+! Alias à afficher dans la table de jeu lors d'une partie issue d'un tournoi
+! Passer l'overview du tournoi en responsive (passer l'arbre en colonne si mode mobile ou tablet)
+! Dashboard à finir ?
+! Rajouter status cencelled dans resultGame quand jeu annulé
+! Prendre en compte ce statut dans l'affichage des parties du profil
+ -->
+
 - check MAJ package.json :
  @tsparticles/engine         ^3.0.2  →   ^3.8.1
  @types/node              ^22.15.24  →  ^24.0.4

@@ -5,20 +5,8 @@ import { UserPassword, User2FA, UserForChangeData } from '../types/user.types';
 import { DB_CONST } from '../shared/config/constants.config'; // en rouge car dossier local 'shared' != dossier conteneur
 import { UserModel, SafeUserModel, SafeUserBasic } from '../shared/types/user.types'; // en rouge car dossier local 'shared' != dossier conteneur
 import { TournamentModel, GameModel } from '../shared/types/game.types'; // en rouge car dossier local 'shared' != dossier conteneur
-// import { Tournament } from '../shared/models/tournament.model';
-// import { Game } from '../shared/models/game.model';
 import { snakeToCamel, snakeArrayToCamel } from '../helpers/types.helpers';
-// import { ChatModel } from '../shared/types/friend.types';
 
-// retourne les infos de tous les users
-export async function getAllUsers() {
-	const db = await getDb();
-	const users = await db.all(`
-		SELECT id, username, avatar 
-		FROM User 
-	`);
-	return snakeArrayToCamel(users) as SafeUserBasic[];
-}
 
 export async function getAllUsersInfos() {
 	const db = await getDb();
@@ -84,18 +72,6 @@ export async function getUserStats(userId: number): Promise<SafeUserModel> {
 	`, [userId]);
 
 	return snakeToCamel(user) as SafeUserModel;
-}
-
-export async function getUserStatus(id: number) {
-	const db = await getDb();
-	const user = await db.get(`
-		SELECT status
-		FROM User 
-		WHERE id = ?
-		`,
-		[id]
-	);
-	return snakeToCamel(user) as SafeUserBasic;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -182,23 +158,11 @@ export async function insertUser(user: (RegisterInput | {username: string, email
 	}	
 }
 
-export async function getAvatar(id: number)
-{
-       const db = await getDb();
-       const avatar = await db.get(`
-               SELECT u.avatar
-               FROM User u
-               WHERE u.id == ?
-               `,
-       [id]);
-       return avatar;
-}
-		
 /* -------------------------------------------------------------------------- */
 /*               QUERIES USER EN LIEN AVEC D'AUTRES TABLES                    */
 /* -------------------------------------------------------------------------- */
 
-export async function getUserGames(userId: number): Promise<GameModel[]> {
+export async function getUserGames(userId: number): Promise<GameModel[] | undefined>{
 	const db = await getDb();
 
 	// On récupère les infos de Game ET User_Game
@@ -236,15 +200,12 @@ export async function getUserGames(userId: number): Promise<GameModel[]> {
 			`,
 			[game.id, userId]
 		);
-
 		game.other_players = players as SafeUserBasic[];
 	}
-
 	return snakeArrayToCamel(games) as GameModel[];
 }
 
 export async function getUsersGame(gameId: number, userId: number): Promise<SafeUserBasic | undefined> {
-	// console.log("hellooooo");
     try {
         const db = await getDb();
         const player = await db.get(
@@ -258,7 +219,6 @@ export async function getUsersGame(gameId: number, userId: number): Promise<Safe
             `,
             [gameId, userId]
         );
-		// console.log("nooooooooooh", player);
         return snakeToCamel(player) as SafeUserBasic;
     } catch (error) {
         console.error(`Error fetching user for game ${gameId}:`, error);
@@ -313,31 +273,5 @@ export async function getUserTournaments(userId: number): Promise<TournamentMode
 
 		tournament.games = snakeArrayToCamel(games) as GameModel[];
 	}
-
 	return snakeArrayToCamel(tournaments) as TournamentModel[];
 }
-		
-// export async function getUserChat(userId1: number, userId2: number) {
-// 	const db = await getDb();
-// 	const chat = await db.all(`
-// 		SELECT c.message, c.time_send, c.id, c.sender_id, c.receiver_id
-// 		FROM Chat c
-// 		WHERE (sender_id = ? AND receiver_id = ?)
-// 		OR (sender_id = ? AND receiver_id = ?)
-// 		ORDER BY c.time_send ASC
-// 		`,
-// 		[userId1, userId2, userId2, userId1]
-// 	);
-
-// 	const other_user = await db.get(`
-// 		SELECT u.id, u.username, u.avatar
-// 		FROM User u
-// 		WHERE u.id != ?
-// 		`,
-// 		[userId2]
-// 	);
-// 	return {
-// 		messages : snakeArrayToCamel(chat) as ChatModel[],
-// 		otherUser: snakeToCamel(other_user) as SafeUserBasic 
-// 	};
-// }

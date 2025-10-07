@@ -1,4 +1,3 @@
-import DOMPurify from "dompurify";
 import { BasePage } from '../base/base.page';
 import { RouteConfig } from '../../types/routes.types';
 import { translateService, currentService, notifService, webSocketService } from '../../services/index.service';
@@ -31,16 +30,16 @@ export abstract class GamePage extends BasePage {
     protected isSearchingGame: boolean = false;
     protected adversary: SafeUserModel | undefined;
 
-	protected gameID: number = 0;
-	protected tournamentID: number = 0;
-	protected requestType?: "local" | "matchmaking_request" | "tournament" | "invite" | "invite-accept" | "clean_request" | "tournament_clean_request";
+    protected gameID: number = 0;
+    protected tournamentID: number = 0;
+    protected requestType?: "local" | "matchmaking_request" | "tournament" | "invite" | "invite-accept" | "clean_request" | "tournament_clean_request";
 
-	public abstract challengedFriendID: number;
-	protected relation?: Friend | { errorMessage: string; };
-	protected isInvitationGame: boolean = false;
-	protected replayInvite: boolean = false;
-	public inviterTabID?: string;
-	protected inviteToClean: boolean = true;
+    public abstract challengedFriendID: number;
+    protected relation?: Friend | { errorMessage: string; };
+    protected isInvitationGame: boolean = false;
+    protected replayInvite: boolean = false;
+    public inviterTabID?: string;
+    protected inviteToClean: boolean = true;
 
     constructor(config: RouteConfig) {
         super(config);
@@ -151,24 +150,24 @@ export abstract class GamePage extends BasePage {
                 await this.sendMatchMakingRequest("local");
                 break;
 
-			case "invite":
-			case "invite-accept":
-				this.relation = await friendApi.getRelation(this.currentUser!.id, this.challengedFriendID);
-				if (!this.relation || 'errorMessage' in this.relation) {
-					console.error(
-						this.relation && "errorMessage" in this.relation 
-							? this.relation.errorMessage 
-							: "Problème lors de la récupération de la relation."
-					);
-					await router.redirect(DEFAULT_ROUTE);
-					return;
-				}
-				this.replayInvite = true;
-				if (!this.relation.challengedBy)
-					await notifService.handleChallengeClick(event);
-				else if (this.relation.challengedBy === this.relation.id)
-					await notifService.handlePlayClick(event);
-				break;
+            case "invite":
+            case "invite-accept":
+                this.relation = await friendApi.getRelation(this.currentUser!.id, this.challengedFriendID);
+                if (!this.relation || 'errorMessage' in this.relation) {
+                    console.error(
+                        this.relation && "errorMessage" in this.relation
+                            ? this.relation.errorMessage
+                            : "Problème lors de la récupération de la relation."
+                    );
+                    await router.redirect(DEFAULT_ROUTE);
+                    return;
+                }
+                this.replayInvite = true;
+                if (!this.relation.challengedBy)
+                    await notifService.handleChallengeClick(event);
+                else if (this.relation.challengedBy === this.relation.id)
+                    await notifService.handlePlayClick(event);
+                break;
 
             case "matchmaking_request":
                 this.isSearchingGame = true;
@@ -176,6 +175,28 @@ export abstract class GamePage extends BasePage {
                 this.appendWaitText();
                 break;
         }
+    }
+
+    // Recupere les bon noms pour les afficher ingame 
+    private getAliases(data: any): string[] {
+        const aliases: string[] = [];
+
+        aliases[0] = this.currentUser.username;
+        aliases[1] = this.adversary?.username || translateService.t("game.player2");
+
+        if (data.mode === "tournament" && this.players) {
+            aliases[0] = this.players[0]?.alias || aliases[0];
+            aliases[1] = this.players[1]?.alias || aliases[1];
+        }
+        // if (data.player1Alias || data.player2Alias) { // case tournament
+        //     return [data.player1Alias, data.player2Alias];
+        // }
+        // aliases[0] = this.currentUser!.username;
+        // if (!data.otherPlayer)
+        //     aliases[1] = translateService.t("game.player2"); // case local
+        // else
+        //     aliases[1] = data.otherPlayer.username; // case remote
+        return aliases;
     }
 
     // ===========================================
@@ -197,21 +218,13 @@ export abstract class GamePage extends BasePage {
      * @returns La promesse qui se résout lorsque le gestionnaire d'événement a fini de traiter les informations.
      */
     public async handleGameMessage(data: any): Promise<void> {
+        let game;
         switch (data.type) {
 
             case "start_game":
-                const aliases: string[] = [];
-
+                this.adversary = data.otherPlayer;
                 this.gameID = data.gameID;
-                // this.adversary = data.otherPlayer;
-
-                aliases[0] = this.currentUser.username;
-                aliases[1] = this.adversary?.username || translateService.t("game.player2");
-
-                if (data.mode === "tournament" && this.players) {
-                aliases[0] = this.players[0]?.alias || aliases[0];
-                aliases[1] = this.players[1]?.alias || aliases[1];
-                }
+                const aliases = this.getAliases(data);
                 this.game = new MultiPlayerGame(2, this.currentUser!.id, this.gameID, aliases);
                 break;
 
@@ -293,33 +306,33 @@ export abstract class GamePage extends BasePage {
 		return true;
 	}
 
-	/**
-	 * Gère les requêtes d'invitation.
-	 * Si l'utilisateur courant est l'expéditeur initial, envoie une requête de type "invite".
-	 * Sinon, si l'utilisateur courant est l'expéditeur ciblé, envoie une requête de type "invite-accept".
-	 * Si l'utilisateur n'est pas dans le contexte d'une invitation, lance une erreur.
-	 * @returns {Promise<boolean>} La promesse qui se résout lorsque les vérifications sont terminées.
-	 */
-	protected async handleInviteRequest(): Promise<boolean> {
-		if (!this.relation) {
-			console.error("Relation not found");
-			return false;
-		}
-		if (!this.relation || ("errorMessage" in this.relation))
-			return false;
-		if (this.currentUser!.id === this.relation.challengedBy) {
-			if (this.replayInvite)
-				await this.sendMatchMakingRequest("invite", this.challengedFriendID, this.currentUser!.id);
-			this.appendWaitText();
-		} else if (this.currentUser!.id === this.relation.isChallenged) {
-			await this.sendMatchMakingRequest("invite-accept", this.currentUser!.id, this.challengedFriendID);
-			this.appendWaitText();
-		} else {
-			console.error("Erreur de matchmaking dans l'invite.");
-			return false;
-		}
-		return true;
-	}
+    /**
+     * Gère les requêtes d'invitation.
+     * Si l'utilisateur courant est l'expéditeur initial, envoie une requête de type "invite".
+     * Sinon, si l'utilisateur courant est l'expéditeur ciblé, envoie une requête de type "invite-accept".
+     * Si l'utilisateur n'est pas dans le contexte d'une invitation, lance une erreur.
+     * @returns {Promise<boolean>} La promesse qui se résout lorsque les vérifications sont terminées.
+     */
+    protected async handleInviteRequest(): Promise<boolean> {
+        if (!this.relation) {
+            console.error("Relation not found");
+            return false;
+        }
+        if (!this.relation || ("errorMessage" in this.relation))
+            return false;
+        if (this.currentUser!.id === this.relation.challengedBy) {
+            if (this.replayInvite)
+                await this.sendMatchMakingRequest("invite", this.challengedFriendID, this.currentUser!.id);
+            this.appendWaitText();
+        } else if (this.currentUser!.id === this.relation.isChallenged) {
+            await this.sendMatchMakingRequest("invite-accept", this.currentUser!.id, this.challengedFriendID);
+            this.appendWaitText();
+        } else {
+            console.error("Erreur de matchmaking dans l'invite.");
+            return false;
+        }
+        return true;
+    }
 
     /**
      * Méthode publique appelée dans notifService lorsque l'utilisateur reçoit une nouvelle invitation,
@@ -420,29 +433,29 @@ export abstract class GamePage extends BasePage {
             const waitingTextBox: HTMLElement = document.createElement("div");
             waitingTextBox.classList.add("waiting-textbox");
 
-			const waitingUsername: HTMLElement = document.createElement("span");
-			const waitingText1: HTMLElement = document.createElement("span");
-			const waitingText2: HTMLElement = document.createElement("span");
-			waitingText1.setAttribute("data-ts", "game.waitingText1");
-			waitingText2.setAttribute("data-ts", "game.waitingText2");
-			if (this.requestType === "invite") {
-				if (!this.relation || 'errorMessage' in this.relation || !this.relation.waitingInvite)
-					return;
-				waitingText1.textContent = "Waiting for ";
-				waitingUsername.textContent = this.relation!.username;
-				waitingText2.textContent = " to connect...";
-			} else {
-				waitingText1.textContent = "Waiting for ";
-				waitingUsername.textContent = "another player";
-				waitingText2.textContent = " to connect...";
-				waitingUsername.setAttribute("data-ts", "game.waitingTextPlayer");
-			}
-			waitingTextBox.append(waitingText1, waitingUsername, waitingText2);
-			lobby.appendChild(waitingTextBox);
-			pongSection.appendChild(lobby);
-			translateService.updateLanguage(undefined, pongSection);
-		}
-	}
+            const waitingUsername: HTMLElement = document.createElement("span");
+            const waitingText1: HTMLElement = document.createElement("span");
+            const waitingText2: HTMLElement = document.createElement("span");
+            waitingText1.setAttribute("data-ts", "game.waitingText1");
+            waitingText2.setAttribute("data-ts", "game.waitingText2");
+            if (this.requestType === "invite") {
+                if (!this.relation || 'errorMessage' in this.relation || !this.relation.waitingInvite)
+                    return;
+                waitingText1.textContent = "Waiting for ";
+                waitingUsername.textContent = this.relation!.username;
+                waitingText2.textContent = " to connect...";
+            } else {
+                waitingText1.textContent = "Waiting for ";
+                waitingUsername.textContent = "another player";
+                waitingText2.textContent = " to connect...";
+                waitingUsername.setAttribute("data-ts", "game.waitingTextPlayer");
+            }
+            waitingTextBox.append(waitingText1, waitingUsername, waitingText2);
+            lobby.appendChild(waitingTextBox);
+            pongSection.appendChild(lobby);
+            translateService.updateLanguage(undefined, pongSection);
+        }
+    }
 
     /**
      * Affiche un timer dans le container #pong-section
@@ -514,9 +527,10 @@ export abstract class GamePage extends BasePage {
             return;
         }
         this.endGamePanel = endGamePanel.cloneNode(true) as Element;
-        if (this.tournamentID) {
+        if (this.tournamentID)
             this.endGamePanel.querySelector("#navigate-btn")!.addEventListener("click", navigateTournamentBtnHandler);
-        }
+        else
+            this.endGamePanel.querySelector("#home-btn")?.addEventListener("click", () => router.navigate("/"));
         this.fillScoreBox(game);
         this.setReplayButton();
 
@@ -551,23 +565,40 @@ export abstract class GamePage extends BasePage {
      * - Définissant les attributs data-ts et les classes CSS appropriées pour la traduction et le style.
      * ! Si modif du texte, penser à mettre à jour les fichiers de traduction (frontend/src/services/core/translation/*.json)
      */
-    protected fillScoreBox(game?: Game): void {
+    protected async fillScoreBox(game?: Game): Promise<void> {
         if (!this.endGamePanel)
             return;
         const resMessage = getHTMLElementByClass('res-message', this.endGamePanel) as HTMLElement;
         const resScore = getHTMLElementByClass('res-score', this.endGamePanel) as HTMLElement;
-        const spanRes = document.createElement("span");
+        const spanRes = document.createElement("span") as HTMLSpanElement;
         const spanScore = document.createElement("span");
         const spanAdversary = document.createElement("span");
+        const score = document.createElement("span");
+
+        score.classList.add("final-score");
 
         const gameHasBeenCancelled = this.finalScore[0] !== 3 && this.finalScore[1] !== 3;
+
+        // ! Pas besoin de requête à la DB, le back envoie le score au bon format sur la socket
+        // let gameInfos;
+
+        // const res = await fetch(`/api/game/${this.gameID}`);
+        // if (res.ok) {
+        //     gameInfos = await res.json();
+        //     console.log(gameInfos);
+        //     if (this.currentUser!.id != gameInfos.playersID[0]) {
+        //         [this.finalScore[0], this.finalScore[1]] = [this.finalScore[1], this.finalScore[0]];
+        //     }
+        // }
+        // score.textContent = `${this.finalScore[0]} - ${this.finalScore[1]}`;
+        score.textContent = `${this.finalScore[0]} - ${this.finalScore[1]}`;
 
         if (this.adversary && !gameHasBeenCancelled) {
             if (this.finalScore[0] < this.finalScore[1]) {
                 resMessage.setAttribute("data-ts", "game.loseMessage");
                 resMessage.textContent = "You lose !";
                 resMessage.classList.add("lose-message");
-            } else if (this.finalScore[0] > this.finalScore[1]) {
+            } else {
                 resMessage.setAttribute("data-ts", "game.winMessage");
                 resMessage.textContent = "You win !";
                 resMessage.classList.add("win-message");
@@ -578,60 +609,60 @@ export abstract class GamePage extends BasePage {
             resMessage.classList.add("end-message");
         }
         resMessage.classList.remove("hidden");
-        const score = `<span class="final-score">${this.finalScore[0]} - ${this.finalScore[1]}</span>`
-        spanScore.innerHTML = DOMPurify.sanitize(score);
 
-		if (this.adversary) {
-			spanRes.setAttribute("data-ts", "game.resultText");
-			spanRes.textContent = "You";
-			spanAdversary.textContent = `${this.adversary?.username}`;
-		} else if (this.players || game) {
-			if (this.players) {
-				spanRes.textContent = this.players[0].alias ?? null;
-				spanAdversary.textContent = this.players[1].alias ?? null;
-			} else {
-				spanRes.textContent = game?.players[0].alias || game?.players[1].username || null;
-				spanAdversary.textContent = game?.players[1].alias || game?.players[1].username || null;
-			}
-		} else {// game locale
-            spanRes.textContent = this.currentUser.username;
+        if (this.adversary) {
+            spanRes.setAttribute("data-ts", "game.resultText");
+            spanRes.textContent = "You";
+            spanAdversary.textContent = `${this.adversary?.username}`;
+        } else if (this.players || game) { // case tournament
+            if (this.players) {
+                spanRes.textContent = this.players[0].alias ?? null;
+                spanAdversary.textContent = this.players[1].alias ?? null;
+            } else {
+                spanRes.textContent = game?.players[0].alias || game?.players[1].alias || null;
+                spanAdversary.textContent = game?.players[1].alias || game?.players[1].alias || null;
+            }
+        } else { // game locale
+            console.log("GAME LOCAL")
+            spanRes.textContent = this.currentUser!.username;
             spanAdversary.setAttribute("data-ts", "game.player2");
-		}
+            spanAdversary.textContent = translateService.t("game.player2");
+        }
 
-        resScore.append(spanRes, spanScore, spanAdversary);
+        resScore.append(spanRes, spanScore, score, spanAdversary, );
     }
 
-	/**
-	 * Met à jour le bouton de replay dans le panneau de fin de jeu.
-	 * Si un ID d'ami est fourni (donc que le jeu est issu d'une invitation), le bouton est mis à jour avec le texte "Replay with <nom d'ami>".
-	 * Sinon (dans le cas d'un matchmaking aléatoire online ou d'un jeu en local), le bouton est mis à jour avec le texte "Replay".
-	 * Le bouton est également équipé d'un écouteur d'événement pour gérer le clic.
-	 */
-	protected setReplayButton(): void {
-		if (!this.endGamePanel || this.tournamentID)
-			return;
-		const replayBtn = getHTMLElementById('replay-button', this.endGamePanel) as HTMLElement;
-		if (this.challengedFriendID) {
-			if (!this.relation || 'errorMessage' in this.relation) {
-				console.error(
-					this.relation && "errorMessage" in this.relation 
-						? this.relation.errorMessage 
-						: "Problème lors de la récupération de la relation."
-				);
-				return;
-			}
-			const replayWithSpan = getHTMLElementById('replay-with', this.endGamePanel) as HTMLElement;
-			const friendNameSpan = getHTMLElementById('friend-username', this.endGamePanel) as HTMLElement;
-			replayWithSpan.classList.remove("hidden");
-			friendNameSpan.classList.remove("hidden");
-			friendNameSpan.textContent = this.relation!.username;
-			replayBtn.setAttribute("data-friend-id", this.challengedFriendID!.toString());
-		} else {
-			const replaySpan = getHTMLElementById('replay', this.endGamePanel) as HTMLElement;
-			replaySpan.classList.remove("hidden");
-		}
-		replayBtn.addEventListener("click", this.handleReplayBtnClick);
-	}
+    /**
+     * Met à jour le bouton de replay dans le panneau de fin de jeu.
+     * Si un ID d'ami est fourni (donc que le jeu est issu d'une invitation), le bouton est mis à jour avec le texte "Replay with <nom d'ami>".
+     * Sinon (dans le cas d'un matchmaking aléatoire online ou d'un jeu en local), le bouton est mis à jour avec le texte "Replay".
+     * Le bouton est également équipé d'un écouteur d'événement pour gérer le clic.
+     */
+    protected setReplayButton(): void {
+        if (!this.endGamePanel || this.tournamentID)
+            return;
+        const replayBtn = getHTMLElementById('replay-button', this.endGamePanel) as HTMLElement;
+        if (this.challengedFriendID) {
+            if (!this.relation || 'errorMessage' in this.relation) {
+                console.error(
+                    this.relation && "errorMessage" in this.relation
+                        ? this.relation.errorMessage
+                        : "Problème lors de la récupération de la relation."
+                );
+                return;
+            }
+            const replayWithSpan = getHTMLElementById('replay-with', this.endGamePanel) as HTMLElement;
+            const friendNameSpan = getHTMLElementById('friend-username', this.endGamePanel) as HTMLElement;
+            replayWithSpan.classList.remove("hidden");
+            friendNameSpan.classList.remove("hidden");
+            friendNameSpan.textContent = this.relation!.username;
+            replayBtn.setAttribute("data-friend-id", this.challengedFriendID!.toString());
+        } else {
+            const replaySpan = getHTMLElementById('replay', this.endGamePanel) as HTMLElement;
+            replaySpan.classList.remove("hidden");
+        }
+        replayBtn.addEventListener("click", this.handleReplayBtnClick);
+    }
 
     // ===========================================
     // CLEANUP PAGE (OVERRIDE CLEANUP BASEPAGE)

@@ -58,8 +58,8 @@ export class GameTournamentLocalOverview extends BasePage {
 
     protected async beforeMount(): Promise<void> {
         // Fetch du html qui va etre reutilise plusieurs fois
-        this.pastilleHTML = await this.fetchHTML("../../../../public/templates/game/tournament/tournament_pastille.html", "#tournament-pastille");
-        this.toolTipHTML = await this.fetchHTML("../../../../public/templates/game/tournament/tournament_tooltip.html", "#tooltip");
+        this.pastilleHTML = await this.fetchHTML("/templates/game/tournament/tournament_pastille.html", "#tournament-pastille");
+        this.toolTipHTML = await this.fetchHTML("/templates/game/tournament/tournament_tooltip.html", "#tooltip");
         await this.fetchUsers();
     }
 
@@ -115,7 +115,7 @@ export class GameTournamentLocalOverview extends BasePage {
             if (!game.isOver)
                 return game;
         }
-        if (this.tournament?.stageTwo.players.length == 2)
+        if (this.tournament?.stageTwo && this.tournament.stageTwo.players.length == 2)
             return this.tournament.stageTwo;
         return undefined;
     }
@@ -123,8 +123,8 @@ export class GameTournamentLocalOverview extends BasePage {
     // Affiche la next game a jouer et set le bouton pour naviguer a l'adresse de la prochaine game
     private displayNextGameAndSetNavigate(): void {
         const nextGame = this.getNextGame();
+        console.log(this.tournament);
         if (nextGame) {
-            console.log(nextGame.gameID);
             document.getElementById("player-one")!.textContent = `${nextGame?.players[0].alias}`;
             document.getElementById("player-two")!.textContent = `${nextGame?.players[1].alias}`;
             document.getElementById("tournament-start-btn")!.addEventListener("click", () => {
@@ -144,7 +144,8 @@ export class GameTournamentLocalOverview extends BasePage {
             overlay.classList.remove("hidden");
             overlay.classList.remove("opacity-0");
 
-            winner.textContent = this.tournament?.winner.alias || this.tournament?.winner.username;
+            if (this.tournament?.winner?.alias)
+                winner.textContent = this.tournament.winner.alias;
             // Animate the dialog itself
             animateCSS(overlay, "fadeIn").then;
             animateCSS(dialog, "fadeIn").then(() => dialog.classList.remove("opacity-0"))
@@ -155,7 +156,7 @@ export class GameTournamentLocalOverview extends BasePage {
 
     // Afficher le winner, display l'overlay winner et insere le nom du gagnant
     private async displayWinner(winnerContainer: HTMLElement): Promise<void> {
-        const playerPastille = await this.createAndFillPlayerPastille(this.tournament?.winner, 0);
+        const playerPastille = await this.createAndFillPlayerPastille(this.tournament?.winner!, 0);
         winnerContainer.append(playerPastille);
 
         if (this.tournament?.winner) {
@@ -184,7 +185,7 @@ export class GameTournamentLocalOverview extends BasePage {
             pastille.textContent = "?";
             if (tooltipH2Name)
                 tooltipH2Name.textContent = "?";
-            return playerPastille;
+            return playerPastille; 
         }
 
         const user = this.users.find((u: UserModel) => u.id == player.ID);
@@ -195,9 +196,10 @@ export class GameTournamentLocalOverview extends BasePage {
         else
             img.src = await this.dataApi.returnDefaultAvatarURL();
 
-        pastille.textContent = name;
-        if (tooltipH2Name)
-            tooltipH2Name.textContent = name;
+        if (name)
+            pastille.textContent = name;
+        if (name && tooltipH2Name)
+            tooltipH2Name.textContent = name || null;
         return playerPastille;
     }
 
@@ -239,6 +241,7 @@ export class GameTournamentLocalOverview extends BasePage {
 
     protected async mount(): Promise<void> {
         await this.displayTournament();
+        // document.getElementById("app")!.classList.add("rotate-[-90deg]", "origin-center", "w-[100vh]", "h-[100vw]", "flex-row");
     }
 
     protected attachListeners(): void {
@@ -258,7 +261,7 @@ export class GameTournamentLocalOverview extends BasePage {
 
         for (const match of allMatches) {
             const tooltip = match.querySelector("#tooltip");
-            match.addEventListener("mouseenter", (event) => {
+            match.addEventListener("mouseenter", () => {
                 tooltip!.classList.remove("opacity-0", "pointer-events-none");
                 tooltip!.classList.add("opacity-100");
                 tooltip?.querySelector("h2");

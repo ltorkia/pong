@@ -161,7 +161,6 @@ export class PaginationComponent extends BaseComponent {
 
 		// Bouton Précédent
 		if (hasPreviousPage) {
-			// this.createPaginationButton('‹ Prev', currentPage - 1, 'prev-btn');
 			this.createPaginationButton('pagination.prev', currentPage - 1, 'prev-btn');
 		}
 
@@ -182,7 +181,6 @@ export class PaginationComponent extends BaseComponent {
 
 		// Bouton Suivant
 		if (hasNextPage) {
-			// this.createPaginationButton('Next ›', currentPage + 1, 'next-btn');
 			this.createPaginationButton('pagination.next', currentPage + 1, 'next-btn');
 		}
 	}
@@ -247,9 +245,7 @@ export class PaginationComponent extends BaseComponent {
 	 */
 	private createPaginationButton(dataLabel: string, page: number, type: string): void {
 		const button = document.createElement('button');
-		// button.setAttribute('data-ts', 'prevButton');
 		button.setAttribute('data-ts', dataLabel);
-		// button.textContent = text;
 		button.className = this.getButtonClasses(type);
 		
 		if (type === 'current-page') {

@@ -161,10 +161,10 @@
 	"dashboard": {
 		"pageTitle": "Dashboard",
 		"underTitle": "Game statistics and more",
-		"totalGames": "Game played: ",
-		"winRate": "Win rate: ",
-		"averageScore": "Average score: ",
-		"streak": "Streaks: "
+		"totalGames": "Game played",
+		"winRate": "Win rate",
+		"averageScore": "Average score",
+		"streak": "Streaks"
 	},
 
 	"profile": {
@@ -227,6 +227,7 @@
         "winnerBegin": "It looks like we got a winner !",
         "winnerEnd": "just won the Tournament! Congrats!",
         "errors": {
+            "invalidAlias": "Invalid alias.",
             "noAlias": "Please enter an alias.",
             "full": "This tournament is full.",
             "playerAlreadyThere": "This player already exists in this tournament.",

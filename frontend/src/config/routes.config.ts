@@ -1,7 +1,6 @@
 import { HomePage } from '../pages/user/home.page';
 import { RegisterPage } from '../pages/auth/register.page';
 import { LoginPage } from '../pages/auth/login.page';
-import { BoidsPage } from '../pages/game/boids.page';
 import { RulesPage } from '../pages/user/rules.page';
 import { UsersPage } from '../pages/user/users.page';
 import { ProfilePage } from '../pages/user/profile.page';
@@ -70,7 +69,6 @@ export const PAGE_NAMES = {
     GAME_TOURNAMENT_LIST: "Tournament List",
     GAME_TOURNAMENT_REGISTER: 'Tournament Register',
     GAME_TOURNAMENT_LOBBY: 'Tournament Lobby',
-    BOIDS: 'Boids',
     RULES: 'Rules',
     USERS: 'Users',
     PROFILE: 'Profile',
@@ -98,7 +96,6 @@ export const ROUTE_PATHS = {
 	GAME_TOURNAMENT_LIST: "/game/tournaments",
 	GAME_TOURNAMENT_LOBBY: '/game/tournaments/:id/lobby',
 	GAME_TOURNAMENT_OVERVIEW: '/game/tournaments/:id',
-	BOIDS: '/game/boids',
 	RULES: '/rules',
 	USERS: '/users',
 	PROFILE: '/user/:userId',
@@ -127,7 +124,6 @@ export const TEMPLATE_PATHS = {
     GAME_TOURNAMENT_LIST: '/templates/game/tournament/tournament_list.html',
     GAME_TOURNAMENT_LOBBY: '/templates/game/tournament/tournament_lobby.html',
     GAME_TOURNAMENT_OVERVIEW: '/templates/game/tournament/tournament_overview.html',
-    BOIDS: '/templates/game/boids.html',
     RULES: '/templates/user/rules.html',
     USERS: '/templates/user/users.html',
     PROFILE: '/templates/user/profile.html',
@@ -304,18 +300,6 @@ export const routesConfig: RouteConfig[] = [
 		name: PAGE_NAMES.GAME_TOURNAMENT_OVERVIEW,
 		pageConstructor: GameTournamentOverview,
 		templatePath: TEMPLATE_PATHS.GAME_TOURNAMENT_OVERVIEW,
-		components: {
-			[COMPONENT_NAMES.NAVBAR]: getComponentConfig(COMPONENT_NAMES.NAVBAR),
-			[COMPONENT_NAMES.TRANSLATER]: getComponentConfig(COMPONENT_NAMES.TRANSLATER)
-		},
-		isPublic: false,
-		enableParticles: true
-	},
-	{
-		path: ROUTE_PATHS.BOIDS,
-		name: PAGE_NAMES.BOIDS,
-		pageConstructor: BoidsPage,
-		templatePath: TEMPLATE_PATHS.BOIDS,
 		components: {
 			[COMPONENT_NAMES.NAVBAR]: getComponentConfig(COMPONENT_NAMES.NAVBAR),
 			[COMPONENT_NAMES.TRANSLATER]: getComponentConfig(COMPONENT_NAMES.TRANSLATER)

@@ -9,6 +9,7 @@ import { UserModel } from '../../../shared/types/user.types';
 import { ROUTE_PATHS } from '../../../config/routes.config';
 import { animateCSS } from '../../../utils/animate.utils';
 import { translateService, webSocketService } from '../../../services/index.service';
+import { Player } from '../../../shared/types/game.types';
 
 const MAX_PLAYERS = 4;
 
@@ -25,7 +26,7 @@ export class GameMenuTournamentLocal extends BasePage {
 
     // Fetch HTML stocke localement a reutiliser pour display chaque joueur 
     private async fetchPastille(): Promise<void> {
-        const response = await fetch("../../../../public/templates/game/pastille.html");
+        const response = await fetch("/templates/game/pastille.html");
         const html = await response.text();
         const parser = new DOMParser();
         const doc = parser.parseFromString(html, "text/html");
@@ -47,7 +48,6 @@ export class GameMenuTournamentLocal extends BasePage {
 
     // Recupere la pastille de HTML et l'ajoute visuellement a la partie
     private async appendPlayerPastille(player: { alias: string, user?: UserModel }): Promise<void> {
-        console.log(player);
         const pastille = this.pastilleHTML!.cloneNode(true) as HTMLElement;
         const h2 = pastille.querySelector("h2");
         if (player.alias)
@@ -75,7 +75,6 @@ export class GameMenuTournamentLocal extends BasePage {
             const toRemoveIdx = this.players.findIndex(p => p.alias == player.alias);
             this.players.splice(toRemoveIdx, 1);
             animateCSS(pastille, "fadeOut").then(() => pastille.remove());
-            // pastille.remove();
         })
     }
 
@@ -86,7 +85,7 @@ export class GameMenuTournamentLocal extends BasePage {
         const startBtn = document.getElementById("tournament-start-btn");
 
         errorDiv.textContent = translateService.t(`tournament.errors.${error}`);
-        
+
         errorDiv.classList.add(
             "absolute", "bottom-50", "left-0", "right-0", "-translate-y-1/2", "-translate-y-6",
             "border-2", "border-red-500", "rounded-md",
@@ -120,6 +119,8 @@ export class GameMenuTournamentLocal extends BasePage {
 
     // Check et ajout du player a this.players pour creation d'un futur nouveau tournoi
     private addPlayer(alias: string, user?: UserModel) {
+        if (alias.trim() == "")
+            return (this.printError("invalidAlias"));
         if (this.players.length >= this.playersNb)
             return (this.printError("full"), null);
         if (user && (this.players.find(player => player.username == user.username ||
@@ -200,7 +201,13 @@ export class GameMenuTournamentLocal extends BasePage {
     private startTournamentHandler = async () => {
         if (this.players.length != MAX_PLAYERS)
             return (this.printError("missingPlayer"));
-        const newTournament = new TournamentLocal(MAX_PLAYERS, undefined, this.currentUser!.id, this.players, webSocketService.getTabID()!);
+
+        const players: Player[] = [];
+
+        for (const player of this.players)
+            players.push(new Player(player.ID, player.alias || player.username));
+
+        const newTournament = new TournamentLocal(MAX_PLAYERS, undefined, this.currentUser!.id, players, webSocketService.getTabID()!);
         try {
             const tournamentID = await TournamentService.postNewLocalTournament(newTournament);
             sessionStorage.setItem("tournamentID", `${tournamentID}`);
