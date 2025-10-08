@@ -14,7 +14,6 @@ export async function insertAvatar(avatar: string, username: string)
 	[avatar, username]);
 }
 
-// export async function changeUserData(id: number, username: string, password: string, email:string)
 export async function changeUserData(id: number, user: UserForChangeData)
 {
 	const db = await getDb();
@@ -24,39 +23,6 @@ export async function changeUserData(id: number, user: UserForChangeData)
 				WHERE (id = ?)
 			`,
 	[user.username, user.password, user.email, user.active2Fa, user.id]);
-}
-
-export async function changePassword(username: string, password: string)
-{
-	const db = await getDb();
-	await db.run(`
-			UPDATE User
-			SET password = ?
-			WHERE (username = ?)
-			`,
-	[password, username]);
-}
-
-export async function changeUsername(usernameOrigin: string, usernameNew: string)
-{
-	const db = await getDb();
-	await db.run(`
-			UPDATE User
-			SET username = ?
-			WHERE (username = ?)
-			`,
-	[usernameNew, usernameOrigin]);
-}
-
-export async function changeEmail(username:string, email:string)
-{
-	const db = await getDb();
-	await db.run(`
-			UPDATE User
-			SET username = ?
-			WHERE (username = ?)
-			`,
-	[email, username]);
 }
 
 export async function insertCode2FAEmail(email: string, code: string): Promise<{statusCode: number, message: string}>
@@ -109,5 +75,4 @@ export async function majLastlog(userId: number, status: UserOnlineStatus)
 			`,
 			[status, status, USER_ONLINE_STATUS.ONLINE, status, USER_ONLINE_STATUS.OFFLINE, userId]
 	);
-
 }

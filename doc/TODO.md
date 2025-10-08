@@ -51,10 +51,3 @@ Copier les fichiers .env du back et du front manuellement et:
 docker compose up --build
 ------------------------------------------------------------------------
 
-<!-- MEMO ELISA -->
-<!-- 
-TODO : GoogleSigne Avatar -> ? Lee quand ca bug ? 
-TODO : mettre nb de points dans les regles dans front
-TODO : revoir les links users tournament -> utile pour les ID inconnus ?
--->
-

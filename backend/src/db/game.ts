@@ -15,17 +15,21 @@ export async function addGame(tournament?: number, isOnlineGame?: boolean): Prom
     return gameId;
 }
 
-export async function addGamePlayers(gameId: number, userIds: number[], aliases?: string[]) {
+export async function addGamePlayers(gameId: number, userIds: number[], aliases?: string[] | null) {
     const db = await getDb();
+    console.log("heeeeere");
     const playerAliases = aliases ?? ["", ""];
     await db.run(
         `INSERT INTO User_Game (game_id, user_id, alias) VALUES (?, ?, ?)`,
         [gameId, userIds[0], playerAliases[0]]
     );
+       console.log("heeeeere");
     await db.run(
-        `INSERT INTO User_Game (game_id, user_id) VALUES (?, ?)`,
+        `INSERT INTO User_Game (game_id, user_id, alias) VALUES (?, ?, ?)`,
         [gameId, userIds[1], playerAliases[1]]
     );
+       console.log("heeeeere");
+
 }
 
 export async function resultGame(gameId: number, winnerId: number, score: number[], isCancelled: boolean = false) {

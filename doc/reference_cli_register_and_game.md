@@ -13,10 +13,6 @@
 - POST /api/game/playgame
 - GET /api/user/:id/games
 
-## Tournament
-- POST /api/tournament/dismantle_tournament
-- POST /api/tournament/update_tournament_games
-
 ## WebSocket Messages
 - start_game
 - decount_game
@@ -178,40 +174,6 @@ Gets all games for a user.
 
 ---
 
-## Tournament
-
-### POST /api/tournament/dismantle_tournament
-Dismantles a tournament (owner only).
-**Body:**  
-```json
-{
-  "tournamentID": number,
-  "playerID": number
-}
-```
-**Returns:**  
-- 200 OK: Tournament deleted
-- 403 Forbidden: Not owner
-- 404 Not Found: Tournament not found
-- 400 Bad Request: Validation error
-
----
-
-### POST /api/tournament/update_tournament_games
-Updates tournament games after a round.
-**Body:**  
-```json
-{
-  "tournamentID": number
-}
-```
-**Returns:**  
-- 200 OK: Tournament games updated
-- 404 Not Found: Tournament not found
-- 400 Bad Request: Validation error
-
----
-
 ## WebSocket Messages
 
 ### start_game
@@ -266,10 +228,9 @@ Regular game state updates (ball, paddles, score, etc.).
 ```json
 {
   "type": "GameData",
-  "score": [number, number],
+  "players": { id: number, pos: { x: number, y: number } }[],
   "ball": { "x": number, "y": number },
-  "paddles": [{ "y": number }, { "y": number }],
-  // ...other game state
+  "score": number[],
 }
 ```
 **Client should:**  
@@ -288,3 +249,25 @@ Informational message.
 ```
 **Client should:**  
 - Display message to
+
+---
+
+### ping-check
+Server health check to verify WebSocket connection is alive.
+**Payload:**
+```json
+{
+  "type": "ping-check"
+}
+```
+
+---
+
+### ping-check
+Client has to respond with thisafter a ping check.
+**Payload:**
+```json
+{
+  "type": "pong-check"
+}
+```
