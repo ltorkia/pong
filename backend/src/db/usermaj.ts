@@ -16,10 +16,8 @@ export async function insertAvatar(avatar: string, username: string)
 
 // export async function changeUserData(id: number, username: string, password: string, email:string)
 export async function changeUserData(id: number, user: UserForChangeData)
-
 {
-		const db = await getDb();
-		// const user =
+	const db = await getDb();
 	await db.run(`
 				UPDATE User
 				SET username = ?, password = ?, email = ?, active_2FA = ?

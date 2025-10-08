@@ -13,9 +13,6 @@ export async function getAllRelations() {
 	return snakeArrayToCamel(relations);
 }
 
-// pour choper les friends, mais implique qu un element chat soit forcement cree des qu on devient ami
-//  -> comment ajouter un ami ? nouvelle page ?
-//  -> version ou on decide d avoir forcement de cree par defaut une donnee avec le client en tant que sender et receveur
 export async function getUserFriends(userId: number): Promise<FriendModel[]> {
 	const db = await getDb();
 	const friends = await db.all(`

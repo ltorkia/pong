@@ -119,7 +119,7 @@
 										<!-- Nombre de tournois -->
 									</span>
 								</h2>
-								<div id="tournament-history-section" class="match-history">
+								<div id="tournament-history-section" class="tournament-history">
 									<!-- Historique dynamique -->
 								</div>
 							</div>
@@ -159,11 +159,24 @@
 			<template id="match-card-template">
 				<div class="match-card">
 					<div class="match-header">
-						<div class="match-result">
-							<!-- Résultat -->
+						<div class="match-map">
+							<div class="match-round hidden">
+								<!-- Round -->
+							</div>
+							<div class="match-result">
+								<!-- Résultat -->
+							</div>
+							<div class="match-status">
+								<!-- Statut -->
+							</div>
 						</div>
-						<div class="match-date">
-							<!-- Date -->
+						<div class="match-map">
+							<div class="match-winner">
+								<!-- winner -->
+							</div>
+							<div class="ml-4 match-date">
+								<!-- Date -->
+							</div>
 						</div>
 					</div>
 					<div class="match-players">
@@ -185,6 +198,27 @@
 							<div class="player-avatar">
 								<!-- Avatar joueur 2 -->
 							</div>
+						</div>
+					</div>
+				</div>
+			</template>
+
+			<template id="tournament-card-template">
+				<div class="tournament-card">
+					<div class="tournament-header">
+						<div>
+							<div class="tournament-alias">
+								<!-- Résultat -->
+							</div>
+							<div class="tournament-result">
+								<!-- Résultat -->
+							</div>
+						</div>
+						<div class="match-winner">
+							<!-- Joueurs -->
+						</div>
+						<div class="tournament-date">
+							<!-- Date -->
 						</div>
 					</div>
 				</div>

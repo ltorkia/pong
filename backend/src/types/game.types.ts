@@ -3,7 +3,7 @@ import { resultGame, addGame, addGamePlayers, registerUserTournament, updateTour
 import { GameData, Player } from "../shared/types/game.types"
 import { getUsersGame } from "../db/user";
 import { incrementUserTournamentStats } from "../db/game";
-import { resetPlayer } from "../routes/game.routes";
+import { cleanGame } from "../routes/game.routes";
 
 const DEG_TO_RAD = Math.PI / 180;
 
@@ -181,7 +181,7 @@ export class Ball {
 export class Game extends EventEmitter {
     public players: Player[] = [];
     private ball = new Ball();
-    private playersCount: number = 0;
+    public playersCount: number = 0;
 
     public gameStarted: boolean = false;
     public isOver: boolean = false;
@@ -191,7 +191,7 @@ export class Game extends EventEmitter {
     public gameID: number = 0;
     public tournamentID?: number;
 
-    constructor(gameID: number, playersCount: number, players: Player[], tournamentID?: number) {
+    constructor(gameID: number, playersCount: number, players: Player[],tournamentID?: number) {
         super();
         this.gameID = gameID;
         this.playersCount = playersCount;
@@ -293,7 +293,7 @@ export class Game extends EventEmitter {
             console.log("PLAYER X : ", this.players[1].pos.x, this.players[0].pos.y);
         }
         this.score.forEach(score => {
-            if (score >= 3) //pq pas == ? 
+            if (score >= 3)
                 return (this.endGame())
         });
         this.initRound(lastGoal);
@@ -335,15 +335,12 @@ export class Game extends EventEmitter {
                     tournamentID: this.tournamentID || null
                 }));
             }
-            if (this.tournamentID) {
-                player.matchMaking = false;
-                player.webSocket = undefined;
-            } else
-                resetPlayer(player);
         }
-        
+        // cleanGame(this.lobby, this);
+        cleanGame(this);
         const winnerID = this.getWinnerID();
-        await resultGame(this.gameID, winnerID, this.score);
+        const isCancelled = this.cancellerID ? true : false;
+        await resultGame(this.gameID, winnerID, this.score, isCancelled);
 
         this.emit("finished", this); // envoie un event "finished" qui est capte par une classe parent (TournamentLocal)
     }
@@ -433,27 +430,20 @@ export class TournamentLocal {
         await updateTournamentStatus(this.ID, "in_progress");
 
         const gameID1 = await addGame(this.ID);
-        await addGamePlayers(gameID1, this.players[0].ID, this.players[1].ID);
+        await addGamePlayers(gameID1, [this.players[0].ID, this.players[1].ID], [this.players[0].alias ?? "", this.players[1].alias ?? ""]);
         this.stageOne[0] = new Game(gameID1, 2, [this.players[0], this.players[1]], this.ID);
 
         const gameID2 = await addGame(this.ID);
-        await addGamePlayers(gameID2, this.players[2].ID, this.players[3].ID);
+        await addGamePlayers(gameID2, [this.players[2].ID, this.players[3].ID], [this.players[2].alias ?? "", this.players[3].alias ?? ""]);
         this.stageOne[1] = new Game(gameID2, 2, [this.players[2], this.players[3]], this.ID);
 
         const stageTwoID = await addGame(this.ID)
-        this.stageTwo = new Game(stageTwoID, 2, []); // creee maintenant mais les joueurs sont ajoutes plus tard
+        this.stageTwo = new Game(stageTwoID, 2, [], this.ID); // creee maintenant mais les joueurs sont ajoutes plus tard
 
         // Listeners pour etre notifie quand une game est finie
         for (const game of this.stageOne)
             game.on("finished", (g: Game) => this.update());
         this.stageTwo.on("finished", (g: Game) => this.update());
-
-        // Reset des players à la fin du tournoi
-        this.stageTwo.on("finished", () => {
-            for (const player of this.players) {
-                resetPlayer(player);
-            }
-        });
     }
 
     // si les games du premier tour sont finies, update pour determiner la derniere game
@@ -479,62 +469,17 @@ export class TournamentLocal {
             }
         }
         if (this.stageTwo.players.length == 2)
-            await addGamePlayers(this.stageTwo.gameID, this.players[0].ID, this.players[1].ID);
+        await addGamePlayers(
+            this.stageTwo.gameID,
+            this.stageTwo.players.map(p => p.ID),
+            this.stageTwo.players.map(p => p.alias ?? "")
+        );
         console.log("SCORE : ", this.stageOne[0].getScore());
-    }
-}
-
-export class Tournament {
-    public name: string;
-    public alias?: string;
-    public maxPlayers: number;
-    public ID?: number;
-    public masterPlayerID?: number;
-    public isStarted?: boolean;
-    public players: Player[] = [];
-    public stageOneGames: Game[] = [];
-    public stageTwoGames: Game[] = [];
-
-    constructor(name: string, maxPlayers: number, ID?: number, masterPlayerID?: number, isStarted?: boolean) {
-        this.name = name;
-        this.maxPlayers = maxPlayers;
-        this.ID = ID ?? 0;
-        this.masterPlayerID = masterPlayerID ?? 0;
-        this.isStarted = isStarted ?? true;
-    }
-
-    // Les joueurs sont rajoutes post creation d'une instance de classe, via requete HTTP (/join_tournament)
-    // Seulement 4 joueurs max dont uniquement deux etapes de tournoi : stage 1 et stage 2
-    // this.players est melange et l'ordre du tableau donne les differents matchs
-    // Match 1 : players[0] && players[1] | Match 2 : players[2] && players[3]
-    // Dans l'ideal les games du tournoi sont des Game remote classiques pour ne pas avoir a adapter grand chose
-    // TODO : actualiser le tournoi quand une game est finie pour pouvoir continuer
-    // exemple de logique :
-    // game 1 finie -> front fait une requete au back -> le back recherche le tournoi -> la game fait elle partie dun tournoi ? oui -> met a jour le tournoi
-    // le winner de stage one game 1 devient player[0] de stageTwoGame (c'est un tableau actuellement mais en vrai c'est qu'un seul match)
-    // le winner de stage one game 2 devient player[1] de stageTwoGame
-    // c'etait ce sur quoi je travaillais en dernier donc la logique est pas finie ni en front ni en back
-
-    public async startTournament(): Promise<void> {
-        for (const player of this.players)
-            await registerUserTournament(player.ID, this.ID!, player.alias);
-
-        // this.players est melange pour avoir des matchs aleatoire
-        shuffleArray(this.players);
-        let playerIdx = 0;
-        for (let i = 0; i < 2; i++) {
-            const gameID = await addGame(this.ID!);
-            await addGamePlayers(gameID, this.players[playerIdx].ID, this.players[playerIdx + 1].ID);
-            const newGame = new Game(gameID, 2, [this.players[playerIdx], this.players[playerIdx + 1]], this.ID);
-            this.stageOneGames.push(newGame);
-            playerIdx += 2;
-        }
     }
 }
 
 export class Lobby {
     public allPlayers: Map<number, Player[]> = new Map();
     public allGames: Game[] = [];
-    public allTournaments: Tournament[] = [];
     public allTournamentsLocal: TournamentLocal[] = [];
 }

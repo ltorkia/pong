@@ -2,8 +2,7 @@ import { notifService, pageService, currentService } from '../index.service';
 import { AppNotification } from '../../shared/models/notification.model';
 import type { NotificationModel } from '../../shared/types/notification.types';
 import { GamePage } from '../../pages/game/game.page';
-import { GameTournamentLobby } from '../../pages/game/tournament/game.tournament.lobby.page';
-import { isNotificationModel, isValidGameType, isGameMsg, isTournamentMsg } from '../../shared/utils/app.utils';
+import { isNotificationModel, isValidGameType, isGameMsg } from '../../shared/utils/app.utils';
 
 export class WebSocketService {
 	public tabID?: string;
@@ -168,9 +167,6 @@ export class WebSocketService {
 						const isGameInit = currentService.getGameInit();
 						if (!isGameInit || !pageService.currentPage || !(pageService.currentPage instanceof GamePage)) return;
 						await pageService.currentPage.handleGameMessage(receivedData);
-					} else if (isTournamentMsg(receivedData.type)) {
-						if (!pageService.currentPage || !(pageService.currentPage instanceof GameTournamentLobby)) return;
-						await pageService.currentPage.handleTournamentMessage(receivedData);
 					}
 				}
 			} catch (error) {

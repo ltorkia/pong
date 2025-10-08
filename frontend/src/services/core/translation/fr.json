@@ -177,7 +177,10 @@
 		"winRateLabel": "de réussites",
 		"gamePlayedLabel": "Parties jouées",
 		"winResult": "VICTOIRE",
-		"lossResult": "DÉFAITE"
+		"lossResult": "DÉFAITE",
+		"cancelled": "FORFAIT",
+		"roundLabel": "ROUND",
+		"inProgress": "EN COURS"
 	},
 
 	"game": {

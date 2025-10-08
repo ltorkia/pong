@@ -41,7 +41,9 @@ export class User {
 		public registerFrom: RegisterMethod,
 		public active2Fa: TwoFaMethod,
 		public notifications: AppNotification[],
-		public friendStatus: FriendStatus | ''
+		public friendStatus: FriendStatus | '',
+		public alias: string,
+		public statusWin: 0 | 1 | null
 	) {}
 
 	// ============================================================================
@@ -119,7 +121,8 @@ export class User {
 			nFriends: this.nFriends,
 			status: this.status,
 			registerFrom: this.registerFrom,
-			isDesactivated: this.isDesactivated
+			isDesactivated: this.isDesactivated,
+			statusWin: this.statusWin
 		};
 	}
 
@@ -149,7 +152,8 @@ export class User {
 			isDesactivated: this.isDesactivated,
 			registerFrom: this.registerFrom,
 			active2Fa: this.active2Fa,
-			notifications: this.notifications
+			notifications: this.notifications,
+			statusWin: this.statusWin
 		};
 	}
 
@@ -190,7 +194,9 @@ export class User {
 			data.registerFrom ?? DB_CONST.USER.REGISTER_FROM.LOCAL,
 			data.active2Fa ?? DB_CONST.USER.ACTIVE_2FA.DISABLED,
 			data.notifications ?? [],
-			data.friendStatus ?? ''
+			data.friendStatus ?? '',
+			data.alias ?? '',
+			data.statusWin ?? 0
 		);
 	}
 
@@ -235,7 +241,9 @@ export class User {
 			DB_CONST.USER.REGISTER_FROM.LOCAL, // registerFrom par défaut
 			DB_CONST.USER.ACTIVE_2FA.DISABLED, // active2Fa à disabled par défaut,
 			[], // notifications vides par défaut
-			'' // friendStatus vide par défaut
+			'', // friendStatus vide par défaut,
+			'', // alias vide par défaut
+			0
 		);
 	}
 

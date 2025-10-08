@@ -18,10 +18,13 @@ export class GameMenuTournamentLocal extends BasePage {
     private players: { ID: number, alias?: string, username?: string }[] = [];
     private dataApi = new DataService();
     private pastilleHTML: Node | undefined;
+    private mobile: boolean = false;
 
     constructor(config: RouteConfig) {
         super(config);
         this.pastilleHTML = document.createElement("div");
+        if (window.innerWidth < 1024)
+            this.mobile = true;
     }
 
     // Fetch HTML stocke localement a reutiliser pour display chaque joueur 
@@ -43,7 +46,7 @@ export class GameMenuTournamentLocal extends BasePage {
     // Juste du layout
     private applyAppClasses(): void {
         const app = document.getElementById("app");
-        app!.classList.add("flex", "border-white");
+        app!.classList.add("flex", "border-white", "transition-all", "duration-300");
     }
 
     // Recupere la pastille de HTML et l'ajoute visuellement a la partie
@@ -119,7 +122,7 @@ export class GameMenuTournamentLocal extends BasePage {
 
     // Check et ajout du player a this.players pour creation d'un futur nouveau tournoi
     private addPlayer(alias: string, user?: UserModel) {
-        if (alias.trim() == "")
+        if (alias.trim() == "" && !user)
             return (this.printError("invalidAlias"));
         if (this.players.length >= this.playersNb)
             return (this.printError("full"), null);
@@ -134,7 +137,6 @@ export class GameMenuTournamentLocal extends BasePage {
             this.players.push({ ID: user.id, alias: user.username, username: user.username });
         else
             this.players.push({ ID: -1, alias: alias }); // unique ID a generer une fois en backend
-        console.log(this.players);
         return (true);
     }
 
@@ -158,30 +160,48 @@ export class GameMenuTournamentLocal extends BasePage {
 
     // Handler du champ alias seul 
     private aliasInputHandler = (event: KeyboardEvent) => {
-        const aliasInput = document.getElementById("alias-name-input") as HTMLInputElement;
-        const usernameInput = document.getElementById("username-input")! as HTMLInputElement;
-        const pwdInput = document.getElementById("password-input")! as HTMLInputElement;
+        if (event.key != "Enter")
+            return;
 
-        if (event.key == "Enter") {
-            if (!aliasInput.value)
-                return (this.printError("noAlias"));
-            if (usernameInput.value || pwdInput.value)
-                return this.accountInputHandler(event);
-            if (!this.addPlayer(aliasInput.value))
-                return;
-            this.appendPlayerPastille({ alias: aliasInput.value });
-            pwdInput.value = aliasInput.value = usernameInput.value = "";
+        let aliasInput, usernameInput, pwdInput;
+
+        if (this.mobile) {
+            aliasInput = document.querySelectorAll("#alias-name-input")![1] as HTMLInputElement;
+            usernameInput = document.querySelectorAll("#username-input")![1] as HTMLInputElement;
+            pwdInput = document.querySelectorAll("#password-input")![1] as HTMLInputElement;
+        } else {
+            aliasInput = document.getElementById("alias-name-input") as HTMLInputElement;
+            usernameInput = document.getElementById("username-input")! as HTMLInputElement;
+            pwdInput = document.getElementById("password-input")! as HTMLInputElement;
         }
+        if (!aliasInput.value)
+            return (this.printError("noAlias"));
+        if (usernameInput.value || pwdInput.value)
+            return this.accountInputHandler(event);
+        if (!this.addPlayer(aliasInput.value))
+            return;
+        this.appendPlayerPastille({ alias: aliasInput.value });
+        pwdInput.value = aliasInput.value = usernameInput.value = "";
+        if (this.mobile)
+            this.mobileHidePlayerMenu();
     }
 
     // Handler du champ email / password (+ alias)
     private accountInputHandler = async (event?: KeyboardEvent) => {
-        const aliasInput = document.getElementById("alias-name-input") as HTMLInputElement;
-        const usernameInput = document.getElementById("username-input")! as HTMLInputElement;
-        const pwdInput = document.getElementById("password-input")! as HTMLInputElement;
-
         if (event && event.key != "Enter")
             return;
+
+        let aliasInput, usernameInput, pwdInput;
+
+        if (this.mobile) {
+            aliasInput = document.querySelectorAll("#alias-name-input")![1] as HTMLInputElement;
+            usernameInput = document.querySelectorAll("#username-input")![1] as HTMLInputElement;
+            pwdInput = document.querySelectorAll("#password-input")![1] as HTMLInputElement;
+        } else {
+            aliasInput = document.getElementById("alias-name-input") as HTMLInputElement;
+            usernameInput = document.getElementById("username-input")! as HTMLInputElement;
+            pwdInput = document.getElementById("password-input")! as HTMLInputElement;
+        }
         if (!pwdInput.value || !usernameInput.value)
             return (this.printError("missingField"));
         const user: UserModel | undefined = await this.checkAccount(usernameInput.value, pwdInput.value);
@@ -191,6 +211,8 @@ export class GameMenuTournamentLocal extends BasePage {
             return;
         this.appendPlayerPastille({ alias: aliasInput.value, user: user });
         aliasInput.value = usernameInput.value = pwdInput.value = "";
+        if (this.mobile)
+            this.mobileHidePlayerMenu();
     }
 
     // Juste pour utiliser le meme handler sur le bouton add player
@@ -217,21 +239,64 @@ export class GameMenuTournamentLocal extends BasePage {
         }
     }
 
+    private mobileShowPlayerMenu = () => {
+        const menuContainer = document.getElementById("mobile-menu-container");
+        const menu = document.getElementById("add-player-mobile-menu");
+
+        menuContainer?.classList.remove("opacity-0", "pointer-events-none");
+        menuContainer?.classList.add("opacity-80");
+        menu?.classList.remove("opacity-0", "translate-x-full");
+        menu?.classList.add("opacity-100");
+    }
+
+    private mobileHidePlayerMenu = () => {
+        const menuContainer = document.getElementById("mobile-menu-container");
+        const menu = document.getElementById("add-player-mobile-menu");
+
+        menu?.classList.add("opacity-0", "translate-x-full");
+        menu?.classList.remove("opacity-100");
+        menuContainer?.classList.remove("opacity-80");
+        menuContainer?.classList.add("opacity-0", "pointer-events-none");
+    }
+
     protected attachListeners(): void {
-        const aliasInput = document.getElementById("alias-name-input") as HTMLInputElement;
-        const usernameInput = document.getElementById("username-input")! as HTMLInputElement;
-        const pwdInput = document.getElementById("password-input")! as HTMLInputElement;
+        const aliasInputs = document.querySelectorAll("#alias-name-input");
+        const usernameInputs = document.querySelectorAll("#username-input")!
+        const pwdInputs = document.querySelectorAll("#password-input")!;
+
         const addPlayerBtn = document.getElementById("add-player-btn")!;
         const startTournamentBtn = document.getElementById("tournament-start-btn")!;
         const inputBoxes = document.querySelectorAll("#input-box");
 
+        const mobileAddPlayerMenuBtn = document.getElementById("mobile-tournament-add-player-btn");
+        const mobileValidatePlayerBtn = document.getElementById("mobile-tournament-validate-player");
+        const mobileMenuCross = document.getElementById("mobile-menu-cross");
+
+
         this.removeListenersFlag = true;
 
-        aliasInput?.addEventListener("keydown", this.aliasInputHandler);
-        usernameInput?.addEventListener("keydown", this.accountInputHandler);
-        pwdInput?.addEventListener("keydown", this.accountInputHandler);
+        aliasInputs.forEach((aliasInput) => {
+            const aliasInputElem = aliasInput as HTMLElement;
+            aliasInputElem.addEventListener("keydown", this.aliasInputHandler);
+        });
+        usernameInputs.forEach((usernameInput) => {
+            const usernameInputElem = usernameInput as HTMLElement;
+            usernameInputElem.addEventListener("keydown", this.aliasInputHandler);
+        });
+        pwdInputs.forEach((pwdInput) => {
+            const pwdInputElem = pwdInput as HTMLElement;
+            pwdInputElem.addEventListener("keydown", this.aliasInputHandler);
+        });
+
+
+        // aliasInput?.addEventListener("keydown", this.aliasInputHandler);
+        // usernameInput?.addEventListener("keydown", this.accountInputHandler);
+        // pwdInput?.addEventListener("keydown", this.accountInputHandler);
         addPlayerBtn?.addEventListener("click", this.btnHandler);
         startTournamentBtn?.addEventListener("click", this.startTournamentHandler);
+        mobileAddPlayerMenuBtn?.addEventListener("click", this.mobileShowPlayerMenu);
+        mobileValidatePlayerBtn?.addEventListener("click", this.mobileHidePlayerMenu);
+        mobileMenuCross?.addEventListener("click", this.mobileHidePlayerMenu)
 
         // Animations
         for (const box of inputBoxes) {

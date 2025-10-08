@@ -13,6 +13,7 @@ export interface GameModel {
 	statusWin: 0 | 1 | null;        // 0 = perdu, 1 = gagné, null = pas encore joué
 	duration: number;               // durée du jeu en secondes ou unités définies
 	otherPlayers: SafeUserBasic[];  // les autres participants
+    result?: number;
 }
 
 export interface TournamentModel {
@@ -48,9 +49,9 @@ export class Player {
     public ID: number;
     public tabID?: string;
     public webSocket?: WebSocket;
+    public isTemp: boolean = false;
     public inGame: boolean;
-    public ready: boolean;
-    public readyforTournament: boolean = false; //ptet a modifier
+    public inTournament: boolean = false;
     public matchMaking: boolean;
     public pos = { x: 0, y: 0 };
     public height: number;
@@ -69,7 +70,6 @@ export class Player {
     constructor(ID: number, alias?: string) {
         this.ID = ID;
         this.inGame = false;
-        this.ready = false;
         this.matchMaking = false;
         this.width = 0.02;
         this.height = 0.40;

@@ -181,7 +181,7 @@ export abstract class GamePage extends BasePage {
     private getAliases(data: any): string[] {
         const aliases: string[] = [];
 
-        aliases[0] = this.currentUser.username;
+        aliases[0] = this.currentUser!.username;
         aliases[1] = this.adversary?.username || translateService.t("game.player2");
 
         if (data.mode === "tournament" && this.players) {
@@ -578,19 +578,6 @@ export abstract class GamePage extends BasePage {
         score.classList.add("final-score");
 
         const gameHasBeenCancelled = this.finalScore[0] !== 3 && this.finalScore[1] !== 3;
-
-        // ! Pas besoin de requête à la DB, le back envoie le score au bon format sur la socket
-        // let gameInfos;
-
-        // const res = await fetch(`/api/game/${this.gameID}`);
-        // if (res.ok) {
-        //     gameInfos = await res.json();
-        //     console.log(gameInfos);
-        //     if (this.currentUser!.id != gameInfos.playersID[0]) {
-        //         [this.finalScore[0], this.finalScore[1]] = [this.finalScore[1], this.finalScore[0]];
-        //     }
-        // }
-        // score.textContent = `${this.finalScore[0]} - ${this.finalScore[1]}`;
         score.textContent = `${this.finalScore[0]} - ${this.finalScore[1]}`;
 
         if (this.adversary && !gameHasBeenCancelled) {

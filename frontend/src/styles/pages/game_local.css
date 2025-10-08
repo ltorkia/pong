@@ -67,25 +67,28 @@
 	.score-box {
 		@apply gap-4
 	}
-	.res-message {
-		@apply w-full p-3 text-4xl font-semibold uppercase rounded-2xl text-center;
-	}
 	.res-score {
 		@apply text-xl font-classic uppercase flex justify-center items-center;
 	}
 	.final-score {
 		@apply text-4xl px-3;
 	}
-	.lose-message {
-		@apply text-[#cc7f7f];
-		border: 2px dotted #cc7f7f;
+
+	.res-message {
+		@apply w-full items-center gap-2 p-3 rounded-lg 
+		text-4xl font-semibold tracking-widest uppercase text-center
+		bg-[#14151491] border border-[#3441394d];
 	}
+
 	.win-message {
-		@apply text-[#2dab2d];
-		border: 2px dotted #2dab2d;
+		@apply text-[#94ffa3];
 	}
+
 	.end-message {
-		@apply text-[#6566d8];
-		border: 2px dotted #6566d8;
+		@apply text-[#9497ff];
+	}
+
+	.lose-message {
+		@apply text-[#ff9494];
 	}
 }
