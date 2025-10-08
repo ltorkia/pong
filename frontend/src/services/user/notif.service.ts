@@ -34,6 +34,7 @@ export class NotifService {
 	public friendId: number | null = null;
 	public friendName: string | null = null;
 	public inviterTabIDs: Map<number, string> = new Map();
+	public isSelfNotif: boolean = false;
 	
 	private notifHandlers: Map<number, {
 		accept?: EventListener;
@@ -58,9 +59,39 @@ export class NotifService {
 	public async init(currentPage: PageInstance): Promise<void> {
 		this.currentUser = currentService.getCurrentUser();
 		this.currentPage = currentPage;
+		await this.waitForUser();
+		await this.waitForNavbar();
 		this.navbarInstance = this.currentPage.getComponentInstance!<NavbarComponent>(COMPONENT_NAMES.NAVBAR);
 		await this.loadNotifs();
 		translateService.updateLanguage(undefined, this.navbarInstance!.notifsWindow);
+	}
+
+	/**
+	 * Attends une promesse qui est résolue lorsque le composant Navbar est prêt.
+	 * 
+	 * La promesse est résolue lorsque le composant Navbar est créé et que l'événement 'navbar:ready' est déclenché.
+	 * 
+	 * @returns {Promise<void>} Une promesse qui est résolue lorsque le composant Navbar est prêt.
+	 */
+	public async waitForNavbar(): Promise<void> {
+		return new Promise(resolve => {
+			if (document.querySelector('#navbar')) return resolve();
+			document.addEventListener('navbar:ready', () => resolve(), { once: true });
+		});
+	}
+
+	/**
+	 * Attends une promesse qui est résolue lorsque l'utilisateur courant est disponible.
+	 * 
+	 * La promesse est résolue lorsque l'utilisateur courant est stocké dans `currentUser` ou que l'événement 'user:ready' est déclenché.
+	 * 
+	 * @returns {Promise<void>} Une promesse qui est résolue lorsque l'utilisateur courant est disponible.
+	 */
+	public async waitForUser(): Promise<void> {
+		return new Promise(resolve => {
+			if (this.currentUser) return resolve();
+			document.addEventListener('user:ready', () => resolve(), { once: true });
+		});
 	}
 
 	/**
@@ -86,14 +117,15 @@ export class NotifService {
                 	if (notif.read === 0) {
 						await this.handleNotification();
 					}
-					const userButtonToUpdate = notif.from == this.currentUser!.id ? notif.to : notif.from;
+					this.isSelfNotif = notif.from == this.currentUser!.id;
+					const userButtonToUpdate = this.isSelfNotif ? notif.to : notif.from;
 					await eventService.emit(EVENTS.FRIEND_UPDATED, { userId: Number(userButtonToUpdate) });
 				}
 			}
 		}
 		this.updateNotifsCounter();
     	this.displayDefaultNotif();
-		this.currentNotif = null;
+		this.isSelfNotif = false;
 		this.friendId = null;
 		this.friendName = null;
 	}
@@ -218,20 +250,22 @@ export class NotifService {
 			storageService.setCurrentNotifs([...this.notifs]);
 			this.displayNotif();
 
-			switch (this.currentNotif!.type) {
-				// Cas spécial pour les invitations de jeu
-				case FRIEND_REQUEST_ACTIONS.INVITE:
-					this.inviterTabIDs.set(Number(this.currentNotif!.from), this.currentNotif!.inviterTabID);
-					if (this.currentPage instanceof GamePage) {
-						if (this.currentPage.config.path === ROUTE_PATHS.GAME_MULTI
-							&& this.currentPage.challengedFriendID === this.currentNotif!.from) {
-							// TODO: fix update bouton replay
-							this.currentPage.changeReplayButtonForInvite()!;
-							this.currentPage.setCleanInvite();
-						} else 
-							this.currentPage.setCleanInvite();
-					}
-					break;
+			if (!this.isSelfNotif) {
+				switch (this.currentNotif!.type) {
+					// Cas spécial pour les invitations de jeu
+					case FRIEND_REQUEST_ACTIONS.INVITE:
+						this.inviterTabIDs.set(Number(this.currentNotif!.from), this.currentNotif!.inviterTabID);
+						if (this.currentPage instanceof GamePage) {
+							if (this.currentPage.config.path === ROUTE_PATHS.GAME_MULTI
+								&& this.currentPage.challengedFriendID === this.currentNotif!.from) {
+								// TODO: fix update bouton replay
+								this.currentPage.changeReplayButtonForInvite()!;
+								this.currentPage.setCleanInvite();
+							} else 
+								this.currentPage.setCleanInvite();
+						}
+						break;
+				}
 			}
 		};
 	}
@@ -682,16 +716,17 @@ export class NotifService {
 		const target = event.target as HTMLElement;
 		if (!this.friendId)
 			this.setFriendId(target);
+    	const savedFriendId = this.friendId;
 		this.setNotifData(type);
 
 		if (this.currentPage instanceof GamePage
-			&& this.currentPage.challengedFriendID === this.friendId) {
+			&& this.currentPage.challengedFriendID === savedFriendId) {
 			await this.currentPage.checkInviteReplayRequest?.();
 			this.currentPage.setCleanInvite(true);
 			await this.handleUpdate(type);
 			return;
 		}
-		await router.navigate(`/game/multi/${this.friendId!}`);
+		await router.navigate(`/game/multi/${savedFriendId}`);
 		await this.handleUpdate(type);
 	}
 

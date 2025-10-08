@@ -1,9 +1,9 @@
-<section id="tournament-overview" class="w-full h-full flex justify-center">
-    <div id="first-stage" class="flex flex-col m-5 justify-around w-1/4"></div>
-    <div id="second-stage" class="flex flex-col m-5 justify-around w-1/4"></div>
-    <div id="winner" class="flex flex-col m-5 justify-around w-1/4"></div>
+<section id="tournament-overview" class="w-full h-full flex justify-center ">
+    <div id="first-stage" class="flex flex-col m-5 justify-around w-1/4 max-lg:h-1/3"></div>
+    <div id="second-stage" class="flex flex-col m-5 justify-around w-1/4 max-lg:h-1/3 max-lg:justify-center"></div>
+    <div id="winner" class="flex flex-col m-5 justify-around w-1/4 max-lg:h-1/3"></div>
 </section>
-<div id="next-game" class="flex flex-col justify-center items-center w-1/4 p-3 font-home text-white text-2xl">
+<div id="next-game" class="flex flex-col justify-center items-center w-1/4 p-3 font-home text-white text-2xl max-lg: text-sm max-lg:hidden max-lg:w-full max-lg:h-full">
     <h2 class="text-center font-title" data-ts="tournament.nextGame"></h2>
     <div id="names" class="flex items-center m-1 p-1">
         <h2 id="player-one" class="text-black m-2 text-bold text-center font-title"></h2>
@@ -11,13 +11,14 @@
         <h2 id="player-two" class="text-black m-2 text-bold text-center font-title"></h2>
     </div>
     <button id="tournament-start-btn"
-        class="w-1/3 m-2 p-2 relative rounded-md border-black ring-1 ring-black shadow-lg shadow-black bg-black bg-opacity-70 text-white text-lg transform transition-all delay-50 duration-300 ease-in-out active:duration-75 hover:-translate-y-1 hover:bg-white hover:opacity-100 hover:text-black hover:scale-110 active:scale-105 active:translate-y-0.5 inline-block will-change-transform">Start Game!
+        class="w-1/3 max-lg:w-1/2 m-2 p-2 relative rounded-md border-black ring-1 ring-black shadow-lg shadow-black bg-black bg-opacity-70 text-white text-lg transform transition-all delay-50 duration-300 ease-in-out active:duration-75 hover:-translate-y-1 hover:bg-white hover:opacity-100 hover:text-black hover:scale-110 active:scale-105 active:translate-y-0.5 inline-block will-change-transform">Start Game!
     </button>
 </div>
 <div id="redirect-dialog-overlay"
 class="hidden fixed inset-0 flex items-center justify-center opacity-0 bg-black bg-opacity-50 z-50 transition-opacity duration-300">
 <div id="redirect-dialog"
-    class="flex flex-col justify-center items-center bg-black p-6 rounded-lg shadow-md shadow-black w-full max-w-md">
+    class="flex flex-col justify-center max-lg:fixed max-lg:top-14
+    items-center bg-black p-6 rounded-lg shadow-md shadow-black w-full max-w-md">
     <h2 data-ts="tournament.winnerBegin" id="tournament-winner-begin" class="text-xl font-title m-1"></h2>
     <h2 id="tournament-winner-name" class="opacity-0 text-5xl font-title mt-1 mb-1"></h2>
     <h2 data-ts="tournament.winnerEnd" id="tournament-winner-end" class="text-xl text-center font-title m-1"></h2>

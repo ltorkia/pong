@@ -13,6 +13,7 @@ import { storageService, webSocketService, pageService } from '../index.service'
  */
 export class CurrentService {
 	private currentUser: User | null = null;
+	private userReadyDispatched: number | null = null;
 	private isCurrentGameInit: Map<string, boolean> = new Map();
 
 	// -------------------------------
@@ -39,6 +40,7 @@ export class CurrentService {
 	public async setCurrentUser(user: User) {
 		this.currentUser = user;
 		storageService.setCurrentUser(this.currentUser);
+		this.dispatchUserReadyOnce();
 
 		// Ouvre WS si pas déjà ouvert, avec gestion d'erreur
 		await this.ensureWebSocketOpen();
@@ -55,6 +57,7 @@ export class CurrentService {
 			return;
 		this.currentUser = User.fromJSON(userData);
 		storageService.setCurrentUser(this.currentUser);
+		this.dispatchUserReadyOnce();
 
 		// Ouvre WS après que l'utilisateur est complètement restauré et valide
 		await this.ensureWebSocketOpen();
@@ -79,6 +82,7 @@ export class CurrentService {
 		}
 		Object.assign(this.currentUser, updates);
 		storageService.setCurrentUser(this.currentUser);
+		this.dispatchUserReadyOnce();
 
 		// Ouvre WS si pas déjà ouvert
 		await this.ensureWebSocketOpen();
@@ -98,6 +102,7 @@ export class CurrentService {
 			return;
 		}
 		this.currentUser = null;
+		this.userReadyDispatched = null;
 		storageService.clearCurrentUser();
 		webSocketService.closeWebSocket();
 
@@ -130,6 +135,7 @@ export class CurrentService {
 			this.ensureWebSocketOpen().catch(err => 
 				console.warn(`[${this.constructor.name}] WebSocket non ouvert après restauration:`, err)
 			);
+			this.dispatchUserReadyOnce();
 			
 			console.log(`[${this.constructor.name}] User restauré:`, this.currentUser);
 			return this.currentUser;
@@ -138,6 +144,15 @@ export class CurrentService {
 			storageService.clearCurrentUser();
 			return null;
 		}
+	}
+
+	private dispatchUserReadyOnce(): void {
+		if (!this.currentUser) 
+			return;
+		if (this.userReadyDispatched && this.userReadyDispatched === this.currentUser.id)
+			return;
+		this.userReadyDispatched = this.currentUser.id;
+		document.dispatchEvent(new CustomEvent('user:ready'));
 	}
 
 	// -------------------------------

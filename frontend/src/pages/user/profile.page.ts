@@ -323,6 +323,7 @@ export class ProfilePage extends BasePage {
 			result.classList.add(isWin ? 'win' : 'loss');
 			result.textContent = isWin ? 'VICTORY' : 'GAME OVER';
 			result.setAttribute('data-ts', isWin ? 'profile.winResult' : 'profile.lossResult');
+			result.classList.remove('hidden');
 		}
 
 		if (match.status === 'cancelled') {
@@ -467,9 +468,10 @@ export class ProfilePage extends BasePage {
 		container.id = `tournament-${tournament.tournamentId}`;
 
 		const template = document.getElementById('match-card-template') as HTMLTemplateElement;
-		for (let i = 0; i < tournament.games.length; i++) {
+		let games = tournament.games.filter((game: Game) => game.status === 'finished' || game.status === 'cancelled');
+		for (let i = 0; i < games.length; i++) {
 			const matchClone = template.content.cloneNode(true) as DocumentFragment;
-			await this.renderMatchCard(matchClone, tournament.games[i], i);
+			await this.renderMatchCard(matchClone, games[i], i);
 			container.appendChild(matchClone);
 		}
 

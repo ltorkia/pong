@@ -1,10 +1,23 @@
-<div id="pong-section" class="section-box pong-box large-box game-local justify-evenly h-full w-full p-0">
-  <h1 class="font-title font-extrabold text-6xl text-center tracking-wide bg-clip-text drop-shadow-lg w-full" data-ts="home.distantGameBtn">1v1 • online game</h1>
-  <h2 class="text-4xl font-semibold uppercase tracking-widest text-gray-200 drop-shadow-md mt-6 mb-4" data-ts="game.controlLabel">CONTROLS</h2>
+<div id="pong-section" class="relative section-box pong-box large-box game-local justify-evenly h-full w-full p-0">
+  <h1 class="font-title font-extrabold text-6xl max-lg:text-2xl text-center tracking-wide bg-clip-text drop-shadow-lg w-full" data-ts="home.distantGameBtn">1v1 • online game</h1>
+  <h2 class="text-4xl max-lg:text-2xl font-semibold uppercase tracking-widest text-gray-200 drop-shadow-md mt-6 mb-4" data-ts="game.controlLabel">CONTROLS</h2>
   <div class="flex justify-evenly h-full w-full">
-    <div class="flex-1 flex flex-col justify-center justify-evenly items-center text-4xl h-full">
-      <div class="control mb-3" data-key="w">W</div>
-      <div class="control" data-key="s">S</div>
+    <div class="flex justify-evenly h-full w-full max-mobile:hidden">
+        <div class="flex justify-evenly h-full w-full">
+            <div class="flex-1 flex flex-col justify-center justify-evenly items-center text-4xl h-full">
+                <div class="control mb-3" data-key="w">W</div>
+                <div class="control" data-key="s">S</div>
+            </div>
+            <div class="flex-1 flex flex-col justify-center items-center text-4xl h-full">
+                <div class="control mb-3" data-key="ArrowUp">↑</div>
+                <div class="control" data-key="ArrowDown">↓</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="flex flex-col justify-center items-center hidden max-mobile:flex">
+        <img class="w-4/5 rounded-md shadow-lg shadow-black border-2 border-black" src="/assets/img/design/fingers.gif"/>
+        <h2 data-ts="game.fingers" class="text-center m-2">Use your fingers!</h2>
     </div>
   </div>
   <div class="start-space ready-text bg-opacity-30" data-ts="game.ready">READY? PRESS SPACE TO BEGIN</div>

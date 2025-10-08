@@ -84,8 +84,18 @@ export class GameMenuTournamentLocal extends BasePage {
     // Animation pour print une erreur, error etant une value des JSON translate (tournament.errors.${param})
     private printError(error: string): void {
         const errorDiv = document.createElement("div");
-        const tournamentBox = document.querySelectorAll("#input-box")[1];
-        const startBtn = document.getElementById("tournament-start-btn");
+
+        let loginBox, parent, startBtn;
+
+        if (this.mobile) {
+            loginBox = document.getElementById("mobile-login-input-box");
+            startBtn = document.getElementById("mobile-tournament-validate-player");
+            parent = document.getElementById("mobile-parent-input-box");
+        } else {
+            loginBox = document.querySelectorAll("#input-box")[1];
+            startBtn = document.getElementById("tournament-start-btn");
+            parent = document.getElementById("input-box")!;
+        }
 
         errorDiv.textContent = translateService.t(`tournament.errors.${error}`);
 
@@ -95,28 +105,39 @@ export class GameMenuTournamentLocal extends BasePage {
             "bg-black", "bg-opacity-90", "m-2", "p-2", "text-center", "text-white",
             "animate__animated", "animate__fadeIn"
         );
-        const input = document.getElementById("input-box")!;
-        input.insertAdjacentElement("afterend", errorDiv);
-        tournamentBox!.classList.add("translate-y-12");
-        tournamentBox!.classList.remove("hover:-translate-y-1");
-        startBtn!.classList.add("translate-y-12");
+
+        if (this.mobile) {
+            errorDiv.classList.replace("-translate-y-6", "translate-y-[0.1rem]");
+            errorDiv.classList.replace("left-0", "left-50");
+            errorDiv.classList.add("w-1/2", "-translate-x-1/2");
+        }
+        parent!.insertAdjacentElement("afterend", errorDiv);
+
+        let translateY;
+
+        this.mobile ? translateY = "translate-y-16" : translateY = "translate-y-12";
+
+        loginBox!.classList.add(translateY);
+        loginBox!.classList.remove("hover:-translate-y-1");
+        startBtn!.classList.add(translateY);
         startBtn!.classList.remove("hover:-translate-y-1");
 
+        console.log(loginBox)
         setTimeout(() => {
             errorDiv.classList.add("animate__animated", "animate__fadeOut");
             setTimeout(() => {
-                tournamentBox!.classList.remove("translate-y-12");
-                tournamentBox!.classList.add("translate-y-0");
-                startBtn!.classList.remove("translate-y-12");
+                loginBox!.classList.remove(translateY);
+                loginBox!.classList.add("translate-y-0");
+                startBtn!.classList.remove(translateY);
                 startBtn!.classList.add("translate-y-0");
                 errorDiv.addEventListener("animationend", () => {
                     errorDiv.remove();
                 });
-                tournamentBox.classList.add("hover:-translate-y-1");
+                loginBox!.classList.add("hover:-translate-y-1");
                 startBtn!.classList.add("hover:-translate-y-1");
             }, 500);
         }, 1500);
-        tournamentBox?.classList.remove("translate-y-0");
+        loginBox?.classList.remove("translate-y-0");
         startBtn?.classList.remove("translate-y-0");
     }
 
@@ -159,8 +180,8 @@ export class GameMenuTournamentLocal extends BasePage {
     };
 
     // Handler du champ alias seul 
-    private aliasInputHandler = (event: KeyboardEvent) => {
-        if (event.key != "Enter")
+    private aliasInputHandler = (event?: KeyboardEvent) => {
+        if (event && event.key != "Enter")
             return;
 
         let aliasInput, usernameInput, pwdInput;
@@ -217,12 +238,31 @@ export class GameMenuTournamentLocal extends BasePage {
 
     // Juste pour utiliser le meme handler sur le bouton add player
     private btnHandler = () => {
-        this.accountInputHandler();
+        let aliasInput, usernameInput, pwdInput;
+
+        if (this.mobile) {
+            aliasInput = document.querySelectorAll("#alias-name-input")![1] as HTMLInputElement;
+            usernameInput = document.querySelectorAll("#username-input")![1] as HTMLInputElement;
+            pwdInput = document.querySelectorAll("#password-input")![1] as HTMLInputElement;
+        } else {
+            aliasInput = document.getElementById("alias-name-input") as HTMLInputElement;
+            usernameInput = document.getElementById("username-input")! as HTMLInputElement;
+            pwdInput = document.getElementById("password-input")! as HTMLInputElement;
+        }
+        
+        if (aliasInput.value && !usernameInput.value && !pwdInput.value)
+            return this.aliasInputHandler();
+        else
+            return this.accountInputHandler();
     }
 
     private startTournamentHandler = async () => {
-        if (this.players.length != MAX_PLAYERS)
-            return (this.printError("missingPlayer"));
+        if (this.players.length != MAX_PLAYERS) {
+            if (this.mobile)
+                return animateCSS(document.getElementById("mobile-tournament-start-btn")!, "headShake");
+            else
+                return (this.printError("missingPlayer"));
+        }
 
         const players: Player[] = [];
 
@@ -266,12 +306,12 @@ export class GameMenuTournamentLocal extends BasePage {
 
         const addPlayerBtn = document.getElementById("add-player-btn")!;
         const startTournamentBtn = document.getElementById("tournament-start-btn")!;
+        const mobileStartTournamentBtn = document.getElementById("mobile-tournament-start-btn")!;
         const inputBoxes = document.querySelectorAll("#input-box");
 
         const mobileAddPlayerMenuBtn = document.getElementById("mobile-tournament-add-player-btn");
         const mobileValidatePlayerBtn = document.getElementById("mobile-tournament-validate-player");
         const mobileMenuCross = document.getElementById("mobile-menu-cross");
-
 
         this.removeListenersFlag = true;
 
@@ -281,21 +321,18 @@ export class GameMenuTournamentLocal extends BasePage {
         });
         usernameInputs.forEach((usernameInput) => {
             const usernameInputElem = usernameInput as HTMLElement;
-            usernameInputElem.addEventListener("keydown", this.aliasInputHandler);
+            usernameInputElem.addEventListener("keydown", this.accountInputHandler);
         });
         pwdInputs.forEach((pwdInput) => {
             const pwdInputElem = pwdInput as HTMLElement;
-            pwdInputElem.addEventListener("keydown", this.aliasInputHandler);
+            pwdInputElem.addEventListener("keydown", this.accountInputHandler);
         });
 
-
-        // aliasInput?.addEventListener("keydown", this.aliasInputHandler);
-        // usernameInput?.addEventListener("keydown", this.accountInputHandler);
-        // pwdInput?.addEventListener("keydown", this.accountInputHandler);
         addPlayerBtn?.addEventListener("click", this.btnHandler);
         startTournamentBtn?.addEventListener("click", this.startTournamentHandler);
+        mobileStartTournamentBtn?.addEventListener("click", this.startTournamentHandler);
         mobileAddPlayerMenuBtn?.addEventListener("click", this.mobileShowPlayerMenu);
-        mobileValidatePlayerBtn?.addEventListener("click", this.mobileHidePlayerMenu);
+        mobileValidatePlayerBtn?.addEventListener("click", this.btnHandler);
         mobileMenuCross?.addEventListener("click", this.mobileHidePlayerMenu)
 
         // Animations

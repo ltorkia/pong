@@ -20,11 +20,46 @@ export class GameTournamentLocalOverview extends BasePage {
     private tournament: TournamentLocal | undefined;
     private dataApi = new DataService();
     private users: UserModel[] = [];
+    private mobile: boolean = false;
 
+    // listener lorsque navigation, pour enlever le rotate et restart les differents styles
     constructor(config: RouteConfig, params?: RouteParams) {
         super(config);
         if (params && params.tournamentId)
             this.tournamentID = Number(params.tournamentId);
+        if (window.innerWidth < 1024) {
+            this.mobile = true;
+            this.onClientNavigation(() => {
+                const app = document.getElementById("app");
+                app?.classList.remove(
+                    "m-0", "rotate-[-90deg]", "origin-bottom-left",
+                    "top-0", "left-0", "fixed"
+                );
+                app?.removeAttribute("style");
+                document.body.removeAttribute("style");
+                void document.body.offsetWidth;
+            });
+        }
+    }
+
+    private onClientNavigation(callback: (type: "pushState" | "replaceState" | "popstate" | "refresh", ...args: any[]) => void) {
+        const originalPushState = history.pushState;
+        history.pushState = function (...args) {
+            const result = originalPushState.apply(this, args);
+            callback("pushState", ...args);
+            return result;
+        };
+
+        const originalReplaceState = history.replaceState;
+        history.replaceState = function (...args) {
+            const result = originalReplaceState.apply(this, args);
+            callback("replaceState", ...args);
+            return result;
+        };
+
+        window.addEventListener("popstate", () => {
+            callback("popstate");
+        });
     }
 
     /**
@@ -107,6 +142,17 @@ export class GameTournamentLocalOverview extends BasePage {
             pastille.classList.remove("opacity-0");
             pastille.classList.add("opacity-100");
         }
+
+        if (this.mobile) {
+            const app = document.getElementById("app")!;
+            app.style.width = `${window.innerHeight.toString()}px`;
+            app.style.height = `${window.innerWidth.toString()}px`;
+            app.classList.add(
+                "m-0", "rotate-[-90deg]", "fixed",
+                "top-0", "left-0"
+            );
+        }
+
     }
 
     // Trouve la prochaine game a jouer pour continuer le tournoi
@@ -123,13 +169,23 @@ export class GameTournamentLocalOverview extends BasePage {
     // Affiche la next game a jouer et set le bouton pour naviguer a l'adresse de la prochaine game
     private displayNextGameAndSetNavigate(): void {
         const nextGame = this.getNextGame();
-        console.log(this.tournament);
         if (nextGame) {
             document.getElementById("player-one")!.textContent = `${nextGame?.players[0].alias}`;
             document.getElementById("player-two")!.textContent = `${nextGame?.players[1].alias}`;
             document.getElementById("tournament-start-btn")!.addEventListener("click", () => {
                 router.navigate(`${ROUTE_PATHS.GAME_LOCAL}/${this.tournamentID}/${nextGame.gameID}`);
             })
+        }
+        if (this.mobile) {
+            const nextGameHTML = document.getElementById("next-game")?.cloneNode(true) as HTMLElement;
+            const winnerContainer = document.getElementById("winner");
+            if (nextGameHTML) {
+                nextGameHTML.classList.remove("max-lg:hidden");
+                nextGameHTML.querySelector("#tournament-start-btn")?.addEventListener("click", () => {
+                    router.navigate(`${ROUTE_PATHS.GAME_LOCAL}/${this.tournamentID}/${nextGame?.gameID}`);
+                })
+                winnerContainer?.append(nextGameHTML);
+            }
         }
     }
 
@@ -157,16 +213,19 @@ export class GameTournamentLocalOverview extends BasePage {
     // Afficher le winner, display l'overlay winner et insere le nom du gagnant
     private async displayWinner(winnerContainer: HTMLElement): Promise<void> {
         const playerPastille = await this.createAndFillPlayerPastille(this.tournament?.winner!, 0);
-        winnerContainer.append(playerPastille);
+        if (!this.mobile)
+            winnerContainer.append(playerPastille);
 
         if (this.tournament?.winner) {
             document.getElementById("next-game")!.classList.add("hidden");
-            setInterval(() => {
-                animateCSS(winnerContainer, "tada");
-            }, 1500);
-            setInterval(() => {
-                playerPastille.classList.toggle("border-yellow-500");
-            }, 500);
+            if (!this.mobile) {
+                setInterval(() => {
+                    animateCSS(winnerContainer, "tada");
+                }, 1500);
+                setInterval(() => {
+                    playerPastille.classList.toggle("border-yellow-500");
+                }, 500);
+            }
             const redirectDialog = document.getElementById("redirect-dialog-overlay");
             if (redirectDialog) {
                 setTimeout(() => this.showWinnerDialog(), 1000);
@@ -224,7 +283,8 @@ export class GameTournamentLocalOverview extends BasePage {
             tooltip.querySelector(`#score-${i}`)!.textContent = String(game.score[i]);
             container.append(playerPastille);
         }
-        container.append(tooltip);
+        if (!this.mobile)
+            container.append(tooltip);
     }
 
     // Afficher les deux etapes du tournoi
@@ -234,6 +294,8 @@ export class GameTournamentLocalOverview extends BasePage {
             const div = document.createElement("div");
             div.id = "match-container";
             div.classList.add("relative");
+            if (this.mobile)
+                div.classList.add("h-1/2", "m-3");
             await this.displayGamePlayers(stage[i], div);
             container.append(div);
         }
@@ -261,15 +323,18 @@ export class GameTournamentLocalOverview extends BasePage {
 
         for (const match of allMatches) {
             const tooltip = match.querySelector("#tooltip");
-            match.addEventListener("mouseenter", () => {
-                tooltip!.classList.remove("opacity-0", "pointer-events-none");
-                tooltip!.classList.add("opacity-100");
-                tooltip?.querySelector("h2");
-            });
-            match.addEventListener("mouseleave", () => {
-                tooltip?.classList.remove("opacity-100");
-                tooltip?.classList.add("opacity-0", "pointer-events-none");
-            })
+            if (tooltip) {
+                match.addEventListener("mouseenter", () => {
+                    tooltip!.classList.remove("opacity-0", "pointer-events-none");
+                    tooltip!.classList.add("opacity-100");
+                    tooltip?.querySelector("h2");
+                });
+                match.addEventListener("mouseleave", () => {
+                    tooltip?.classList.remove("opacity-100");
+                    tooltip?.classList.add("opacity-0", "pointer-events-none");
+                })
+
+            }
         }
     }
 }

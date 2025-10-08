@@ -202,7 +202,8 @@
 		"replay": "Rejouer",
 		"replayUser": "Rejouer avec ",
 		"playBtn": "Commencer la partie",
-		"accept-invitation-from": "Accepter l'invitation de "
+		"accept-invitation-from": "Accepter l'invitation de ",
+        "fingers": "Utilisez vos doigts !"
 	},
 
 	"tournament": {

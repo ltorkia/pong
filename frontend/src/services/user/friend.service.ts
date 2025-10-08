@@ -133,6 +133,11 @@ export class FriendService {
 
 			await notifService.deleteAllNotifsFromUser(data.userId, notifService.currentNotif?.id);
 			notifService.displayDefaultNotif();
+			(async () => {
+				await notifService.waitForUser();
+				await notifService.waitForNavbar();
+				notifService.updateNotifsCounter();
+			})();
 		};
 		eventService.on(EVENTS.FRIEND_UPDATED, this.boundUpdateHandler);
 	}

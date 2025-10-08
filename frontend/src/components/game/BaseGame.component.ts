@@ -39,6 +39,7 @@ export class MultiPlayerGame {
     private targetTimeStamp: number = 0;
     public birds: Triangle[] = [];
     private gameLoopBind: any;
+    private mobile: boolean;
     private testStartTime = 0;
     private stutterCount = 0;
     private kindOfGame: string = "multi";
@@ -57,6 +58,7 @@ export class MultiPlayerGame {
             this.players.push(new PlayerBar(this.canvasCtx));
         }
         this.aliases = aliases;
+        window.innerWidth < 480 ? this.mobile = true : this.mobile = false;
     }
 
     public clearScreen(): void {
@@ -65,11 +67,6 @@ export class MultiPlayerGame {
         this.canvasCtx.fillRect(0, 0, this.gameCanvas.width, this.gameCanvas.height);
         this.canvasCtx.globalCompositeOperation = 'source-over';
     };
-
-    // public clearScreen(): void {
-    // this.canvasCtx.clearRect(0, 0, this.gameCanvas.width, this.gameCanvas.height);
-    // };
-
 
     public drawMiddleLine(): void {
         const lineWidth = 2;        // px
@@ -85,13 +82,22 @@ export class MultiPlayerGame {
     }
 
     protected attachListeners() {
-        document.addEventListener("keydown", this.handleGameKeyDown);
-        document.addEventListener("keyup", this.handleGameKeyUp);
+        if (this.mobile) 
+            this.gameCanvas.addEventListener("touchstart", this.handleTouchInput);
+        else {
+            console.log("this no mobile");
+            document.addEventListener("keydown", this.handleGameKeyDown);
+            document.addEventListener("keyup", this.handleGameKeyUp);
+        }
     }
 
     protected removeListeners(): void {
-        document.removeEventListener("keydown", this.handleGameKeyDown);
-        document.removeEventListener("keyup", this.handleGameKeyUp);
+        if (this.mobile)
+            this.gameCanvas.removeEventListener("touchstart", this.handleTouchInput);
+        else {
+            document.removeEventListener("keydown", this.handleGameKeyDown);
+            document.removeEventListener("keyup", this.handleGameKeyUp);
+        }
     }
 
     public cleanupListeners(): void {
@@ -123,6 +129,34 @@ export class MultiPlayerGame {
             tabID: webSocketService.getTabID()
         }))
     };
+
+    protected handleTouchInput = (event: TouchEvent): void => {
+        event.preventDefault();
+
+        const rect = this.gameCanvas.getBoundingClientRect();
+        const touch = event.touches[0];
+
+        // Get touch position relative to the ROTATED canvas bounds
+        const touchX = touch.clientX - rect.left;
+        const touchY = touch.clientY - rect.top;
+
+        // Normalize to displayed size (0-1 range)
+        const normalizedX = touchX / rect.width;   // 0 to 1
+        const normalizedY = touchY / rect.height;  // 0 to 1
+
+        // Apply -90° rotation transformation AND convert to -1 to +1 range:
+        const coords = {
+            x: 1 - normalizedY * 2,         // (1 - [0 to 1] * 2) = 1 to -1
+            y: (normalizedX * 2 - 1) * -1   // ([0 to 1] * 2 - 1) = -1 to +1
+        };
+
+        this.playerWebSocket.send(JSON.stringify({
+            type: "touchMovement",
+            coords: coords,
+            playerID: this.playerID,
+            tabID: webSocketService.getTabID()
+        }));
+    }
 
     public counter(): Promise<void> {
         this.canvasCtx.font = "64px font-title";
@@ -173,7 +207,6 @@ export class MultiPlayerGame {
             this.score = score;
             this.goalScored = true;
 
-            console.log("GOAL SCORE TRUE");
             const now = performance.now();
             const targetTime = now - BUFFER_DELAY;
             this.targetTimeStamp = getTargetTimestamp(this.gameStates.timestamps, targetTime);
@@ -182,9 +215,8 @@ export class MultiPlayerGame {
 
     public setAllPositions(): void {
         if (this.goalScored) {
-            console.log("YES");
             if (this.targetTimeStamp + 1 == this.gameStates.states.length) {
-                animateCSS(this.gameCanvas, "headShake");
+                if (!this.mobile) animateCSS(this.gameCanvas, "headShake");
                 this.goalScored = false;
                 const lastIndex = this.gameStates.states.length - 1;
 
@@ -204,11 +236,8 @@ export class MultiPlayerGame {
                         gameID: this.gameID,
                         tabID: webSocketService.getTabID()
                     }))
-                    console.log(webSocketService.getTabID());
-                    console.log("sent go");
                 }, 500);
             } else {
-                console.log("ELSE YES");
                 const target = this.targetTimeStamp;
                 const next = target + 1;
 
@@ -240,7 +269,6 @@ export class MultiPlayerGame {
             this.players[1].x = lerp(this.gameStates.states[target].players[1].pos.x, this.gameStates.states[next].players[1].pos.x, t);
             this.players[1].y = lerp(this.gameStates.states[target].players[1].pos.y, this.gameStates.states[next].players[1].pos.y, t);
         } else {
-            console.log("didnt find gamestate");
             if (this.gameStates.states.length) {
                 const lastIndex = this.gameStates.states.length - 1;
 
@@ -294,6 +322,25 @@ export class MultiPlayerGame {
         this.frameReq = requestAnimationFrame(this.gameLoopBind);
     };
 
+    private initCanvasMobile(): void {
+        const parentContainer: HTMLElement = document.getElementById("pong-section")!;
+        const canvasW = parentContainer.getBoundingClientRect().width;
+        const canvasH = parentContainer.getBoundingClientRect().height;
+
+        this.gameCanvas.height = canvasW;
+        this.gameCanvas.width = canvasH;
+
+        this.gameCanvas.classList.add(
+            "border-1", "border-black", "bg-black", "bg-opacity-70",
+        )
+        this.gameCanvas.style.position = "absolute";
+        this.gameCanvas.style.top = "-50";
+        this.gameCanvas.style.left = "-50";
+        this.gameCanvas.style.transform = `rotate(-90deg)`;
+        animateCSS(this.gameCanvas, "zoomIn");
+        parentContainer.append(this.gameCanvas);
+    }
+
     public initCanvas(): void {
         const parentContainer: HTMLElement = document.getElementById("pong-section")!;
         this.gameCanvas.height = parentContainer.getBoundingClientRect().height;    // will need to update that every frame later (responsiveness)
@@ -326,7 +373,10 @@ export class MultiPlayerGame {
     }
 
     public async initGame(): Promise<void> {
-        this.initCanvas();
+        if (window.innerWidth < 480)
+            this.initCanvasMobile();
+        else
+            this.initCanvas();
         this.initSizePos();
         this.initBirds();
         this.clearFillStyle = 0.3;

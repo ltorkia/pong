@@ -201,7 +201,8 @@
 		"replay": "再プレイ",
 		"replayUser": "友達と再プレイ ",
 		"playBtn": "ゲームを始める",
-		"accept-invitation-from": "対戦を受け入れる "
+		"accept-invitation-from": "対戦を受け入れる ",
+        "fingers": "指を使って！"
 	},
 
 	"tournament": {

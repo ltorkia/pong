@@ -278,7 +278,7 @@ export async function getUserTournaments(userId: number): Promise<TournamentMode
 				g.winner_id,
 				g.type
 			FROM Game g
-			WHERE g.tournament = ? AND status = 'finished'
+			WHERE g.tournament = ?
 			ORDER BY g.begin DESC
 		`, [tournament.tournament_id])) || [];
 
@@ -332,6 +332,7 @@ export async function getUserTournaments(userId: number): Promise<TournamentMode
 			game.otherPlayers = orderedPlayers;
 		}
 		tournament.games = games;
+		console.log(tournament);
 	}
 
 	// Enfin, camelCase pour les tournois (sans toucher aux games déjà transformés)

@@ -22,6 +22,7 @@ import { TournamentService } from 'src/api/game/game.api';
 export class Router {
     private routes: Map<string, RouteHandler> = new Map();
     private isNavigating = false;
+    public isPopstateNavigation = false;
 
     /**
      * Constructeur: initialise les écouteurs d'événements importants
@@ -36,7 +37,10 @@ export class Router {
      *   et en redirigeant vers la bonne page.
      */
     constructor() {
-        window.addEventListener('popstate', () => this.handleLocation());
+        window.addEventListener('popstate', () => {
+            this.isPopstateNavigation = true;
+            this.handleLocation();
+        });
         document.addEventListener('click', (e) => {
             const target = e.target as HTMLElement;
             if (target.matches('[data-link], [data-link] *')) {
@@ -109,6 +113,7 @@ export class Router {
         }
 
         this.isNavigating = true;
+        this.isPopstateNavigation = false;
 
         // Recherche d'une route qui correspond au chemin (supporte les routes dynamiques)
         const matchedRoute = matchRoute(normalizedPath, this.routes);
