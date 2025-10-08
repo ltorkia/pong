@@ -76,11 +76,11 @@
 		"scoring": {
 			"title": "Score",
 			"text": "Chaque fois que la balle dépasse la raquette de l’adversaire, le joueur marque 1 point.",
-			"highlight": "Le premier joueur à atteindre ?? points gagne la partie."
+			"highlight": "Le premier joueur à atteindre 3 points gagne la partie."
 		},
 			"tournament": {
 			"title": "Tournoi",
-			"text": "• Bla bla bla."
+			"text": "Participez a un tournoi avec 3 de vos amis(inscrits ou non) depuis votre session."
 		}
 	},
 
