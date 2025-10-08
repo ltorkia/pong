@@ -40,9 +40,16 @@ export function checkUserLogged(isPublic: boolean): boolean {
  * @returns {string} La date formatée, au format 'jj/mm/aaaa HH:MM'.
  */
 export function formatDate(dateString: string): string {
-	const date = new Date(dateString);
-	return date.toLocaleDateString("fr-FR", {
+	const date = new Date(dateString + 'Z');
+	const now = new Date();
+	return date.toLocaleString("fr-FR", {
 		timeZone: "Europe/Paris",
+		// hour12: false,
+		year: "numeric",
+		month: "2-digit",
+		day: "2-digit",
+		// hour: "2-digit",
+		// minute: "2-digit",
 	});
 }
 
