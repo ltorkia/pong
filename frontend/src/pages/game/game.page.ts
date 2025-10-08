@@ -290,6 +290,11 @@ export abstract class GamePage extends BasePage {
 		this.relation = await friendApi.getRelation(this.currentUser!.id, this.challengedFriendID);
 		if (!this.relation || 'errorMessage' in this.relation || !this.relation.waitingInvite)
 			return false;
+        if (this.isPopstate || this.isReload) {
+            if (this.currentUser!.id === this.relation.isChallenged)
+                this.inviteToClean = false;
+            return false;
+        }
 		switch (this.currentUser!.id) {
 			case this.relation.isChallenged:
 				this.requestType = "invite-accept";

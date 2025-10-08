@@ -157,6 +157,8 @@ export class WebSocketService {
 					const data = receivedData as NotificationModel[];
 					const formatedData = AppNotification.fromJSONArray(data) as AppNotification[];
 					// console.log('Notification reçue:', formatedData);
+					await notifService.waitForUser();
+					await notifService.waitForNavbar();
 					await notifService.handleNotifications(formatedData);
 					return;
 				}

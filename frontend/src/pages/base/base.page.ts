@@ -2,7 +2,7 @@ import DOMPurify from "dompurify";
 import { RouteConfig } from '../../types/routes.types';
 import { router } from '../../router/router';
 import { User } from '../../shared/models/user.model';
-import { currentService, dataService, pageService } from '../../services/index.service';
+import { currentService, dataService, pageService, friendService } from '../../services/index.service';
 import { checkUserLogged } from '../../utils/app.utils'; 
 import { BaseComponent } from '../../components/base/base.component';
 import { HomebarComponent } from '../../components/homebar/homebar.component';
@@ -33,6 +33,8 @@ export abstract class BasePage {
 	protected removeListenersFlag: boolean = true;
 	protected redirectRoute: string = DEFAULT_ROUTE;
 	protected isPageRefreshing = false;
+	protected isReload = false;
+	protected isPopstate = false;
 
 	/**
 	 * Constructeur de la classe de base des pages.
@@ -128,6 +130,12 @@ export abstract class BasePage {
 			return false;
 		if (this.currentUser)
 			this.currentUserAvatarURL = await dataService.getUserAvatarURL(this.currentUser);
+
+		this.isReload = !sessionStorage.getItem('spaVisited');
+		if (this.isReload)
+			sessionStorage.setItem('spaVisited', 'true');
+
+		this.isPopstate = router.isPopstateNavigation;
 		return true;
 	}
 
@@ -284,6 +292,7 @@ export abstract class BasePage {
 				break;
 			case COMPONENT_NAMES.NAVBAR:
 				pageService.navbarInstance = componentInstance as NavbarComponent;
+				document.dispatchEvent(new CustomEvent('navbar:ready'));
 				break;
 		}
 	}
@@ -390,6 +399,8 @@ export abstract class BasePage {
 		try {
 			console.log(`[${this.constructor.name}] Détection d’un refresh/fermeture`);
 			this.isPageRefreshing = true;
+			sessionStorage.removeItem('spaVisited');
+			friendService.cleanup();
 			await this.cleanup();
 		} catch (err) {
 			console.error("Erreur dans onPageUnload :", err);

@@ -11,7 +11,7 @@
 		@apply bg-[#de9494];
 	}
 
-	.profile-container .section-box {
+	.profile-container .section-box, .profile-container .section-box button {
 		@apply w-full;
 	}
 
@@ -23,8 +23,8 @@
 	}
 
 	.profile-grid {
-		@apply flex gap-2 flex-col
-		desktop:flex-row desktop:gap-4;
+		@apply flex gap-4 flex-col
+		wide:flex-row;
 	}
 
 	.profile-avatar-section {
@@ -75,25 +75,20 @@
 	}
 
 	.profile-actions {
-		@apply flex flex-col gap-3
+		@apply flex flex-col
 		mobile:flex-row mobile:justify-center
-		/* tablet:justify-start; */
+		tablet:gap-3;
 	}
 
 	#button-actions {
 		@apply mt-2 flex-col bg-[#9d9d9d4d]
 		tablet:ml-4 tablet:mt-0 tablet:flex-row
-		desktop:flex-col;
+		wide:flex-col;
 	}
 
 	.btn-friend {
 		@apply btn smaller-btn px-4;
 	}
-
-	/* .btn-add-friend {
-		@apply bg-gradient-to-r from-blue-500 to-purple-600 text-white
-		hover:from-blue-600 hover:to-purple-700;
-	} */
 
 	.btn-remove-friend {
 		@apply bg-gradient-to-r from-red-500 to-pink-600 text-white
@@ -125,10 +120,11 @@
 
 	.section-title {
 		@apply text-base font-bold text-white mb-4 flex items-center gap-3 uppercase tracking-widest
-		absolute -top-10 right-10 shadow-lg
+		absolute -top-3 right-0 shadow-lg
 		border-b-2 border-white/60
-		bg-black/40 px-4 py-2 rounded-full
-		tablet:text-2xl tablet:mb-6;
+		bg-black/40 px-4 py-0 rounded-full
+		tablet:text-2xl tablet:mb-6 tablet:right-5 tablet:-top-6
+		wide:-top-8;
 	}
 
 	.section-icon {
@@ -176,8 +172,8 @@
 	}
 
 	.match-header, .tournament-header {
-		@apply flex flex-col gap-3 mb-2 p-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg
-		mobile:flex-row mobile:items-center mobile:justify-between;
+		@apply flex flex-col items-center justify-center w-full mt-5 gap-3 mb-2 p-2 bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg
+		mobile:flex-row mobile:justify-between mobile:mt-0;
 	}
 
 	.match-result, .cancelled, .match-round, .tournament-result {
@@ -254,6 +250,6 @@
 	}
 	
 	.see-more {
-		@apply cursor-pointer;
+		@apply cursor-pointer text-gray-500 hover:text-gray-700 transition duration-200;
 	}
 }
