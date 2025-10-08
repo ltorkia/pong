@@ -185,6 +185,7 @@ export class Game extends EventEmitter {
 
     public gameStarted: boolean = false;
     public isOver: boolean = false;
+    public isPaused: boolean = false;
     public cancellerID: number = 0;
 
     private score: number[] = [0, 0];
@@ -199,47 +200,15 @@ export class Game extends EventEmitter {
         this.tournamentID = tournamentID;
     }
 
-    // private async gameLoop(): Promise<void> {
-    //     const fps = 1000 / 60;
-    //     let then = Date.now();
-    //     const startTime = then;
-    //     let frame = 0;
-    //     while (this.gameStarted == true) {
-    //         this.ball.move();
-    //         for (const player of this.players)
-    //             player.move();
-    //         // if (this.ball.x < -0.5 || this.ball.y > 0.5) {
-    //         if (this.ball.checkPlayerCollision(this.players))
-    //             this.ball.horizontalCollision(this.players);
-    //         // }
-    //         // else if (collision && (this.ball.isGoingUp() || this.ball.isGoingDown()))
-    //         //     this.ball.verticalCollision();
-    //         if (this.ball.y + this.ball.radius / 2 <= -1 || this.ball.y + this.ball.radius / 2 >= 1)
-    //             this.ball.verticalCollision();
-    //         if (this.ball.x - this.ball.radius / 2 <= -1 || this.ball.x + this.ball.radius / 2 >= 1)
-    //             return (this.checkScore());
-    //         const now = Date.now();
-    //         if (now - then < fps) {
-    //             await sleep(fps - (now - then));
-    //         }
-    //         frame++;
-    //         this.sendGameUpdate();
-    //         then = Date.now();
-    //     }
-    //     console.log("----------------- GAME ENDED -----------------");
-    // };
-
-        private async gameLoop(): Promise<void> {
+    private async gameLoop(): Promise<void> {
         const fps = 1000 / 60;
         let then = Date.now();
         const startTime = then;
         let frame = 0;
         while (this.gameStarted == true) {
-            // this.ball.move();
             for (const player of this.players)
                 player.move();
-      
-            // if (this.ball.x < -0.5 || this.ball.y > 0.5) {
+
             for (let i = 0; i < 10; i++) {
                 this.ball.x += this.ball.vx / 10;
                 this.ball.y += this.ball.vy / 10;
@@ -250,11 +219,8 @@ export class Game extends EventEmitter {
                 if (this.ball.y + this.ball.radius / 2 <= -1 || this.ball.y + this.ball.radius / 2 >= 1)
                     this.ball.verticalCollision();
                 if (this.ball.x - this.ball.radius / 2 <= -1 || this.ball.x + this.ball.radius / 2 >= 1)
-                return (this.checkScore());
+                    return (this.checkScore());
             }
-            // }
-            // else if (collision && (this.ball.isGoingUp() || this.ball.isGoingDown()))
-            //     this.ball.verticalCollision();
             const now = Date.now();
             if (now - then < fps) {
                 await sleep(fps - (now - then));
@@ -296,7 +262,9 @@ export class Game extends EventEmitter {
             if (score >= 3) //pq pas == ? 
                 return (this.endGame())
         });
-        this.initRound(lastGoal);
+
+        this.isPaused = true;
+        this.sendGameUpdate();
     }
 
     public initGame(): void {
@@ -341,7 +309,7 @@ export class Game extends EventEmitter {
             } else
                 resetPlayer(player);
         }
-        
+
         const winnerID = this.getWinnerID();
         await resultGame(this.gameID, winnerID, this.score);
 
@@ -395,6 +363,21 @@ export class Game extends EventEmitter {
             }
         }
     };
+
+    // Touch inputs. Player ID transmis uniquement si remote
+    public registerTouchInput(coords: {x: number, y: number}, mode?: string, playerID?: number) {
+        if (mode === "multi") {
+            this.players.forEach((p: Player) => {
+                if (p.ID === playerID)
+                    p.pos.y = clamp(coords.y, -1, 1);
+            })
+            return ;
+        }
+        if ((mode === "local" || mode === "tournament") && coords.x > 0)
+            this.players[1].pos.y = clamp(coords.y, -1, 1);
+        else
+            this.players[0].pos.y = clamp(coords.y, -1, 1);
+    }
 
     public getWinnerID() { return this.score[0] === MAX_SCORE ? this.players[0].ID : this.players[1].ID };
     public getIsOver() { return this.isOver };
@@ -468,8 +451,7 @@ export class TournamentLocal {
             return;
         }
         for (const game of this.stageOne) {
-            if (game.getIsOver() && !game.players.some((p: Player) => this.stageTwo?.players.includes(p)))
-            {
+            if (game.getIsOver() && !game.players.some((p: Player) => this.stageTwo?.players.includes(p))) {
                 const winner = this.getWinner(game);
                 this.stageTwo?.players.push(winner);
                 await incrementUserTournamentStats(this.ID, winner.ID, true);

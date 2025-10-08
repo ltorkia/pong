@@ -78,6 +78,21 @@ export function attachWSHandler(userWS: UserWS, player?: Player, game?: Game, mo
                         game.registerInputLocalTournament(msg.key, msg.status);
                     break;
 
+                case "touchMovement":
+                    if (!game)
+                        break ;
+
+                    game.registerTouchInput(msg.coords, mode, msg.playerID);
+                    break;
+
+                case "go":
+                    console.log("go received")
+                    if (game && game.isPaused) {
+                        game.isPaused = false;
+                        game.initRound();
+                    }
+                    break;
+
                 // case "chat":
                 //     break;
 

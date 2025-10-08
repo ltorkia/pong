@@ -199,7 +199,8 @@
 		"replay": "Replay",
 		"replayUser": "Replay ",
 		"playBtn": "Start game",
-		"accept-invitation-from": "Accept invite from "
+		"accept-invitation-from": "Accept invite from ",
+        "fingers": "Use your fingers!"
 	},
 
 	"tournament": {
