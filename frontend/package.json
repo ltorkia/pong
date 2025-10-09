@@ -13,7 +13,6 @@
 		"tsparticles": "^3.0.2",
 		"@tsparticles/engine": "^3.0.2",
   		"qrcode": "^1.5.3",
-		"chart.js": "^4.5.0",
 		"dompurify": "^3.1.6"
 	},
 	"devDependencies": {

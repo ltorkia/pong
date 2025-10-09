@@ -27,7 +27,7 @@ export async function gameRoutes(app: FastifyInstance) {
         console.log("---------- request body /playgame = ", request.body);
 
         const allPlayers: Map<number, Player[]> = app.lobby.allPlayers;
-        // console.log("LOBBY", app.lobby);
+        console.log("LOBBY", app.lobby);
 
         // On vérifie que le player est bien le current user
         const playerID = matchMakingReq.data.playerID;
@@ -91,7 +91,6 @@ export async function gameRoutes(app: FastifyInstance) {
             if (matchMakingReq.data.inviteToClean)
                 await cleanInvite(app, playerID, matchMakingReq.data.inviterID, matchMakingReq.data.invitedID);
             await stopGame(app, playerID, matchMakingReq.data.gameID);
-            console.log("LOBBY APRES", app.lobby);
             reply.code(200).send({ message: "Game cleaned up" });
         }
         else if (reqType === "tournament_clean_request") {

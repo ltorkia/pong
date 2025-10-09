@@ -4,7 +4,6 @@ import { LoginPage } from '../pages/auth/login.page';
 import { RulesPage } from '../pages/user/rules.page';
 import { UsersPage } from '../pages/user/users.page';
 import { ProfilePage } from '../pages/user/profile.page';
-import { DashboardPage } from '../pages/user/dashboard.page';
 import { SettingsPage } from '../pages/user/settings.page';
 
 import { RouteConfig } from '../types/routes.types';
@@ -68,7 +67,6 @@ export const PAGE_NAMES = {
     RULES: 'Rules',
     USERS: 'Users',
     PROFILE: 'Profile',
-    DASHBOARD: 'Dashboard',
     SETTINGS: 'Settings',
 } as const;
 
@@ -92,7 +90,6 @@ export const ROUTE_PATHS = {
 	RULES: '/rules',
 	USERS: '/users',
 	PROFILE: '/user/:userId',
-	DASHBOARD: '/dashboard',
 	LOGOUT: '/logout',
 	SETTINGS: '/settings'
 } as const;
@@ -117,7 +114,6 @@ export const TEMPLATE_PATHS = {
     RULES: '/templates/user/rules.html',
     USERS: '/templates/user/users.html',
     PROFILE: '/templates/user/profile.html',
-    DASHBOARD: '/templates/user/dashboard.html',
     SETTINGS: '/templates/user/settings.html',
 } as const;
 
@@ -281,18 +277,6 @@ export const routesConfig: RouteConfig[] = [
 		name: PAGE_NAMES.PROFILE,
 		pageConstructor: ProfilePage,
 		templatePath: TEMPLATE_PATHS.PROFILE,
-		components: {
-			[COMPONENT_NAMES.NAVBAR]: getComponentConfig(COMPONENT_NAMES.NAVBAR),
-			[COMPONENT_NAMES.TRANSLATER]: getComponentConfig(COMPONENT_NAMES.TRANSLATER)
-		},
-		isPublic: false,
-		enableParticles: true
-	},
-	{
-		path: ROUTE_PATHS.DASHBOARD,
-		name: PAGE_NAMES.DASHBOARD,
-		pageConstructor: DashboardPage,
-		templatePath: TEMPLATE_PATHS.DASHBOARD,
 		components: {
 			[COMPONENT_NAMES.NAVBAR]: getComponentConfig(COMPONENT_NAMES.NAVBAR),
 			[COMPONENT_NAMES.TRANSLATER]: getComponentConfig(COMPONENT_NAMES.TRANSLATER)
