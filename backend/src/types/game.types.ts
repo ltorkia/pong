@@ -398,6 +398,7 @@ export class TournamentLocal {
     public ID: number;
     public stageOne: Game[] = [];
     public stageTwo!: Game;
+    public stageTwoInitialized: boolean = false;
 
     constructor(players: Player[], maxPlayers: number, masterPlayerID: number, ID: number) {
         this.players = players;
@@ -458,12 +459,14 @@ export class TournamentLocal {
                     await incrementUserTournamentStats(this.ID, looser.id, false);
             }
         }
-        if (this.stageTwo.players.length == 2)
-        await addGamePlayers(
-            this.stageTwo.gameID,
-            this.stageTwo.players.map(p => p.ID),
-            this.stageTwo.players.map(p => p.alias ?? "")
-        );
+        if (this.stageTwo.players.length == 2 && !this.stageTwoInitialized) {
+            this.stageTwoInitialized = true;
+            await addGamePlayers(
+                this.stageTwo.gameID,
+                this.stageTwo.players.map(p => p.ID),
+                this.stageTwo.players.map(p => p.alias ?? "")
+            );
+        }
         console.log("SCORE : ", this.stageOne[0].getScore());
     }
 }
