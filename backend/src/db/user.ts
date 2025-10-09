@@ -213,7 +213,6 @@ export async function getUserGames(userId: number): Promise<GameModel[] | undefi
 
 		game.other_players = snakeArrayToCamel(players) as SafeUserBasic[];
 	}
-	// console.log('games', games);
 
 	return snakeArrayToCamel(games) as GameModel[];
 }
@@ -332,7 +331,6 @@ export async function getUserTournaments(userId: number): Promise<TournamentMode
 			game.otherPlayers = orderedPlayers;
 		}
 		tournament.games = games;
-		console.log(tournament);
 	}
 
 	// Enfin, camelCase pour les tournois (sans toucher aux games déjà transformés)

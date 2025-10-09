@@ -91,4 +91,8 @@
 	.lose-message {
 		@apply text-[#ff9494];
 	}
+
+	#mobile-menu-container, #mobile-tournament-btns {
+		@apply flex desktop:hidden;
+	}
 }

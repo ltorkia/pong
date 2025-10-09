@@ -237,8 +237,10 @@ async function decount(app: FastifyInstance, players: Player[], gameID: number) 
     }
 }
 
-async function decountWS(ws: WebSocket, gameID: number) {
+async function decountWS(game: Game, ws: WebSocket, gameID: number) {
     for (let i = 3; i >= 0; i--) {
+        if (game.isOver) return;
+
         ws.send(JSON.stringify({
             type: "decount_game",
             message: i,
@@ -255,7 +257,6 @@ const startGame = async (app: FastifyInstance, players: Player[], mode: string, 
     await addGamePlayers(gameID, [players[0].ID, players[1].ID]);
     const newGame = gameCreated || new Game(gameID, 2, players);
     allGames.push(newGame);
-    console.log("////////////////////////////mode = ", mode);
 
     let WSToSend = { type: "start_game", gameID: gameID, mode: mode } as StartGame;
     for (const player of players) {
@@ -289,7 +290,7 @@ const startGame = async (app: FastifyInstance, players: Player[], mode: string, 
 }
 
 const startTournamentGame = async (app: FastifyInstance, gameID: number, hostID: number) => {
-    const { allTournamentsLocal, allPlayers, allGames } = app.lobby;
+    const { allTournamentsLocal, allGames } = app.lobby;
     let tournament, game;
 
     console.log("started tournament game");
@@ -331,12 +332,9 @@ const startTournamentGame = async (app: FastifyInstance, gameID: number, hostID:
     }
     attachWSHandler(host, game.players[0], game, "tournament");
     game.players[0].webSocket = host.WS;
-    await decountWS(host.WS, gameID);
+    await decountWS(game, host.WS, gameID);
 
-    // Vérifier si le jeu ou le tournoi a été supprimé par une clean_request pendant le décompte
-    const gameIndex = allGames.findIndex((g: Game) => g.gameID === gameID);
-    if (gameIndex === -1)
-        return;
-
+    // Vérifier si le jeu s'est terminé par une clean_request pendant le décompte
+    if (game.isOver) return;
     game.initGame();
 }
