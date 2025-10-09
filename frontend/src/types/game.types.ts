@@ -90,7 +90,7 @@ export class Triangle {
     constructor(x: number, y: number, canvas: HTMLCanvasElement, canvasCtx: CanvasRenderingContext2D) {
         this.x = x;
         this.y = y;
-        this.R = (10 * .5) / Math.cos(Math.PI / 6);
+        this.R = (5 * .5) / Math.cos(Math.PI / 6);
         this.v1 = { x: 0, y: 0 };
         this.v2 = { x: 0, y: 0 };
         this.v3 = { x: 0, y: 0 };
@@ -119,14 +119,17 @@ export class Triangle {
     }
 
     public draw(color: string) {
-        this.ctx.strokeStyle = color;
         this.ctx.beginPath();
         this.ctx.moveTo(this.v1.x, this.v1.y);
         this.ctx.lineTo(this.v2.x, this.v2.y);
         this.ctx.lineTo(this.v3.x, this.v3.y);
         this.ctx.lineTo(this.v1.x, this.v1.y);
         this.ctx.closePath();
+        this.ctx.strokeStyle = "black";
+        this.ctx.lineWidth = 1;
         this.ctx.stroke();
+        this.ctx.fillStyle = color;
+        this.ctx.fill();
     };
 
     public rotateToTarget() {
@@ -141,8 +144,8 @@ export class Triangle {
     public moveToTarget() {
         const xDir = Math.cos(this.angle);
         const yDir = Math.sin(this.angle);
-        const dx = xDir * 1.5;
-        const dy = yDir * 1.5;
+        const dx = xDir * 5;
+        const dy = yDir * 5;
         this.x += dx;
         this.y += dy;
     }
@@ -194,7 +197,5 @@ export class Triangle {
             this.moveToTarget();
         this.setVertices();
         this.setCenter();
-        // console.log(this.angle);
-        // console.log(this.x, this.y);
     }
 }

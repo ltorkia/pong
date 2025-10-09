@@ -11,11 +11,16 @@ export class PlayerBar {
     public draw(): void {
         const xPixels = ((this.x + 1) / 2) * this.ctx.canvas.clientWidth;
         const yPixels = (1 - ((this.y + 1) / 2)) * this.ctx.canvas.clientHeight;
-        const pixelWidth = this.w * (this.ctx.canvas.width / 2);
+        const pixelWidth = this.w * (this.ctx.canvas.width / 2) + 20;
         const pixelHeight = this.h * (this.ctx.canvas.clientHeight / 2);
         this.ctx.fillStyle = "rgba(255, 255, 255)";
         this.ctx.fillRect(
             xPixels - pixelWidth / 2,
+            yPixels - pixelHeight / 2,
+            pixelWidth,
+            pixelHeight);
+        this.ctx.strokeStyle = "black";
+        this.ctx.strokeRect(xPixels - pixelWidth / 2,
             yPixels - pixelHeight / 2,
             pixelWidth,
             pixelHeight);
@@ -53,6 +58,9 @@ export class Ball {
         this.ctx.closePath();
         this.ctx.fillStyle = "rgba(255, 255, 255)";
         this.ctx.fill();
+        this.ctx.strokeStyle = "rgba(0, 0, 0)";
+        this.ctx.lineWidth = 2;
+        this.ctx.stroke();
     };
 
     constructor(ctx: CanvasRenderingContext2D) {

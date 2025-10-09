@@ -317,7 +317,7 @@ export class MultiPlayerGame {
             if (targetX) bird.target.x = targetX;
             if (targetY) bird.target.y = targetY;
             bird.update();
-            bird.draw("rgba(0, 255, 0, 0.5)");
+            bird.draw("rgba(60, 255, 0, 1)");
         })
         this.frameReq = requestAnimationFrame(this.gameLoopBind);
     };
@@ -347,13 +347,13 @@ export class MultiPlayerGame {
         this.gameCanvas.width = parentContainer.getBoundingClientRect().width;
         this.gameCanvas.classList.add("border-1", "border-black", "bg-black", "bg-opacity-70")
         animateCSS(this.gameCanvas, "zoomIn");
-        this.gameCanvas.style.imageRendering = "pixelated";
+        // this.gameCanvas.style.imageRendering = "pixelated";
         parentContainer.append(this.gameCanvas);
     }
 
     public initBirds(): void {
         const allTriangles = [];
-        for (let i = 0; i < 200; i++) {
+        for (let i = 0; i < 400; i++) {
             const triangle = new Triangle(randomNb(1, this.gameCanvas.width), randomNb(1, this.gameCanvas.height), this.gameCanvas, this.canvasCtx);
             allTriangles.push(triangle);
         }

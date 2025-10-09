@@ -271,13 +271,18 @@ export class Game extends EventEmitter {
     public initGame(): void {
         this.gameStarted = true;
         this.initSizePos();
-        this.gameLoop();
+        setTimeout(() => {
+            this.gameLoop();
+        }, 1000);
     };
 
     public initRound(lastGoal?: boolean[]): void {
         this.ball.reset(lastGoal);
         this.initSizePos();
-        this.gameLoop();
+        this.sendGameUpdate();
+        setTimeout(() => {
+            this.gameLoop();
+        }, 500);
     }
 
     public async endGame(): Promise<void> {
@@ -365,14 +370,13 @@ export class Game extends EventEmitter {
         }
     };
 
-    // Touch inputs. Player ID transmis uniquement si remote
-    public registerTouchInput(coords: {x: number, y: number}, mode?: string, playerID?: number) {
+    public registerTouchInput(coords: { x: number, y: number }, mode?: string, playerID?: number) {
         if (mode === "multi") {
             this.players.forEach((p: Player) => {
                 if (p.ID === playerID)
                     p.pos.y = clamp(coords.y, -1, 1);
             })
-            return ;
+            return;
         }
         if ((mode === "local" || mode === "tournament") && coords.x > 0)
             this.players[1].pos.y = clamp(coords.y, -1, 1);
