@@ -52,11 +52,7 @@ export default {
 			 * Les images de fond.
 			 */
 			backgroundImage: {
-				'body-bg-img': images.forestWallpaper,
-				'stardust-pattern': images.stardustPattern,
-				'leaves-pattern': images.leavesPattern,
-				'particles': images.particles,
-				'fireflies': images.fireflies
+				'body-bg-img': images.forestWallpaper
 			},
 			backgroundSize: {
 				'auto-full': 'auto 100%',

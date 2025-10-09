@@ -10,12 +10,6 @@
 		@apply fixed top-0 left-0 w-screen h-screen -z-10 pointer-events-none transition-opacity duration-300 ease-in-out;
 	}
 
-	/* GIF PARTICLES */
-	.particles {
-		@apply relative bg-fireflies bg-center bg-repeat bg-auto-mi-full
-		desktop:bg-auto-full;
-	}
-
 	/* ERROR MESSAGES BOX */
 	#alert {
 		@apply mt-4;
