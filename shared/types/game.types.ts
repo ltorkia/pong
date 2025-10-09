@@ -61,9 +61,9 @@ export class Player {
 
     move() {
         if (this.inputUp == true && this.pos.y + (this.height / 2) + 0.03 < 1) 
-            this.pos.y += 0.03;
+            this.pos.y += 0.05;
         else if (this.inputDown == true && this.pos.y - (this.height / 2) - 0.03 > -1)
-            this.pos.y -= 0.03;
+            this.pos.y -= 0.05;
     }
 
     constructor(ID: number, alias?: string) {
