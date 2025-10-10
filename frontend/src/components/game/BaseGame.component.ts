@@ -227,6 +227,7 @@ export class MultiPlayerGame {
                 this.players[0].y = this.gameStates.states[lastIndex].players[0].pos.y;
                 this.players[1].y = this.gameStates.states[lastIndex].players[1].pos.y;
 
+
                 setTimeout(() => {
                     this.gameStates.states = [];
                     this.gameStates.timestamps = [];
@@ -317,7 +318,7 @@ export class MultiPlayerGame {
             if (targetX) bird.target.x = targetX;
             if (targetY) bird.target.y = targetY;
             bird.update();
-            bird.draw("rgba(60, 255, 0, 1)");
+            bird.draw("rgba(0, 255, 0, 1)");
         })
         this.frameReq = requestAnimationFrame(this.gameLoopBind);
     };
@@ -353,7 +354,7 @@ export class MultiPlayerGame {
 
     public initBirds(): void {
         const allTriangles = [];
-        for (let i = 0; i < 400; i++) {
+        for (let i = 0; i < 150; i++) {
             const triangle = new Triangle(randomNb(1, this.gameCanvas.width), randomNb(1, this.gameCanvas.height), this.gameCanvas, this.canvasCtx);
             allTriangles.push(triangle);
         }

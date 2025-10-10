@@ -86,6 +86,10 @@ export abstract class GamePage extends BasePage {
     }
 
     protected attachListeners() {
+        const customMenuBtn = document.getElementById("options-menu-btn");
+
+        console.log(customMenuBtn);
+        customMenuBtn?.addEventListener("click", this.showCustomizationMenu);
         this.playButton.addEventListener("click", this.handlePlayClick);
         document.addEventListener("keydown", this.handleKeyDown);
         document.addEventListener("keyup", this.handleKeyUp);
@@ -127,6 +131,26 @@ export abstract class GamePage extends BasePage {
             if (node.dataset.key == event.key)
                 node.classList.remove("button-press");
         }
+    }
+
+    private showCustomizationMenu = () => {
+        const menuContainer = document.getElementById("options-menu-container") as HTMLElement;
+
+        console.log("coucou");
+        animateCSS(menuContainer, "fadeInRight").then(() => {
+            menuContainer?.classList.remove("opacity-0", "pointer-events-none");
+            menuContainer?.classList.add("opacity-100");
+        })
+    }
+
+    private mobileHidePlayerMenu = () => {
+        const menuContainer = document.getElementById("mobile-menu-container");
+        const menu = document.getElementById("add-player-mobile-menu");
+
+        menu?.classList.add("opacity-0", "translate-x-full");
+        menu?.classList.remove("opacity-100");
+        menuContainer?.classList.remove("opacity-80");
+        menuContainer?.classList.add("opacity-0", "pointer-events-none");
     }
 
     /**

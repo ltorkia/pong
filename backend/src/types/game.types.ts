@@ -66,42 +66,16 @@ export class Ball {
             this.x = player.pos.x - player.width / 2 - this.radius;
         }
 
-        // Si la balle va vers le joueur et que le joueur se deplace
-        const ballAboveCenter = this.y < player.pos.y;
-        const playerMovingDown = player.inputDown;
-        const playerMovingUp = player.inputUp;
-        const playerThird = player.height / 3;
-        const playerBegin = player.pos.y - player.height / 2;
+        const playerTop = player.pos.y - player.height / 2;
+        const relativeY = this.y - playerTop;
+        const hitPosition = relativeY / player.height;
 
-        // Distance of ball from top of paddle
-        const relativeY = this.y - playerBegin;
+        this.dirY = (hitPosition - 0.5) * 2;
 
-        if (relativeY < playerThird) {
-            this.dirY -= 0.3;
-            this.speed += 0.01;
-        } else if (relativeY > playerThird * 2) {
-            this.dirY += 0.3;
-            this.speed += 0.005;
-        } else {
-            if (!(this.speed - 0.005 < this.initSpeed))
-                this.speed -= 0.005;
-        }
-
-        if (this.vx < 0) {
-            this.x = player.pos.x + player.width / 2 + this.radius;
-        } else {
-            this.x = player.pos.x - player.width / 2 - this.radius;
-        }
-
-        // Inverse la direction si le joueur se déplace dans la même direction que la balle
-        if ((ballAboveCenter && playerMovingDown) || (!ballAboveCenter && playerMovingUp)) {
-            console.log("ball inverted");
-            this.dirX = -this.dirX;
-            this.dirY = -this.dirY;
-            this.speed += 0.001;
-        } else // Rebond normal
-            this.dirX = -this.dirX;
-
+        if (player.inputDown) this.dirY += 0.3;
+        else if (player.inputUp) this.dirY -= 0.3;
+        this.dirX = -this.dirX;
+        this.speed += 0.005;
         this.setDirectionVector();
     }
 

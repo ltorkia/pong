@@ -1,6 +1,8 @@
 <div id="pong-section" class="section-box pong-box large-box game-local justify-evenly h-full w-full p-0">
-    <h1 class="font-title font-extrabold text-6xl max-lg:text-3xl text-center tracking-wide bg-clip-text drop-shadow-lg w-full" data-ts="home.localGameBtn">1v1 • local game</h1>
-    <h2 class="text-4xl max-lg:text-2xl font-semibold uppercase tracking-widest text-gray-200 drop-shadow-md mt-6 mb-4" data-ts="game.controlLabel"></h2>
+    <h1 class="font-title font-extrabold text-6xl max-lg:text-3xl text-center tracking-wide bg-clip-text drop-shadow-lg w-full"
+        data-ts="home.localGameBtn">1v1 • local game</h1>
+    <h2 class="text-4xl max-lg:text-2xl font-semibold uppercase tracking-widest text-gray-200 drop-shadow-md mt-6 mb-4"
+        data-ts="game.controlLabel"></h2>
     <div class="flex justify-evenly h-full w-full max-mobile:hidden">
         <div class="flex-1 flex flex-col justify-center justify-evenly items-center text-4xl h-full">
             <div class="control mb-3" data-key="w">W</div>
@@ -12,11 +14,71 @@
         </div>
     </div>
     <div class="flex flex-col justify-center items-center hidden max-mobile:flex">
-        <img class="w-4/5 rounded-md shadow-lg shadow-black border-2 border-black" src="/assets/img/design/fingers.gif"/>
+        <img class="w-4/5 rounded-md shadow-lg shadow-black border-2 border-black"
+            src="/assets/img/design/fingers.gif" />
         <h2 data-ts="game.fingers" class="text-center m-2">Use your fingers!</h2>
     </div>
 
-    <div class="start-space ready-text bg-opacity-30" data-ts="game.ready"></div> 
-    <div class="start-click ready-text" data-ts="game.playBtn"></div>
-    <div id="infos-game"></div>
+    <div>
+        <div id="options-menu-btn"
+            class="mt-5 text-xl font-semibold text-center tracking-widest p-5 uppercase border border-white/20 rounded-2xl bg-[#313030] bg-opacity-30 text-center bg-opacity-30 hover:cursor-pointer hover:bg-opacity-50"
+            data-ts="game.options"></div>
+        <div class="start-space ready-text bg-opacity-30" data-ts="game.ready"></div>
+        <div class="start-click ready-text" data-ts="game.playBtn"></div>
+        <div id="infos-game"></div>
+    </div>
+
+    <div id="options-menu-container"
+        class="fixed flex flex-col justify-center items-center w-2/3 h-1/2 text-3xl bg-black border-2 border-white shadow-black shadow-md opacity-0 transition-all rounded-md duration-30">
+        <h1 data-ts="game.options" class="font-title font-bold text-center">GAME OPTIONS</h1>
+        <div class="flex flex-col">
+
+            <div class="flex flex-col justify-evenly border border-white rounded-md">
+                <h2 class="text-center">NUMBER OF BALLS</h2>
+                <div class="flex justify-center">
+                    <div class="flex justify-center items-center">
+                        <label for="balls">One</label>
+                        <input class="ml-2" type="radio" name="balls">
+                    </div>
+
+                    <div class="flex justify-center items-center">
+                        <label for="balls">Two</label>
+                        <input class="ml-2" type="radio" name="balls">
+                    </div>
+
+                    <div class="flex justify-center items-center">
+                        <label for="balls">Three</label>
+                        <input class="ml-2" type="radio" name="balls">
+                    </div>
+                </div>
+            </div>
+            <h2 class="text-center">BALL SPEED</h2>
+            <div class="flex justify-evenly">
+                <div class="flex justify-center items-center">
+                    <label for="speed">Normal</label>
+                    <input class="ml-2" type="radio" name="speed">
+                </div>
+
+                <div class="flex justify-center items-center">
+                    <label for="speed">Fast</label>
+                    <input class="ml-2" type="radio" name="speed">
+                </div>
+            </div>
+
+            <h2 class="text-center">BIRDS</h2>
+            <div class="flex">
+                <div class="flex justify-center items-center">
+                    <label for="birds">Activated ?</label>
+                    <input class="ml-2" type="checkbox" name="birds">
+
+                    <div class="flex justify-center items-center">
+                        <label class="ml-2" for="color">Color :</label>
+                        <input class="ml-2" type="color" name="color">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 </div>
