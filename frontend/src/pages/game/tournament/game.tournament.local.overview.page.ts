@@ -93,7 +93,7 @@ export class GameTournamentLocalOverview extends BasePage {
 
     protected async beforeMount(): Promise<void> {
         // Fetch du html qui va etre reutilise plusieurs fois
-        this.pastilleHTML = await this.fetchHTML("/templates/game/tournament/tournament_pastille.html", "#tournament-pastille");
+        this.pastilleHTML = await this.fetchHTML("/templates/game/tournament/tournament_pastille.html", ".tournament-pastille");
         this.toolTipHTML = await this.fetchHTML("/templates/game/tournament/tournament_tooltip.html", "#tooltip");
         await this.fetchUsers();
     }
@@ -137,7 +137,7 @@ export class GameTournamentLocalOverview extends BasePage {
         await this.displayWinner(winner);
         this.displayNextGameAndSetNavigate();
 
-        const allPastilles = document.querySelectorAll("#tournament-pastille");
+        const allPastilles = document.querySelectorAll(".tournament-pastille");
         for (const pastille of allPastilles) {
             pastille.classList.remove("opacity-0");
             pastille.classList.add("opacity-100");
@@ -172,21 +172,21 @@ export class GameTournamentLocalOverview extends BasePage {
         if (nextGame) {
             document.getElementById("player-one")!.textContent = `${nextGame?.players[0].alias}`;
             document.getElementById("player-two")!.textContent = `${nextGame?.players[1].alias}`;
-            document.getElementById("tournament-start-btn")!.addEventListener("click", () => {
-                router.navigate(`${ROUTE_PATHS.GAME_LOCAL}/${this.tournamentID}/${nextGame.gameID}`);
-            })
+            document.getElementById("tournament-start-btn")!.addEventListener("click", async () => this.navigateHandler(nextGame));
         }
         if (this.mobile) {
             const nextGameHTML = document.getElementById("next-game")?.cloneNode(true) as HTMLElement;
             const winnerContainer = document.getElementById("winner");
             if (nextGameHTML) {
                 nextGameHTML.classList.remove("max-lg:hidden");
-                nextGameHTML.querySelector("#tournament-start-btn")?.addEventListener("click", () => {
-                    router.navigate(`${ROUTE_PATHS.GAME_LOCAL}/${this.tournamentID}/${nextGame?.gameID}`);
-                })
+                document.getElementById("tournament-start-btn")!.addEventListener("click", async () => this.navigateHandler(nextGame));
                 winnerContainer?.append(nextGameHTML);
             }
         }
+    }
+
+    private async navigateHandler(nextGame?: Game): Promise<void> {
+        await router.navigate(`${ROUTE_PATHS.GAME_LOCAL}/${this.tournamentID}/${nextGame?.gameID}`);
     }
 
     // Display et anime l'overlay winner
@@ -236,8 +236,8 @@ export class GameTournamentLocalOverview extends BasePage {
     // Cree une pastille player, la remplie avec les infos du joueur et la retourne 
     private async createAndFillPlayerPastille(player: Player, index: number, tooltipH2Name?: Element): Promise<HTMLElement> {
         const playerPastille = this.pastilleHTML?.cloneNode(true) as HTMLElement;
-        const pastille = playerPastille.querySelector("#pastille-name")!;
-        const img = playerPastille.querySelector("#user-avatar") as HTMLImageElement;
+        const pastille = playerPastille.querySelector(".pastille-name")!;
+        const img = playerPastille.querySelector(".user-avatar") as HTMLImageElement;
 
         if (!player) {
             img.remove();
@@ -310,31 +310,53 @@ export class GameTournamentLocalOverview extends BasePage {
         const allMatches = document.querySelectorAll("#match-container");
         const redirectBtn = document.getElementById("redirect-btn");
 
-        redirectBtn?.addEventListener("click", () => {
-            const matchMakingReq = new Blob([JSON.stringify({
-                type: "tournament_clean_request",
-                playerID: this.currentUser!.id,
-                tournamentID: this.tournamentID,
-            })], { type: 'application/json' });
-            navigator.sendBeacon("/api/game/playgame", matchMakingReq);
-            sessionStorage.removeItem("tournamentID");
-            router.navigate("/");
-        })
+        redirectBtn?.addEventListener("click", () => this.redirectHandler);
 
         for (const match of allMatches) {
             const tooltip = match.querySelector("#tooltip");
             if (tooltip) {
-                match.addEventListener("mouseenter", () => {
-                    tooltip!.classList.remove("opacity-0", "pointer-events-none");
-                    tooltip!.classList.add("opacity-100");
-                    tooltip?.querySelector("h2");
-                });
-                match.addEventListener("mouseleave", () => {
-                    tooltip?.classList.remove("opacity-100");
-                    tooltip?.classList.add("opacity-0", "pointer-events-none");
-                })
-
+                match.addEventListener("mouseenter", () => this.mouseEnterHandler(tooltip));
+                match.addEventListener("mouseleave", () => this.mouseLeaveHandler(tooltip))
             }
         }
+    }
+
+    protected removeListeners(): void {
+        const allMatches = document.querySelectorAll("#match-container");
+        const redirectBtn = document.getElementById("redirect-btn");
+
+        redirectBtn?.removeEventListener("click", () => this.redirectHandler);
+
+        for (const match of allMatches) {
+            const tooltip = match.querySelector("#tooltip");
+            if (tooltip) {
+                match.removeEventListener("mouseenter", () => this.mouseEnterHandler(tooltip));
+                match.removeEventListener("mouseleave", () => this.mouseLeaveHandler(tooltip))
+            }
+        }
+        const nextGame = this.getNextGame();
+        document.getElementById("tournament-start-btn")!.removeEventListener("click", async () => this.navigateHandler(nextGame));
+    }
+
+    private async redirectHandler(): Promise<void> {
+        const matchMakingReq = new Blob([JSON.stringify({
+            type: "tournament_clean_request",
+            playerID: this.currentUser!.id,
+            tournamentID: this.tournamentID,
+        })], { type: 'application/json' });
+        navigator.sendBeacon("/api/game/playgame", matchMakingReq);
+        sessionStorage.removeItem("tournamentID");
+        await router.navigate("/");
+    }
+
+    private mouseEnterHandler(tooltip: Element): void {
+        tooltip!.classList.remove("opacity-0", "pointer-events-none");
+        tooltip!.classList.add("opacity-100");
+        tooltip?.querySelector("h2");
+    }
+
+    private mouseLeaveHandler(tooltip: Element): void {
+        tooltip?.classList.remove("opacity-100");
+        tooltip?.classList.add("opacity-0", "pointer-events-none");
     }
 }

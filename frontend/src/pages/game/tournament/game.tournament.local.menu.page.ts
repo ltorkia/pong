@@ -33,7 +33,7 @@ export class GameMenuTournamentLocal extends BasePage {
         const html = await response.text();
         const parser = new DOMParser();
         const doc = parser.parseFromString(html, "text/html");
-        const pastilleDiv = doc.querySelector("#pastille");
+        const pastilleDiv = doc.querySelector(".pastille");
         if (pastilleDiv && this.pastilleHTML)
             this.pastilleHTML = pastilleDiv.cloneNode(true);
     }
@@ -74,31 +74,19 @@ export class GameMenuTournamentLocal extends BasePage {
 
     // Listener du bouton remove
     private appendListenerPastille(pastille: HTMLElement, player: { alias: string, username?: string }): void {
-        pastille.querySelector("#tournament-cross")?.addEventListener("click", () => {
-            const toRemoveIdx = this.players.findIndex(p => p.alias == player.alias);
-            this.players.splice(toRemoveIdx, 1);
-            animateCSS(pastille, "fadeOut").then(() => pastille.remove());
-        })
+        pastille.querySelector(".tournament-cross")?.addEventListener("click", () => this.handleRemovePlayer(player.alias, pastille));
     }
 
     // Animation pour print une erreur, error etant une value des JSON translate (tournament.errors.${param})
     private printError(error: string): void {
         const errorDiv = document.createElement("div");
 
-        let loginBox, parent, startBtn;
-
-        if (this.mobile) {
-            loginBox = document.getElementById("mobile-login-input-box");
-            startBtn = document.getElementById("mobile-tournament-validate-player");
-            parent = document.getElementById("mobile-parent-input-box");
-        } else {
-            loginBox = document.querySelectorAll("#input-box")[1];
-            startBtn = document.getElementById("tournament-start-btn");
-            parent = document.getElementById("input-box")!;
-        }
+        const startBtn = document.getElementById(`mobile-tournament-validate-player`);
+        const prefix = this.mobile ? "mobile-" : "";
+        const loginBox = document.getElementById(`${prefix}login-input-box`);
+        const parent = document.getElementById(`${prefix}parent-input-box`);
 
         errorDiv.textContent = translateService.t(`tournament.errors.${error}`);
-
         errorDiv.classList.add(
             "absolute", "bottom-50", "left-0", "right-0", "-translate-y-1/2", "-translate-y-6",
             "border-2", "border-red-500", "rounded-md",
@@ -114,15 +102,15 @@ export class GameMenuTournamentLocal extends BasePage {
         parent!.insertAdjacentElement("afterend", errorDiv);
 
         let translateY;
-
         this.mobile ? translateY = "translate-y-16" : translateY = "translate-y-12";
 
         loginBox!.classList.add(translateY);
         loginBox!.classList.remove("hover:-translate-y-1");
-        startBtn!.classList.add(translateY);
-        startBtn!.classList.remove("hover:-translate-y-1");
+        if (this.mobile) {
+            startBtn!.classList.add(translateY);
+            startBtn!.classList.remove("hover:-translate-y-1");
+        }
 
-        console.log(loginBox)
         setTimeout(() => {
             errorDiv.classList.add("animate__animated", "animate__fadeOut");
             setTimeout(() => {
@@ -143,15 +131,19 @@ export class GameMenuTournamentLocal extends BasePage {
 
     // Check et ajout du player a this.players pour creation d'un futur nouveau tournoi
     private addPlayer(alias: string, user?: UserModel) {
+        const isAlreadyThere = this.players.some(player => {
+            const sameAlias = player.alias === alias;
+            const sameAsUsername = !alias && user && player.alias === user.username;
+            const aliasMatchesUsername = !player.alias && player.username === alias;
+            return sameAlias || sameAsUsername || aliasMatchesUsername;
+        });
+
         if (alias.trim() == "" && !user)
             return (this.printError("invalidAlias"));
         if (this.players.length >= this.playersNb)
             return (this.printError("full"), null);
-        if (user && (this.players.find(player => player.username == user.username ||
-            this.players.find(player => player.alias == user.username))))
-            return (this.printError("playerAlreadyThere"), null);
-        if (this.players.find(player => player.alias == alias))
-            return (this.printError("playerAlreadyThere"), null);
+        if (isAlreadyThere)
+            return this.printError("playerAlreadyThere"), null;
         if (user && alias)
             this.players.push({ ID: user.id, alias: alias, username: user.username });
         else if (user && !alias)
@@ -184,17 +176,11 @@ export class GameMenuTournamentLocal extends BasePage {
         if (event && event.key != "Enter")
             return;
 
-        let aliasInput, usernameInput, pwdInput;
+        const prefix = this.mobile ? "mobile-" : "";
+        const aliasInput = document.querySelector(`#${prefix}alias-name-input`) as HTMLInputElement;
+        const usernameInput = document.querySelector(`#${prefix}username-input`)! as HTMLInputElement;
+        const pwdInput = document.querySelector(`#${prefix}password-input`)! as HTMLInputElement;
 
-        if (this.mobile) {
-            aliasInput = document.querySelectorAll("#alias-name-input")![1] as HTMLInputElement;
-            usernameInput = document.querySelectorAll("#username-input")![1] as HTMLInputElement;
-            pwdInput = document.querySelectorAll("#password-input")![1] as HTMLInputElement;
-        } else {
-            aliasInput = document.getElementById("alias-name-input") as HTMLInputElement;
-            usernameInput = document.getElementById("username-input")! as HTMLInputElement;
-            pwdInput = document.getElementById("password-input")! as HTMLInputElement;
-        }
         if (!aliasInput.value)
             return (this.printError("noAlias"));
         if (usernameInput.value || pwdInput.value)
@@ -212,17 +198,11 @@ export class GameMenuTournamentLocal extends BasePage {
         if (event && event.key != "Enter")
             return;
 
-        let aliasInput, usernameInput, pwdInput;
-
-        if (this.mobile) {
-            aliasInput = document.querySelectorAll("#alias-name-input")![1] as HTMLInputElement;
-            usernameInput = document.querySelectorAll("#username-input")![1] as HTMLInputElement;
-            pwdInput = document.querySelectorAll("#password-input")![1] as HTMLInputElement;
-        } else {
-            aliasInput = document.getElementById("alias-name-input") as HTMLInputElement;
-            usernameInput = document.getElementById("username-input")! as HTMLInputElement;
-            pwdInput = document.getElementById("password-input")! as HTMLInputElement;
-        }
+        const prefix = this.mobile ? "mobile-" : "";
+        const aliasInput = document.querySelector(`#${prefix}alias-name-input`) as HTMLInputElement;
+        const usernameInput = document.querySelector(`#${prefix}username-input`)! as HTMLInputElement;
+        const pwdInput = document.querySelector(`#${prefix}password-input`)! as HTMLInputElement;
+        
         if (!pwdInput.value || !usernameInput.value)
             return (this.printError("missingField"));
         const user: UserModel | undefined = await this.checkAccount(usernameInput.value, pwdInput.value);
@@ -238,17 +218,10 @@ export class GameMenuTournamentLocal extends BasePage {
 
     // Juste pour utiliser le meme handler sur le bouton add player
     private btnHandler = () => {
-        let aliasInput, usernameInput, pwdInput;
-
-        if (this.mobile) {
-            aliasInput = document.querySelectorAll("#alias-name-input")![1] as HTMLInputElement;
-            usernameInput = document.querySelectorAll("#username-input")![1] as HTMLInputElement;
-            pwdInput = document.querySelectorAll("#password-input")![1] as HTMLInputElement;
-        } else {
-            aliasInput = document.getElementById("alias-name-input") as HTMLInputElement;
-            usernameInput = document.getElementById("username-input")! as HTMLInputElement;
-            pwdInput = document.getElementById("password-input")! as HTMLInputElement;
-        }
+        const prefix = this.mobile ? "mobile-" : "";
+        const aliasInput = document.querySelector(`#${prefix}alias-name-input`) as HTMLInputElement;
+        const usernameInput = document.querySelector(`#${prefix}username-input`)! as HTMLInputElement;
+        const pwdInput = document.querySelector(`#${prefix}password-input`)! as HTMLInputElement;
         
         if (aliasInput.value && !usernameInput.value && !pwdInput.value)
             return this.aliasInputHandler();
@@ -287,6 +260,9 @@ export class GameMenuTournamentLocal extends BasePage {
         menuContainer?.classList.add("opacity-80");
         menu?.classList.remove("opacity-0", "translate-x-full");
         menu?.classList.add("opacity-100");
+        
+        if (this.players.length >= MAX_PLAYERS)
+            this.printError("full"), null
     }
 
     private mobileHidePlayerMenu = () => {
@@ -298,73 +274,106 @@ export class GameMenuTournamentLocal extends BasePage {
         menuContainer?.classList.remove("opacity-80");
         menuContainer?.classList.add("opacity-0", "pointer-events-none");
     }
-
-    protected attachListeners(): void {
-        const aliasInputs = document.querySelectorAll("#alias-name-input");
-        const usernameInputs = document.querySelectorAll("#username-input")!
-        const pwdInputs = document.querySelectorAll("#password-input")!;
-
-        const addPlayerBtn = document.getElementById("add-player-btn")!;
-        const startTournamentBtn = document.getElementById("tournament-start-btn")!;
-        const mobileStartTournamentBtn = document.getElementById("mobile-tournament-start-btn")!;
-        const inputBoxes = document.querySelectorAll("#input-box");
-
-        const mobileAddPlayerMenuBtn = document.getElementById("mobile-tournament-add-player-btn");
-        const mobileValidatePlayerBtn = document.getElementById("mobile-tournament-validate-player");
-        const mobileMenuCross = document.getElementById("mobile-menu-cross");
-
-        this.removeListenersFlag = true;
-
-        aliasInputs.forEach((aliasInput) => {
-            const aliasInputElem = aliasInput as HTMLElement;
-            aliasInputElem.addEventListener("keydown", this.aliasInputHandler);
-        });
-        usernameInputs.forEach((usernameInput) => {
-            const usernameInputElem = usernameInput as HTMLElement;
-            usernameInputElem.addEventListener("keydown", this.accountInputHandler);
-        });
-        pwdInputs.forEach((pwdInput) => {
-            const pwdInputElem = pwdInput as HTMLElement;
-            pwdInputElem.addEventListener("keydown", this.accountInputHandler);
-        });
-
-        addPlayerBtn?.addEventListener("click", this.btnHandler);
-        startTournamentBtn?.addEventListener("click", this.startTournamentHandler);
-        mobileStartTournamentBtn?.addEventListener("click", this.startTournamentHandler);
-        mobileAddPlayerMenuBtn?.addEventListener("click", this.mobileShowPlayerMenu);
-        mobileValidatePlayerBtn?.addEventListener("click", this.btnHandler);
-        mobileMenuCross?.addEventListener("click", this.mobileHidePlayerMenu)
-
-        // Animations
-        for (const box of inputBoxes) {
-            box.addEventListener("mouseover", () => {
-                const inputs = box.querySelectorAll("input");
-                for (const input of inputs) {
-                    input!.classList.remove("bg-white", "text-white");
-                    input!.classList.add("bg-black", "opacity-100", "text-black");
-                }
-            })
-            box.addEventListener("mouseleave", () => {
-                const inputs = box.querySelectorAll("input");
-                for (const input of inputs) {
-                    input!.classList.remove("bg-black", "opacity-100", "text-black");
-                    input!.classList.add("bg-white", "text-white");
-                }
-            });
+            
+    private boxMouseOverHandler = (event: Event) => {
+        const box = event.target as HTMLElement;
+        const inputs = box.querySelectorAll("input");
+        for (const input of inputs) {
+            input!.classList.remove("bg-white", "text-white");
+            input!.classList.add("bg-black", "opacity-100", "text-black");
         }
     }
 
+    private boxMouseLeaveHandler = (event: Event) => {
+        const box = event.target as HTMLElement;
+        const inputs = box.querySelectorAll("input");
+        for (const input of inputs) {
+            input!.classList.remove("bg-black", "opacity-100", "text-black");
+            input!.classList.add("bg-white", "text-white");
+        }
+    }
+
+    private handleRemovePlayer = (alias: string, pastille?: HTMLElement): void => {
+        const toRemoveIdx = this.players.findIndex(p => p.alias === alias);
+        if (toRemoveIdx === -1) 
+            return;
+        this.players.splice(toRemoveIdx, 1);
+        if (pastille)
+            animateCSS(pastille, "fadeOut").then(() => pastille.remove());
+    };
+
+    protected attachListeners(): void {
+        this.addListeners();
+    }
+
     protected removeListeners(): void {
-        const aliasInput = document.getElementById("alias-name-input") as HTMLInputElement;
-        const usernameInput = document.getElementById("username-input")! as HTMLInputElement;
-        const pwdInput = document.getElementById("password-input")! as HTMLInputElement;
-        const addPlayerBtn = document.getElementById("add-player-btn")!;
-        const startTournamentBtn = document.getElementById("tournament-start-btn")!;
+        this.delListeners();
+        const pastilles = document.querySelectorAll('.pastille');
+        pastilles.forEach(pastille => pastille.querySelector(".tournament-cross")?.removeEventListener("click", () => this.handleRemovePlayer("")));
+    }
+
+    private addListeners(): void {
+        const prefix = this.mobile ? "mobile-" : "";
+        const aliasInput = document.querySelector(`#${prefix}alias-name-input`) as HTMLInputElement;
+        const usernameInput = document.querySelector(`#${prefix}username-input`)! as HTMLInputElement;
+        const pwdInput = document.querySelector(`#${prefix}password-input`)! as HTMLInputElement;
+        const startTournamentBtn = document.querySelector(`#${prefix}tournament-start-btn`)!;
+
+        aliasInput?.addEventListener("keydown", this.aliasInputHandler);
+        usernameInput?.addEventListener("keydown", this.accountInputHandler);
+        pwdInput?.addEventListener("keydown", this.accountInputHandler);
+        startTournamentBtn?.addEventListener("click", this.startTournamentHandler);
+
+        if (this.mobile) {
+            const mobileValidatePlayerBtn = document.getElementById(`mobile-tournament-validate-player`);
+            const mobileMenuCross = document.getElementById(`mobile-menu-cross`);
+            const addPlayerMenuBtn = document.querySelector(`#${prefix}add-player-btn`)!;
+            mobileValidatePlayerBtn?.addEventListener("click", this.btnHandler);
+            mobileMenuCross?.addEventListener("click", this.mobileHidePlayerMenu)
+            addPlayerMenuBtn?.addEventListener("click", this.mobileShowPlayerMenu);
+        } else {
+            const addPlayerBtn = document.querySelector(`#add-player-btn`)!;
+            addPlayerBtn?.addEventListener("click", this.btnHandler);
+
+            // Animations
+            const inputBoxes = document.querySelectorAll(`.input-box`);
+            for (const box of inputBoxes) {
+                box.addEventListener("mouseover", this.boxMouseOverHandler);
+                box.addEventListener("mouseleave", this.boxMouseLeaveHandler);
+            }
+        }
+        this.removeListenersFlag = true;
+    }
+
+    private delListeners(): void {
+        const prefix = this.mobile ? "mobile-" : "";
+        const aliasInput = document.querySelector(`#${prefix}alias-name-input`) as HTMLInputElement;
+        const usernameInput = document.querySelector(`#${prefix}username-input`)! as HTMLInputElement;
+        const pwdInput = document.querySelector(`#${prefix}password-input`)! as HTMLInputElement;
+        const startTournamentBtn = document.querySelector(`#${prefix}tournament-start-btn`)!;
 
         aliasInput?.removeEventListener("keydown", this.aliasInputHandler);
         usernameInput?.removeEventListener("keydown", this.accountInputHandler);
         pwdInput?.removeEventListener("keydown", this.accountInputHandler);
-        addPlayerBtn?.removeEventListener("click", this.btnHandler);
         startTournamentBtn?.removeEventListener("click", this.startTournamentHandler);
+
+        if (this.mobile) {
+            const mobileValidatePlayerBtn = document.getElementById(`mobile-tournament-validate-player`);
+            const mobileMenuCross = document.getElementById(`mobile-menu-cross`);
+            const addPlayerMenuBtn = document.querySelector(`#${prefix}add-player-btn`)!;
+            mobileValidatePlayerBtn?.removeEventListener("click", this.btnHandler);
+            mobileMenuCross?.removeEventListener("click", this.mobileHidePlayerMenu)
+            addPlayerMenuBtn?.removeEventListener("click", this.mobileShowPlayerMenu);
+        } else {
+            const addPlayerBtn = document.querySelector(`#add-player-btn`)!;
+            addPlayerBtn?.removeEventListener("click", this.btnHandler);
+
+            // Animations
+            const inputBoxes = document.querySelectorAll(`.input-box`);
+            for (const box of inputBoxes) {
+                box.removeEventListener("mouseover", this.boxMouseOverHandler);
+                box.removeEventListener("mouseleave", this.boxMouseLeaveHandler);
+            }
+        }
     }
 }

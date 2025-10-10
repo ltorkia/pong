@@ -95,4 +95,8 @@
 	#mobile-menu-container, #mobile-tournament-btns {
 		@apply flex desktop:hidden;
 	}
+
+	#tournament-overview {
+		@apply flex-col desktop:flex-row;
+	}
 }
