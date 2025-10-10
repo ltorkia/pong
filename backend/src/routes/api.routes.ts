@@ -7,7 +7,6 @@ import { healthRoutes } from './health.routes';
 import { authRoutes } from './auth.routes';
 import { usersRoutes } from './users.routes';
 import { notificationsRoutes } from './notifications.routes';
-import { testsRoutes } from './tests.routes';
 import { apiMe } from './api.me';
 import { sessionRoutes } from './session.routes';
 import { gameRoutes } from './game.routes';

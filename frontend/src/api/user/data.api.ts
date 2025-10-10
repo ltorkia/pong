@@ -106,19 +106,6 @@ export class DataApi {
 	}
 
 	/**
-	 * Récupère la liste des utilisateurs actifs.
-	 *
-	 * Envoie une requête pour obtenir tous les utilisateurs,
-	 * puis filtre ceux qui sont actifs (non supprimés).
-	 * 
-	 * @returns {Promise<User[]>} - Promesse qui se résout avec un tableau d'instances `User` actifs.
-	 */
-	public async getActiveUsers(): Promise<User[]> {
-		const users: User[] = await this.getUsers();
-		return dataService.getActiveUsers(users) as User[];
-	}
-
-	/**
 	 * Récupère la liste des utilisateurs en ligne.
 	 *
 	 * Envoie une requête pour obtenir tous les utilisateurs,

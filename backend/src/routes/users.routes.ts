@@ -80,30 +80,11 @@ export async function usersRoutes(app: FastifyInstance) {
 		return stats;
 	})
 
-	// /* -------------------------------------------------------------------------- */
-	// /*             💬 - Recupere l'historique de tchat de 2 utilisateurs          */
-	// /* -------------------------------------------------------------------------- */
-	// // :id1 et :id2 = id des utilisateurs dans la db dont on cherche les messages envoyes
-	// // renvoyes par la db ranges chronologiquement
-
-	// app.get('/:id1/:id2/chat', async(request: FastifyRequest, reply: FastifyReply) => {
-	// 	const { id1 } = request.params as { id1: number };
-	// 	const jwtUser = request.user as JwtPayload;
-	// 	if (id1 !== jwtUser.id)
-	// 		return reply.status(403).send({ errorMessage: 'Forbidden' });
-	// 	const { id2 } = request.params as { id2: number };
-	// 	const chat = await getUserChat(id1, id2);
-	// 	if (!chat)
-	// 		return reply.code(404).send({ errorMessage: 'User not found'});
-	// 	return chat;
-	// })
-
-
 	/* -------------------------------------------------------------------------- */
 	/*                    ⚙️📸 - modifie l avatar de l utilisateur                */
 	/* -------------------------------------------------------------------------- */
-	// :id = id de l utilisateur dans la db dont on cherche les amis
 
+	// :id = id de l utilisateur dans la db dont on cherche les amis
 	app.put('/:id/moduser/avatar', async(request: FastifyRequest, reply: FastifyReply) => {
 		try {
 			const elements = await request.parts({

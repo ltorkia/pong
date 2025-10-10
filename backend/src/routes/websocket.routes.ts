@@ -93,9 +93,6 @@ export function attachWSHandler(userWS: UserWS, player?: Player, game?: Game, mo
                     }
                     break;
 
-                // case "chat":
-                //     break;
-
                 default:
                     console.warn(`Unknown WS message type from user ${userWS.id}:`, msg.type);
             }

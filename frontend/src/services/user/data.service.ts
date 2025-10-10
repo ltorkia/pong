@@ -151,16 +151,6 @@ export class DataService {
 	// ============================================================================
 
 	/**
-	 * Filtre les utilisateurs actifs (non supprimés).
-	 * 
-	 * @param {User[]} users - Tableau d'instances User
-	 * @returns {User[]} Tableau d'utilisateurs actifs
-	 */
-	public getActiveUsers(users: User[]): User[] {
-		return users.filter(user => user.isActive);
-	}
-
-	/**
 	 * Filtre les utilisateurs en ligne.
 	 * 
 	 * @param {User[]} users - Tableau d'instances User
@@ -170,48 +160,4 @@ export class DataService {
 		return users.filter(user => user.isOnline());
 	}
 
-	/**
-	 * Filtre les utilisateurs par statut.
-	 * 
-	 * @param {User[]} users - Tableau d'instances User
-	 * @param {UserStatus} status - Statut à filtrer
-	 * @returns {User[]} Tableau d'utilisateurs avec le statut spécifié
-	 */
-	public getUsersByStatus(users: User[], status: UserStatus): User[] {
-		return users.filter(user => user.status === status);
-	}
-
-	/**
-	 * Recherche des utilisateurs par nom d'utilisateur.
-	 * 
-	 * @param {User[]} users - Tableau d'instances User
-	 * @param {string} searchTerm - Terme de recherche
-	 * @returns {User[]} Tableau d'utilisateurs correspondants
-	 */
-	public searchByUsername(users: User[], searchTerm: string): User[] {
-		const term = searchTerm.toLowerCase();
-		return users.filter(user => 
-			user.username.toLowerCase().includes(term)
-		);
-	}
-
-	/**
-	 * Trie les utilisateurs par taux de victoire décroissant.
-	 * 
-	 * @param {User[]} users - Tableau d'instances User
-	 * @returns {User[]} Tableau d'utilisateurs triés
-	 */
-	public sortByWinRate(users: User[]): User[] {
-		return [...users].sort((a, b) => b.winRate - a.winRate);
-	}
-
-	/**
-	 * Trie les utilisateurs par nombre de parties jouées décroissant.
-	 * 
-	 * @param {User[]} users - Tableau d'instances User
-	 * @returns {User[]} Tableau d'utilisateurs triés
-	 */
-	public sortByGamesPlayed(users: User[]): User[] {
-		return [...users].sort((a, b) => b.gamePlayed - a.gamePlayed);
-	}
 }

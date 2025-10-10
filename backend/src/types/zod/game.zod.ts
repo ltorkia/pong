@@ -1,27 +1,6 @@
 import { z } from 'zod';
 import { FRIEND_REQUEST_ACTIONS } from '../../shared/config/constants.config';
 
-export const PlayerSchema = z.object({
-    ID: z.number().max(Number.MAX_SAFE_INTEGER),
-    tabID: z.string().optional(),
-    webSocket: z.undefined().optional(),
-    isTemp: z.boolean(),
-    inGame: z.boolean(),
-    inTournament: z.boolean(),
-    matchMaking: z.boolean(),
-    pos: z.number(),
-    height: z.number(),
-    width: z.number(),
-    inputUp: z.boolean(),
-    inputDown: z.boolean(),
-    alias: z.string(),
-});
-
-export const PlayerLocalSchema = z.object({
-    id: z.number(),
-    alias: z.string(),
-});
-
 export const TournamentLocalSchema = z.object({
     players: z.array(z.object({
         ID: z.number(),

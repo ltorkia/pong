@@ -35,29 +35,6 @@ export class NotifApi {
 		return AppNotification.fromJSONArray(data.notifs) as AppNotification[];
 	}
 
-	/**
-	 * Récupère une notification par son identifiant.
-	 *
-	 * Envoie une requête GET à la route API `/api/notifs?id=:notifId` pour
-	 * récupérer les informations de la notification d'identifiant `notifId` de l'utilisateur
-	 * courant.
-	 *
-	 * Si la requête réussit, renvoie l'instance `Notification` contenant les informations
-	 * de la notification stockée en base de données.
-	 * Sinon, lève une erreur.
-	 *
-	 * @param {number} notifId Identifiant de la notification à récupérer.
-	 * @returns {Promise<AppNotification | { errorMessage: string }>} Promesse qui se résout avec l'instance `Notification`.
-	 */
-	public async getNotificationById(notifId: number): Promise<AppNotification | { errorMessage: string }> {
-		const res: Response = await secureFetch(`/api/notifs?id=${notifId}`, { method: 'GET' });
-		const data = await res.json();
-		if (!res.ok || 'errorMessage' in data || !data) {
-			return { errorMessage: data.errorMessage || data.message || 'Erreur inconnue' };
-		}
-		return AppNotification.fromJSON(data) as AppNotification;
-	}
-
 	// ===========================================
 	// NOTIFICATION PUT REQUESTS - DATABASE UPDATE
 	// ===========================================

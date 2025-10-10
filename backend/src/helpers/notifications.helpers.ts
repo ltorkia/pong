@@ -27,25 +27,6 @@ export function sendToSocket(app: FastifyInstance, data: NotificationModel[], id
 }
 
 /**
- * Envoie un message à tous les utilisateurs connectés via WebSockets, sauf l'utilisateur identifié par `jwtUserId`.
- * @param {FastifyInstance} app - L'instance de l'application Fastify.
- * @param {number} jwtUserId - L'ID de l'utilisateur identifié par le JWT.
- * @param {NotificationModel[]} data - Le tableau contenant les notifications à envoyer.
- */
-export function sendToAllSockets(app: FastifyInstance, jwtUserId: number, data: NotificationModel[]) {
-    for (const [userId, sockets] of app.usersWS.entries()) {
-        if (userId === jwtUserId) 
-            continue;
-
-        for (const userWS of sockets) {
-            if (userWS.WS.readyState === userWS.WS.OPEN) {
-                userWS.WS.send(JSON.stringify(data));
-            }
-        }
-    }
-}
-
-/**
  * Met à jour l'état en ligne de l'utilisateur courant 
  * et envoie une notification à tous les utilisateurs connectés, 
  * à l'exception de l'utilisateur identifié par le JWT.
