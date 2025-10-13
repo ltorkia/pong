@@ -188,14 +188,6 @@ export abstract class GamePage extends BasePage {
             aliases[0] = this.players[0]?.alias || aliases[0];
             aliases[1] = this.players[1]?.alias || aliases[1];
         }
-        // if (data.player1Alias || data.player2Alias) { // case tournament
-        //     return [data.player1Alias, data.player2Alias];
-        // }
-        // aliases[0] = this.currentUser!.username;
-        // if (!data.otherPlayer)
-        //     aliases[1] = translateService.t("game.player2"); // case local
-        // else
-        //     aliases[1] = data.otherPlayer.username; // case remote
         return aliases;
     }
 
@@ -255,7 +247,6 @@ export abstract class GamePage extends BasePage {
                 break;
 
             case "msg":
-                console.log(data.msg);
                 break;
         }
     }
@@ -615,7 +606,6 @@ export abstract class GamePage extends BasePage {
                 spanAdversary.textContent = game?.players[1].alias || game?.players[1].alias || null;
             }
         } else { // game locale
-            console.log("GAME LOCAL")
             spanRes.textContent = this.currentUser!.username;
             spanAdversary.setAttribute("data-ts", "game.player2");
             spanAdversary.textContent = translateService.t("game.player2");

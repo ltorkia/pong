@@ -24,10 +24,8 @@ export async function gameRoutes(app: FastifyInstance) {
             return reply.code(400).send({ error: matchMakingReq.error.errors[0].message });
         }
         const reqType = matchMakingReq.data.type;
-        console.log("---------- request body /playgame = ", request.body);
 
         const allPlayers: Map<number, Player[]> = app.lobby.allPlayers;
-        console.log("LOBBY", app.lobby);
 
         // On vérifie que le player est bien le current user
         const playerID = matchMakingReq.data.playerID;
@@ -95,8 +93,6 @@ export async function gameRoutes(app: FastifyInstance) {
         }
         else if (reqType === "tournament_clean_request") {
             await cleanTournament(app.lobby, matchMakingReq.data.tournamentID!);
-            console.log("cleaned tournament");
-            console.log(app.lobby.allTournamentsLocal);
             reply.code(200).send({ message: "Tournament clean done" });
         }
     });
@@ -132,7 +128,6 @@ export function initPlayer(allPlayers: Map<number, Player[]>, playerID: number, 
         if (alias) player.alias = alias;
     }
 
-    console.log(`PLAYER ID=${playerID} TABID=${tabID} ALIAS=${alias}`);
     return player;
 }
 
@@ -246,7 +241,8 @@ async function decountWS(game: Game, ws: WebSocket, gameID: number) {
             message: i,
             gameID: gameID,
         }));
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        if (i !== 0)
+            await new Promise(resolve => setTimeout(resolve, 1000));
     }
 }
 
@@ -293,7 +289,6 @@ const startTournamentGame = async (app: FastifyInstance, gameID: number, hostID:
     const { allTournamentsLocal, allGames } = app.lobby;
     let tournament, game;
 
-    console.log("started tournament game");
     // cherche l'id de la game dans les tournois locaux
     for (const tournamentLocal of allTournamentsLocal) {
         if (tournamentLocal.stageTwo && tournamentLocal.stageTwo.gameID == gameID) {

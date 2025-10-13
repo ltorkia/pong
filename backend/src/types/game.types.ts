@@ -32,6 +32,7 @@ export class Ball {
     public vx: number;
     public vy: number;
     private initSpeed: number;
+    private maxSpeed: number;
     public speed: number;
     public radius: number;
 
@@ -43,6 +44,7 @@ export class Ball {
         this.vx = 0;
         this.vy = 0;
         this.initSpeed = 0.015;
+        this.maxSpeed = 0.05;
         this.speed = 0;
         this.radius = 0.03;
         this.reset();
@@ -66,45 +68,18 @@ export class Ball {
             this.x = player.pos.x - player.width / 2 - this.radius;
         }
 
-        // Si la balle va vers le joueur et que le joueur se deplace
-        const ballAboveCenter = this.y < player.pos.y;
-        const playerMovingDown = player.inputDown;
-        const playerMovingUp = player.inputUp;
-        const playerThird = player.height / 3;
-        const playerBegin = player.pos.y - player.height / 2;
+        const playerTop = player.pos.y - player.height / 2;
+        const relativeY = this.y - playerTop;
+        const hitPosition = relativeY / player.height;
 
-        // Distance of ball from top of paddle
-        const relativeY = this.y - playerBegin;
+        this.dirY = (hitPosition - 0.5) * 2;
 
-        if (relativeY < playerThird) {
-            this.dirY -= 0.3;
-            this.speed += 0.01;
-        } else if (relativeY > playerThird * 2) {
-            this.dirY += 0.3;
-            this.speed += 0.005;
-        } else {
-            if (!(this.speed - 0.005 < this.initSpeed))
-                this.speed -= 0.005;
-        }
-
-        if (this.vx < 0) {
-            this.x = player.pos.x + player.width / 2 + this.radius;
-        } else {
-            this.x = player.pos.x - player.width / 2 - this.radius;
-        }
-
-        // Inverse la direction si le joueur se déplace dans la même direction que la balle
-        if ((ballAboveCenter && playerMovingDown) || (!ballAboveCenter && playerMovingUp)) {
-            console.log("ball inverted");
-            this.dirX = -this.dirX;
-            this.dirY = -this.dirY;
-            this.speed += 0.001;
-        } else // Rebond normal
-            this.dirX = -this.dirX;
-
+        if (player.inputDown) this.dirY += 0.3;
+        else if (player.inputUp) this.dirY -= 0.3;
+        this.dirX = -this.dirX;
+        if (this.speed + 0.005 < this.maxSpeed) this.speed += 0.005;
         this.setDirectionVector();
     }
-
     isGoingRight() {
         return this.vx > 0;
     }
@@ -144,12 +119,12 @@ export class Ball {
         return Math.atan2(this.vy, this.vx) / DEG_TO_RAD;
     }
 
-    reset(lastGoal?: boolean[]) {
+    reset(lastWinner?: boolean[]) {
         this.x = 0;
         this.y = 0;
         this.speed = this.initSpeed;
 
-        if (lastGoal && lastGoal[0]) {
+        if (lastWinner && lastWinner[0]) {
             this.dirX = -1;
             this.dirY = randomNb(-0.3, 0.3);
             this.setDirectionVector();
@@ -180,6 +155,7 @@ export class Ball {
 
 export class Game extends EventEmitter {
     public players: Player[] = [];
+    private lastWinner: boolean[] = [];
     private ball = new Ball();
     public playersCount: number = 0;
 
@@ -222,9 +198,8 @@ export class Game extends EventEmitter {
                     return (this.checkScore());
             }
             const now = Date.now();
-            if (now - then < fps) {
+            if (now - then < fps)
                 await sleep(fps - (now - then));
-            }
             frame++;
             this.sendGameUpdate();
             then = Date.now();
@@ -245,18 +220,13 @@ export class Game extends EventEmitter {
     };
 
     private checkScore(): void {
-        const lastGoal: boolean[] = [];
-        console.log("BALL X Y: ", this.ball.x, " ", this.ball.y);
-
         if (this.ball.x < 0) {
             this.score[1] += 1;
-            lastGoal[1] = true;
-            console.log("PLAYER X Y: ", this.players[0].pos.x, this.players[0].pos.y);
+            this.lastWinner = [false, true];
         }
         else if (this.ball.x > 0) {
             this.score[0] += 1;
-            lastGoal[0] = true;
-            console.log("PLAYER X : ", this.players[1].pos.x, this.players[0].pos.y);
+            this.lastWinner = [true, false];
         }
 
         this.score.forEach(async score => {
@@ -276,8 +246,8 @@ export class Game extends EventEmitter {
         }, 1000);
     };
 
-    public initRound(lastGoal?: boolean[]): void {
-        this.ball.reset(lastGoal);
+    public initRound(): void {
+        this.ball.reset(this.lastWinner);
         this.initSizePos();
         this.sendGameUpdate();
         setTimeout(() => {
@@ -299,6 +269,8 @@ export class Game extends EventEmitter {
             this.score[0] = (this.cancellerID === this.players[1].ID) ? MAX_SCORE : this.score[0];
             this.score[1] = (this.cancellerID === this.players[0].ID) ? MAX_SCORE : this.score[1];
         }
+
+        await sleep(500);
 
         for (const player of this.players) {
 
@@ -465,7 +437,6 @@ export class TournamentLocal {
                 this.stageTwo.players.map(p => p.alias ?? "")
             );
         }
-        console.log("SCORE : ", this.stageOne[0].getScore());
     }
 }
 

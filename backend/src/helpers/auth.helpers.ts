@@ -92,7 +92,6 @@ export async function searchNewName(username: string) {
 	const now = Date.now();
 	const digits = now.toString().split('');
 	const len = digits.length;
-	console.log( now + " " + digits + " " + len);
 	
 	for (let i = 0; i < len; i++)
 	{
