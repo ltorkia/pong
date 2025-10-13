@@ -22,8 +22,7 @@ export class GameTournamentLocalOverview extends BasePage {
     private users: UserModel[] = [];
     private mobile: boolean = false;
     private matchListeners: Map<HTMLElement, { enter: (e: Event) => void, leave: (e: Event) => void }> = new Map();
-    private handlerNavigate: () => Promise<void> = () => Promise.resolve();
-    private redirectBtnListener: () => void = () => {}
+    private handlerNavigate: (() => Promise<void>) | null = null;
 
     // listener lorsque navigation, pour enlever le rotate et restart les differents styles
     constructor(config: RouteConfig, params?: RouteParams) {
@@ -177,7 +176,7 @@ export class GameTournamentLocalOverview extends BasePage {
             document.getElementById("player-two")!.textContent = `${nextGame?.players[1].alias}`;
             if (this.handlerNavigate)
                 document.getElementById("tournament-start-btn")!.removeEventListener("click", this.handlerNavigate);
-            this.handlerNavigate = async () => this.navigateHandler(nextGame);
+            this.handlerNavigate = () => this.navigateHandler(nextGame);
             document.getElementById("tournament-start-btn")!.addEventListener("click", this.handlerNavigate);
         }
         if (this.mobile) {
@@ -189,7 +188,7 @@ export class GameTournamentLocalOverview extends BasePage {
                 if (startBtn) {
                     if (this.handlerNavigate)
                         startBtn.removeEventListener("click", this.handlerNavigate);
-                    this.handlerNavigate = async () => this.navigateHandler(nextGame);
+                    this.handlerNavigate = () => this.navigateHandler(nextGame);
                     startBtn.addEventListener("click", this.handlerNavigate);
                 }
                 winnerContainer?.append(nextGameHTML);
@@ -197,7 +196,7 @@ export class GameTournamentLocalOverview extends BasePage {
         }
     }
 
-    private async navigateHandler(nextGame?: Game): Promise<void> {
+    private navigateHandler = async (nextGame?: Game): Promise<void> => {
         await router.navigate(`${ROUTE_PATHS.GAME_LOCAL}/${this.tournamentID}/${nextGame?.gameID}`);
     }
 
@@ -315,7 +314,6 @@ export class GameTournamentLocalOverview extends BasePage {
 
     protected async mount(): Promise<void> {
         await this.displayTournament();
-        // document.getElementById("app")!.classList.add("rotate-[-90deg]", "origin-center", "w-[100vh]", "h-[100vw]", "flex-row");
     }
 
     protected attachListeners(): void {
@@ -350,7 +348,7 @@ export class GameTournamentLocalOverview extends BasePage {
             document.getElementById("tournament-start-btn")!.removeEventListener("click", this.handlerNavigate);
     }
 
-    private redirectHandler = async () => {
+    private redirectHandler = async (): Promise<void> => {
         const matchMakingReq = new Blob([JSON.stringify({
             type: "tournament_clean_request",
             playerID: this.currentUser!.id,
@@ -361,13 +359,13 @@ export class GameTournamentLocalOverview extends BasePage {
         await router.navigate("/");
     }
 
-    private mouseEnterHandler = (tooltip: Element) => {
+    private mouseEnterHandler = (tooltip: Element): void => {
         tooltip!.classList.remove("opacity-0", "pointer-events-none");
         tooltip!.classList.add("opacity-100");
         tooltip?.querySelector("h2");
     }
 
-    private mouseLeaveHandler = (tooltip: Element) => {
+    private mouseLeaveHandler = (tooltip: Element): void => {
         tooltip?.classList.remove("opacity-100");
         tooltip?.classList.add("opacity-0", "pointer-events-none");
     }
