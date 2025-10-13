@@ -122,7 +122,6 @@ export class GameMenuTournamentLocal extends BasePage {
         startBtn!.classList.add(translateY);
         startBtn!.classList.remove("hover:-translate-y-1");
 
-        console.log(loginBox)
         setTimeout(() => {
             errorDiv.classList.add("animate__animated", "animate__fadeOut");
             setTimeout(() => {

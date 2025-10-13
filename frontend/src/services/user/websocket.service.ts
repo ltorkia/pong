@@ -147,7 +147,6 @@ export class WebSocketService {
 
 				// Ping (répondre avec un pong pour dire au serveur que la socket est vivante)
 				if (receivedData.type === 'ping-check') {
-					// console.log('Ping recu');
 					ws.send(JSON.stringify({ type: 'pong-check' }));
 					return;
 				}
@@ -156,7 +155,6 @@ export class WebSocketService {
 				if (Array.isArray(receivedData) && receivedData.every(isNotificationModel)) {
 					const data = receivedData as NotificationModel[];
 					const formatedData = AppNotification.fromJSONArray(data) as AppNotification[];
-					// console.log('Notification reçue:', formatedData);
 					await notifService.waitForUser();
 					await notifService.waitForNavbar();
 					await notifService.handleNotifications(formatedData);

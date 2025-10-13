@@ -12,8 +12,6 @@ export async function webSocketRoutes(app: FastifyInstance) {
         const userId = req.user.id;
         const tabID = req.query.tabID as string;
 
-        console.log(`OPENING WEBSOCKET for user ${userId}, tabID: ${tabID}`);
-
         if (!app.usersWS.has(userId))
             app.usersWS.set(userId, []);
 
@@ -86,7 +84,6 @@ export function attachWSHandler(userWS: UserWS, player?: Player, game?: Game, mo
                     break;
 
                 case "go":
-                    console.log("go received")
                     if (game && game.isPaused) {
                         game.isPaused = false;
                         game.initRound();

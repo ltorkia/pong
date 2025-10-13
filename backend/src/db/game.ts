@@ -33,7 +33,6 @@ export async function resultGame(gameId: number, winnerId: number, score: number
     const db = await getDb();
 
     const minScore = Math.min(score[0], score[1]);
-    console.log("resultGame,  score = ", score, " minScore = ", minScore);
     const status = isCancelled ? "cancelled" : "finished";
 
     await db.run(`

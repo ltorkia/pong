@@ -36,13 +36,10 @@ export class MultiPlayerGame {
     private playerID: number;
     public gameID: number;
     public gameStates: { states: GameData[], timestamps: number[] };
-    private targetTimeStamp: number = 0;
+    private endTargetTimeStamp: number = 0;
     public birds: Triangle[] = [];
     private gameLoopBind: any;
     private mobile: boolean;
-    private testStartTime = 0;
-    private stutterCount = 0;
-    private kindOfGame: string = "multi";
 
 
     constructor(playersCount: number, playerID: number, gameID: number, aliases: string[]) {
@@ -82,10 +79,9 @@ export class MultiPlayerGame {
     }
 
     protected attachListeners() {
-        if (this.mobile) 
+        if (this.mobile)
             this.gameCanvas.addEventListener("touchstart", this.handleTouchInput);
         else {
-            console.log("this no mobile");
             document.addEventListener("keydown", this.handleGameKeyDown);
             document.addEventListener("keyup", this.handleGameKeyUp);
         }
@@ -209,47 +205,53 @@ export class MultiPlayerGame {
 
             const now = performance.now();
             const targetTime = now - BUFFER_DELAY;
-            this.targetTimeStamp = getTargetTimestamp(this.gameStates.timestamps, targetTime);
+            this.endTargetTimeStamp = getTargetTimestamp(this.gameStates.timestamps, targetTime);
         }
     };
 
+    private endRound(): void {
+        if (!this.mobile) animateCSS(this.gameCanvas, "headShake");
+        this.goalScored = false;
+        const lastIndex = this.gameStates.states.length - 1;
+
+        this.ball.x = this.gameStates.states[lastIndex].ball.x;
+        this.ball.y = this.gameStates.states[lastIndex].ball.y;
+        this.players[0].x = this.gameStates.states[lastIndex].players[0].pos.x;
+        this.players[1].x = this.gameStates.states[lastIndex].players[1].pos.x;
+        this.players[0].y = this.gameStates.states[lastIndex].players[0].pos.y;
+        this.players[1].y = this.gameStates.states[lastIndex].players[1].pos.y;
+
+        setTimeout(() => {
+            this.gameStates.states = [];
+            this.gameStates.timestamps = [];
+            this.playerWebSocket.send(JSON.stringify({
+                type: "go",
+                playerID: this.playerID,
+                gameID: this.gameID,
+                tabID: webSocketService.getTabID()
+            }))
+        }, 500);
+    }
+
+    private getEndRoundGameStates() {
+        const target = this.endTargetTimeStamp;
+        const next = target + 1;
+
+        this.ball.x = lerp(this.gameStates.states[target].ball.x, this.gameStates.states[next].ball.x, 0.5);
+        this.ball.y = lerp(this.gameStates.states[target].ball.y, this.gameStates.states[next].ball.y, 0.5);
+        this.players[0].x = lerp(this.gameStates.states[target].players[0].pos.x, this.gameStates.states[next].players[0].pos.x, 0.5);
+        this.players[0].y = lerp(this.gameStates.states[target].players[0].pos.y, this.gameStates.states[next].players[0].pos.y, 0.5);
+        this.players[1].x = lerp(this.gameStates.states[target].players[1].pos.x, this.gameStates.states[next].players[1].pos.x, 0.5);
+        this.players[1].y = lerp(this.gameStates.states[target].players[1].pos.y, this.gameStates.states[next].players[1].pos.y, 0.5);
+        this.endTargetTimeStamp += 1;
+    }
+
     public setAllPositions(): void {
         if (this.goalScored) {
-            if (this.targetTimeStamp + 1 == this.gameStates.states.length) {
-                if (!this.mobile) animateCSS(this.gameCanvas, "headShake");
-                this.goalScored = false;
-                const lastIndex = this.gameStates.states.length - 1;
-
-                this.ball.x = this.gameStates.states[lastIndex].ball.x;
-                this.ball.y = this.gameStates.states[lastIndex].ball.y;
-                this.players[0].x = this.gameStates.states[lastIndex].players[0].pos.x;
-                this.players[1].x = this.gameStates.states[lastIndex].players[1].pos.x;
-                this.players[0].y = this.gameStates.states[lastIndex].players[0].pos.y;
-                this.players[1].y = this.gameStates.states[lastIndex].players[1].pos.y;
-
-                setTimeout(() => {
-                    this.gameStates.states = [];
-                    this.gameStates.timestamps = [];
-                    this.playerWebSocket.send(JSON.stringify({
-                        type: "go",
-                        playerID: this.playerID,
-                        gameID: this.gameID,
-                        tabID: webSocketService.getTabID()
-                    }))
-                }, 500);
-            } else {
-                const target = this.targetTimeStamp;
-                const next = target + 1;
-
-                this.ball.x = lerp(this.gameStates.states[target].ball.x, this.gameStates.states[next].ball.x, 0.5);
-                this.ball.y = lerp(this.gameStates.states[target].ball.y, this.gameStates.states[next].ball.y, 0.5);
-                this.players[0].x = lerp(this.gameStates.states[target].players[0].pos.x, this.gameStates.states[next].players[0].pos.x, 0.5);
-                this.players[0].y = lerp(this.gameStates.states[target].players[0].pos.y, this.gameStates.states[next].players[0].pos.y, 0.5);
-                this.players[1].x = lerp(this.gameStates.states[target].players[1].pos.x, this.gameStates.states[next].players[1].pos.x, 0.5);
-                this.players[1].y = lerp(this.gameStates.states[target].players[1].pos.y, this.gameStates.states[next].players[1].pos.y, 0.5);
-                this.targetTimeStamp += 1;
-            }
-
+            if (this.endTargetTimeStamp + 1 == this.gameStates.states.length)
+                this.endRound();
+            else
+                this.getEndRoundGameStates();
         }
         const now = performance.now();
         const targetTime = now - BUFFER_DELAY;
@@ -317,7 +319,7 @@ export class MultiPlayerGame {
             if (targetX) bird.target.x = targetX;
             if (targetY) bird.target.y = targetY;
             bird.update();
-            bird.draw("rgba(60, 255, 0, 1)");
+            bird.draw("rgba(0, 255, 0, 1)");
         })
         this.frameReq = requestAnimationFrame(this.gameLoopBind);
     };
@@ -330,9 +332,7 @@ export class MultiPlayerGame {
         this.gameCanvas.height = canvasW;
         this.gameCanvas.width = canvasH;
 
-        this.gameCanvas.classList.add(
-            "border-1", "border-black", "bg-black", "bg-opacity-70",
-        )
+        this.gameCanvas.classList.add("border-1", "border-black", "bg-black", "bg-opacity-70");
         this.gameCanvas.style.position = "absolute";
         this.gameCanvas.style.top = "-50";
         this.gameCanvas.style.left = "-50";
@@ -347,13 +347,12 @@ export class MultiPlayerGame {
         this.gameCanvas.width = parentContainer.getBoundingClientRect().width;
         this.gameCanvas.classList.add("border-1", "border-black", "bg-black", "bg-opacity-70")
         animateCSS(this.gameCanvas, "zoomIn");
-        // this.gameCanvas.style.imageRendering = "pixelated";
         parentContainer.append(this.gameCanvas);
     }
 
     public initBirds(): void {
         const allTriangles = [];
-        for (let i = 0; i < 400; i++) {
+        for (let i = 0; i < 200; i++) {
             const triangle = new Triangle(randomNb(1, this.gameCanvas.width), randomNb(1, this.gameCanvas.height), this.gameCanvas, this.canvasCtx);
             allTriangles.push(triangle);
         }

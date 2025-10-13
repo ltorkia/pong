@@ -90,7 +90,7 @@ export class Triangle {
     constructor(x: number, y: number, canvas: HTMLCanvasElement, canvasCtx: CanvasRenderingContext2D) {
         this.x = x;
         this.y = y;
-        this.R = (5 * .5) / Math.cos(Math.PI / 6);
+        this.R = (10 * .5) / Math.cos(Math.PI / 6);
         this.v1 = { x: 0, y: 0 };
         this.v2 = { x: 0, y: 0 };
         this.v3 = { x: 0, y: 0 };
@@ -125,11 +125,9 @@ export class Triangle {
         this.ctx.lineTo(this.v3.x, this.v3.y);
         this.ctx.lineTo(this.v1.x, this.v1.y);
         this.ctx.closePath();
-        this.ctx.strokeStyle = "black";
+        this.ctx.strokeStyle = color;
         this.ctx.lineWidth = 1;
         this.ctx.stroke();
-        this.ctx.fillStyle = color;
-        this.ctx.fill();
     };
 
     public rotateToTarget() {
