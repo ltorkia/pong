@@ -89,9 +89,8 @@ export async function gameRoutes(app: FastifyInstance) {
             if (matchMakingReq.data.inviteToClean)
                 await cleanInvite(app, playerID, matchMakingReq.data.inviterID, matchMakingReq.data.invitedID);
             const player = allPlayers.get(playerID)!.find(p => p.tabID === matchMakingReq.data.tabID);
-            if (player) {
+            if (player)
                 player.matchMaking = false;
-            }
             await stopGame(app, playerID, matchMakingReq.data.gameID);
             reply.code(200).send({ message: "Game cleaned up" });
         }
