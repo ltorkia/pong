@@ -19,6 +19,7 @@ export class GameMenuTournamentLocal extends BasePage {
     private dataApi = new DataService();
     private pastilleHTML: Node | undefined;
     private mobile: boolean = false;
+    private pastillesListeners: Map<HTMLElement, () => void> = new Map();
 
     constructor(config: RouteConfig) {
         super(config);
@@ -74,7 +75,12 @@ export class GameMenuTournamentLocal extends BasePage {
 
     // Listener du bouton remove
     private appendListenerPastille(pastille: HTMLElement, player: { alias: string, username?: string }): void {
-        pastille.querySelector(".tournament-cross")?.addEventListener("click", () => this.handleRemovePlayer(player.alias, pastille));
+        const delPasilleElm = pastille.querySelector(".tournament-cross") as HTMLElement;
+        if (!delPasilleElm)
+            return;
+        const listener = () => this.handleRemovePlayer(player.alias, pastille);
+        delPasilleElm.addEventListener("click", listener);
+        this.pastillesListeners.set(delPasilleElm, listener);
     }
 
     // Animation pour print une erreur, error etant une value des JSON translate (tournament.errors.${param})
@@ -303,16 +309,6 @@ export class GameMenuTournamentLocal extends BasePage {
     };
 
     protected attachListeners(): void {
-        this.addListeners();
-    }
-
-    protected removeListeners(): void {
-        this.delListeners();
-        const pastilles = document.querySelectorAll('.pastille');
-        pastilles.forEach(pastille => pastille.querySelector(".tournament-cross")?.removeEventListener("click", () => this.handleRemovePlayer("")));
-    }
-
-    private addListeners(): void {
         const prefix = this.mobile ? "mobile-" : "";
         const aliasInput = document.querySelector(`#${prefix}alias-name-input`) as HTMLInputElement;
         const usernameInput = document.querySelector(`#${prefix}username-input`)! as HTMLInputElement;
@@ -345,7 +341,7 @@ export class GameMenuTournamentLocal extends BasePage {
         this.removeListenersFlag = true;
     }
 
-    private delListeners(): void {
+    protected removeListeners(): void {
         const prefix = this.mobile ? "mobile-" : "";
         const aliasInput = document.querySelector(`#${prefix}alias-name-input`) as HTMLInputElement;
         const usernameInput = document.querySelector(`#${prefix}username-input`)! as HTMLInputElement;
@@ -375,5 +371,11 @@ export class GameMenuTournamentLocal extends BasePage {
                 box.removeEventListener("mouseleave", this.boxMouseLeaveHandler);
             }
         }
+
+        this.pastillesListeners.forEach((listener, element) => {
+            element.removeEventListener("click", listener);
+        });
+        this.pastillesListeners.clear();
+
     }
 }

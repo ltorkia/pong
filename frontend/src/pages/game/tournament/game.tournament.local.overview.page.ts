@@ -21,6 +21,9 @@ export class GameTournamentLocalOverview extends BasePage {
     private dataApi = new DataService();
     private users: UserModel[] = [];
     private mobile: boolean = false;
+    private matchListeners: Map<HTMLElement, { enter: (e: Event) => void, leave: (e: Event) => void }> = new Map();
+    private handlerNavigate: () => Promise<void> = () => Promise.resolve();
+    private redirectBtnListener: () => void = () => {}
 
     // listener lorsque navigation, pour enlever le rotate et restart les differents styles
     constructor(config: RouteConfig, params?: RouteParams) {
@@ -172,14 +175,23 @@ export class GameTournamentLocalOverview extends BasePage {
         if (nextGame) {
             document.getElementById("player-one")!.textContent = `${nextGame?.players[0].alias}`;
             document.getElementById("player-two")!.textContent = `${nextGame?.players[1].alias}`;
-            document.getElementById("tournament-start-btn")!.addEventListener("click", async () => this.navigateHandler(nextGame));
+            if (this.handlerNavigate)
+                document.getElementById("tournament-start-btn")!.removeEventListener("click", this.handlerNavigate);
+            this.handlerNavigate = async () => this.navigateHandler(nextGame);
+            document.getElementById("tournament-start-btn")!.addEventListener("click", this.handlerNavigate);
         }
         if (this.mobile) {
             const nextGameHTML = document.getElementById("next-game")?.cloneNode(true) as HTMLElement;
             const winnerContainer = document.getElementById("winner");
             if (nextGameHTML) {
                 nextGameHTML.classList.remove("max-lg:hidden");
-                document.getElementById("tournament-start-btn")!.addEventListener("click", async () => this.navigateHandler(nextGame));
+                const startBtn = nextGameHTML.querySelector("#tournament-start-btn") as HTMLElement;
+                if (startBtn) {
+                    if (this.handlerNavigate)
+                        startBtn.removeEventListener("click", this.handlerNavigate);
+                    this.handlerNavigate = async () => this.navigateHandler(nextGame);
+                    startBtn.addEventListener("click", this.handlerNavigate);
+                }
                 winnerContainer?.append(nextGameHTML);
             }
         }
@@ -310,35 +322,35 @@ export class GameTournamentLocalOverview extends BasePage {
         const allMatches = document.querySelectorAll("#match-container");
         const redirectBtn = document.getElementById("redirect-btn");
 
-        redirectBtn?.addEventListener("click", () => this.redirectHandler);
+        redirectBtn?.addEventListener("click", this.redirectHandler);
 
         for (const match of allMatches) {
             const tooltip = match.querySelector("#tooltip");
             if (tooltip) {
-                match.addEventListener("mouseenter", () => this.mouseEnterHandler(tooltip));
-                match.addEventListener("mouseleave", () => this.mouseLeaveHandler(tooltip))
+                const listenerEnter = () => this.mouseEnterHandler(tooltip);
+                const listenerLeave = () => this.mouseLeaveHandler(tooltip);
+                this.matchListeners.set(match as HTMLElement, { enter: listenerEnter, leave: listenerLeave });
+                match.addEventListener("mouseenter", listenerEnter);
+                match.addEventListener("mouseleave", listenerLeave)
             }
         }
     }
 
     protected removeListeners(): void {
-        const allMatches = document.querySelectorAll("#match-container");
         const redirectBtn = document.getElementById("redirect-btn");
+        redirectBtn?.removeEventListener("click", this.redirectHandler);
 
-        redirectBtn?.removeEventListener("click", () => this.redirectHandler);
+        this.matchListeners.forEach((value, key) => {
+            key.removeEventListener("mouseenter", value.enter);
+            key.removeEventListener("mouseleave", value.leave);
+        });
+        this.matchListeners.clear();
 
-        for (const match of allMatches) {
-            const tooltip = match.querySelector("#tooltip");
-            if (tooltip) {
-                match.removeEventListener("mouseenter", () => this.mouseEnterHandler(tooltip));
-                match.removeEventListener("mouseleave", () => this.mouseLeaveHandler(tooltip))
-            }
-        }
-        const nextGame = this.getNextGame();
-        document.getElementById("tournament-start-btn")!.removeEventListener("click", async () => this.navigateHandler(nextGame));
+        if (this.handlerNavigate)
+            document.getElementById("tournament-start-btn")!.removeEventListener("click", this.handlerNavigate);
     }
 
-    private async redirectHandler(): Promise<void> {
+    private redirectHandler = async () => {
         const matchMakingReq = new Blob([JSON.stringify({
             type: "tournament_clean_request",
             playerID: this.currentUser!.id,
@@ -349,13 +361,13 @@ export class GameTournamentLocalOverview extends BasePage {
         await router.navigate("/");
     }
 
-    private mouseEnterHandler(tooltip: Element): void {
+    private mouseEnterHandler = (tooltip: Element) => {
         tooltip!.classList.remove("opacity-0", "pointer-events-none");
         tooltip!.classList.add("opacity-100");
         tooltip?.querySelector("h2");
     }
 
-    private mouseLeaveHandler(tooltip: Element): void {
+    private mouseLeaveHandler = (tooltip: Element) => {
         tooltip?.classList.remove("opacity-100");
         tooltip?.classList.add("opacity-0", "pointer-events-none");
     }
