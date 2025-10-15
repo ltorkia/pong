@@ -4,7 +4,9 @@ import { Player } from '../shared/types/game.types';
 import { Game, TournamentLocal } from '../types/game.types';
 import { generateUniqueID } from '../shared/functions'
 import { createTournament } from '../db/game';
+import { updateCurrentTournament, getUser } from '../db/user';
 import { initPlayer } from './game.routes';
+import { JwtPayload } from '../types/user.types';
 
 export async function tournamentRoutes(app: FastifyInstance) {
 
@@ -48,7 +50,6 @@ export async function tournamentRoutes(app: FastifyInstance) {
 
     app.post("/new_tournament_local", async (request: FastifyRequest, reply: FastifyReply) => {
         const tournamentParse = TournamentLocalSchema.safeParse(request.body);
-
         const { allPlayers, allGames } = app.lobby;
 
         // Validation de donnees
@@ -77,8 +78,14 @@ export async function tournamentRoutes(app: FastifyInstance) {
             tournamentParse.data.masterPlayerID,
             tournamentID
         );
+
+        const jwtUser = request.user as JwtPayload;
+        await updateCurrentTournament(jwtUser.id, newTournament.ID);
+        const user = await getUser(jwtUser.id);
+
         app.lobby.allTournamentsLocal.push(newTournament);
         await newTournament.startTournament();
-        reply.code(200).send(newTournament.ID);
+
+        reply.code(200).send({user: user, tournamentID: newTournament.ID});
     });
 }

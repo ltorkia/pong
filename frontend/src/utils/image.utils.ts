@@ -43,6 +43,10 @@ export function isValidImage(avatarFile: File | null, fromRegisterForm: boolean 
  * @returns {Promise<boolean>} Une promesse qui se résout avec `true` si l'image existe, `false` sinon.
  */
 export async function checkImageExists(url: string): Promise<boolean> {
+	// const res = await fetch(url, { method: 'HEAD' });
+	// if (res.ok)
+	// 	return true;
+	// return false;
 	try {
 		const res = await fetch(url, { method: 'HEAD' });
 		return res.ok;

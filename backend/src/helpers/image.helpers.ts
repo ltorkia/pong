@@ -28,10 +28,8 @@ export async function bufferizeStream(stream: NodeJS.ReadableStream): Promise<Bu
  * @returns {Promise<AvatarResult>} Une promesse qui se résout avec un objet { success: boolean, errorMessage?: string, statusCode?: number }.
  * Si success est à false, un message d'erreur est fourni, ainsi qu'un code d'erreur HTTP.
  */
-// export async function GetAvatarFromBuffer(reply: FastifyReply, user: Partial<UserPassword>, avatarFile: MultipartFile, buffer: Buffer): Promise<AvatarResult> {
 export async function GetAvatarFromBuffer(reply: FastifyReply, user: Partial<UserPassword>, avatarFileType: string, buffer: Buffer): Promise<AvatarResult> {
 	try {
-		// const avatarType = avatarFile.mimetype as AvatarMimeType;
 		const avatarType = avatarFileType as AvatarMimeType;
 		if (!(avatarType in IMAGE_CONST.EXTENSIONS)){
 
@@ -41,17 +39,14 @@ export async function GetAvatarFromBuffer(reply: FastifyReply, user: Partial<Use
 				errorMessage: IMAGE_CONST.ERRORS.TYPE_ERROR,
 			});
 		}
-			// return { success: false, errorMessage: IMAGE_CONST.ERRORS.TYPE_ERROR, statusCode: 400 };
 		if (buffer.length > IMAGE_CONST.MAX_SIZE) {
 			return reply.status(400).send({
 				success: false,
 				statusCode: 400,
 				errorMessage: IMAGE_CONST.ERRORS.SIZE_LIMIT,
 			});
-			// return { success: false, errorMessage: IMAGE_CONST.ERRORS.SIZE_LIMIT, statusCode: 400 };
 		}
 
-		// const filename = (user.username! + IMAGE_CONST.EXTENSIONS[avatarType]).toLowerCase();
 		const filename = (user.id! + new Date().toISOString() + IMAGE_CONST.EXTENSIONS[avatarType]);
 		const resolvedPath = path.resolve(`.${IMAGE_CONST.ROUTE_API}`);
 		const filepath = path.join(resolvedPath, filename);

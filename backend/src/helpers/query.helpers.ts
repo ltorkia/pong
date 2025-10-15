@@ -21,12 +21,6 @@ export function sanitizeSearchTerm(term: unknown): string {
 	return term.trim().slice(0, 100);
 }
 
-// export function findPlayerWebSocket(id: number, app: FastifyInstance): WebSocket | undefined{
-// 	const user = app.usersWS.find((u: UserWS) => u.id == id);
-// 	if (user)
-// 		return user.WS;
-// }
-
 export function findPlayerWebSocket(id: number, app: FastifyInstance, tabID?: string): WebSocket | undefined {
     const userSockets = app.usersWS.get(id);
     if (!userSockets || userSockets.length === 0) 

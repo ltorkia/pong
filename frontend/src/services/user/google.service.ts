@@ -91,29 +91,37 @@ export class GoogleService {
 	 */
 	public cleanupGoogleSignIn(): void {
 		// Supprimer le conteneur du bouton Google
-		const container = getHTMLElementById('google-signin-container');
+		const container = document.getElementById('google-signin-container');
+		if (!container) 
+			return;
 		container.remove();
 		console.log(`[${this.constructor.name}] Conteneur Google Sign-In supprimé`);
 
 		// Supprimer le script Google
-		const script = getHTMLScriptElement('https://accounts.google.com/gsi/client');
+		const script = document.querySelector(`script[src="https://accounts.google.com/gsi/client"]`);
+		if (!script) 
+			return;
 		script.remove();
 		console.log(`[${this.constructor.name}] Script Google Sign-In supprimé`);
 
 		// Supprimer le lien CSS + styles ajoutés automatiquement par Google
-		const googleLink = getHTMLElementById('googleidentityservice');
+		const googleLink = document.getElementById('googleidentityservice');
+		if (!googleLink) 
+			return;
 		googleLink.remove();
 		console.log(`[${this.constructor.name}] Lien CSS Google Identity Service supprimé`);
-		const googleButtonStyles = getHTMLElementById('googleidentityservice_button_styles');
+		const googleButtonStyles = document.getElementById('googleidentityservice_button_styles');
+		if (!googleButtonStyles) 
+			return;
 		googleButtonStyles.remove();
 		console.log(`[${this.constructor.name}] Style CSS Google Button supprimé`);
 
 		// Supprimer le meta origin-trial ajouté automatiquement par Google dans le <head>
 		const originTrialMeta = document.querySelector('meta[http-equiv="origin-trial"]');
-		if (originTrialMeta) {
-			originTrialMeta.remove();
-			console.log(`[${this.constructor.name}] Meta origin-trial Google supprimé`);
-		}
+		if (!originTrialMeta) 
+			return;
+		originTrialMeta.remove();
+		console.log(`[${this.constructor.name}] Meta origin-trial Google supprimé`);
 	}
 
 	/**

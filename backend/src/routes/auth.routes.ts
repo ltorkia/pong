@@ -220,7 +220,6 @@ export async function authRoutes(app: FastifyInstance) {
         {
             if (!checkUser.code2FaQrcode)
                 return (reply.status(400).send({ message: "2FA option wrong" }));
-            // const check = speakeasy.totp.verify(checkUser.code2FaQrcode);
             const verified = speakeasy.totp.verify({
                 secret: checkUser.code2FaQrcode,         // clé enregistrée en base
                 encoding: 'base32',
@@ -273,6 +272,8 @@ export async function authRoutes(app: FastifyInstance) {
         // Si plus aucune socket pour ce user, on met offline
         if (!app.usersWS.get(jwtUser.id)?.length) {
             await setOnlineStatus(app, jwtUser.id, USER_ONLINE_STATUS.OFFLINE);
+            if (app.usersWS.has(jwtUser.id))
+                app.usersWS.delete(jwtUser.id);
         }
 
         return reply.status(200).send({

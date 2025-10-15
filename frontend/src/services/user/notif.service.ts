@@ -11,7 +11,7 @@ import { NotifResponse } from '../../shared/types/response.types';
 import { FRIEND_REQUEST_ACTIONS, FRIEND_NOTIF_CONTENT, EVENTS } from '../../shared/config/constants.config'; // en rouge car dossier local 'shared' != dossier conteneur
 import { isValidNotificationType, isFriendRequestAction, isUserOnlineStatus } from '../../shared/utils/app.utils';
 import { FriendRequestAction, NotificationModel, NotificationType } from '../../shared/types/notification.types';
-import { currentService, storageService, translateService, eventService, gameService, webSocketService, friendService, pageService } from '../index.service';
+import { currentService, storageService, translateService, eventService, gameService, webSocketService } from '../index.service';
 import { router } from '../../router/router';
 
 // ============================================================================
@@ -147,6 +147,7 @@ export class NotifService {
 		}
 		const index = this.notifs.findIndex((notif) => notif.id === id);
 		this.notifs[index] = updatedRes as AppNotification;
+		this.currentUser!.notifications = [...this.notifs];
 		storageService.setCurrentNotifs([...this.notifs]);
 	}
 
@@ -247,6 +248,7 @@ export class NotifService {
 		const notifIndex = this.notifs.findIndex((notif) => notif.id === this.currentNotif!.id);
 		if (notifIndex === -1) {
 			this.notifs.push(this.currentNotif!);
+			this.currentUser!.notifications = [...this.notifs];
 			storageService.setCurrentNotifs([...this.notifs]);
 			this.displayNotif();
 
@@ -285,6 +287,7 @@ export class NotifService {
 	private async setCurrentNotifs(): Promise<void> {
 		if (this.currentUser!.notifications.length > 0) {
 			this.notifs = this.currentUser!.notifications;
+			console.log('Notifications chargées:', this.notifs);
 			return;
 		}
 		const response = await notifApi.getUserNotifications();
@@ -304,6 +307,8 @@ export class NotifService {
 			this.notifs = [];
 			console.warn(result.errorMessage);
 		}
+
+		this.currentUser!.notifications = [...this.notifs];
 		storageService.setCurrentNotifs([...this.notifs]);
 		console.log('Notifications rechargées:', this.notifs);
 	}
@@ -360,6 +365,7 @@ export class NotifService {
 		}
 		await notifApi.deleteNotification(id);
 		this.notifs.splice(notifIndex, 1);
+		this.currentUser!.notifications = [...this.notifs];
 		storageService.setCurrentNotifs([...this.notifs]);
 		this.displayDefaultNotif();
 		this.removeListeners(id);

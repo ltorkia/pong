@@ -1,10 +1,10 @@
 import { UserModel } from '../../shared/types/user.types';
-import { TournamentLobbyUpdate, PlayerReadyUpdate, DismantleTournament, StartTournament } from "../../shared/types/websocket.types";
-import { Game, Tournament, TournamentLocal } from "../../types/game.types";
+import { Game, TournamentLocal } from "../../types/game.types";
+import { currentService } from '../../services/index.service';
 
 export class TournamentAPI {
 
-    public async postNewLocalTournament(newTournament: TournamentLocal): Promise<void> {
+    public async postNewLocalTournament(newTournament: TournamentLocal): Promise<number> {
         const res: Response = await fetch('/api/game/new_tournament_local', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -15,8 +15,9 @@ export class TournamentAPI {
             const error = await res.json();
             throw new Error(error.error);
         }
-        const tournamentID = await res.json();
-        return tournamentID;
+        const data = await res.json();
+        await currentService.updateCurrentUser(data.user);
+        return data.tournamentID;
     }
 
     public async fetchLocalTournamentGame(gameID: number): Promise<Game | undefined> {
@@ -50,7 +51,6 @@ export class TournamentAPI {
                 tournamentJSON?.stageTwo,
             );
         } else {
-            console.error("Tournament not found");
             return undefined;
         }
     }

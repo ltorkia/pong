@@ -62,7 +62,7 @@ export interface SafeUserModel {
 	notifications?: AppNotification[];
 	friendStatus?: FriendStatus | null;
 	alias?: string;
-	statusWin: 0 | 1 | null;
+	statusWin: 0 | 1 | null
 }
 
 /**

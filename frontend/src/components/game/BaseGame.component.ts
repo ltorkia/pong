@@ -220,10 +220,11 @@ export class MultiPlayerGame {
         this.players[1].x = this.gameStates.states[lastIndex].players[1].pos.x;
         this.players[0].y = this.gameStates.states[lastIndex].players[0].pos.y;
         this.players[1].y = this.gameStates.states[lastIndex].players[1].pos.y;
+        
+        this.gameStates.states = [];
+        this.gameStates.timestamps = [];
 
         setTimeout(() => {
-            this.gameStates.states = [];
-            this.gameStates.timestamps = [];
             this.playerWebSocket.send(JSON.stringify({
                 type: "go",
                 playerID: this.playerID,
@@ -272,7 +273,6 @@ export class MultiPlayerGame {
             this.players[1].y = lerp(this.gameStates.states[target].players[1].pos.y, this.gameStates.states[next].players[1].pos.y, t);
         } else {
             if (this.gameStates.states.length) {
-                console.log("not found");
                 const lastIndex = this.gameStates.states.length - 1;
 
                 this.ball.x = this.gameStates.states[lastIndex].ball.x;

@@ -2,7 +2,7 @@ import { routeGuard } from './route-guard';
 import { RouteHandler } from '../types/routes.types';
 import { normalizePath, matchRoute } from './router.helper';
 import { DEFAULT_ROUTE } from '../config/routes.config';
-import { TournamentService } from 'src/api/game/game.api';
+import { currentService } from '../services/index.service';
 
 // ===========================================
 // ROUTER
@@ -169,17 +169,6 @@ export class Router {
                 const redirected = await routeGuard.checkAuthRedirect(matchedRoute.route);
                 if (redirected) {
                     return;
-                }
-
-                // Redirection directement vers overview du tournoi si deja en cours
-                const tid = sessionStorage.getItem("tournamentID");
-                if (matchedRoute.route === "/game/tournament_local" && tid) {
-                    const newPath = `/game/tournament_local/${tid}`;
-
-                    if (window.location.pathname !== newPath) {
-                        window.history.pushState({}, '', newPath);
-                        return await this.handleLocation();
-                    }
                 }
 
                 console.log(`[${this.constructor.name}] Route trouvée pour ${path} (correspond à ${matchedRoute.route}), exécution...`);

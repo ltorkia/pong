@@ -4,7 +4,7 @@ import { StartGame } from '../shared/types/websocket.types'
 import { Game } from '../types/game.types';
 import { generateUniqueID } from '../shared/functions'
 import { MatchMakingReqSchema } from '../types/zod/game.zod';
-import { getUserStats } from '../db/user';
+import { getUserStats, updateCurrentTournament } from '../db/user';
 import { FRIEND_REQUEST_ACTIONS } from '../shared/config/constants.config';
 import { JwtPayload } from '../types/user.types';
 import { updateInvitePlayer, getRelation } from '../db/friend';
@@ -15,7 +15,7 @@ import { NotificationInput } from '../types/zod/app.zod';
 import { TournamentLocal } from '../types/game.types';
 import { getUserWS } from '../helpers/query.helpers';
 import { attachWSHandler } from '../routes/websocket.routes';
-import { Lobby } from '../types/game.types'
+import { Lobby } from '../types/game.types';
 
 export async function gameRoutes(app: FastifyInstance) {
     app.post('/playgame', async (request: FastifyRequest, reply: FastifyReply) => {
@@ -33,6 +33,7 @@ export async function gameRoutes(app: FastifyInstance) {
         if (playerID != jwtUser.id)
             return reply.status(403).send({ errorMessage: 'Forbidden' });
 
+        console.log("--------REQUEST", matchMakingReq.data);
         if (reqType === "matchmaking_request") {
             const newPlayer = initPlayer(allPlayers, playerID, matchMakingReq.data.tabID);
             newPlayer.matchMaking = true;
@@ -88,14 +89,14 @@ export async function gameRoutes(app: FastifyInstance) {
         else if (reqType === "clean_request") {
             if (matchMakingReq.data.inviteToClean)
                 await cleanInvite(app, playerID, matchMakingReq.data.inviterID, matchMakingReq.data.invitedID);
-            const player = allPlayers.get(playerID)!.find(p => p.tabID === matchMakingReq.data.tabID);
+            const player = allPlayers.get(playerID)?.find(p => p.tabID === matchMakingReq.data.tabID);
             if (player)
                 player.matchMaking = false;
             await stopGame(app, playerID, matchMakingReq.data.gameID);
             reply.code(200).send({ message: "Game cleaned up" });
         }
         else if (reqType === "tournament_clean_request") {
-            await cleanTournament(app.lobby, matchMakingReq.data.tournamentID!);
+            await cleanTournament(app.lobby, matchMakingReq.data.tournamentID!, playerID);
             reply.code(200).send({ message: "Tournament clean done" });
         }
     });
@@ -198,7 +199,7 @@ async function cleanInvite(app: FastifyInstance, playerID: number, inviterID?: n
     sendToSocket(app, [ notif ], notif.from);
 }
 
-async function cleanTournament(lobby: Lobby, tournamentID: number) {
+async function cleanTournament(lobby: Lobby, tournamentID: number, playerID: number) {
     const tournament = lobby.allTournamentsLocal.find((t: TournamentLocal) => t.ID === tournamentID);
     if (tournament) {
         const games = [tournament.stageOne[0], tournament.stageOne[1], tournament.stageTwo];
@@ -209,6 +210,8 @@ async function cleanTournament(lobby: Lobby, tournamentID: number) {
         const idx = lobby.allTournamentsLocal.indexOf(tournament);
         if (idx !== -1)
             lobby.allTournamentsLocal.splice(idx, 1);
+
+        await updateCurrentTournament(playerID, 0);
     }
 }
 

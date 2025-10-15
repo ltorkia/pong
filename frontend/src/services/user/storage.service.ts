@@ -80,6 +80,14 @@ export class StorageService {
 	public setCurrentNotifs(notifications: AppNotification[]) {
 		const rawData: NotificationModel[] = notifications.map(n => n.toJSON());
 		this.storedUser!.notifications = rawData as unknown as AppNotification[];
-		localStorage.setItem('notifs', JSON.stringify(rawData));
+		localStorage.setItem('currentUser', JSON.stringify(this.storedUser));
+	}
+
+	// -------------------------------
+	// CURRENT TOURNAMENT
+	// -------------------------------
+	public setCurrentTournamentID(tournamentID: number) {
+		this.storedUser!.tournament = tournamentID;
+		localStorage.setItem('currentUser', JSON.stringify(this.storedUser));
 	}
 }

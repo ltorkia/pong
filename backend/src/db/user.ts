@@ -336,3 +336,12 @@ export async function getUserTournaments(userId: number): Promise<TournamentMode
 	// Enfin, camelCase pour les tournois (sans toucher aux games déjà transformés)
 	return snakeArrayToCamel(tournaments) as TournamentModel[];
 }
+
+export async function updateCurrentTournament(userId: number, tournamentId: number) {
+	const db = await getDb();
+	await db.run(`
+		UPDATE User
+		SET tournament = ?
+		WHERE id = ?
+	`, [tournamentId, userId]);
+}

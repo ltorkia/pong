@@ -5,6 +5,7 @@ import { TournamentService } from '../../../api/game/game.api';
 import { router } from '../../../router/router';
 import { UserModel } from '../../../shared/types/user.types';
 import { DataService } from '../../../services/user/data.service';
+import { storageService } from '../../../services/index.service';
 import { Player } from '../../../shared/types/game.types';
 import { User } from '../../../shared/models/user.model';
 import { ROUTE_PATHS } from '../../../config/routes.config';
@@ -75,19 +76,18 @@ export class GameTournamentLocalOverview extends BasePage {
         if (!isPreRenderChecked)
             return false;
 
-        if (!this.tournamentID) {
+        if (!this.tournamentID || !this.currentUser!.tournament) {
             console.error("Tournament id undefined");
             this.redirectRoute = ROUTE_PATHS.GAME_TOURNAMENT_LOCAL_MENU;
-            if (sessionStorage.getItem("tournamentID"))
-                sessionStorage.removeItem("tournamentID");
+			this.currentUser!.tournament = 0;
+            storageService.setCurrentTournamentID(0);
             return false;
         }
         this.tournament = await TournamentService.fetchLocalTournament(this.tournamentID!);
         if (!this.tournament) {
-            console.error("Tournament not found");
             this.redirectRoute = ROUTE_PATHS.GAME_TOURNAMENT_LOCAL_MENU;
-            if (sessionStorage.getItem("tournamentID"))
-                sessionStorage.removeItem("tournamentID");
+			this.currentUser!.tournament = 0;
+            storageService.setCurrentTournamentID(0);
             return false;
         }
         return true;
@@ -344,8 +344,9 @@ export class GameTournamentLocalOverview extends BasePage {
         });
         this.matchListeners.clear();
 
-        if (this.handlerNavigate)
-            document.getElementById("tournament-start-btn")!.removeEventListener("click", this.handlerNavigate);
+        const tournamentStartBtn = document.getElementById("tournament-start-btn")!;
+        if (tournamentStartBtn && this.handlerNavigate)
+            tournamentStartBtn.removeEventListener("click", this.handlerNavigate);
     }
 
     private redirectHandler = async (): Promise<void> => {
@@ -355,7 +356,9 @@ export class GameTournamentLocalOverview extends BasePage {
             tournamentID: this.tournamentID,
         })], { type: 'application/json' });
         navigator.sendBeacon("/api/game/playgame", matchMakingReq);
-        sessionStorage.removeItem("tournamentID");
+
+		this.currentUser!.tournament = 0;
+        storageService.setCurrentTournamentID(0);
         await router.navigate("/");
     }
 

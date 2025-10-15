@@ -28,7 +28,7 @@ export default defineConfig(({ command: command }: { command: string }) => {
         },
         build: {
             outDir: 'dist',											// Répertoire de sortie
-            sourcemap: true,										// Génération de la carte des sources
+            sourcemap: false,										// Génération de la carte des sources
             base: isProduction ? './' : '/',						// Base URL pour les éléments de sortie
             minify: isProduction ? 'esbuild' : false,				// Minification des fichiers
             rollupOptions: {

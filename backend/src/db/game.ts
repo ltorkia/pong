@@ -59,6 +59,12 @@ export async function resultGame(gameId: number, winnerId: number, score: number
 
 }
 
+export async function getTournament(tournamentId: number) {
+    const db = await getDb();
+    const tournament = await db.get(`SELECT * FROM Tournament WHERE id = ?`, [tournamentId]);
+    return tournament;
+}
+
 // Crée un tournoi et retourne son id
 export async function createTournament(nParticipants: number, nRound: number): Promise<number | undefined> {
         const db = await getDb();

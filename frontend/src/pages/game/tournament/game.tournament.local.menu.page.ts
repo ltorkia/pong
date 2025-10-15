@@ -8,7 +8,7 @@ import { AuthResponse } from '../../../shared/types/response.types';
 import { UserModel } from '../../../shared/types/user.types';
 import { ROUTE_PATHS } from '../../../config/routes.config';
 import { animateCSS } from '../../../utils/animate.utils';
-import { translateService, webSocketService } from '../../../services/index.service';
+import { translateService, webSocketService, storageService } from '../../../services/index.service';
 import { Player } from '../../../shared/types/game.types';
 
 const MAX_PLAYERS = 4;
@@ -26,6 +26,26 @@ export class GameMenuTournamentLocal extends BasePage {
         this.pastilleHTML = document.createElement("div");
         if (window.innerWidth < 1024)
             this.mobile = true;
+    }
+
+    /**
+     * Procède aux vérifications nécessaires avant le montage de la page.
+     * Exécute les vérifications de base de la classe parente (`BasePage`).
+     *
+     * @returns {Promise<boolean>} Une promesse qui se résout lorsque les vérifications sont terminées.
+     */
+    protected async preRenderCheck(): Promise<boolean> {
+        const isPreRenderChecked = await super.preRenderCheck();
+        if (!isPreRenderChecked)
+            return false;
+
+        // Redirection directement vers overview du tournoi si deja en cours
+        const tid = this.currentUser!.tournament;
+        if (tid) {
+            this.redirectRoute = `${ROUTE_PATHS.GAME_TOURNAMENT_LOCAL_MENU}/${tid}`;
+            return false;
+        }
+        return true;
     }
 
     // Fetch HTML stocke localement a reutiliser pour display chaque joueur 
@@ -251,8 +271,7 @@ export class GameMenuTournamentLocal extends BasePage {
         const newTournament = new TournamentLocal(MAX_PLAYERS, undefined, this.currentUser!.id, players, webSocketService.getTabID()!);
         try {
             const tournamentID = await TournamentService.postNewLocalTournament(newTournament);
-            sessionStorage.setItem("tournamentID", `${tournamentID}`);
-            router.navigate(`${ROUTE_PATHS.GAME_TOURNAMENT_LOCAL_MENU}/${tournamentID}`);
+            await router.navigate(`${ROUTE_PATHS.GAME_TOURNAMENT_LOCAL_MENU}/${tournamentID}`);
         } catch (error: any) {
             this.printError(error.error);
         }
