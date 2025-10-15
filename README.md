@@ -1,69 +1,75 @@
-# 🏓 Pong Game - projet 42
+# 🏓 Pong Game - 42 Project
 
-## Architecture générale
+## General Architecture
 
-### Contraintes techniques
-- **Application mono-page (SPA)** : Navigation fluide avec support des boutons Précédent/Suivant du navigateur
-- **Containerisation Docker** : Application lancée avec une seule commande: `docker compose up --build`
+### Technical Constraints
+- **Single Page Application (SPA)**: Smooth navigation with full browser history support (Back/Forward buttons)
+- **Docker Containerization**: The application runs with a single command: `docker compose up --build`
 
 ### Technologies
-- **Frontend** : TypeScript + Tailwind CSS
-- **Backend** : Fastify avec Node.js
-- **Base de données** : SQLite
-- **Containerisation** : Docker
+- **Frontend**: TypeScript + Tailwind CSS  
+- **Backend**: Fastify with Node.js  
+- **Database**: SQLite  
+- **Containerization**: Docker  
 
-## Jeu Pong
+---
 
-### Fonctionnalités de jeu
-- **Jeu en direct** : Deux joueurs peuvent participer à une partie de Pong en direct sur le site web
-- **Contrôles partagés** : En mode local, les deux joueurs utilisent le même clavier
-- **Module remote Players** : Les deux joueurs peuvent jouer ensemble à distance, sur une machine différente
-- **Règle stricte** : Vitesse de raquette identique pour tous les joueurs
+## Pong Game
 
-### Système de tournoi complet en local
-- **Tournoi multi-joueurs** : Système permettant à plusieurs joueurs de jouer à tour de rôle les uns contre les autres
-- **Interface claire** : Affichage explicite de qui joue contre qui et dans quel ordre
-- **Système d'inscription de base** : 
-  - Chaque joueur doit saisir son alias au début du tournoi
-  - Un alias peut être lié à un compte
-- **Matchmaking automatique** : 
-  - Organisation automatique des participants
-  - Annonce du prochain match
-  - Gestion de l'ordre des parties
+### Gameplay Features
+- **Live Game**: Two players can compete in real-time Pong matches directly in the browser  
+- **Shared Controls**: In local mode, both players use the same keyboard  
+- **Remote Players Module**: Two players can play together remotely from different machines  
+- **Strict Rules**: Equal paddle speed for all players  
 
-### Sécurité
-- **Hashage des mots de passe** : Utilisation de brypt pour tous les mots de passe stockés
-- **Protection contre les attaques** : 
-  - Protection XSS (Cross-Site Scripting)
-  - Protection contre les injections SQL
-- **HTTPS universel** : 
-  - Connexion HTTPS
-  - Utilisation de `wss` pour les WebSockets
-- **Validation des entrées** : 
-  - Mécanismes de validation pour toutes les entrées utilisateur
-- **Gestion des credentials** : 
-  - Variables d'environnement, clés API, credentials dans fichiers `.env` local
-  - Fichiers `.env` ignorés par git
+### Full Local Tournament System
+- **Multi-Player Tournament**: A complete system allowing multiple players to compete in successive rounds  
+- **Clear Interface**: Visual display of who plays against whom and in what order  
+- **Basic Registration System**:  
+  - Each player must enter an alias before starting the tournament  
+  - An alias can be linked to a registered user account  
+- **Automatic Matchmaking**:  
+  - Automatic organization of participants  
+  - Announcement of the next match  
+  - Match order management  
 
-### Contraintes de développement strictes
-- **Interdiction** : Aucune librairie/outil fournissant une solution immédiate et complète pour une fonctionnalité ou module entier
-- **Autorisations limitées** : Petites librairies pour tâches simples et uniques représentant un sous-composant d'une fonctionnalité plus large
+### Security
+- **Password Hashing**: All stored passwords are hashed using bcrypt  
+- **Attack Protection**:  
+  - Protection against XSS (Cross-Site Scripting)  
+  - Protection against SQL injections  
+- **Universal HTTPS**:  
+  - All connections use HTTPS  
+  - WebSockets run over `wss`  
+- **Input Validation**:  
+  - Comprehensive validation for all user inputs  
+- **Credential Management**:  
+  - Environment variables, API keys, and credentials are stored in `.env` files  
+  - `.env` files are ignored by git  
 
-## Modules validés
+### Strict Development Rules
+- **Prohibited**: Any library or tool that provides a complete, ready-made solution for an entire feature or module  
+- **Allowed**: Small, lightweight libraries used only for specific, isolated sub-tasks within a larger feature  
 
-- **Backend avec Framework Fastify**
-- **Frontend avec Tailwind CSS et TypeScript**
-- **Base de données SQLite**
-- **Gestion utilisateur standard et authentification**
-- **Authentification à deux facteurs (2FA) et JWT**
-- **Authentification distante Google Sign-in**
-- **Implémentation du jeu server-side avec API**
-- **Joueurs distants**
-- **Support multi-appareils**
-- **Compatibilité navigateur étendue**
-- **Support multilingue**
+---
 
-## Structure du projet
+## Validated Modules
+
+- **Backend with Fastify Framework**  
+- **Frontend with Tailwind CSS and TypeScript**  
+- **SQLite Database**  
+- **Standard User Management and Authentication**  
+- **Two-Factor Authentication (2FA) and JWT**  
+- **Remote Authentication via Google Sign-in**  
+- **Server-side Game Implementation with API**  
+- **Remote Players Support**  
+- **Multi-device Compatibility**  
+- **Cross-browser Support**  
+- **Multilingual Support**  
+
+---
+
+## Project Structure
 
 <pre>
 .
@@ -124,5 +130,5 @@
 │   ├── types
 │   └── utils
 └── sync-env.sh
-
 </pre>
+
