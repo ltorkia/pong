@@ -132,3 +132,16 @@
 └── sync-env.sh
 </pre>
 
+---
+
+## Screenshots
+
+![login](./demo/login.webp)
+![home](./demo/home.webp)
+![userlist](./demo/userlist.webp)
+![profile](./demo/profile.webp)
+![settings](./demo/settings.webp)
+![game](./demo/game.webp)
+![tournament menu](./demo/tournament-menu.webp)
+![tournament overview](./demo/tournament-overview.webp)
+
