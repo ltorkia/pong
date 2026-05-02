@@ -185,9 +185,8 @@ fclean: down # Nettoyage profond: volumes, images et données persistantes local
 	@echo "\n${RED}• Nettoyage des données persistantes locales...${NC}"
 	rm -rf frontend/src/shared backend/src/shared
 	rm -rf frontend/node_modules backend/node_modules
-	rm -rf backend/data backend/dist nginx/dist .mode
-# 	sudo rm -rf backend/data backend/dist nginx/dist .mode
-	find backend/uploads/avatars/ -type f ! -name 'default.png' -delete
+	sudo rm -rf backend/data backend/dist nginx/dist .mode
+	sudo find backend/uploads/avatars/ -type f ! -name 'default.png' -delete
 
 prune: fclean # Nettoyage complet y compris le système Docker global
 	@echo "\n$(YELLOW)⚠️ Suppression complète de tous les éléments Docker non utilisés...${NC}"
